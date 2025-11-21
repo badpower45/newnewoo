@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Search, Menu, User, Heart, MapPin, Sparkles, X, ChevronLeft, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { NAV_ITEMS } from '../constants';
+import { Link } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeMegaMenu, setActiveMegaMenu] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const { totalItems, totalPrice } = useCart();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,32 +43,32 @@ export default function Header() {
       <div className="container mx-auto px-6 relative">
         <div className="flex items-center justify-between gap-8">
           {/* Logo - Aloush Style */}
-          <div className="flex items-center flex-shrink-0 group cursor-pointer">
+          <Link to="/" className="flex items-center flex-shrink-0 group cursor-pointer">
             <div className="w-10 h-10 bg-brand-brown rounded-full flex items-center justify-center ml-2 shadow-lg shadow-orange-200 group-hover:scale-105 transition-transform border-2 border-brand-orange">
               <span className="text-white font-bold text-xl">ع</span>
             </div>
             <div className="flex flex-col">
-                <span className="text-2xl font-extrabold tracking-tight text-brand-brown leading-none">علوش</span>
-                <span className="text-[10px] font-bold text-brand-orange tracking-widest uppercase">ماركت</span>
+              <span className="text-2xl font-extrabold tracking-tight text-brand-brown leading-none">علوش</span>
+              <span className="text-[10px] font-bold text-brand-orange tracking-widest uppercase">ماركت</span>
             </div>
-          </div>
+          </Link>
 
           {/* Desktop Navigation & Mega Menu Trigger */}
           <nav className="hidden lg:flex items-center space-x-8 space-x-reverse">
             {NAV_ITEMS.map((item) => (
-              <div 
-                key={item.label} 
+              <div
+                key={item.label}
                 className="relative group"
                 onMouseEnter={() => item.subCategories && setActiveMegaMenu(item.label)}
                 onMouseLeave={() => setActiveMegaMenu(null)}
               >
-                <a 
-                  href={item.href} 
+                <Link
+                  to={item.href.startsWith('#') ? '/' : item.href}
                   className="text-sm font-bold text-slate-700 hover:text-brand-orange flex items-center py-2 transition-colors"
                 >
                   {item.label}
-                </a>
-                
+                </Link>
+
                 {/* Mega Menu Dropdown */}
                 <AnimatePresence>
                   {activeMegaMenu === item.label && item.subCategories && (
@@ -82,9 +85,9 @@ export default function Header() {
                           <ul className="space-y-2">
                             {sub.items.map((link) => (
                               <li key={link}>
-                                <a href="#" className="text-slate-500 hover:text-brand-orange text-sm block hover:-translate-x-1 transition-transform duration-200 font-medium font-body">
+                                <Link to="/products" className="text-slate-500 hover:text-brand-orange text-sm block hover:-translate-x-1 transition-transform duration-200 font-medium font-body">
                                   {link}
-                                </a>
+                                </Link>
                               </li>
                             ))}
                           </ul>
@@ -111,7 +114,7 @@ export default function Header() {
           <div className="hidden md:flex flex-1 max-w-xl relative group font-body">
             <div className={`flex items-center w-full bg-slate-50 rounded-full px-4 py-2.5 transition-all duration-300 border-2 ${searchQuery ? 'border-brand-orange bg-white shadow-lg' : 'border-slate-200 group-hover:border-brand-orange/50 group-hover:bg-white'}`}>
               <Search className="text-slate-400 w-5 h-5 ml-3" />
-              <input 
+              <input
                 type="text"
                 placeholder="عايز تطبخ إيه النهاردة؟ رز، لحمة، زيت..."
                 className="bg-transparent border-none outline-none w-full text-sm text-slate-700 placeholder:text-slate-400 font-medium"
@@ -128,7 +131,7 @@ export default function Header() {
                 </div>
               )}
             </div>
-            
+
             {/* Search Suggestions */}
             <AnimatePresence>
               {searchQuery && (
@@ -162,14 +165,16 @@ export default function Header() {
               <Heart size={24} />
               {/* Badge */}
             </button>
-            <button className="relative text-brand-brown hover:text-brand-orange transition-colors flex items-center">
+            <Link to="/cart" className="relative text-brand-brown hover:text-brand-orange transition-colors flex items-center">
               <div className="relative">
                 <ShoppingCart size={24} />
-                <span className="absolute -top-1 -right-1 w-4 h-4 bg-brand-orange rounded-full text-[10px] flex items-center justify-center text-white font-bold border border-white">4</span>
+                {totalItems > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-brand-orange rounded-full text-[10px] flex items-center justify-center text-white font-bold border border-white">{totalItems}</span>
+                )}
               </div>
-              <span className="hidden xl:block mr-2 font-bold text-sm">240 ج.م</span>
-            </button>
-            <button 
+              <span className="hidden xl:block mr-2 font-bold text-sm">{totalPrice} ج.م</span>
+            </Link>
+            <button
               className="lg:hidden text-slate-700"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
@@ -178,17 +183,17 @@ export default function Header() {
           </div>
         </div>
       </div>
-      
+
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-         <div className="lg:hidden absolute top-full right-0 w-full bg-white border-t border-slate-100 shadow-xl p-4 flex flex-col space-y-4 h-screen z-40 font-header">
-            {NAV_ITEMS.map(item => (
-              <a key={item.label} href={item.href} className="text-lg font-medium text-brand-brown py-2 border-b border-slate-50 flex justify-between items-center">
-                {item.label}
-                <ChevronLeft size={16} className="text-brand-orange" />
-              </a>
-            ))}
-         </div>
+        <div className="lg:hidden absolute top-full right-0 w-full bg-white border-t border-slate-100 shadow-xl p-4 flex flex-col space-y-4 h-screen z-40 font-header">
+          {NAV_ITEMS.map(item => (
+            <Link key={item.label} to={item.href.startsWith('#') ? '/' : item.href} className="text-lg font-medium text-brand-brown py-2 border-b border-slate-50 flex justify-between items-center">
+              {item.label}
+              <ChevronLeft size={16} className="text-brand-orange" />
+            </Link>
+          ))}
+        </div>
       )}
     </header>
   );

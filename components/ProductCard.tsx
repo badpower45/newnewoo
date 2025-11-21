@@ -1,16 +1,19 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Plus, Star, Heart } from 'lucide-react';
 import { Product } from '../types';
+import { Link } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
 
 interface ProductCardProps {
   product: Product;
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+  const { addToCart } = useCart();
+
   return (
-    <motion.div 
+    <motion.div
       className="group relative bg-white rounded-2xl border border-slate-100 p-2 md:p-3 shadow-sm hover:shadow-xl hover:border-orange-100 transition-all duration-300 flex flex-col h-full"
       whileHover={{ y: -5 }}
     >
@@ -30,46 +33,49 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       </button>
 
       {/* Image Area */}
-      <div className="relative aspect-square overflow-hidden rounded-xl bg-white mb-2 md:mb-4">
-        <motion.img 
-          src={product.image} 
+      <Link to={`/product/${product.id}`} className="relative aspect-square overflow-hidden rounded-xl bg-white mb-2 md:mb-4 block">
+        <motion.img
+          src={product.image}
           alt={product.name}
           className="w-full h-full object-cover"
           whileHover={{ scale: 1.1 }}
           transition={{ duration: 0.4 }}
         />
-        
+
         {/* Quick Add Overlay Gradient */}
         <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-black/10 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-      </div>
+      </Link>
 
       {/* Content */}
       <div className="flex-1 flex flex-col text-right">
         <div className="flex justify-between items-start mb-1">
-            <p className="text-[10px] md:text-xs font-bold text-brand-orange/80 uppercase tracking-wider truncate ml-2">{product.category}</p>
-            <div className="flex items-center bg-slate-50 px-1.5 py-0.5 rounded-md shrink-0">
-                <span className="text-[10px] font-bold text-slate-700">{product.rating}</span>
-                <Star size={8} className="text-yellow-400 fill-yellow-400 ml-0.5" />
-            </div>
+          <p className="text-[10px] md:text-xs font-bold text-brand-orange/80 uppercase tracking-wider truncate ml-2">{product.category}</p>
+          <div className="flex items-center bg-slate-50 px-1.5 py-0.5 rounded-md shrink-0">
+            <span className="text-[10px] font-bold text-slate-700">{product.rating}</span>
+            <Star size={8} className="text-yellow-400 fill-yellow-400 ml-0.5" />
+          </div>
         </div>
-        
-        <h3 className="font-bold text-brand-brown text-xs md:text-sm leading-snug mb-1 md:mb-2 group-hover:text-brand-orange transition-colors line-clamp-2 min-h-[32px] md:min-h-[40px]">
+
+        <Link to={`/product/${product.id}`}>
+          <h3 className="font-bold text-brand-brown text-xs md:text-sm leading-snug mb-1 md:mb-2 group-hover:text-brand-orange transition-colors line-clamp-2 min-h-[32px] md:min-h-[40px]">
             {product.name}
-        </h3>
+          </h3>
+        </Link>
         <p className="text-[10px] md:text-xs text-slate-400 mb-2 md:mb-3 font-medium">{product.weight}</p>
-        
+
         <div className="mt-auto flex items-center justify-between pt-2 border-t border-slate-50">
           <div className="flex flex-col items-start">
             {product.originalPrice && (
-                <span className="text-[10px] text-slate-400 line-through">{product.originalPrice.toFixed(2)}</span>
+              <span className="text-[10px] text-slate-400 line-through">{product.originalPrice.toFixed(2)}</span>
             )}
             <div className="flex items-baseline">
               <span className="text-sm md:text-lg font-extrabold text-brand-orange ml-1">{product.price.toFixed(2)}</span>
               <span className="text-[10px] md:text-xs font-bold text-brand-orange">ج.م</span>
             </div>
           </div>
-          <motion.button 
+          <motion.button
             whileTap={{ scale: 0.9 }}
+            onClick={() => addToCart(product)}
             className="bg-brand-brown text-white p-1.5 md:p-2.5 rounded-lg md:rounded-xl hover:bg-brand-orange transition-colors shadow-md flex items-center justify-center group/btn"
           >
             <Plus size={16} className="md:w-5 md:h-5 group-hover/btn:rotate-90 transition-transform duration-300" />
