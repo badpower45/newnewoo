@@ -8,8 +8,8 @@ export interface CartItem extends Product {
 interface CartContextType {
   items: CartItem[];
   addToCart: (product: Product, quantity?: number) => void;
-  removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  removeFromCart: (productId: string | number) => void;
+  updateQuantity: (productId: string | number, quantity: number) => void;
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
@@ -20,8 +20,26 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const [items, setItems] = useState<CartItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('cart_items');
+      return saved ? JSON.parse(saved) : [];
+    } catch (error) {
+      console.error('Failed to load cart from storage', error);
+      return [];
+    }
+  });
+
   const [isCartOpen, setIsCartOpen] = useState(false);
+
+  // Save to localStorage whenever items change
+  React.useEffect(() => {
+    try {
+      localStorage.setItem('cart_items', JSON.stringify(items));
+    } catch (error) {
+      console.error('Failed to save cart to storage', error);
+    }
+  }, [items]);
 
   const addToCart = (product: Product, quantity = 1) => {
     setItems(prev => {
@@ -35,14 +53,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prev, { ...product, quantity }];
     });
-    setIsCartOpen(true); // Open cart when adding
+    setIsCartOpen(true);
   };
 
-  const removeFromCart = (productId: string) => {
+  const removeFromCart = (productId: string | number) => {
     setItems(prev => prev.filter(item => item.id !== productId));
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = (productId: string | number, quantity: number) => {
     if (quantity < 1) {
       removeFromCart(productId);
       return;

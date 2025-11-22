@@ -1,106 +1,90 @@
-import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { FRESH_PRODUCTS, PANTRY_PRODUCTS, SNACK_PRODUCTS } from '../constants';
-import { useCart } from '../context/CartContext';
-import { Star, Minus, Plus, ShoppingCart, ArrowRight } from 'lucide-react';
+import React from 'react';
+import { ChevronLeft, Heart, Share2, Star, Minus, Plus, ShoppingCart } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { PRODUCTS } from '../data/mockData';
 
-export default function ProductDetailsPage() {
-    const { id } = useParams<{ id: string }>();
-    const { addToCart } = useCart();
-    const [quantity, setQuantity] = useState(1);
-
-    const allProducts = [...FRESH_PRODUCTS, ...PANTRY_PRODUCTS, ...SNACK_PRODUCTS];
-    const product = allProducts.find(p => p.id === id);
-
-    if (!product) {
-        return (
-            <div className="container mx-auto px-4 py-20 text-center">
-                <h2 className="text-2xl font-bold text-slate-800 mb-4">المنتج غير موجود</h2>
-                <Link to="/products" className="text-brand-orange hover:underline">العودة للمنتجات</Link>
-            </div>
-        );
-    }
-
-    const handleAddToCart = () => {
-        addToCart(product, quantity);
-    };
+const ProductDetailsPage = () => {
+    const navigate = useNavigate();
+    const { id } = useParams();
+    const product = PRODUCTS.find(p => p.id === Number(id)) || PRODUCTS[0];
 
     return (
-        <div className="container mx-auto px-4 md:px-6 py-8">
-            <Link to="/products" className="inline-flex items-center text-slate-500 hover:text-brand-orange mb-6 transition-colors">
-                <ArrowRight size={16} className="ml-1" /> العودة للمنتجات
-            </Link>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
-                {/* Image Section */}
-                <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 flex items-center justify-center relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-tr from-orange-50 to-transparent opacity-50"></div>
-                    <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-full max-w-md object-contain drop-shadow-xl transform group-hover:scale-105 transition-transform duration-500"
-                    />
-                    {product.isOrganic && (
-                        <span className="absolute top-4 right-4 bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">أورجانيك</span>
-                    )}
+        <div className="bg-white min-h-screen pb-24 md:pb-8">
+            {/* Mobile Header */}
+            <div className="flex justify-between items-center p-4 sticky top-0 bg-white z-40 md:hidden">
+                <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-gray-800">
+                    <ChevronLeft size={28} />
+                </button>
+                <div className="flex space-x-2">
+                    <button className="p-2 text-gray-800">
+                        <Share2 size={24} />
+                    </button>
+                    <button className="p-2 text-gray-800">
+                        <Heart size={24} />
+                    </button>
                 </div>
+            </div>
 
-                {/* Details Section */}
-                <div className="space-y-6">
-                    <div>
-                        <div className="flex items-center gap-2 mb-2">
-                            <span className="text-xs font-bold text-brand-orange bg-orange-50 px-2 py-1 rounded">{product.category}</span>
-                            <div className="flex items-center text-yellow-400 text-sm">
+            <div className="max-w-7xl mx-auto md:py-12 md:px-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16">
+                    {/* Product Image */}
+                    <div className="w-full h-72 md:h-96 bg-gray-50 flex items-center justify-center p-8 rounded-3xl">
+                        <img
+                            src={product.image}
+                            alt={product.title}
+                            className="w-full h-full object-contain mix-blend-multiply"
+                        />
+                    </div>
+
+                    {/* Product Info */}
+                    <div className="px-4 md:px-0 flex flex-col justify-center">
+                        <div className="flex justify-between items-start mb-2">
+                            <h1 className="text-2xl md:text-4xl font-bold text-gray-900 leading-tight max-w-[80%]">{product.title}</h1>
+                            <div className="flex flex-col items-end md:hidden">
+                                <span className="text-2xl font-bold text-primary">{product.price.toFixed(2)}</span>
+                                <span className="text-sm text-gray-500">EGP</span>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center space-x-2 mb-6">
+                            <span className="bg-orange-100 text-orange-700 text-xs font-bold px-2 py-1 rounded-md">{product.weight}</span>
+                            <div className="flex items-center text-yellow-500">
                                 <Star size={14} fill="currentColor" />
-                                <span className="text-slate-600 mr-1 font-medium">{product.rating} ({product.reviews} تقييم)</span>
+                                <span className="text-xs text-gray-500 ml-1">4.8 (120 reviews)</span>
                             </div>
                         </div>
-                        <h1 className="text-3xl md:text-4xl font-extrabold text-brand-brown mb-2">{product.name}</h1>
-                        <p className="text-slate-500 text-lg">{product.weight}</p>
-                    </div>
 
-                    <div className="flex items-baseline gap-3">
-                        <span className="text-3xl font-bold text-brand-orange">{product.price} ج.م</span>
-                        {product.originalPrice && (
-                            <span className="text-lg text-slate-400 line-through decoration-red-400">{product.originalPrice} ج.م</span>
-                        )}
-                    </div>
+                        <p className="text-gray-600 text-sm md:text-base leading-relaxed mb-8">
+                            Enjoy the fresh taste of {product.title}. Premium quality, perfect for your daily needs.
+                            Sourced directly from the best suppliers to ensure freshness and taste.
+                        </p>
 
-                    <p className="text-slate-600 leading-relaxed">
-                        استمتع بأفضل جودة مع {product.name}. يتم اختياره بعناية لضمان الطعم الطازج والقيمة الغذائية العالية. مثالي لوجباتك اليومية ولعائلتك.
-                    </p>
+                        {/* Desktop Price */}
+                        <div className="hidden md:block mb-8">
+                            <span className="text-4xl font-bold text-primary">{product.price.toFixed(2)} <span className="text-lg text-gray-500 font-normal">EGP</span></span>
+                        </div>
 
-                    <div className="border-t border-b border-slate-100 py-6 space-y-6">
-                        <div className="flex items-center gap-4">
-                            <span className="font-bold text-slate-700">الكمية:</span>
-                            <div className="flex items-center bg-slate-50 rounded-full border border-slate-200 px-2">
-                                <button
-                                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                                    className="p-2 text-slate-500 hover:text-brand-orange transition-colors"
-                                >
-                                    <Minus size={18} />
+                        {/* Quantity & Add to Cart */}
+                        <div className="flex items-center space-x-4 mb-8">
+                            <div className="flex items-center bg-gray-100 rounded-xl p-1">
+                                <button className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center text-gray-600 hover:bg-white rounded-lg transition-colors">
+                                    <Minus size={20} />
                                 </button>
-                                <span className="w-8 text-center font-bold text-slate-800">{quantity}</span>
-                                <button
-                                    onClick={() => setQuantity(quantity + 1)}
-                                    className="p-2 text-slate-500 hover:text-brand-orange transition-colors"
-                                >
-                                    <Plus size={18} />
+                                <span className="w-12 text-center font-bold text-gray-900">1</span>
+                                <button className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center text-gray-600 hover:bg-white rounded-lg transition-colors">
+                                    <Plus size={20} />
                                 </button>
                             </div>
+                            <button className="flex-grow bg-primary text-white font-bold py-4 rounded-xl shadow-lg hover:bg-primary-dark transition-colors flex items-center justify-center space-x-2">
+                                <ShoppingCart size={20} />
+                                <span>Add to Cart</span>
+                            </button>
                         </div>
-                    </div>
-
-                    <div className="flex gap-4">
-                        <button
-                            onClick={handleAddToCart}
-                            className="flex-1 bg-brand-brown text-white font-bold py-4 rounded-xl hover:bg-brand-orange transition-colors shadow-lg shadow-orange-200 flex items-center justify-center gap-2"
-                        >
-                            <ShoppingCart size={20} /> أضف للسلة
-                        </button>
                     </div>
                 </div>
             </div>
         </div>
     );
-}
+};
+
+export default ProductDetailsPage;

@@ -1,90 +1,98 @@
-import React from 'react';
-import HeroBento from '../components/HeroBento';
+import React, { useState } from 'react';
+import TopBar from '../components/TopBar';
+import Banner from '../components/Banner';
+import CategoryCard from '../components/CategoryCard';
 import ProductCard from '../components/ProductCard';
-import PromoBanner from '../components/PromoBanner';
-import StickyPromoSection from '../components/StickyPromoSection';
-import ReelsSection from '../components/ReelsSection';
-import SectionHeader from '../components/SectionHeader';
-import { FRESH_PRODUCTS, PANTRY_PRODUCTS, SNACK_PRODUCTS, PROMO_BANNERS } from '../constants';
-import { Sparkles, Clock, SearchCheck } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import CategoryFilter from '../components/CategoryFilter';
+import SponsoredAds from '../components/SponsoredAds';
+import FlyerCarousel from '../components/FlyerCarousel';
+import { ChevronRight } from 'lucide-react';
+import { CATEGORIES, PRODUCTS, ALL_CATEGORIES, SPONSORED_ADS, FLYER_PAGES } from '../data/mockData';
 
-export default function HomePage() {
+const HomePage = () => {
+    const [activeCategory, setActiveCategory] = useState('All');
+    const filterCategories = ['All', 'Food', 'Vouchers', 'Beverages', 'Snacks', 'Dairy', 'Cleaning'];
+
     return (
-        <>
-            {/* Hero Section */}
-            <HeroBento />
+        <div className="bg-gray-50 min-h-screen pb-24 md:pb-8">
+            <TopBar />
 
-            {/* 1. Current Offers Section */}
-            <section className="container mx-auto px-4 md:px-6 pb-12">
-                <SectionHeader title="عروضنا الحالية 🚀" linkTo="/products" />
-                {/* Changed grid-cols-1 to grid-cols-2 for mobile, and reduced gap */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
-                    {FRESH_PRODUCTS.map((product) => (
-                        <ProductCard key={product.id} product={product} />
-                    ))}
-                </div>
-            </section>
-
-            {/* 2. Major Promo Banner - Ramadan (Themed) */}
-            <section className="container mx-auto px-4 md:px-6">
-                <PromoBanner
-                    title={PROMO_BANNERS.ramadan.title}
-                    subtitle={PROMO_BANNERS.ramadan.subtitle}
-                    image={PROMO_BANNERS.ramadan.image}
-                    cta={PROMO_BANNERS.ramadan.cta}
-                    color={PROMO_BANNERS.ramadan.color}
-                    height="large"
-                    theme="ramadan"
+            <div className="p-4 space-y-6 max-w-7xl mx-auto">
+                {/* Category Filter (Task Bar) */}
+                <CategoryFilter
+                    categories={filterCategories}
+                    activeCategory={activeCategory}
+                    onSelect={setActiveCategory}
                 />
-            </section>
 
-            {/* 3. Fire Offers Section */}
-            <section className="container mx-auto px-4 md:px-6 py-12 relative">
-                <div className="absolute inset-0 bg-gradient-to-b from-orange-50/50 to-transparent pointer-events-none"></div>
+                {/* Desktop Grid for Banners */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Login Banner */}
+                    <Banner type="login" />
+                    {/* Promo Banner */}
+                    <Banner type="promo" image="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=800&q=80" />
+                </div>
 
-                <div className="relative z-10">
-                    <SectionHeader title="العروض النار 🔥" linkTo="/products">
-                        <div className="hidden md:flex items-center gap-2 bg-red-100 text-red-600 px-3 py-1 rounded-lg border border-red-200">
-                            <Clock size={16} className="animate-pulse" />
-                            <span className="text-xs font-bold">لفترة محدودة جداً</span>
-                        </div>
-                    </SectionHeader>
+                {/* Sponsored Ads - Carousel Layout */}
+                <SponsoredAds ads={SPONSORED_ADS} layout="carousel" />
 
-                    {/* Changed grid-cols-1 to grid-cols-2 for mobile, and reduced gap */}
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
-                        {PANTRY_PRODUCTS.map((product) => (
-                            <ProductCard key={product.id} product={product} />
+                {/* Brand Banner */}
+                <div className="rounded-2xl overflow-hidden shadow-sm h-32 md:h-64">
+                    <img src="https://images.unsplash.com/photo-1599490659213-e2b9527bd087?auto=format&fit=crop&w=1200&q=80" alt="Chips" className="w-full h-full object-cover" />
+                </div>
+
+                {/* Weekly Flyer Magazine */}
+                <FlyerCarousel pages={FLYER_PAGES} />
+
+                {/* Sponsored Ads - Grid Layout (Scattered) */}
+                <SponsoredAds ads={SPONSORED_ADS.slice(0, 2)} layout="grid" />
+
+                {/* Special Categories */}
+                <div>
+                    <h3 className="text-lg font-bold text-gray-900 mb-3">Special Categories</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {CATEGORIES.map((cat, idx) => (
+                            <div key={idx} className={`flex items-center p-3 rounded-xl ${cat.color} space-x-3 hover:shadow-md transition-shadow cursor-pointer`}>
+                                <div className="w-10 h-10 bg-white/50 rounded-full flex items-center justify-center text-lg">
+                                    {cat.icon}
+                                </div>
+                                <span className="font-medium text-sm text-gray-800">{cat.name}</span>
+                            </div>
                         ))}
                     </div>
                 </div>
-            </section>
 
-            {/* 4. Sticky Promo Section (Redesigned) */}
-            <section className="container mx-auto px-4 md:px-6 py-4 md:py-8">
-                <StickyPromoSection />
-            </section>
+                {/* Products You Might Like */}
+                <div>
+                    <div className="flex justify-between items-center mb-3">
+                        <h3 className="text-lg font-bold text-gray-900">Products you might like</h3>
+                        <button className="text-sm text-gray-500 hover:text-primary flex items-center">
+                            View all <ChevronRight size={16} />
+                        </button>
+                    </div>
 
-            {/* 5. Snacks & Beverages (Renamed & Refreshed) */}
-            <section className="container mx-auto px-4 md:px-6 py-4 md:py-8 mb-12">
-                <SectionHeader title="بتدور عليه؟ أكيد عندنا 😉" linkText="كل المنتجات" linkTo="/products">
-                    <SearchCheck size={24} className="text-brand-orange hidden md:block" />
-                </SectionHeader>
-                {/* Changed grid-cols-1 to grid-cols-2 for mobile, and reduced gap */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
-                    {SNACK_PRODUCTS.map((product) => (
-                        <ProductCard key={product.id} product={product} />
-                    ))}
+                    {/* Mobile: Horizontal Scroll, Desktop: Grid */}
+                    <div className="flex space-x-4 overflow-x-auto pb-4 no-scrollbar -mx-4 px-4 md:grid md:grid-cols-4 md:space-x-0 md:gap-4 md:mx-0 md:px-0">
+                        {PRODUCTS.map((product) => (
+                            <div key={product.id} className="w-40 flex-shrink-0 md:w-auto">
+                                <ProductCard {...product} />
+                            </div>
+                        ))}
+                    </div>
                 </div>
-                <div className="mt-12 flex justify-center">
-                    <Link to="/products" className="px-8 md:px-10 py-3 md:py-4 bg-white border border-slate-200 rounded-full text-brand-brown font-bold hover:bg-brand-brown hover:text-white hover:border-brand-brown transition-all shadow-md flex items-center gap-2 text-sm md:text-lg group">
-                        <Sparkles size={18} className="text-brand-orange group-hover:text-white transition-colors" /> عرض منتجات أكتر
-                    </Link>
-                </div>
-            </section>
 
-            {/* Reels Section (Replaces App Download) */}
-            <ReelsSection />
-        </>
+                {/* Categories Grid Preview */}
+                <div>
+                    <h3 className="text-lg font-bold text-gray-900 mb-3">Categories</h3>
+                    <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+                        {ALL_CATEGORIES.slice(0, 12).map((cat, idx) => (
+                            <CategoryCard key={idx} name={cat} bgColor="bg-white" />
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </div>
     );
-}
+};
+
+export default HomePage;

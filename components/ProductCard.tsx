@@ -1,88 +1,84 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { Plus, Star, Heart } from 'lucide-react';
-import { Product } from '../types';
-import { Link } from 'react-router-dom';
+import { Plus, Heart } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 
 interface ProductCardProps {
-  product: Product;
+  id: number | string;
+  title: string;
+  weight?: string;
+  price: number;
+  image?: string;
+  variant?: 'vertical' | 'horizontal';
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ id, title, weight, price, image, variant = 'vertical' }) => {
+  const navigate = useNavigate();
   const { addToCart } = useCart();
 
-  return (
-    <motion.div
-      className="group relative bg-white rounded-2xl border border-slate-100 p-2 md:p-3 shadow-sm hover:shadow-xl hover:border-orange-100 transition-all duration-300 flex flex-col h-full"
-      whileHover={{ y: -5 }}
-    >
-      {/* Badges - RTL positioned (Right side visually) */}
-      <div className="absolute top-2 md:top-4 right-2 md:right-4 z-20 flex flex-col gap-2 items-end">
-        {product.isOrganic && (
-          <span className="bg-green-100 text-green-700 text-[8px] md:text-[10px] font-bold px-1.5 py-0.5 md:px-2 md:py-1 rounded-md uppercase tracking-wide shadow-sm">أورجانيك</span>
-        )}
-        {product.isNew && (
-          <span className="bg-brand-orange text-white text-[8px] md:text-[10px] font-bold px-1.5 py-0.5 md:px-2 md:py-1 rounded-md uppercase tracking-wide shadow-sm">جديد</span>
-        )}
-      </div>
+  const handleCardClick = () => {
+    navigate(`/product/${id}`);
+  };
 
-      {/* Wishlist Button - Left side visually in RTL */}
-      <button className="absolute top-2 md:top-4 left-2 md:left-4 z-20 p-1.5 md:p-2 bg-white/80 backdrop-blur-sm rounded-full shadow-sm text-slate-400 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 duration-300 hidden md:block">
-        <Heart size={16} />
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    addToCart({ id, title, price, image: image || '', category: 'General' }); // Ensure all required fields are passed
+  };
+
+  if (variant === 'horizontal') {
+    return (
+      <div
+        onClick={handleCardClick}
+        className="flex items-center p-3 bg-white rounded-xl shadow-sm border border-gray-50 space-x-3 cursor-pointer hover:shadow-md transition-shadow"
+      >
+        <div className="w-20 h-20 flex-shrink-0 bg-gray-50 rounded-lg p-2">
+          <img src={image || "https://placehold.co/100x100?text=Product"} alt={title} className="w-full h-full object-contain mix-blend-multiply" />
+        </div>
+        <div className="flex-grow">
+          <h4 className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">{title}</h4>
+          {weight && <p className="text-xs text-gray-500 mb-2">{weight}</p>}
+          <div className="flex justify-between items-center">
+            <span className="font-bold text-gray-900">{price.toFixed(2)} EGP</span>
+            <button
+              onClick={handleAddToCart}
+              className="bg-primary text-white p-1.5 rounded-full shadow-sm hover:bg-primary-dark transition-colors"
+            >
+              <Plus size={16} />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      onClick={handleCardClick}
+      className="bg-white p-3 rounded-2xl shadow-sm border border-gray-50 flex flex-col relative h-full cursor-pointer hover:shadow-md transition-shadow"
+    >
+      <button className="absolute top-3 right-3 text-gray-400 hover:text-red-500 z-10">
+        <Heart size={18} />
       </button>
 
-      {/* Image Area */}
-      <Link to={`/product/${product.id}`} className="relative aspect-square overflow-hidden rounded-xl bg-white mb-2 md:mb-4 block">
-        <motion.img
-          src={product.image}
-          alt={product.name}
-          className="w-full h-full object-cover"
-          whileHover={{ scale: 1.1 }}
-          transition={{ duration: 0.4 }}
-        />
+      <div className="w-full h-32 bg-gray-50 rounded-xl mb-3 p-4 flex items-center justify-center">
+        <img src={image || "https://placehold.co/150x150?text=Product"} alt={title} className="w-full h-full object-contain mix-blend-multiply" />
+      </div>
 
-        {/* Quick Add Overlay Gradient */}
-        <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-black/10 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-      </Link>
+      <div className="flex-grow flex flex-col">
+        {weight && <p className="text-xs text-gray-500 mb-1">{weight}</p>}
+        <h4 className="text-sm font-medium text-gray-900 line-clamp-2 mb-2 flex-grow">{title}</h4>
 
-      {/* Content */}
-      <div className="flex-1 flex flex-col text-right">
-        <div className="flex justify-between items-start mb-1">
-          <p className="text-[10px] md:text-xs font-bold text-brand-orange/80 uppercase tracking-wider truncate ml-2">{product.category}</p>
-          <div className="flex items-center bg-slate-50 px-1.5 py-0.5 rounded-md shrink-0">
-            <span className="text-[10px] font-bold text-slate-700">{product.rating}</span>
-            <Star size={8} className="text-yellow-400 fill-yellow-400 ml-0.5" />
-          </div>
-        </div>
-
-        <Link to={`/product/${product.id}`}>
-          <h3 className="font-bold text-brand-brown text-xs md:text-sm leading-snug mb-1 md:mb-2 group-hover:text-brand-orange transition-colors line-clamp-2 min-h-[32px] md:min-h-[40px]">
-            {product.name}
-          </h3>
-        </Link>
-        <p className="text-[10px] md:text-xs text-slate-400 mb-2 md:mb-3 font-medium">{product.weight}</p>
-
-        <div className="mt-auto flex items-center justify-between pt-2 border-t border-slate-50">
-          <div className="flex flex-col items-start">
-            {product.originalPrice && (
-              <span className="text-[10px] text-slate-400 line-through">{product.originalPrice.toFixed(2)}</span>
-            )}
-            <div className="flex items-baseline">
-              <span className="text-sm md:text-lg font-extrabold text-brand-orange ml-1">{product.price.toFixed(2)}</span>
-              <span className="text-[10px] md:text-xs font-bold text-brand-orange">ج.م</span>
-            </div>
-          </div>
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={() => addToCart(product)}
-            className="bg-brand-brown text-white p-1.5 md:p-2.5 rounded-lg md:rounded-xl hover:bg-brand-orange transition-colors shadow-md flex items-center justify-center group/btn"
+        <div className="flex justify-between items-end mt-auto">
+          <span className="font-bold text-lg text-gray-900">{price.toFixed(2)} <span className="text-xs font-normal text-gray-500">EGP</span></span>
+          <button
+            onClick={handleAddToCart}
+            className="bg-primary text-white w-8 h-8 rounded-full flex items-center justify-center shadow-sm hover:bg-primary-dark transition-colors z-10"
           >
-            <Plus size={16} className="md:w-5 md:h-5 group-hover/btn:rotate-90 transition-transform duration-300" />
-          </motion.button>
+            <Plus size={20} />
+          </button>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
