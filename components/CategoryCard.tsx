@@ -13,7 +13,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({ name, image, bgColor = 'bg-
 
     return (
         <div
-            onClick={() => navigate('/categories')}
+            onClick={() => navigate('/products')}
             className={`flex flex-col items-center justify-center p-3 rounded-2xl ${bgColor} h-28 w-full cursor-pointer hover:opacity-90 transition-opacity hover:shadow-md`}
         >
             <div className="w-12 h-12 mb-2">

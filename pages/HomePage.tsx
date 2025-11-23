@@ -7,11 +7,22 @@ import CategoryFilter from '../components/CategoryFilter';
 import SponsoredAds from '../components/SponsoredAds';
 import FlyerCarousel from '../components/FlyerCarousel';
 import { ChevronRight } from 'lucide-react';
-import { CATEGORIES, PRODUCTS, ALL_CATEGORIES, SPONSORED_ADS, FLYER_PAGES } from '../data/mockData';
+import { CATEGORIES, ALL_CATEGORIES, SPONSORED_ADS, FLYER_PAGES } from '../data/mockData';
+import { api } from '../services/api';
+import { Product } from '../types';
 
 const HomePage = () => {
     const [activeCategory, setActiveCategory] = useState('All');
+    const [products, setProducts] = useState<Product[]>([]);
     const filterCategories = ['All', 'Food', 'Vouchers', 'Beverages', 'Snacks', 'Dairy', 'Cleaning'];
+
+    React.useEffect(() => {
+        api.products.getAll().then(data => {
+            if (data.data) {
+                setProducts(data.data);
+            }
+        }).catch(err => console.error("Failed to fetch products", err));
+    }, []);
 
     return (
         <div className="bg-gray-50 min-h-screen pb-24 md:pb-8">
@@ -73,7 +84,7 @@ const HomePage = () => {
 
                     {/* Mobile: Horizontal Scroll, Desktop: Grid */}
                     <div className="flex space-x-4 overflow-x-auto pb-4 no-scrollbar -mx-4 px-4 md:grid md:grid-cols-4 md:space-x-0 md:gap-4 md:mx-0 md:px-0">
-                        {PRODUCTS.map((product) => (
+                        {products.map((product) => (
                             <div key={product.id} className="w-40 flex-shrink-0 md:w-auto">
                                 <ProductCard {...product} />
                             </div>

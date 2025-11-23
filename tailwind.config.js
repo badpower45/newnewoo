@@ -18,6 +18,10 @@ export default {
                 secondary: {
                     DEFAULT: '#F57C00', // Orange 700 - Accents (Buttons etc)
                 },
+                brand: {
+                    brown: '#3E2723', // Dark Brown for text/headings
+                    orange: '#F57C00', // Orange for accents
+                },
                 dark: {
                     DEFAULT: '#1F2937', // Gray 800
                     light: '#4B5563',   // Gray 600

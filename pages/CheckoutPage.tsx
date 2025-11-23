@@ -3,14 +3,34 @@ import { useCart } from '../context/CartContext';
 import { CheckCircle, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
+import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
+
 export default function CheckoutPage() {
     const { items, totalPrice, clearCart } = useCart();
+    const { user } = useAuth();
     const [isSubmitted, setIsSubmitted] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsSubmitted(true);
-        clearCart();
+        if (user) {
+            try {
+                await api.orders.create({
+                    userId: user.id,
+                    total: totalPrice,
+                    items: items
+                });
+                setIsSubmitted(true);
+                clearCart();
+            } catch (err) {
+                console.error("Failed to create order", err);
+                alert("Failed to place order. Please try again.");
+            }
+        } else {
+            // Handle guest checkout or prompt login
+            alert("Please login to place an order.");
+            // For now, maybe just simulate success or redirect
+        }
     };
 
     if (isSubmitted) {

@@ -1,12 +1,36 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ChevronLeft, Heart, Share2, Star, Minus, Plus, ShoppingCart } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { PRODUCTS } from '../data/mockData';
+import { api } from '../services/api';
+import { Product } from '../types';
+import { useCart } from '../context/CartContext';
 
 const ProductDetailsPage = () => {
     const navigate = useNavigate();
     const { id } = useParams();
-    const product = PRODUCTS.find(p => p.id === Number(id)) || PRODUCTS[0];
+    const [product, setProduct] = useState<Product | null>(null);
+    const { addToCart } = useCart();
+    const [quantity, setQuantity] = useState(1);
+
+    React.useEffect(() => {
+        if (id) {
+            api.products.getOne(id).then(data => {
+                if (data.data) {
+                    setProduct(data.data);
+                }
+            }).catch(err => console.error(err));
+        }
+    }, [id]);
+
+    if (!product) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+
+    const handleIncrement = () => setQuantity(q => q + 1);
+    const handleDecrement = () => setQuantity(q => (q > 1 ? q - 1 : 1));
+
+    const handleAddToCart = () => {
+        addToCart(product, quantity);
+        // Optional: Show feedback
+    };
 
     return (
         <div className="bg-white min-h-screen pb-24 md:pb-8">
@@ -31,7 +55,7 @@ const ProductDetailsPage = () => {
                     <div className="w-full h-72 md:h-96 bg-gray-50 flex items-center justify-center p-8 rounded-3xl">
                         <img
                             src={product.image}
-                            alt={product.title}
+                            alt={product.name}
                             className="w-full h-full object-contain mix-blend-multiply"
                         />
                     </div>
@@ -39,7 +63,7 @@ const ProductDetailsPage = () => {
                     {/* Product Info */}
                     <div className="px-4 md:px-0 flex flex-col justify-center">
                         <div className="flex justify-between items-start mb-2">
-                            <h1 className="text-2xl md:text-4xl font-bold text-gray-900 leading-tight max-w-[80%]">{product.title}</h1>
+                            <h1 className="text-2xl md:text-4xl font-bold text-gray-900 leading-tight max-w-[80%]">{product.name}</h1>
                             <div className="flex flex-col items-end md:hidden">
                                 <span className="text-2xl font-bold text-primary">{product.price.toFixed(2)}</span>
                                 <span className="text-sm text-gray-500">EGP</span>
@@ -55,7 +79,7 @@ const ProductDetailsPage = () => {
                         </div>
 
                         <p className="text-gray-600 text-sm md:text-base leading-relaxed mb-8">
-                            Enjoy the fresh taste of {product.title}. Premium quality, perfect for your daily needs.
+                            Enjoy the fresh taste of {product.name}. Premium quality, perfect for your daily needs.
                             Sourced directly from the best suppliers to ensure freshness and taste.
                         </p>
 
@@ -67,15 +91,24 @@ const ProductDetailsPage = () => {
                         {/* Quantity & Add to Cart */}
                         <div className="flex items-center space-x-4 mb-8">
                             <div className="flex items-center bg-gray-100 rounded-xl p-1">
-                                <button className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center text-gray-600 hover:bg-white rounded-lg transition-colors">
+                                <button
+                                    onClick={handleDecrement}
+                                    className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center text-gray-600 hover:bg-white rounded-lg transition-colors"
+                                >
                                     <Minus size={20} />
                                 </button>
-                                <span className="w-12 text-center font-bold text-gray-900">1</span>
-                                <button className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center text-gray-600 hover:bg-white rounded-lg transition-colors">
+                                <span className="w-12 text-center font-bold text-gray-900">{quantity}</span>
+                                <button
+                                    onClick={handleIncrement}
+                                    className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center text-gray-600 hover:bg-white rounded-lg transition-colors"
+                                >
                                     <Plus size={20} />
                                 </button>
                             </div>
-                            <button className="flex-grow bg-primary text-white font-bold py-4 rounded-xl shadow-lg hover:bg-primary-dark transition-colors flex items-center justify-center space-x-2">
+                            <button
+                                onClick={handleAddToCart}
+                                className="flex-grow bg-primary text-gray-900 font-bold py-4 rounded-xl shadow-lg hover:bg-primary-dark transition-colors flex items-center justify-center space-x-2"
+                            >
                                 <ShoppingCart size={20} />
                                 <span>Add to Cart</span>
                             </button>

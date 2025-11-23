@@ -1,11 +1,20 @@
 import React from 'react';
 import SidebarFilter from '../components/SidebarFilter';
 import ProductCard from '../components/ProductCard';
-import { FRESH_PRODUCTS, PANTRY_PRODUCTS, SNACK_PRODUCTS } from '../constants';
 import { Filter } from 'lucide-react';
+import { api } from '../services/api';
+import { Product } from '../types';
 
 export default function ProductsPage() {
-    const allProducts = [...FRESH_PRODUCTS, ...PANTRY_PRODUCTS, ...SNACK_PRODUCTS];
+    const [allProducts, setAllProducts] = React.useState<Product[]>([]);
+
+    React.useEffect(() => {
+        api.products.getAll().then(data => {
+            if (data.data) {
+                setAllProducts(data.data);
+            }
+        }).catch(err => console.error(err));
+    }, []);
 
     return (
         <div className="container mx-auto px-4 md:px-6 py-8">

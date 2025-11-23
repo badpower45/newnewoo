@@ -1,13 +1,52 @@
 import React from 'react';
-import { ChevronLeft, ShoppingCart } from 'lucide-react';
+import { ChevronLeft, ShoppingCart, Trash2, Plus, Minus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useCart } from '../context/CartContext';
 
 const CartPage = () => {
     const navigate = useNavigate();
-    const cartItems = []; // Assume empty for now to match screenshot
+    const { items, removeFromCart, updateQuantity, totalPrice } = useCart();
+
+    if (items.length === 0) {
+        return (
+            <div className="bg-white min-h-screen pb-24 md:pb-8 flex flex-col">
+                {/* Header */}
+                <div className="bg-white p-4 sticky top-0 z-40 shadow-sm flex items-center relative md:hidden">
+                    <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-primary absolute left-4">
+                        <ChevronLeft size={28} />
+                    </button>
+                    <h1 className="text-xl font-bold text-gray-900 w-full text-center">My Cart</h1>
+                </div>
+
+                {/* Desktop Header */}
+                <div className="hidden md:block bg-white p-6 shadow-sm mb-6">
+                    <div className="max-w-7xl mx-auto">
+                        <h1 className="text-3xl font-bold text-gray-900">My Cart</h1>
+                    </div>
+                </div>
+
+                {/* Empty State */}
+                <div className="flex-grow flex flex-col items-center justify-center p-8 text-center max-w-lg mx-auto w-full">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty!</h2>
+                    <p className="text-gray-500 mb-8">Ready to shop? Your cart is waiting.</p>
+
+                    <div className="w-64 h-64 bg-gray-50 rounded-full flex items-center justify-center mb-8 relative">
+                        <ShoppingCart size={80} className="text-gray-300" />
+                    </div>
+
+                    <button
+                        onClick={() => navigate('/categories')}
+                        className="w-full bg-primary text-gray-900 font-bold py-4 rounded-xl shadow-lg hover:bg-primary-dark transition-colors"
+                    >
+                        Explore Categories
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className="bg-white min-h-screen pb-24 md:pb-8 flex flex-col">
+        <div className="bg-gray-50 min-h-screen pb-24 md:pb-8">
             {/* Header */}
             <div className="bg-white p-4 sticky top-0 z-40 shadow-sm flex items-center relative md:hidden">
                 <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-primary absolute left-4">
@@ -16,33 +55,85 @@ const CartPage = () => {
                 <h1 className="text-xl font-bold text-gray-900 w-full text-center">My Cart</h1>
             </div>
 
-            {/* Desktop Header */}
-            <div className="hidden md:block bg-white p-6 shadow-sm mb-6">
-                <div className="max-w-7xl mx-auto">
-                    <h1 className="text-3xl font-bold text-gray-900">My Cart</h1>
-                </div>
-            </div>
+            <div className="max-w-7xl mx-auto md:p-6">
+                <h1 className="hidden md:block text-3xl font-bold text-gray-900 mb-6">My Cart</h1>
 
-            {/* Empty State */}
-            <div className="flex-grow flex flex-col items-center justify-center p-8 text-center max-w-lg mx-auto w-full">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty!</h2>
-                <p className="text-gray-500 mb-8">Ready to shop? Your cart is waiting.</p>
+                <div className="flex flex-col lg:flex-row gap-8">
+                    {/* Cart Items List */}
+                    <div className="flex-1 space-y-4 p-4 md:p-0">
+                        {items.map((item) => (
+                            <div key={item.id} className="bg-white p-4 rounded-2xl shadow-sm flex gap-4">
+                                <div className="w-24 h-24 bg-gray-50 rounded-xl flex items-center justify-center p-2">
+                                    <img src={item.image} alt={item.title} className="w-full h-full object-contain mix-blend-multiply" />
+                                </div>
+                                <div className="flex-1 flex flex-col justify-between">
+                                    <div className="flex justify-between items-start">
+                                        <div>
+                                            <h3 className="font-bold text-gray-900 line-clamp-1">{item.title}</h3>
+                                            <p className="text-sm text-gray-500">{item.weight}</p>
+                                        </div>
+                                        <button
+                                            onClick={() => removeFromCart(item.id)}
+                                            className="text-red-500 p-1 hover:bg-red-50 rounded-lg"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
 
-                <div className="w-64 h-64 bg-gray-50 rounded-full flex items-center justify-center mb-8 relative">
-                    {/* Placeholder for the cart illustration */}
-                    <ShoppingCart size={80} className="text-gray-300" />
-                    <div className="absolute inset-0 flex items-center justify-center opacity-10">
-                        {/* Abstract background pattern could go here */}
+                                    <div className="flex justify-between items-end">
+                                        <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                                            <button
+                                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                                className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-white rounded-md transition-colors"
+                                            >
+                                                <Minus size={16} />
+                                            </button>
+                                            <span className="w-8 text-center font-bold text-sm">{item.quantity}</span>
+                                            <button
+                                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                                className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-white rounded-md transition-colors"
+                                            >
+                                                <Plus size={16} />
+                                            </button>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="font-bold text-primary text-lg">{(item.price * item.quantity).toFixed(2)} <span className="text-xs text-gray-500">EGP</span></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Order Summary */}
+                    <div className="lg:w-96 p-4 md:p-0">
+                        <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-24">
+                            <h3 className="font-bold text-lg text-gray-900 mb-4">Order Summary</h3>
+
+                            <div className="space-y-3 mb-6">
+                                <div className="flex justify-between text-gray-600">
+                                    <span>Subtotal</span>
+                                    <span>{totalPrice.toFixed(2)} EGP</span>
+                                </div>
+                                <div className="flex justify-between text-gray-600">
+                                    <span>Delivery Fee</span>
+                                    <span>20.00 EGP</span>
+                                </div>
+                                <div className="border-t border-gray-100 pt-3 flex justify-between font-bold text-lg text-gray-900">
+                                    <span>Total</span>
+                                    <span>{(totalPrice + 20).toFixed(2)} EGP</span>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={() => navigate('/checkout')}
+                                className="w-full bg-primary text-gray-900 font-bold py-4 rounded-xl shadow-lg hover:bg-primary-dark transition-colors"
+                            >
+                                Proceed to Checkout
+                            </button>
+                        </div>
                     </div>
                 </div>
-
-                {/* Bottom Action */}
-                <button
-                    onClick={() => navigate('/categories')}
-                    className="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-lg hover:bg-primary-dark transition-colors"
-                >
-                    Explore Categories
-                </button>
             </div>
         </div>
     );
