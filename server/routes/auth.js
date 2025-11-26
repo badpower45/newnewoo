@@ -11,13 +11,20 @@ router.post('/register', (req, res) => {
     const { name, email, password } = req.body;
     const hashedPassword = bcrypt.hashSync(password, 8);
 
-    db.run(`INSERT INTO users (name, email, password) VALUES (?, ?, ?)`, [name, email, hashedPassword], function (err) {
-        if (err) {
-            return res.status(500).send("There was a problem registering the user.");
+    db.run(`INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)`,
+        [name, email, hashedPassword, 'customer'],
+        function (err) {
+            if (err) {
+                return res.status(500).send({ error: 'Email already exists or server error.' });
+            }
+            const token = jwt.sign({ id: this.lastID, role: 'customer' }, SECRET_KEY, { expiresIn: 86400 });
+            res.status(200).send({
+                auth: true,
+                token: token,
+                user: { id: this.lastID, name, email, role: 'customer' }
+            });
         }
-        const token = jwt.sign({ id: this.lastID }, SECRET_KEY, { expiresIn: 86400 });
-        res.status(200).send({ auth: true, token: token, user: { id: this.lastID, name, email } });
-    });
+    );
 });
 
 // Login
@@ -31,8 +38,18 @@ router.post('/login', (req, res) => {
         const passwordIsValid = bcrypt.compareSync(password, user.password);
         if (!passwordIsValid) return res.status(401).send({ auth: false, token: null });
 
-        const token = jwt.sign({ id: user.id }, SECRET_KEY, { expiresIn: 86400 });
-        res.status(200).send({ auth: true, token: token, user: { id: user.id, name: user.name, email: user.email } });
+        const token = jwt.sign({ id: user.id, role: user.role }, SECRET_KEY, { expiresIn: 86400 });
+        res.status(200).send({
+            auth: true,
+            token: token,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                loyaltyPoints: user.loyaltyPoints || 0
+            }
+        });
     });
 });
 

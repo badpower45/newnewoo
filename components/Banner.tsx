@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 
 interface BannerProps {
     type: 'login' | 'promo';
@@ -17,10 +18,10 @@ const Banner: React.FC<BannerProps> = ({ type, title, subtitle, buttonText, imag
                     <h3 className="font-bold text-lg text-gray-900 mb-1">Log in, Order & Win</h3>
                     <p className="text-xs text-gray-600 mb-0">Win points each time you make an order.</p>
                 </div>
-                <button className="bg-white text-gray-900 px-4 py-2 rounded-lg text-sm font-bold shadow-sm z-10 flex items-center space-x-1">
+                <Link to="/login" className="bg-white text-gray-900 px-4 py-2 rounded-lg text-sm font-bold shadow-sm z-10 flex items-center space-x-1 hover:bg-gray-50 transition-colors">
                     <span className="text-red-500">///</span>
                     <span>Log in</span>
-                </button>
+                </Link>
                 {/* Decorative circle */}
                 <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary rounded-full opacity-20"></div>
             </div>

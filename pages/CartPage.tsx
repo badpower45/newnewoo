@@ -5,7 +5,7 @@ import { useCart } from '../context/CartContext';
 
 const CartPage = () => {
     const navigate = useNavigate();
-    const { items, removeFromCart, updateQuantity, totalPrice } = useCart();
+    const { items, removeFromCart, updateQuantity, totalPrice, clearCart } = useCart();
 
     if (items.length === 0) {
         return (
@@ -56,7 +56,16 @@ const CartPage = () => {
             </div>
 
             <div className="max-w-7xl mx-auto md:p-6">
-                <h1 className="hidden md:block text-3xl font-bold text-gray-900 mb-6">My Cart</h1>
+                <div className="hidden md:flex justify-between items-center mb-6">
+                    <h1 className="text-3xl font-bold text-gray-900">My Cart</h1>
+                    <button
+                        onClick={clearCart}
+                        className="text-red-500 hover:text-red-700 font-medium flex items-center space-x-1"
+                    >
+                        <Trash2 size={18} />
+                        <span>Clear Cart</span>
+                    </button>
+                </div>
 
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Cart Items List */}

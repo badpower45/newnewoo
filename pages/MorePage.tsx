@@ -1,7 +1,9 @@
 import React from 'react';
 import { User, Settings, MapPin, CreditCard, HelpCircle, LogOut, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const MorePage = () => {
+    const navigate = useNavigate();
     const menuItems = [
         { icon: User, label: 'My Profile' },
         { icon: MapPin, label: 'Addresses' },
@@ -20,7 +22,13 @@ const MorePage = () => {
             <div className="p-4 -mt-4">
                 <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                     {menuItems.map((item, idx) => (
-                        <button key={idx} className="w-full flex items-center justify-between p-4 hover:bg-gray-50 border-b border-gray-100 last:border-0 transition-colors">
+                        <button
+                            key={idx}
+                            onClick={() => {
+                                if (item.label === 'My Profile') navigate('/profile');
+                            }}
+                            className="w-full flex items-center justify-between p-4 hover:bg-gray-50 border-b border-gray-100 last:border-0 transition-colors"
+                        >
                             <div className="flex items-center space-x-3">
                                 <div className="bg-orange-50 p-2 rounded-lg text-primary">
                                     <item.icon size={20} />

@@ -18,16 +18,40 @@ router.post('/', (req, res) => {
             // Clear cart
             db.run("DELETE FROM cart WHERE userId = ?", [userId]);
 
-            res.status(200).send({ message: "Order created", orderId: this.lastID });
+            // Award Loyalty Points (1 point per 1 EGP)
+            const points = Math.floor(total);
+            db.run("UPDATE users SET loyaltyPoints = loyaltyPoints + ? WHERE id = ?", [points, userId]);
+
+            res.status(200).send({ message: "Order created", orderId: this.lastID, pointsEarned: points });
         });
 });
 
-// Get Orders
-router.get('/', (req, res) => {
-    const userId = req.query.userId;
-    if (!userId) return res.status(400).json({ error: "User ID required" });
+import { verifyToken, isAdmin } from '../middleware/auth.js';
 
-    db.all("SELECT * FROM orders WHERE userId = ? ORDER BY date DESC", [userId], (err, rows) => {
+// Get Orders (User or Admin)
+router.get('/', [verifyToken], (req, res) => {
+    const userId = req.query.userId;
+    const userRole = req.userRole;
+    const requesterId = req.userId;
+
+    let sql = "SELECT * FROM orders";
+    let params = [];
+
+    // If admin/employee, can see all orders or filter by userId
+    if (userRole === 'owner' || userRole === 'manager' || userRole === 'employee') {
+        if (userId) {
+            sql += " WHERE userId = ?";
+            params.push(userId);
+        }
+    } else {
+        // Regular user can only see their own orders
+        sql += " WHERE userId = ?";
+        params.push(requesterId);
+    }
+
+    sql += " ORDER BY date DESC";
+
+    db.all(sql, params, (err, rows) => {
         if (err) {
             res.status(400).json({ "error": err.message });
             return;
@@ -40,6 +64,18 @@ router.get('/', (req, res) => {
             "message": "success",
             "data": orders
         });
+    });
+});
+
+// Update Order Status
+router.put('/:id/status', [verifyToken, isAdmin], (req, res) => {
+    const { status } = req.body;
+    db.run("UPDATE orders SET status = ? WHERE id = ?", [status, req.params.id], function(err) {
+        if (err) {
+            res.status(400).json({ "error": err.message });
+            return;
+        }
+        res.json({ "message": "success", changes: this.changes });
     });
 });
 

@@ -5,12 +5,16 @@ interface User {
     id: string;
     name: string;
     email: string;
+    role?: string;
+    isGuest?: boolean;
+    loyaltyPoints?: number;
 }
 
 interface AuthContextType {
     user: User | null;
     login: (credentials: any) => Promise<void>;
     register: (data: any) => Promise<void>;
+    loginAsGuest: () => void;
     logout: () => void;
     isAuthenticated: boolean;
 }
@@ -25,6 +29,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const savedUser = localStorage.getItem('user');
         if (token && savedUser) {
             setUser(JSON.parse(savedUser));
+        } else if (savedUser) {
+            // Check for guest user persistence
+            const parsedUser = JSON.parse(savedUser);
+            if (parsedUser.isGuest) {
+                setUser(parsedUser);
+            }
         }
     }, []);
 
@@ -32,8 +42,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const data = await api.auth.login(credentials);
         if (data.auth) {
             localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
-            setUser(data.user);
+            const userWithGuestStatus = { ...data.user, isGuest: false };
+            localStorage.setItem('user', JSON.stringify(userWithGuestStatus));
+            setUser(userWithGuestStatus);
         } else {
             throw new Error('Login failed');
         }
@@ -43,11 +54,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const data = await api.auth.register(registerData);
         if (data.auth) {
             localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
-            setUser(data.user);
+            const userWithGuestStatus = { ...data.user, isGuest: false };
+            localStorage.setItem('user', JSON.stringify(userWithGuestStatus));
+            setUser(userWithGuestStatus);
+
+            return (
+                <AuthContext.Provider value={{ user, login, register, loginAsGuest, logout, isAuthenticated: !!user }}>
+                    {children}
+                </AuthContext.Provider>
+            );
         } else {
             throw new Error('Registration failed');
         }
+    };
+
+    const loginAsGuest = () => {
+        const guestUser: User = {
+            id: 'guest-' + Date.now(),
+            name: 'Guest User',
+            email: '',
+            isGuest: true
+        };
+        localStorage.setItem('user', JSON.stringify(guestUser));
+        setUser(guestUser);
+        return guestUser;
     };
 
     const logout = () => {
@@ -57,7 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, register, logout, isAuthenticated: !!user }}>
+        <AuthContext.Provider value={{ user, login, register, loginAsGuest, logout, isAuthenticated: !!user }}>
             {children}
         </AuthContext.Provider>
     );

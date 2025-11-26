@@ -2,19 +2,20 @@ import React from 'react';
 import { Plus, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useFavorites } from '../context/FavoritesContext';
+
+import { Product } from '../types';
 
 interface ProductCardProps {
-  id: number | string;
-  title: string;
-  weight?: string;
-  price: number;
-  image?: string;
+  product: Product;
   variant?: 'vertical' | 'horizontal';
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ id, title, weight, price, image, variant = 'vertical' }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical' }) => {
+  const { id, name: title, weight, price, image } = product;
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   const handleCardClick = () => {
     navigate(`/product/${id}`);
@@ -22,8 +23,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, title, weight, price, ima
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
-    addToCart({ id, title, price, image: image || '', category: 'General' }); // Ensure all required fields are passed
+    addToCart(product);
   };
+
+  const handleToggleFavorite = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    toggleFavorite(product);
+  };
+
+  const isFav = isFavorite(id);
 
   if (variant === 'horizontal') {
     return (
@@ -56,8 +64,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ id, title, weight, price, ima
       onClick={handleCardClick}
       className="bg-white p-3 rounded-2xl shadow-sm border border-gray-50 flex flex-col relative h-full cursor-pointer hover:shadow-md transition-shadow"
     >
-      <button className="absolute top-3 right-3 text-gray-400 hover:text-red-500 z-10">
-        <Heart size={18} />
+      <button
+        onClick={handleToggleFavorite}
+        className={`absolute top-3 right-3 z-10 p-1.5 rounded-full transition-colors ${isFav ? 'text-red-500 bg-red-50' : 'text-gray-400 hover:text-red-500 hover:bg-gray-50'}`}
+      >
+        <Heart size={18} fill={isFav ? "currentColor" : "none"} />
       </button>
 
       <div className="w-full h-32 bg-gray-50 rounded-xl mb-3 p-4 flex items-center justify-center">

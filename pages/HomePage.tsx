@@ -11,10 +11,13 @@ import { CATEGORIES, ALL_CATEGORIES, SPONSORED_ADS, FLYER_PAGES } from '../data/
 import { api } from '../services/api';
 import { Product } from '../types';
 
+import { useAuth } from '../context/AuthContext';
+
 const HomePage = () => {
     const [activeCategory, setActiveCategory] = useState('All');
     const [products, setProducts] = useState<Product[]>([]);
     const filterCategories = ['All', 'Food', 'Vouchers', 'Beverages', 'Snacks', 'Dairy', 'Cleaning'];
+    const { isAuthenticated } = useAuth();
 
     React.useEffect(() => {
         api.products.getAll().then(data => {
@@ -38,8 +41,8 @@ const HomePage = () => {
 
                 {/* Desktop Grid for Banners */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Login Banner */}
-                    <Banner type="login" />
+                    {/* Login Banner - Only show if not authenticated */}
+                    {!isAuthenticated && <Banner type="login" />}
                     {/* Promo Banner */}
                     <Banner type="promo" image="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=800&q=80" />
                 </div>
@@ -86,7 +89,7 @@ const HomePage = () => {
                     <div className="flex space-x-4 overflow-x-auto pb-4 no-scrollbar -mx-4 px-4 md:grid md:grid-cols-4 md:space-x-0 md:gap-4 md:mx-0 md:px-0">
                         {products.map((product) => (
                             <div key={product.id} className="w-40 flex-shrink-0 md:w-auto">
-                                <ProductCard {...product} />
+                                <ProductCard product={product} />
                             </div>
                         ))}
                     </div>
