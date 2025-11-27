@@ -16,7 +16,7 @@ const connectionString = process.env.DATABASE_URL;
 const poolConfig = connectionString
     ? {
         connectionString,
-        ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+        ssl: { rejectUnauthorized: false }, // Required for Supabase
     }
     : {
         user: process.env.DB_USER || 'postgres',
