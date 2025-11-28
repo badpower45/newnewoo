@@ -4,7 +4,12 @@ import jwt from 'jsonwebtoken';
 import { query } from '../database.js';
 
 const router = express.Router();
-const SECRET_KEY = process.env.JWT_SECRET || 'your_secret_key';
+
+// ✅ Security: Ensure JWT_SECRET is set, never use fallback
+if (!process.env.JWT_SECRET) {
+    throw new Error('FATAL ERROR: JWT_SECRET is not defined in environment variables!');
+}
+const SECRET_KEY = process.env.JWT_SECRET;
 
 // Register
 router.post('/register', async (req, res) => {
@@ -82,6 +87,64 @@ router.post('/login', async (req, res) => {
         console.error("Login error:", err);
         return res.status(500).send('Error on the server.');
     }
+});
+
+// Get Current User (Me)
+router.get('/me', async (req, res) => {
+    const token = req.headers['authorization']?.split(' ')[1];
+    
+    if (!token) return res.status(401).send({ error: 'No token provided.' });
+
+    try {
+        const decoded = jwt.verify(token, SECRET_KEY);
+        const { rows } = await query(
+            "SELECT id, name, email, role, loyalty_points, default_branch_id FROM users WHERE id = $1",
+            [decoded.id]
+        );
+        
+        if (rows.length === 0) {
+            return res.status(404).send({ error: 'User not found.' });
+        }
+
+        const user = rows[0];
+        res.status(200).send({
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                loyaltyPoints: user.loyalty_points || 0,
+                defaultBranchId: user.default_branch_id
+            }
+        });
+    } catch (err) {
+        console.error("Get user error:", err);
+        return res.status(500).send({ error: 'Failed to authenticate token.' });
+    }
+});
+
+// Refresh Token
+router.post('/refresh-token', async (req, res) => {
+    const token = req.headers['authorization']?.split(' ')[1];
+    
+    if (!token) return res.status(401).send({ error: 'No token provided.' });
+
+    try {
+        const decoded = jwt.verify(token, SECRET_KEY);
+        const newToken = jwt.sign({ id: decoded.id, role: decoded.role }, SECRET_KEY, { expiresIn: 86400 });
+        
+        res.status(200).send({
+            auth: true,
+            token: newToken
+        });
+    } catch (err) {
+        return res.status(401).send({ error: 'Token expired or invalid.' });
+    }
+});
+
+// Logout (Client-side token removal, optional endpoint)
+router.post('/logout', (req, res) => {
+    res.status(200).send({ auth: false, token: null, message: 'Logged out successfully.' });
 });
 
 export default router;

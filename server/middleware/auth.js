@@ -1,7 +1,11 @@
 import jwt from 'jsonwebtoken';
 import db from '../database.js';
 
-const SECRET_KEY = process.env.JWT_SECRET || 'your_secret_key';
+// ✅ Security: Ensure JWT_SECRET is set, never use fallback
+if (!process.env.JWT_SECRET) {
+    throw new Error('FATAL ERROR: JWT_SECRET is not defined in environment variables!');
+}
+const SECRET_KEY = process.env.JWT_SECRET;
 
 export const verifyToken = (req, res, next) => {
     const tokenHeader = req.headers['authorization'];
