@@ -2,18 +2,22 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import { Product } from '../types';
 import { useAuth } from './AuthContext';
 import { api } from '../services/api';
+import { useBranch } from './BranchContext';
+import { useToast } from '../components/Toast';
 
 export interface CartItem extends Product {
   quantity: number;
   cartId?: number; // ID from database
+  substitutionPreference?: string;
 }
 
 interface CartContextType {
   items: CartItem[];
-  addToCart: (product: Product, quantity?: number) => void;
+  addToCart: (product: Product, quantity?: number, substitutionPreference?: string) => void;
   removeFromCart: (productId: string | number) => void;
-  updateQuantity: (productId: string | number, quantity: number) => void;
+  updateQuantity: (productId: string | number, quantity: number, substitutionPreference?: string) => void;
   clearCart: () => void;
+  syncCart: () => Promise<void>;
   totalItems: number;
   totalPrice: number;
   isCartOpen: boolean;
@@ -26,15 +30,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const [items, setItems] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const { selectedBranch } = useBranch();
+  const { showToast, ToastContainer } = useToast();
 
   // Load cart from API if user is logged in, else local storage
   useEffect(() => {
     if (user) {
-      api.cart.get(user.id).then(data => {
-        if (data.data) {
-          setItems(data.data);
-        }
-      }).catch(err => console.error("Failed to fetch cart", err));
+      syncCart();
     } else {
       try {
         const saved = localStorage.getItem('cart_items');
@@ -44,6 +46,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
     }
   }, [user]);
+
+  const syncCart = async () => {
+    if (!user) return;
+    try {
+      const data = await api.cart.get(user.id);
+      if (data.data) {
+        setItems(data.data);
+      }
+    } catch (err) {
+      // Silent fallback: backend unavailable, use local state
+    }
+  };
 
   // Save to localStorage if not logged in
   useEffect(() => {
@@ -56,7 +70,36 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [items, user]);
 
-  const addToCart = async (product: Product, quantity = 1) => {
+  const addToCart = async (product: Product, quantity = 1, substitutionPreference = 'none') => {
+    // Branch availability check
+    if (selectedBranch) {
+      try {
+        const res = await api.branchProducts.getByBranch(selectedBranch.id);
+        const list = res.data || res || [];
+        const pid = product.id;
+        const bp = list.find((x: any) => String(x.product_id ?? x.productId ?? x.id) === String(pid));
+        if (bp) {
+          const stock = bp.available_quantity ?? bp.stock_quantity ?? bp.stockQuantity;
+          const reserved = bp.reserved_quantity ?? bp.reservedQuantity ?? 0;
+          if (typeof stock === 'number') {
+            const availableCount = Math.max(0, stock - reserved);
+            const existing = items.find(i => String(i.id) === String(pid));
+            const desired = (existing?.quantity || 0) + quantity;
+            if (desired > availableCount) {
+              showToast('هذا المنتج غير متوفر بالكمية المطلوبة في هذا الفرع', 'warning');
+              return;
+            }
+          }
+          // Override price if branch price exists
+          const branchPrice = bp.branch_price ?? bp.branchPrice;
+          if (typeof branchPrice === 'number') {
+            product = { ...product, price: branchPrice };
+          }
+        }
+      } catch (e) {
+        console.error('Failed to verify branch availability', e);
+      }
+    }
     if (user) {
       // Optimistic update
       setItems(prev => {
@@ -64,19 +107,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (existing) {
           return prev.map(item =>
             item.id === product.id
-              ? { ...item, quantity: item.quantity + quantity }
+              ? { ...item, quantity: item.quantity + quantity, substitutionPreference }
               : item
           );
         }
-        return [...prev, { ...product, quantity }];
+        return [...prev, { ...product, quantity, substitutionPreference }];
       });
 
       try {
-        await api.cart.add({ userId: user.id, productId: product.id, quantity });
-        // Optionally refetch to get DB IDs
+        await api.cart.add({ 
+          userId: user.id, 
+          productId: String(product.id), 
+          quantity,
+          substitutionPreference 
+        });
+        await syncCart(); // Refetch to get DB state
       } catch (err) {
         console.error("Failed to add to cart", err);
-        // Revert?
+        // Revert on error
+        await syncCart();
       }
     } else {
       setItems(prev => {
@@ -84,11 +133,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
         if (existing) {
           return prev.map(item =>
             item.id === product.id
-              ? { ...item, quantity: item.quantity + quantity }
+              ? { ...item, quantity: item.quantity + quantity, substitutionPreference }
               : item
           );
         }
-        return [...prev, { ...product, quantity }];
+        return [...prev, { ...product, quantity, substitutionPreference }];
       });
     }
     setIsCartOpen(true);
@@ -107,33 +156,77 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const updateQuantity = async (productId: string | number, quantity: number) => {
+  const updateQuantity = async (productId: string | number, quantity: number, substitutionPreference?: string) => {
     if (quantity < 1) {
       removeFromCart(productId);
       return;
     }
 
+    // Branch availability guard when increasing
+    const current = items.find(i => String(i.id) === String(productId));
+    if (selectedBranch && current && quantity > current.quantity) {
+      try {
+        const res = await api.branchProducts.getByBranch(selectedBranch.id);
+        const list = res.data || res || [];
+        const bp = list.find((x: any) => String(x.product_id ?? x.productId ?? x.id) === String(productId));
+        if (bp) {
+          const stock = bp.available_quantity ?? bp.stock_quantity ?? bp.stockQuantity;
+          const reserved = bp.reserved_quantity ?? bp.reservedQuantity ?? 0;
+          if (typeof stock === 'number') {
+            const availableCount = Math.max(0, stock - reserved);
+            if (quantity > availableCount) {
+              showToast('الكمية المطلوبة غير متاحة حالياً لهذا المنتج', 'warning');
+              return;
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Failed to verify branch availability on update', e);
+      }
+    }
+
     if (user) {
       setItems(prev =>
         prev.map(item =>
-          item.id === productId ? { ...item, quantity } : item
+          item.id === productId 
+            ? { ...item, quantity, ...(substitutionPreference && { substitutionPreference }) } 
+            : item
         )
       );
       try {
-        await api.cart.update({ userId: user.id, productId: String(productId), quantity });
+        await api.cart.update({ 
+          userId: user.id, 
+          productId: String(productId), 
+          quantity,
+          ...(substitutionPreference && { substitutionPreference })
+        });
       } catch (err) {
         console.error("Failed to update quantity", err);
+        await syncCart(); // Revert on error
       }
     } else {
       setItems(prev =>
         prev.map(item =>
-          item.id === productId ? { ...item, quantity } : item
+          item.id === productId 
+            ? { ...item, quantity, ...(substitutionPreference && { substitutionPreference }) } 
+            : item
         )
       );
     }
   };
 
-  const clearCart = () => setItems([]);
+  const clearCart = async () => {
+    if (user) {
+      setItems([]);
+      try {
+        await api.cart.clear(user.id);
+      } catch (err) {
+        console.error("Failed to clear cart", err);
+      }
+    } else {
+      setItems([]);
+    }
+  };
 
   const toggleCart = () => setIsCartOpen(prev => !prev);
 
@@ -147,11 +240,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
       removeFromCart,
       updateQuantity,
       clearCart,
+      syncCart,
       totalItems,
       totalPrice,
       isCartOpen,
       toggleCart
     }}>
+      <ToastContainer />
       {children}
     </CartContext.Provider>
   );

@@ -1,16 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
-import { CheckCircle, ArrowLeft } from 'lucide-react';
+import { useBranch } from '../context/BranchContext';
+import { ArrowLeft } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-
+import DeliverySlotPicker from '../components/DeliverySlotPicker';
+import SubstitutionSelector from '../components/SubstitutionSelector';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { PAYMENT_METHOD_LABELS } from '../src/config';
+import { useToast } from '../components/Toast';
 
 export default function CheckoutPage() {
-    const { items, totalPrice, clearCart } = useCart();
+    const { items, totalPrice, clearCart, updateQuantity } = useCart();
     const { user, loginAsGuest } = useAuth();
+    const { selectedBranch } = useBranch();
     const navigate = useNavigate();
-    const [isSubmitted, setIsSubmitted] = useState(false);
+    const { showToast, ToastContainer } = useToast();
+    const [selectedSlot, setSelectedSlot] = useState<any>(null);
+    const [paymentMethod, setPaymentMethod] = useState('cod');
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -35,53 +42,88 @@ export default function CheckoutPage() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    const handleSubstitutionChange = (productId: string | number, value: string) => {
+        const item = items.find(i => i.id === productId);
+        if (item) {
+            updateQuantity(productId, item.quantity, value);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!selectedBranch) {
+            showToast('يرجى اختيار فرع أولاً', 'warning');
+            return;
+        }
+
+        if (!selectedSlot) {
+            showToast('يرجى اختيار موعد توصيل', 'warning');
+            return;
+        }
 
         let currentUserId = user?.id;
 
         if (!currentUserId) {
-            // Auto-login as guest if not logged in
-            const guestUser = loginAsGuest();
-            if (guestUser) {
-                currentUserId = guestUser.id;
-            } else {
-                alert("Please login to place an order.");
-                return;
-            }
+            showToast('يرجى تسجيل الدخول لإتمام الطلب', 'warning');
+            navigate('/login');
+            return;
         }
 
         try {
-            await api.orders.create({
+            // Verify availability for each cart item at selected branch
+            try {
+                const res = await api.branchProducts.getByBranch(selectedBranch.id);
+                const list = res.data || res || [];
+                for (const item of items) {
+                    const bp = list.find((x: any) => String(x.product_id ?? x.productId ?? x.id) === String(item.id));
+                    if (bp) {
+                        const stock = bp.available_quantity ?? bp.stock_quantity ?? bp.stockQuantity;
+                        const reserved = bp.reserved_quantity ?? bp.reservedQuantity ?? 0;
+                        if (typeof stock === 'number') {
+                            const availableCount = Math.max(0, stock - reserved);
+                            if (item.quantity > availableCount) {
+                                showToast(`الكمية غير متاحة للمنتج ${item.name || (item as any).title || '#' + item.id}`, 'error');
+                                return;
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('Failed availability check', e);
+            }
+            const orderData = {
                 userId: currentUserId,
-                total: totalPrice + 20, // Including delivery
-                items: items,
-                shippingDetails: formData
-            });
-            setIsSubmitted(true);
+                branchId: selectedBranch.id,
+                deliverySlotId: selectedSlot.id,
+                paymentMethod: paymentMethod,
+                deliveryAddress: `${formData.firstName} ${formData.lastName}, ${formData.phone}, ${formData.address}`,
+                items: items.map(item => ({
+                    productId: item.id,
+                    quantity: item.quantity,
+                    price: item.price,
+                    substitutionPreference: item.substitutionPreference || 'none'
+                }))
+            };
+
+            const created = await api.orders.create(orderData);
+            const createdOrder = (created && (created.data || created)) || {};
+            const newOrderId = createdOrder.id || createdOrder.orderId;
+
             clearCart();
-        } catch (err) {
+            if (newOrderId) {
+                navigate(`/order-confirmation/${newOrderId}`);
+            } else {
+                // Fallback: go to profile orders if ID missing
+                navigate('/profile');
+            }
+        } catch (err: any) {
             console.error("Failed to create order", err);
-            alert("Failed to place order. Please try again.");
+            showToast(err.response?.data?.error || 'فشل إنشاء الطلب. يرجى المحاولة مرة أخرى.', 'error');
         }
     };
 
-    if (isSubmitted) {
-        return (
-            <div className="container mx-auto px-4 py-20 text-center">
-                <div className="flex justify-center mb-6">
-                    <div className="bg-green-50 p-6 rounded-full">
-                        <CheckCircle size={64} className="text-green-500" />
-                    </div>
-                </div>
-                <h2 className="text-3xl font-bold text-brand-brown mb-4">Order Received Successfully! 🚀</h2>
-                <p className="text-slate-500 mb-8 text-lg">Thank you for trusting Lumina Fresh Market. We will contact you shortly to confirm.</p>
-                <Link to="/" className="inline-block bg-primary text-white font-bold py-3 px-8 rounded-xl hover:bg-primary-dark transition-colors">
-                    Back to Home
-                </Link>
-            </div>
-        );
-    }
+    // Success UI is handled by OrderConfirmationPage via navigation
 
     if (items.length === 0) {
         return (
@@ -94,6 +136,7 @@ export default function CheckoutPage() {
 
     return (
         <div className="container mx-auto px-4 md:px-6 py-8">
+            <ToastContainer />
             <Link to="/cart" className="inline-flex items-center text-slate-500 hover:text-primary mb-6 transition-colors">
                 <ArrowLeft size={16} className="mr-1" /> Back to Cart
             </Link>
@@ -102,66 +145,130 @@ export default function CheckoutPage() {
 
             <div className="flex flex-col lg:flex-row gap-8">
                 {/* Form */}
-                <div className="flex-1 bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
-                    <h3 className="text-xl font-bold text-slate-800 mb-6">Delivery Details</h3>
-                    <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="flex-1 space-y-6">
+                    {/* Delivery Details */}
+                    <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
+                        <h3 className="text-xl font-bold text-slate-800 mb-6">تفاصيل التوصيل</h3>
+                        <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-700">First Name</label>
+                                <label className="text-sm font-bold text-slate-700">الاسم الأول</label>
                                 <input
                                     required
                                     type="text"
                                     name="firstName"
                                     value={formData.firstName}
                                     onChange={handleInputChange}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-orange-100 outline-none transition-all"
-                                    placeholder="e.g. Ahmed"
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
+                                    placeholder="أحمد"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-700">Last Name</label>
+                                <label className="text-sm font-bold text-slate-700">الاسم الأخير</label>
                                 <input
                                     required
                                     type="text"
                                     name="lastName"
                                     value={formData.lastName}
                                     onChange={handleInputChange}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-orange-100 outline-none transition-all"
-                                    placeholder="e.g. Mohamed"
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
+                                    placeholder="محمد"
                                 />
                             </div>
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700">Phone Number</label>
+                            <label className="text-sm font-bold text-slate-700">رقم الهاتف</label>
                             <input
                                 required
                                 type="tel"
                                 name="phone"
                                 value={formData.phone}
                                 onChange={handleInputChange}
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-orange-100 outline-none transition-all"
+                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
                                 placeholder="01xxxxxxxxx"
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700">Address Details</label>
+                            <label className="text-sm font-bold text-slate-700">تفاصيل العنوان</label>
                             <textarea
                                 required
                                 rows={3}
                                 name="address"
                                 value={formData.address}
                                 onChange={handleInputChange}
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-orange-100 outline-none transition-all"
-                                placeholder="Street name, Building number, Floor, Apartment..."
+                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
+                                placeholder="اسم الشارع، رقم المبنى، الدور، الشقة..."
                             ></textarea>
                         </div>
+                        </form>
+                    </div>
 
-                        <button type="submit" className="w-full bg-primary text-white font-bold py-4 rounded-xl hover:bg-primary-dark transition-colors shadow-lg shadow-orange-200 mt-4">
-                            Confirm Order ({(totalPrice + 20).toFixed(2)} EGP)
-                        </button>
-                    </form>
+                    {/* Delivery Slot */}
+                    {selectedBranch && (
+                        <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
+                            <DeliverySlotPicker
+                                branchId={selectedBranch.id}
+                                onSelect={setSelectedSlot}
+                                selectedSlotId={selectedSlot?.id}
+                            />
+                        </div>
+                    )}
+
+                    {/* Payment Method */}
+                    <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
+                        <h3 className="text-xl font-bold text-slate-800 mb-4">طريقة الدفع</h3>
+                        <div className="space-y-3">
+                            <label className="flex items-center p-4 border-2 rounded-xl cursor-pointer hover:border-green-600 transition">
+                                <input
+                                    type="radio"
+                                    name="payment"
+                                    value="cod"
+                                    checked={paymentMethod === 'cod'}
+                                    onChange={(e) => setPaymentMethod(e.target.value)}
+                                    className="w-5 h-5 text-green-600"
+                                />
+                                <span className="mr-3 font-medium">{PAYMENT_METHOD_LABELS.cod}</span>
+                            </label>
+                            <label className="flex items-center p-4 border-2 rounded-xl cursor-pointer hover:border-green-600 transition opacity-50">
+                                <input
+                                    type="radio"
+                                    name="payment"
+                                    value="fawry"
+                                    disabled
+                                    className="w-5 h-5 text-green-600"
+                                />
+                                <span className="mr-3 font-medium">{PAYMENT_METHOD_LABELS.fawry} (قريباً)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    {/* Substitution Preferences */}
+                    <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
+                        <h3 className="text-xl font-bold text-slate-800 mb-4">تفضيلات الاستبدال</h3>
+                        <div className="space-y-4">
+                            {items.map((item) => (
+                                <div key={item.id} className="flex items-center gap-4 pb-4 border-b last:border-0">
+                                    <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-lg" />
+                                    <div className="flex-1">
+                                        <h4 className="font-medium text-gray-900">{item.name}</h4>
+                                        <SubstitutionSelector
+                                            value={item.substitutionPreference || 'none'}
+                                            onChange={(value) => handleSubstitutionChange(item.id, value)}
+                                        />
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <button 
+                        onClick={handleSubmit} 
+                        className="w-full bg-green-600 text-white font-bold py-4 rounded-xl hover:bg-green-700 transition-colors shadow-lg"
+                    >
+                        تأكيد الطلب ({(totalPrice + 20).toFixed(2)} جنيه)
+                    </button>
                 </div>
 
                 {/* Order Summary (Mini) */}

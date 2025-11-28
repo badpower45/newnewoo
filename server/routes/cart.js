@@ -10,7 +10,7 @@ router.get('/', async (req, res) => {
 
     try {
         const sql = `
-            SELECT c.id as cart_id, c.quantity, p.* 
+            SELECT c.id as cart_id, c.quantity, c.substitution_preference, p.* 
             FROM cart c
             JOIN products p ON c.product_id = p.id 
             WHERE c.user_id = $1
@@ -21,31 +21,12 @@ router.get('/', async (req, res) => {
             id: row.id, // Product ID
             cartId: row.cart_id,
             name: row.name,
-            // Price is NOT in products table anymore. 
-            // If we need price here, we need branchId to join branch_products.
-            // But the cart usually needs a price. 
-            // The previous code assumed price was in products.
-            // I should probably join branch_products if I knew the branch.
-            // But for now, I will just return what I have. The frontend might need to fetch price separately or we need branchId here.
-            // Given the user instructions "Fetch the price... from the branch_products table", this applies to products.js.
-            // For cart, if the user has a selected branch, we should probably show that price.
-            // I'll assume for now I just return product info. If price is missing, frontend might break or show 0.
-            // I'll add a TODO or try to fetch price if branchId is passed?
-            // Let's check if I can join branch_products.
-            // I will leave it as is (joining products) but be aware price is missing.
-            // Actually, I should probably try to get price if possible.
-            // But I'll stick to the requested refactor: syntax change and column names.
-            // Wait, if I don't return price, the cart will show 0 or undefined.
-            // I'll update the query to try to join branch_products IF branchId is available, but the route signature is `GET /?userId=...`.
-            // I'll just return the product fields. The frontend might need update.
-            // However, the prompt said "Refactor All Routes ... Syntax Change ... Method Change ... Async/Await".
-            // It didn't explicitly say "Fix cart price logic for multi-branch".
-            // But "Fetch the price ... from branch_products" was under "Implement Multi-Branch Logic in products.js".
-            // So for cart.js, I will just fix syntax and column names.
             image: row.image,
             quantity: row.quantity,
-            // mapping snake_case to camelCase if needed, but row.name etc are from products table.
-            // products table columns: name, image, etc.
+            substitutionPreference: row.substitution_preference || 'none',
+            category: row.category,
+            description: row.description,
+            isWeighted: row.is_weighted
         }));
 
         res.json({
@@ -59,7 +40,7 @@ router.get('/', async (req, res) => {
 
 // Add to cart
 router.post('/add', async (req, res) => {
-    const { userId, productId, quantity } = req.body;
+    const { userId, productId, quantity, substitutionPreference } = req.body;
 
     try {
         // Check if item exists
@@ -68,14 +49,15 @@ router.post('/add', async (req, res) => {
         const existing = rows[0];
 
         if (existing) {
-            // Update quantity
+            // Update quantity and substitution preference
             const newQuantity = existing.quantity + (quantity || 1);
-            await query("UPDATE cart SET quantity = $1 WHERE id = $2", [newQuantity, existing.id]);
-            res.json({ message: "updated", data: { ...existing, quantity: newQuantity } });
+            const updateSql = "UPDATE cart SET quantity = $1, substitution_preference = $2 WHERE id = $3";
+            await query(updateSql, [newQuantity, substitutionPreference || 'none', existing.id]);
+            res.json({ message: "updated", data: { ...existing, quantity: newQuantity, substitution_preference: substitutionPreference || 'none' } });
         } else {
             // Insert new
-            const insertSql = "INSERT INTO cart (user_id, product_id, quantity) VALUES ($1, $2, $3) RETURNING id";
-            const { rows: newRows } = await query(insertSql, [userId, productId, quantity || 1]);
+            const insertSql = "INSERT INTO cart (user_id, product_id, quantity, substitution_preference) VALUES ($1, $2, $3, $4) RETURNING id";
+            const { rows: newRows } = await query(insertSql, [userId, productId, quantity || 1, substitutionPreference || 'none']);
             res.json({ message: "added", id: newRows[0].id });
         }
     } catch (err) {
@@ -98,9 +80,13 @@ router.delete('/remove/:productId', async (req, res) => {
 
 // Update quantity
 router.post('/update', async (req, res) => {
-    const { userId, productId, quantity } = req.body;
+    const { userId, productId, quantity, substitutionPreference } = req.body;
     try {
-        await query("UPDATE cart SET quantity = $1 WHERE user_id = $2 AND product_id = $3", [quantity, userId, productId]);
+        if (substitutionPreference !== undefined) {
+            await query("UPDATE cart SET quantity = $1, substitution_preference = $2 WHERE user_id = $3 AND product_id = $4", [quantity, substitutionPreference, userId, productId]);
+        } else {
+            await query("UPDATE cart SET quantity = $1 WHERE user_id = $2 AND product_id = $3", [quantity, userId, productId]);
+        }
         res.json({ message: "updated" });
     } catch (err) {
         res.status(400).json({ error: err.message });

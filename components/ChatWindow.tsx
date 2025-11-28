@@ -39,31 +39,55 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ onClose, onNewMessage }) => {
         scrollToBottom();
     }, [messages]);
 
-    // Initialize conversation and socket
+    // Initialize conversation and socket with localStorage persistence
     useEffect(() => {
         const initChat = async () => {
             try {
-                // Create or get existing conversation
-                const customerName = user?.name || 'Guest';
-                const response = await api.chat.createConversation(user?.id || null, customerName);
+                const stored = localStorage.getItem('lumina_chat_conv');
+                let convId: number | null = null;
+                let customerName = user?.name || 'Guest';
+                if (stored) {
+                    try {
+                        const parsed = JSON.parse(stored);
+                        convId = parsed?.id || null;
+                        customerName = parsed?.customerName || customerName;
+                    } catch {}
+                }
 
-                if (response.conversationId) {
-                    setConversationId(response.conversationId);
+                if (!convId) {
+                    try {
+                        const response = await api.chat.createConversation(user?.id || null, customerName);
+                        if (response.conversationId) {
+                            convId = response.conversationId;
+                            localStorage.setItem('lumina_chat_conv', JSON.stringify({ id: convId, customerName }));
+                        }
+                    } catch {
+                        // Backend unavailable; disable chat
+                        setIsLoading(false);
+                        return;
+                    }
+                }
+
+                if (convId) {
+                    setConversationId(convId);
 
                     // Connect socket
                     socketService.connect();
-                    socketService.joinAsCustomer(response.conversationId, customerName);
+                    socketService.joinAsCustomer(convId, customerName);
 
                     // Load existing messages
-                    const convData = await api.chat.getConversation(response.conversationId);
-                    if (convData.messages) {
-                        setMessages(convData.messages);
+                    try {
+                        const convData = await api.chat.getConversation(convId);
+                        if (Array.isArray(convData.messages)) {
+                            setMessages(convData.messages);
+                        }
+                    } catch {
+                        // Messages load failed; start with empty
                     }
-
                     setIsConnected(true);
                 }
             } catch (error) {
-                console.error('Failed to initialize chat:', error);
+                // Silent failure
             } finally {
                 setIsLoading(false);
             }

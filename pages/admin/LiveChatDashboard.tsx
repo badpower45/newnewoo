@@ -29,6 +29,7 @@ const LiveChatDashboard = () => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputMessage, setInputMessage] = useState('');
     const [filter, setFilter] = useState<'all' | 'assigned' | 'unassigned'>('all');
+    const typingTimeoutRef = React.useRef<NodeJS.Timeout>();
 
     // Load conversations
     useEffect(() => {
@@ -60,23 +61,23 @@ const LiveChatDashboard = () => {
     const loadConversations = async () => {
         try {
             const response = await api.chat.getConversations('active');
-            if (response.conversations) {
-                setConversations(response.conversations);
-            }
+            const list = Array.isArray(response?.conversations) ? response.conversations : [];
+            setConversations(list);
         } catch (error) {
             console.error('Failed to load conversations:', error);
+            setConversations([]);
         }
     };
 
     const loadMessages = async (convId: number) => {
         try {
             const response = await api.chat.getConversation(convId);
-            if (response.messages) {
-                setMessages(response.messages);
-            }
+            const msgs = Array.isArray(response?.messages) ? response.messages : [];
+            setMessages(msgs);
             socketService.openConversation(convId);
         } catch (error) {
             console.error('Failed to load messages:', error);
+            setMessages([]);
         }
     };
 
@@ -90,6 +91,17 @@ const LiveChatDashboard = () => {
 
         socketService.sendMessage(selectedConv, user.id, 'agent', inputMessage.trim());
         setInputMessage('');
+        socketService.stopTyping(selectedConv, 'agent');
+    };
+
+    const handleInputChange = (val: string) => {
+        setInputMessage(val);
+        if (!selectedConv || !user) return;
+        socketService.startTyping(selectedConv, 'agent', user.name);
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = setTimeout(() => {
+            socketService.stopTyping(selectedConv!, 'agent');
+        }, 2000);
     };
 
     const handleAssign = async (convId: number) => {
@@ -221,7 +233,7 @@ const LiveChatDashboard = () => {
                                 <input
                                     type="text"
                                     value={inputMessage}
-                                    onChange={(e) => setInputMessage(e.target.value)}
+                                    onChange={(e) => handleInputChange(e.target.value)}
                                     onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                                     placeholder="اكتب رسالتك..."
                                     className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange"

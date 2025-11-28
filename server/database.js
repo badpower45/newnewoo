@@ -7,8 +7,8 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load .env from server directory explicitly with override
-dotenv.config({ path: path.join(__dirname, '.env'), override: true });
+// Load .env from server directory; do NOT override existing env vars (CLI values should win)
+dotenv.config({ path: path.join(__dirname, '.env'), override: false });
 
 // Debug: Check if .env is loaded correctly
 console.log('🔍 DEBUG - Environment Variables:');

@@ -1,15 +1,65 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, LogOut, Package, ChevronLeft } from 'lucide-react';
+import { User, Mail, LogOut, Package, ChevronLeft, Edit2, Award, Clock } from 'lucide-react';
+import { api } from '../services/api';
+import LoadingSpinner from '../components/LoadingSpinner';
+import ErrorMessage from '../components/ErrorMessage';
+import { ORDER_STATUS_LABELS } from '../src/config';
 
 const ProfilePage = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
+    const [orders, setOrders] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [editMode, setEditMode] = useState(false);
+    const [formData, setFormData] = useState({
+        name: user?.name || '',
+        email: user?.email || ''
+    });
+
+    useEffect(() => {
+        if (user) {
+            fetchOrders();
+        }
+    }, [user]);
+
+    const fetchOrders = async () => {
+        if (!user) return;
+        setLoading(true);
+        setError(null);
+        try {
+            const data = await api.orders.getAll(String(user.id));
+            if (data.data) {
+                setOrders(data.data);
+            }
+        } catch (err) {
+            setError('فشل تحميل الطلبات');
+            console.error(err);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleLogout = () => {
         logout();
         navigate('/');
+    };
+
+    const handleUpdateProfile = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!user) return;
+
+        try {
+            await api.users.update(String(user.id), formData);
+            alert('تم تحديث الملف الشخصي بنجاح');
+            setEditMode(false);
+            window.location.reload();
+        } catch (err) {
+            alert('فشل تحديث الملف الشخصي');
+            console.error(err);
+        }
     };
 
     if (!user) {

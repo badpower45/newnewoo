@@ -6,6 +6,55 @@ import * as xlsx from 'xlsx';
 
 const router = express.Router();
 
+// Dev-only: Seed sample products + branch inventory for quick testing
+router.post('/dev/seed-sample', async (req, res) => {
+    try {
+        const isProd = process.env.NODE_ENV === 'production';
+        if (isProd && process.env.ALLOW_DEV_SEED !== 'true') {
+            return res.status(403).json({ error: 'Seeding disabled' });
+        }
+
+        // Ensure branch 1 exists
+        let { rows: bRows } = await query('SELECT id FROM branches WHERE id = 1');
+        if (bRows.length === 0) {
+            await query("INSERT INTO branches (id, name, location_lat, location_lng, coverage_radius_km) VALUES (1, 'Main Branch', 30.05, 31.23, 10)");
+        }
+
+        const samples = [
+            { id: 'p1001', name: 'لبن كامل الدسم 1 لتر', category: 'ألبان', image: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?q=80&w=600&auto=format&fit=crop', weight: '1 لتر' },
+            { id: 'p1002', name: 'أرز مصري ممتاز 1 كجم', category: 'بقالة', image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?q=80&w=600&auto=format&fit=crop', weight: '1 كجم' },
+            { id: 'p1003', name: 'شيبسي طماطم عائلي', category: 'سناكس', image: 'https://images.unsplash.com/photo-1613919085533-0a05360b1cbe?q=80&w=600&auto=format&fit=crop', weight: 'جامبو' },
+            { id: 'p1004', name: 'بيبسي كانز 330 مل', category: 'مشروبات', image: 'https://images.unsplash.com/photo-1629203851122-3726ecdf080e?q=80&w=600&auto=format&fit=crop', weight: '330 مل' },
+            { id: 'p1005', name: 'زيت عباد 800 مل', category: 'زيوت', image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=600&auto=format&fit=crop', weight: '800 مل' },
+        ];
+
+        await query('BEGIN');
+        for (const p of samples) {
+            await query(
+                `INSERT INTO products (id, name, category, image, weight, rating, reviews, is_organic, is_new)
+                 VALUES ($1, $2, $3, $4, $5, 0, 0, FALSE, TRUE)
+                 ON CONFLICT (id) DO NOTHING`,
+                [p.id, p.name, p.category, p.image, p.weight]
+            );
+            const price = Math.round((50 + Math.random() * 100) * 100) / 100;
+            const stock = 20 + Math.floor(Math.random() * 80);
+            await query(
+                `INSERT INTO branch_products (branch_id, product_id, price, stock_quantity, is_available)
+                 VALUES (1, $1, $2, $3, TRUE)
+                 ON CONFLICT (branch_id, product_id) DO UPDATE SET price = EXCLUDED.price, stock_quantity = EXCLUDED.stock_quantity`,
+                [p.id, price, stock]
+            );
+        }
+        await query('COMMIT');
+
+        return res.json({ message: 'seeded', count: samples.length, branchId: 1 });
+    } catch (err) {
+        await query('ROLLBACK');
+        console.error('Seed sample failed', err);
+        return res.status(500).json({ error: 'Seed sample failed' });
+    }
+});
+
 // Get all products (filtered by branch)
 router.get('/', async (req, res) => {
     const { branchId, category, search } = req.query;
@@ -157,6 +206,97 @@ router.post('/', [verifyToken, isAdmin], async (req, res) => {
     } catch (err) {
         console.error("Error creating product:", err);
         res.status(400).json({ "error": err.message });
+    }
+});
+
+// Update Product (Admin only)
+router.put('/:id', [verifyToken, isAdmin], async (req, res) => {
+    const { name, category, image, weight, description, barcode, isOrganic, isNew, isWeighted } = req.body;
+    
+    try {
+        const sql = `
+            UPDATE products 
+            SET name = COALESCE($1, name),
+                category = COALESCE($2, category),
+                image = COALESCE($3, image),
+                weight = COALESCE($4, weight),
+                description = COALESCE($5, description),
+                barcode = COALESCE($6, barcode),
+                is_organic = COALESCE($7, is_organic),
+                is_new = COALESCE($8, is_new),
+                is_weighted = COALESCE($9, is_weighted)
+            WHERE id = $10
+            RETURNING *
+        `;
+        
+        const { rows } = await query(sql, [
+            name, category, image, weight, description, barcode,
+            isOrganic, isNew, isWeighted, req.params.id
+        ]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+
+        res.json({ message: 'success', data: rows[0] });
+    } catch (err) {
+        console.error("Error updating product:", err);
+        res.status(400).json({ error: err.message });
+    }
+});
+
+// Get Products by Category
+router.get('/category/:category', async (req, res) => {
+    const { branchId } = req.query;
+    const category = req.params.category;
+
+    if (!branchId) {
+        return res.status(400).json({ error: "Branch ID required" });
+    }
+
+    try {
+        const sql = `
+            SELECT p.*, bp.price, bp.discount_price, bp.stock_quantity, bp.is_available
+            FROM products p
+            JOIN branch_products bp ON p.id = bp.product_id
+            WHERE bp.branch_id = $1 AND p.category = $2 AND bp.is_available = TRUE
+        `;
+        const { rows } = await query(sql, [branchId, category]);
+        
+        res.json({ message: 'success', data: rows });
+    } catch (err) {
+        console.error("Error fetching products by category:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Search Products
+router.get('/search', async (req, res) => {
+    const { q, branchId } = req.query;
+
+    if (!q) {
+        return res.status(400).json({ error: "Search query required" });
+    }
+
+    if (!branchId) {
+        return res.status(400).json({ error: "Branch ID required" });
+    }
+
+    try {
+        const sql = `
+            SELECT p.*, bp.price, bp.discount_price, bp.stock_quantity, bp.is_available
+            FROM products p
+            JOIN branch_products bp ON p.id = bp.product_id
+            WHERE bp.branch_id = $1 
+            AND (p.name ILIKE $2 OR p.description ILIKE $2 OR p.barcode ILIKE $2)
+            AND bp.is_available = TRUE
+        `;
+        const { rows } = await query(sql, [branchId, `%${q}%`]);
+        
+        res.json({ message: 'success', data: rows });
+    } catch (err) {
+        console.error("Error searching products:", err);
+        res.status(500).json({ error: err.message });
     }
 });
 

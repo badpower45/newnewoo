@@ -109,6 +109,20 @@ const CartPage = () => {
                                             <p className="font-bold text-primary text-lg">{(item.price * item.quantity).toFixed(2)} <span className="text-xs text-gray-500">EGP</span></p>
                                         </div>
                                     </div>
+
+                                    {/* Substitution Preference */}
+                                    <div className="mt-3 pt-3 border-t border-gray-100">
+                                        <label className="block text-xs text-gray-600 mb-1">إذا لم يتوفر:</label>
+                                        <select
+                                            value={item.substitutionPreference || 'call_me'}
+                                            onChange={(e) => updateQuantity(item.id, item.quantity, e.target.value)}
+                                            className="w-full text-sm px-2 py-1.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                                        >
+                                            <option value="call_me">اتصل بي أولاً</option>
+                                            <option value="similar_product">استبدل بمنتج مشابه</option>
+                                            <option value="cancel_item">الغِ هذا المنتج</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
                         ))}

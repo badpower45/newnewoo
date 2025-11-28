@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { api } from '../services/api';
 import { Product } from '../types';
 import { useCart } from '../context/CartContext';
+import { useBranch } from '../context/BranchContext';
 
 const ProductDetailsPage = () => {
     const navigate = useNavigate();
@@ -11,16 +12,61 @@ const ProductDetailsPage = () => {
     const [product, setProduct] = useState<Product | null>(null);
     const { addToCart } = useCart();
     const [quantity, setQuantity] = useState(1);
+    const { selectedBranch } = useBranch();
+    const [available, setAvailable] = useState<boolean>(true);
 
     React.useEffect(() => {
-        if (id) {
-            api.products.getOne(id).then(data => {
+        const load = async () => {
+            if (!id) return;
+            try {
+                const data = await api.products.getOne(id);
                 if (data.data) {
                     setProduct(data.data);
                 }
-            }).catch(err => console.error(err));
-        }
+            } catch (e) {
+                // Backend unavailable; show fallback in UI
+                setProduct({
+                    id: id,
+                    name: 'Product Unavailable',
+                    category: 'Unknown',
+                    price: 0,
+                    rating: 0,
+                    reviews: 0,
+                    image: 'https://placehold.co/600x600?text=Product',
+                    weight: 'N/A'
+                });
+            }
+        };
+        load();
     }, [id]);
+
+    React.useEffect(() => {
+        const loadBranch = async () => {
+            if (!id || !selectedBranch) return;
+            try {
+                const res = await api.branchProducts.getByBranch(selectedBranch.id);
+                const list = res.data || res || [];
+                const pid = Number(id);
+                const bp = list.find((x: any) => (x.product_id ?? x.productId ?? x.id) == pid);
+                if (bp) {
+                    const bPrice = bp.branch_price ?? bp.branchPrice;
+                    if (product && typeof bPrice === 'number') {
+                        setProduct({ ...product, price: bPrice });
+                    }
+                    const stock = bp.available_quantity ?? bp.stock_quantity ?? bp.stockQuantity;
+                    const reserved = bp.reserved_quantity ?? bp.reservedQuantity ?? 0;
+                    if (typeof stock === 'number') {
+                        setAvailable((stock - reserved) > 0);
+                    }
+                } else {
+                    setAvailable(true);
+                }
+            } catch (e) {
+                console.error('Failed to load branch product', e);
+            }
+        };
+        loadBranch();
+    }, [id, selectedBranch, product?.id]);
 
     if (!product) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
 
@@ -28,6 +74,7 @@ const ProductDetailsPage = () => {
     const handleDecrement = () => setQuantity(q => (q > 1 ? q - 1 : 1));
 
     const handleAddToCart = () => {
+        if (!available) return;
         addToCart(product, quantity);
         // Optional: Show feedback
     };
@@ -86,6 +133,9 @@ const ProductDetailsPage = () => {
                         {/* Desktop Price */}
                         <div className="hidden md:block mb-8">
                             <span className="text-4xl font-bold text-primary">{product.price.toFixed(2)} <span className="text-lg text-gray-500 font-normal">EGP</span></span>
+                            {!available && (
+                                <span className="ml-3 text-sm bg-red-100 text-red-700 px-2 py-1 rounded-md align-middle">غير متوفر</span>
+                            )}
                         </div>
 
                         {/* Quantity & Add to Cart */}
@@ -107,7 +157,8 @@ const ProductDetailsPage = () => {
                             </div>
                             <button
                                 onClick={handleAddToCart}
-                                className="flex-grow bg-primary text-gray-900 font-bold py-4 rounded-xl shadow-lg hover:bg-primary-dark transition-colors flex items-center justify-center space-x-2"
+                                disabled={!available}
+                                className={`flex-grow font-bold py-4 rounded-xl shadow-lg transition-colors flex items-center justify-center space-x-2 ${available ? 'bg-primary text-gray-900 hover:bg-primary-dark' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
                             >
                                 <ShoppingCart size={20} />
                                 <span>Add to Cart</span>

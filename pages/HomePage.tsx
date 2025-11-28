@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TopBar from '../components/TopBar';
 import Banner from '../components/Banner';
 import CategoryCard from '../components/CategoryCard';
@@ -6,26 +6,87 @@ import ProductCard from '../components/ProductCard';
 import CategoryFilter from '../components/CategoryFilter';
 import SponsoredAds from '../components/SponsoredAds';
 import FlyerCarousel from '../components/FlyerCarousel';
+import LoadingSpinner from '../components/LoadingSpinner';
+import ErrorMessage from '../components/ErrorMessage';
 import { ChevronRight } from 'lucide-react';
 import { CATEGORIES, ALL_CATEGORIES, SPONSORED_ADS, FLYER_PAGES } from '../data/mockData';
 import { api } from '../services/api';
 import { Product } from '../types';
-
 import { useAuth } from '../context/AuthContext';
+import { useBranch } from '../context/BranchContext';
+import { DEFAULT_BRANCH_ID } from '../src/config';
 
 const HomePage = () => {
     const [activeCategory, setActiveCategory] = useState('All');
     const [products, setProducts] = useState<Product[]>([]);
+    const [branchMap, setBranchMap] = useState<Record<string | number, { price?: number; stockQuantity?: number; reservedQuantity?: number }>>({});
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const filterCategories = ['All', 'Food', 'Vouchers', 'Beverages', 'Snacks', 'Dairy', 'Cleaning'];
     const { isAuthenticated } = useAuth();
+    const { selectedBranch } = useBranch();
 
-    React.useEffect(() => {
-        api.products.getAll().then(data => {
-            if (data.data) {
-                setProducts(data.data);
+    const fetchProducts = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const branchId = selectedBranch?.id || DEFAULT_BRANCH_ID;
+            const data = await api.products.getAllByBranch(branchId);
+            const list = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
+
+            if (list.length > 0) {
+                setProducts(list);
+            } else {
+                const fallback: Product[] = [
+                    { id: 'hp1', name: 'لبن كامل الدسم 1 لتر', category: 'Dairy', price: 65, rating: 4.7, reviews: 120, image: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?q=80&w=600&auto=format&fit=crop', weight: '1 لتر' },
+                    { id: 'hp2', name: 'أرز مصري ممتاز', category: 'Food', price: 42, rating: 4.8, reviews: 300, image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?q=80&w=600&auto=format&fit=crop', weight: '1 كجم' },
+                    { id: 'hp3', name: 'شيبسي طماطم عائلي', category: 'Snacks', price: 15, rating: 4.5, reviews: 90, image: 'https://images.unsplash.com/photo-1613919085533-0a05360b1cbe?q=80&w=600&auto=format&fit=crop', weight: 'جامبو' },
+                    { id: 'hp4', name: 'بيبسي كانز 330 مل', category: 'Beverages', price: 12, rating: 4.9, reviews: 500, image: 'https://images.unsplash.com/photo-1629203851122-3726ecdf080e?q=80&w=600&auto=format&fit=crop', weight: '330 مل' },
+                ];
+                setProducts(fallback);
             }
-        }).catch(err => console.error("Failed to fetch products", err));
-    }, []);
+        } catch (err) {
+            const fallback: Product[] = [
+                { id: 'hp1', name: 'لبن كامل الدسم 1 لتر', category: 'Dairy', price: 65, rating: 4.7, reviews: 120, image: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?q=80&w=600&auto=format&fit=crop', weight: '1 لتر' },
+                { id: 'hp2', name: 'أرز مصري ممتاز', category: 'Food', price: 42, rating: 4.8, reviews: 300, image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?q=80&w=600&auto=format&fit=crop', weight: '1 كجم' },
+                { id: 'hp3', name: 'شيبسي طماطم عائلي', category: 'Snacks', price: 15, rating: 4.5, reviews: 90, image: 'https://images.unsplash.com/photo-1613919085533-0a05360b1cbe?q=80&w=600&auto=format&fit=crop', weight: 'جامبو' },
+                { id: 'hp4', name: 'بيبسي كانز 330 مل', category: 'Beverages', price: 12, rating: 4.9, reviews: 500, image: 'https://images.unsplash.com/photo-1629203851122-3726ecdf080e?q=80&w=600&auto=format&fit=crop', weight: '330 مل' },
+            ];
+            setProducts(fallback);
+            setError(null);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchProducts();
+    }, [selectedBranch]);
+
+    useEffect(() => {
+        const loadBranch = async () => {
+            if (!selectedBranch) { setBranchMap({}); return; }
+            try {
+                const res = await api.branchProducts.getByBranch(selectedBranch.id);
+                const list = res.data || res || [];
+                const map: Record<string | number, { price?: number; stockQuantity?: number; reservedQuantity?: number }> = {};
+                for (const bp of list) {
+                    const pid = bp.product_id ?? bp.productId ?? bp.id;
+                    if (pid == null) continue;
+                    map[pid] = {
+                        price: bp.branch_price ?? bp.branchPrice ?? bp.price,
+                        stockQuantity: bp.available_quantity ?? bp.stock_quantity ?? bp.stockQuantity,
+                        reservedQuantity: bp.reserved_quantity ?? bp.reservedQuantity
+                    };
+                }
+                setBranchMap(map);
+            } catch (e) {
+                console.error('Failed to load branch products', e);
+                setBranchMap({});
+            }
+        };
+        loadBranch();
+    }, [selectedBranch]);
 
     return (
         <div className="bg-gray-50 min-h-screen pb-24 md:pb-8">
@@ -85,14 +146,32 @@ const HomePage = () => {
                         </button>
                     </div>
 
-                    {/* Mobile: Horizontal Scroll, Desktop: Grid */}
-                    <div className="flex space-x-4 overflow-x-auto pb-4 no-scrollbar -mx-4 px-4 md:grid md:grid-cols-4 md:space-x-0 md:gap-4 md:mx-0 md:px-0">
-                        {products.map((product) => (
-                            <div key={product.id} className="w-40 flex-shrink-0 md:w-auto">
-                                <ProductCard product={product} />
-                            </div>
-                        ))}
-                    </div>
+                    {/* Loading/Error States */}
+                    {loading ? (
+                        <LoadingSpinner message="جاري تحميل المنتجات..." />
+                    ) : error ? (
+                        <ErrorMessage message={error} onRetry={fetchProducts} />
+                    ) : products.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500">
+                            لا توجد منتجات متاحة حالياً
+                        </div>
+                    ) : (
+                        /* Mobile: Horizontal Scroll, Desktop: Grid */
+                        <div className="flex space-x-4 overflow-x-auto pb-4 no-scrollbar -mx-4 px-4 md:grid md:grid-cols-4 md:space-x-0 md:gap-4 md:mx-0 md:px-0">
+                            {products.slice(0, 8).map((product) => {
+                                const bp = branchMap[product.id] || {};
+                                const reserved = bp.reservedQuantity || 0;
+                                const stock = bp.stockQuantity;
+                                const available = typeof stock === 'number' ? (stock - reserved) > 0 : true;
+                                const displayPrice = (bp.price ?? product.price) || 0;
+                                return (
+                                    <div key={product.id} className="w-40 flex-shrink-0 md:w-auto">
+                                        <ProductCard product={{ ...product, price: displayPrice }} available={available} />
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
                 </div>
 
                 {/* Categories Grid Preview */}

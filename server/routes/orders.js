@@ -6,22 +6,80 @@ const router = express.Router();
 
 // Create Order
 router.post('/', async (req, res) => {
-    const { userId, total, items, branchId } = req.body;
+    const { userId, total, items, branchId, deliverySlotId, paymentMethod } = req.body;
     const status = 'pending';
-    // Postgres DEFAULT CURRENT_TIMESTAMP handles date if not provided, but we can pass it.
 
     try {
         await query('BEGIN');
 
+        // Reserve inventory for each item
+        for (const item of items) {
+            const { rows: stockRows } = await query(
+                "SELECT stock_quantity, reserved_quantity FROM branch_products WHERE branch_id = $1 AND product_id = $2 FOR UPDATE",
+                [branchId, item.id || item.productId]
+            );
+
+            if (stockRows.length === 0) {
+                await query('ROLLBACK');
+                return res.status(400).send({ error: `Product ${item.name} not available at this branch` });
+            }
+
+            const stock = stockRows[0];
+            const availableStock = stock.stock_quantity - stock.reserved_quantity;
+
+            if (availableStock < item.quantity) {
+                await query('ROLLBACK');
+                return res.status(400).send({ 
+                    error: `Insufficient stock for ${item.name}. Available: ${availableStock}` 
+                });
+            }
+
+            // Reserve the quantity
+            await query(
+                "UPDATE branch_products SET reserved_quantity = reserved_quantity + $1 WHERE branch_id = $2 AND product_id = $3",
+                [item.quantity, branchId, item.id || item.productId]
+            );
+        }
+
+        // Reserve delivery slot if provided
+        if (deliverySlotId) {
+            const { rows: slotRows } = await query(
+                "SELECT * FROM delivery_slots WHERE id = $1 FOR UPDATE",
+                [deliverySlotId]
+            );
+
+            if (slotRows.length === 0) {
+                await query('ROLLBACK');
+                return res.status(400).send({ error: 'Delivery slot not found' });
+            }
+
+            const slot = slotRows[0];
+            if (slot.current_orders >= slot.max_orders) {
+                await query('ROLLBACK');
+                return res.status(400).send({ error: 'Delivery slot is full' });
+            }
+
+            await query(
+                "UPDATE delivery_slots SET current_orders = current_orders + 1 WHERE id = $1",
+                [deliverySlotId]
+            );
+        }
+
         // Insert Order
         const insertSql = `
-            INSERT INTO orders (user_id, branch_id, total, items, status) 
-            VALUES ($1, $2, $3, $4, $5) 
+            INSERT INTO orders (user_id, branch_id, total, items, status, delivery_slot_id, payment_method, payment_status) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending') 
             RETURNING id
         `;
-        // items is JSONB, pg driver can handle object directly if we pass it, but let's stringify to be safe or pass object?
-        // pg driver automatically stringifies objects for JSONB columns.
-        const { rows } = await query(insertSql, [userId, branchId || null, total, JSON.stringify(items), status]);
+        const { rows } = await query(insertSql, [
+            userId, 
+            branchId || null, 
+            total, 
+            JSON.stringify(items), 
+            status,
+            deliverySlotId || null,
+            paymentMethod || 'cod'
+        ]);
         const orderId = rows[0].id;
 
         // Clear cart
@@ -29,17 +87,19 @@ router.post('/', async (req, res) => {
 
         // Award Loyalty Points (1 point per 1 EGP)
         const points = Math.floor(total);
-        // Assuming column is loyalty_points based on snake_case convention, though not in schema.sql provided.
-        // If it fails, the user needs to add the column.
         await query("UPDATE users SET loyalty_points = COALESCE(loyalty_points, 0) + $1 WHERE id = $2", [points, userId]);
 
         await query('COMMIT');
 
-        res.status(200).send({ message: "Order created", orderId: orderId, pointsEarned: points });
+        res.status(200).send({ 
+            message: "Order created", 
+            orderId: orderId, 
+            pointsEarned: points 
+        });
     } catch (err) {
         await query('ROLLBACK');
         console.error("Order creation error:", err);
-        res.status(500).send("Problem creating order.");
+        res.status(500).send({ error: "Problem creating order.", details: err.message });
     }
 });
 
@@ -87,14 +147,103 @@ router.get('/', [verifyToken], async (req, res) => {
     }
 });
 
+// Get single order
+router.get('/:orderId', [verifyToken], async (req, res) => {
+    const { orderId } = req.params;
+    const userRole = req.userRole;
+    const requesterId = req.userId;
+
+    try {
+        const { rows } = await query("SELECT * FROM orders WHERE id = $1", [orderId]);
+
+        if (rows.length === 0) {
+            return res.status(404).json({ error: 'Order not found' });
+        }
+
+        const order = rows[0];
+
+        // Check authorization
+        if (userRole !== 'owner' && userRole !== 'manager' && userRole !== 'employee' && order.user_id !== requesterId) {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        res.json({
+            message: 'success',
+            data: {
+                ...order,
+                items: typeof order.items === 'string' ? JSON.parse(order.items) : order.items,
+                userId: order.user_id,
+                branchId: order.branch_id,
+                deliverySlotId: order.delivery_slot_id,
+                paymentMethod: order.payment_method,
+                paymentStatus: order.payment_status
+            }
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Update Order Status
 router.put('/:id/status', [verifyToken, isAdmin], async (req, res) => {
     const { status } = req.body;
+    const orderId = req.params.id;
+
     try {
-        const result = await query("UPDATE orders SET status = $1 WHERE id = $2", [status, req.params.id]);
-        res.json({ "message": "success", rowCount: result.rowCount });
+        await query('BEGIN');
+
+        // Get order details
+        const { rows: orderRows } = await query("SELECT * FROM orders WHERE id = $1", [orderId]);
+        
+        if (orderRows.length === 0) {
+            await query('ROLLBACK');
+            return res.status(404).json({ error: 'Order not found' });
+        }
+
+        const order = orderRows[0];
+        const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+
+        // If confirming order: deduct from stock and reserved
+        if (status === 'confirmed' && order.status === 'pending') {
+            for (const item of items) {
+                await query(
+                    `UPDATE branch_products 
+                     SET stock_quantity = stock_quantity - $1,
+                         reserved_quantity = reserved_quantity - $1
+                     WHERE branch_id = $2 AND product_id = $3`,
+                    [item.quantity, order.branch_id, item.id || item.productId]
+                );
+            }
+        }
+
+        // If cancelling order: release reserved inventory and slot
+        if (status === 'cancelled') {
+            for (const item of items) {
+                await query(
+                    "UPDATE branch_products SET reserved_quantity = GREATEST(reserved_quantity - $1, 0) WHERE branch_id = $2 AND product_id = $3",
+                    [item.quantity, order.branch_id, item.id || item.productId]
+                );
+            }
+
+            // Release delivery slot
+            if (order.delivery_slot_id) {
+                await query(
+                    "UPDATE delivery_slots SET current_orders = GREATEST(current_orders - 1, 0) WHERE id = $1",
+                    [order.delivery_slot_id]
+                );
+            }
+        }
+
+        // Update order status
+        const result = await query("UPDATE orders SET status = $1 WHERE id = $2 RETURNING *", [status, orderId]);
+
+        await query('COMMIT');
+
+        res.json({ message: "success", data: result.rows[0] });
     } catch (err) {
-        res.status(400).json({ "error": err.message });
+        await query('ROLLBACK');
+        console.error("Error updating order status:", err);
+        res.status(400).json({ error: err.message });
     }
 });
 

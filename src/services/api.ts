@@ -80,5 +80,60 @@ export const api = {
             const res = await fetch(`${API_URL}/orders?userId=${userId}`, { headers: getHeaders() });
             return res.json();
         }
+    },
+    chat: {
+        createConversation: async (customerId: string | null, customerName: string) => {
+            const res = await fetch(`${API_URL}/chat/conversations`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ customerId, customerName })
+            });
+            return res.json();
+        },
+        getAllConversations: async (status?: string, agentId?: string) => {
+            let url = `${API_URL}/chat/conversations`;
+            const params = new URLSearchParams();
+            if (status) params.append('status', status);
+            if (agentId) params.append('agentId', agentId);
+            if (params.toString()) url += `?${params.toString()}`;
+
+            const res = await fetch(url, { headers: getHeaders() });
+            return res.json();
+        },
+        getConversation: async (conversationId: string) => {
+            const res = await fetch(`${API_URL}/chat/conversations/${conversationId}`);
+            return res.json();
+        },
+        assignConversation: async (conversationId: string, agentId: string) => {
+            const res = await fetch(`${API_URL}/chat/conversations/${conversationId}/assign`, {
+                method: 'PATCH',
+                headers: getHeaders(),
+                body: JSON.stringify({ agentId })
+            });
+            return res.json();
+        },
+        closeConversation: async (conversationId: string) => {
+            const res = await fetch(`${API_URL}/chat/conversations/${conversationId}/close`, {
+                method: 'PATCH',
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+        sendMessage: async (conversationId: string, senderId: string | null, senderType: string, message: string) => {
+            const res = await fetch(`${API_URL}/chat/messages`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ conversationId, senderId, senderType, message })
+            });
+            return res.json();
+        },
+        markAsRead: async (conversationId: string) => {
+            const res = await fetch(`${API_URL}/chat/messages/read`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ conversationId })
+            });
+            return res.json();
+        }
     }
 };

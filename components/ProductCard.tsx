@@ -9,9 +9,10 @@ import { Product } from '../types';
 interface ProductCardProps {
   product: Product;
   variant?: 'vertical' | 'horizontal';
+  available?: boolean;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical' }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical', available = true }) => {
   const { id, name: title, weight, price, image } = product;
   const navigate = useNavigate();
   const { addToCart } = useCart();
@@ -23,6 +24,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!available) return;
     addToCart(product);
   };
 
@@ -49,7 +51,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
             <span className="font-bold text-gray-900">{price.toFixed(2)} EGP</span>
             <button
               onClick={handleAddToCart}
-              className="bg-primary text-white p-1.5 rounded-full shadow-sm hover:bg-primary-dark transition-colors"
+              className={`p-1.5 rounded-full shadow-sm transition-colors ${available ? 'bg-primary text-white hover:bg-primary-dark' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
+              disabled={!available}
             >
               <Plus size={16} />
             </button>
@@ -71,7 +74,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
         <Heart size={18} fill={isFav ? "currentColor" : "none"} />
       </button>
 
-      <div className="w-full h-32 bg-gray-50 rounded-xl mb-3 p-4 flex items-center justify-center">
+      <div className="w-full h-32 bg-gray-50 rounded-xl mb-3 p-4 flex items-center justify-center relative">
+        {!available && (
+          <span className="absolute top-2 left-2 text-xs bg-red-100 text-red-700 px-2 py-1 rounded-md">غير متوفر</span>
+        )}
         <img src={image || "https://placehold.co/150x150?text=Product"} alt={title} className="w-full h-full object-contain mix-blend-multiply" />
       </div>
 
@@ -80,10 +86,16 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
         <h4 className="text-sm font-medium text-gray-900 line-clamp-2 mb-2 flex-grow">{title}</h4>
 
         <div className="flex justify-between items-end mt-auto">
-          <span className="font-bold text-lg text-gray-900">{price.toFixed(2)} <span className="text-xs font-normal text-gray-500">EGP</span></span>
+          <div className="flex flex-col">
+            <span className="font-bold text-lg text-gray-900">{price.toFixed(2)} <span className="text-xs font-normal text-gray-500">EGP</span></span>
+            {product.isWeighted && (
+              <span className="text-[10px] text-orange-600 font-medium">سعر تقديري ±5%</span>
+            )}
+          </div>
           <button
             onClick={handleAddToCart}
-            className="bg-primary text-white w-8 h-8 rounded-full flex items-center justify-center shadow-sm hover:bg-primary-dark transition-colors z-10"
+            className={`w-8 h-8 rounded-full flex items-center justify-center shadow-sm transition-colors z-10 ${available ? 'bg-primary text-white hover:bg-primary-dark' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
+            disabled={!available}
           >
             <Plus size={20} />
           </button>
