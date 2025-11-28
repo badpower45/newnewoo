@@ -1,4 +1,4 @@
-import db from './database.js';
+import { query } from './database.js';
 
 let io;
 
@@ -35,46 +35,38 @@ export const initializeSocket = (socketServer) => {
         // Send message
         socket.on('message:send', async ({ conversationId, senderId, senderType, message }) => {
             try {
-                const timestamp = new Date().toISOString();
-
                 // Save to database
-                db.run(
-                    `INSERT INTO messages (conversationId, senderId, senderType, message, timestamp) VALUES (?, ?, ?, ?, ?)`,
-                    [conversationId, senderId, senderType, message, timestamp],
-                    function (err) {
-                        if (err) {
-                            console.error('Error saving message:', err);
-                            return;
-                        }
-
-                        const messageData = {
-                            id: this.lastID,
-                            conversationId,
-                            senderId,
-                            senderType,
-                            message,
-                            timestamp,
-                            isRead: 0
-                        };
-
-                        // Update conversation last message time
-                        db.run(
-                            `UPDATE conversations SET lastMessageAt = ? WHERE id = ?`,
-                            [timestamp, conversationId]
-                        );
-
-                        // Broadcast to conversation room
-                        io.to(`conversation_${conversationId}`).emit('message:new', messageData);
-
-                        // If customer message, notify all agents
-                        if (senderType === 'customer') {
-                            io.to('agents').emit('message:notification', {
-                                conversationId,
-                                message: messageData
-                            });
-                        }
-                    }
+                const { rows } = await query(
+                    `INSERT INTO messages (conversation_id, sender_id, sender_type, message) VALUES ($1, $2, $3, $4) RETURNING id, timestamp`,
+                    [conversationId, senderId, senderType, message]
                 );
+
+                const messageData = {
+                    id: rows[0].id,
+                    conversationId,
+                    senderId,
+                    senderType,
+                    message,
+                    timestamp: rows[0].timestamp,
+                    isRead: false
+                };
+
+                // Update conversation last message time
+                await query(
+                    `UPDATE conversations SET last_message_at = $1 WHERE id = $2`,
+                    [rows[0].timestamp, conversationId]
+                );
+
+                // Broadcast to conversation room
+                io.to(`conversation_${conversationId}`).emit('message:new', messageData);
+
+                // If customer message, notify all agents
+                if (senderType === 'customer') {
+                    io.to('agents').emit('message:notification', {
+                        conversationId,
+                        message: messageData
+                    });
+                }
             } catch (error) {
                 console.error('Error in message:send:', error);
             }
@@ -99,30 +91,30 @@ export const initializeSocket = (socketServer) => {
         // Assign conversation to agent
         socket.on('conversation:assign', async ({ conversationId, agentId, agentName }) => {
             try {
-                db.run(
-                    `UPDATE conversations SET agentId = ? WHERE id = ?`,
-                    [agentId, conversationId],
-                    (err) => {
-                        if (!err) {
-                            io.to('agents').emit('conversation:assigned', {
-                                conversationId,
-                                agentId,
-                                agentName
-                            });
-                        }
-                    }
+                await query(
+                    `UPDATE conversations SET agent_id = $1 WHERE id = $2`,
+                    [agentId, conversationId]
                 );
+                io.to('agents').emit('conversation:assigned', {
+                    conversationId,
+                    agentId,
+                    agentName
+                });
             } catch (error) {
                 console.error('Error assigning conversation:', error);
             }
         });
 
         // Mark messages as read
-        socket.on('messages:markRead', ({ conversationId }) => {
-            db.run(
-                `UPDATE messages SET isRead = 1 WHERE conversationId = ? AND senderType = 'customer'`,
-                [conversationId]
-            );
+        socket.on('messages:markRead', async ({ conversationId }) => {
+            try {
+                await query(
+                    `UPDATE messages SET is_read = TRUE WHERE conversation_id = $1 AND sender_type = 'customer'`,
+                    [conversationId]
+                );
+            } catch (error) {
+                console.error('Error marking messages as read:', error);
+            }
         });
 
         // Disconnect

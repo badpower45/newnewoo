@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git rm:*)",
+      "Bash(node -e:*)",
+      "Bash(npm install)",
+      "Bash(timeout 15 npm run dev:*)",
+      "Bash(timeout 10 npm start:*)",
+      "Bash(npm start)",
+      "Bash(timeout 3 echo:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(powershell -Command:*)",
+      "Bash(dir:*)",
+      "Bash(cat:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\n✅ Phase 0: Security & Setup Complete\n\n- حذف ملفات .env من Git وإضافتها إلى .gitignore\n- إنشاء .env.example كقوالب آمنة للبيئة\n- تأمين JWT_SECRET: إجباري في middleware/auth\n- تحسين تحميل .env في database.js مع override\n- إزالة dotenv المكرر من index.js\n- إصلاح syntax error في chat.js\n- إضافة PRD.md و TASKS.md\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

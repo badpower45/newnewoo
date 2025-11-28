@@ -30,3 +30,7 @@ server/.env.local
 *.njsproj
 *.sln
 *.sw?
+
+# Ignore accidental Windows reserved files
+/nul
+

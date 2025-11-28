@@ -9,6 +9,7 @@ export interface Product {
   image: string;
   isNew?: boolean;
   isOrganic?: boolean;
+  isWeighted?: boolean;
   weight: string;
 }
 
