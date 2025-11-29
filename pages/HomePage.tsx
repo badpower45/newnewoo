@@ -52,7 +52,7 @@ const HomePage = () => {
             if (!selectedBranch) { setBranchMap({}); return; }
             try {
                 const res = await api.branchProducts.getByBranch(selectedBranch.id);
-                const list = res.data || res || [];
+                const list = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
                 const map: Record<string | number, { price?: number; stockQuantity?: number; reservedQuantity?: number }> = {};
                 for (const bp of list) {
                     const pid = bp.product_id ?? bp.productId ?? bp.id;
