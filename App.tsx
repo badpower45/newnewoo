@@ -1,6 +1,5 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import Header from './components/Header';
 import Footer from './components/Footer';
 import Chatbot from './components/Chatbot';
 import HomePage from './pages/HomePage';
@@ -57,7 +56,6 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-slate-900 relative flex flex-col">
-      {!isAdminRoute && <Header />}
       <main className={`flex-grow ${!isAdminRoute ? 'pb-16 md:pb-0' : ''}`}>
         <div className={!isAdminRoute ? "max-w-7xl mx-auto w-full" : "w-full"}>
           <Routes>
