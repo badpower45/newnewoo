@@ -91,8 +91,8 @@ app.use('/api/branch-products', branchProductsRoutes);
 app.use('/api/delivery-slots', deliverySlotsRoutes);
 app.use('/api/branches', branchesRoutes);
 
-// Health check endpoint
-app.get('/health', (req, res) => {
+// Health check endpoint (moved under /api for serverless route consistency)
+app.get('/api/health', (req, res) => {
     res.status(200).json({ 
         status: 'ok', 
         timestamp: new Date().toISOString(),
