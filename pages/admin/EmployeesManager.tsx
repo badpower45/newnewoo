@@ -81,13 +81,18 @@ const EmployeesManager = () => {
                                 </td>
                                 <td className="px-6 py-4">
                                     <div className="flex items-center space-x-2">
-                                        <Shield size={16} className={user.role === 'owner' ? 'text-purple-500' : 'text-gray-400'} />
-                                        <span className={`px-2 py-1 text-xs font-bold rounded-full ${user.role === 'owner' ? 'bg-purple-100 text-purple-700' :
+                                        <Shield size={16} className={user.role === 'admin' ? 'text-purple-500' : 'text-gray-400'} />
+                                        <span className={`px-2 py-1 text-xs font-bold rounded-full ${
+                                                user.role === 'admin' ? 'bg-purple-100 text-purple-700' :
                                                 user.role === 'manager' ? 'bg-blue-100 text-blue-700' :
-                                                    user.role === 'employee' ? 'bg-green-100 text-green-700' :
-                                                        'bg-gray-100 text-gray-700'
+                                                user.role === 'employee' ? 'bg-green-100 text-green-700' :
+                                                user.role === 'distributor' ? 'bg-orange-100 text-orange-700' :
+                                                user.role === 'delivery' ? 'bg-cyan-100 text-cyan-700' :
+                                                'bg-gray-100 text-gray-700'
                                             }`}>
-                                            {user.role.toUpperCase()}
+                                            {user.role === 'distributor' ? 'DISTRIBUTOR' :
+                                             user.role === 'delivery' ? 'DELIVERY' :
+                                             user.role.toUpperCase()}
                                         </span>
                                     </div>
                                 </td>
@@ -95,7 +100,7 @@ const EmployeesManager = () => {
                                     <button
                                         onClick={() => handleDelete(user.id)}
                                         className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                        disabled={user.role === 'owner'} // Prevent deleting owner
+                                        disabled={user.role === 'admin'} // Prevent deleting admin
                                     >
                                         <Trash2 size={18} />
                                     </button>
@@ -149,9 +154,12 @@ const EmployeesManager = () => {
                                     onChange={e => setNewUser({ ...newUser, role: e.target.value })}
                                     className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange"
                                 >
-                                    <option value="employee">Employee</option>
-                                    <option value="manager">Manager</option>
-                                    <option value="owner">Owner</option>
+                                    <option value="customer">Customer - عميل</option>
+                                    <option value="employee">Employee - موظف خدمة عملاء</option>
+                                    <option value="distributor">Distributor - موزع الطلبات</option>
+                                    <option value="delivery">Delivery - عامل التوصيل</option>
+                                    <option value="manager">Manager - مدير</option>
+                                    <option value="admin">Admin - مدير عام</option>
                                 </select>
                             </div>
                             <div className="flex space-x-3 pt-4">

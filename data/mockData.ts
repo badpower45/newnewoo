@@ -10,12 +10,25 @@ export const CATEGORIES = [
 ];
 
 export const ALL_CATEGORIES = [
-    'By Aloosh', 'Bulk & Wholesale', 'Pharmacy',
-    'Fruits & Vegetables', 'Deli', 'Bakery & Pastry',
-    'Dairy & Eggs', 'Chocolates & Biscuits', 'Meat & Poultry',
-    'Beverages', 'Snacks', 'Frozen Food',
-    'Healthy Lifestyle', 'Food Cupboard', 'Laundry',
-    'Cleaning', 'Baby Care', 'Personal Care'
+    'Cheese',
+    'Cosmetics',
+    'Chocolates',
+    'Candy',
+    'Cannedfood',
+    'Drinks',
+    'Legumes',
+    'healthy',
+    'Milk',
+    'Dates',
+    'Oils',
+    'Freezers',
+    'الورقيات',
+    'المساحيق',
+    'سناكس',
+    'بيكري',
+    'لحوم',
+    'فواكه وخضار',
+    'All'
 ];
 
 export const PRODUCTS = [

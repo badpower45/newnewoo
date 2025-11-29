@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { useBranch } from '../context/BranchContext';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, MapPin, Loader, CheckCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import DeliverySlotPicker from '../components/DeliverySlotPicker';
 import SubstitutionSelector from '../components/SubstitutionSelector';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -16,13 +15,23 @@ export default function CheckoutPage() {
     const { selectedBranch } = useBranch();
     const navigate = useNavigate();
     const { showToast, ToastContainer } = useToast();
-    const [selectedSlot, setSelectedSlot] = useState<any>(null);
     const [paymentMethod, setPaymentMethod] = useState('cod');
+    
+    // State for Location
+    const [locationCoords, setLocationCoords] = useState<{lat: number, lng: number} | null>(null);
+    const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+    const [locationError, setLocationError] = useState('');
+    
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
         phone: '',
-        address: ''
+        building: '',
+        street: '',
+        floor: '',
+        apartment: '',
+        address: '',
+        notes: ''
     });
 
     useEffect(() => {
@@ -49,16 +58,45 @@ export default function CheckoutPage() {
         }
     };
 
+    // --- Function: Get GPS Location ---
+    const handleGetLocation = () => {
+        setIsLoadingLocation(true);
+        setLocationError('');
+
+        if (!navigator.geolocation) {
+            setLocationError('المتصفح لا يدعم تحديد الموقع');
+            setIsLoadingLocation(false);
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const { latitude, longitude } = position.coords;
+                setLocationCoords({ lat: latitude, lng: longitude });
+                
+                // Append Google Maps link to address for easy access
+                const mapLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
+                setFormData(prev => ({
+                    ...prev,
+                    address: prev.address ? `${prev.address}\n\n📍 الموقع: ${mapLink}` : `📍 الموقع: ${mapLink}`
+                }));
+                
+                setIsLoadingLocation(false);
+            },
+            (error) => {
+                console.error("Location error:", error);
+                setLocationError('تعذر تحديد الموقع. يرجى التأكد من تفعيل الـ GPS.');
+                setIsLoadingLocation(false);
+            },
+            { enableHighAccuracy: true }
+        );
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!selectedBranch) {
             showToast('يرجى اختيار فرع أولاً', 'warning');
-            return;
-        }
-
-        if (!selectedSlot) {
-            showToast('يرجى اختيار موعد توصيل', 'warning');
             return;
         }
 
@@ -95,9 +133,20 @@ export default function CheckoutPage() {
             const orderData = {
                 userId: currentUserId,
                 branchId: selectedBranch.id,
-                deliverySlotId: selectedSlot.id,
                 paymentMethod: paymentMethod,
-                deliveryAddress: `${formData.firstName} ${formData.lastName}, ${formData.phone}, ${formData.address}`,
+                deliveryAddress: `${formData.firstName} ${formData.lastName}, ${formData.phone}, ${formData.building}, ${formData.street}, ${formData.address}`,
+                shippingDetails: {
+                    firstName: formData.firstName,
+                    lastName: formData.lastName,
+                    phone: formData.phone,
+                    building: formData.building,
+                    street: formData.street,
+                    floor: formData.floor,
+                    apartment: formData.apartment,
+                    address: formData.address,
+                    notes: formData.notes,
+                    coordinates: locationCoords
+                },
                 items: items.map(item => ({
                     productId: item.id,
                     quantity: item.quantity,
@@ -190,31 +239,103 @@ export default function CheckoutPage() {
                             />
                         </div>
 
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-700">اسم العمارة / المبنى</label>
+                                <input
+                                    type="text"
+                                    name="building"
+                                    value={formData.building}
+                                    onChange={handleInputChange}
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
+                                    placeholder="مثال: برج النخيل"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-700">اسم الشارع</label>
+                                <input
+                                    type="text"
+                                    name="street"
+                                    value={formData.street}
+                                    onChange={handleInputChange}
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
+                                    placeholder="شارع التحرير"
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-700">الدور</label>
+                                <input
+                                    type="text"
+                                    name="floor"
+                                    value={formData.floor}
+                                    onChange={handleInputChange}
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
+                                    placeholder="3"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-bold text-slate-700">الشقة</label>
+                                <input
+                                    type="text"
+                                    name="apartment"
+                                    value={formData.apartment}
+                                    onChange={handleInputChange}
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
+                                    placeholder="شقة 5"
+                                />
+                            </div>
+                        </div>
+
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700">تفاصيل العنوان</label>
+                            <label className="text-sm font-bold text-slate-700 flex justify-between items-center">
+                                <span>تفاصيل العنوان الإضافية</span>
+                                {/* Location Button */}
+                                <button
+                                    type="button"
+                                    onClick={handleGetLocation}
+                                    className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full flex items-center hover:bg-blue-100 transition-colors"
+                                    disabled={isLoadingLocation}
+                                >
+                                    {isLoadingLocation ? <Loader size={12} className="animate-spin ml-1" /> : <MapPin size={12} className="ml-1" />}
+                                    {locationCoords ? 'تم تحديد الموقع ✓' : 'تحديد موقعي الحالي'}
+                                </button>
+                            </label>
+                            
+                            {locationError && <p className="text-xs text-red-500">{locationError}</p>}
+                            
                             <textarea
-                                required
-                                rows={3}
+                                rows={2}
                                 name="address"
                                 value={formData.address}
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
-                                placeholder="اسم الشارع، رقم المبنى، الدور، الشقة..."
+                                placeholder="علامة مميزة أو تفاصيل إضافية للعنوان..."
+                            ></textarea>
+                            
+                            {locationCoords && (
+                                <p className="text-xs text-green-600 flex items-center">
+                                    <CheckCircle size={12} className="ml-1" /> تم حفظ الإحداثيات: {locationCoords.lat.toFixed(5)}, {locationCoords.lng.toFixed(5)}
+                                </p>
+                            )}
+                        </div>
+
+                        {/* ملاحظات التوصيل */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">ملاحظات للتوصيل (اختياري)</label>
+                            <textarea
+                                rows={2}
+                                name="notes"
+                                value={formData.notes}
+                                onChange={handleInputChange}
+                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
+                                placeholder="مثال: من فضلك اتصل قبل الوصول..."
                             ></textarea>
                         </div>
                         </form>
                     </div>
-
-                    {/* Delivery Slot */}
-                    {selectedBranch && (
-                        <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
-                            <DeliverySlotPicker
-                                branchId={selectedBranch.id}
-                                onSelect={setSelectedSlot}
-                                selectedSlotId={selectedSlot?.id}
-                            />
-                        </div>
-                    )}
 
                     {/* Payment Method */}
                     <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">

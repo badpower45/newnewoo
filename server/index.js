@@ -17,6 +17,7 @@ import chatRoutes from './routes/chat.js';
 import branchProductsRoutes from './routes/branchProducts.js';
 import deliverySlotsRoutes from './routes/deliverySlots.js';
 import branchesRoutes from './routes/branches.js';
+import distributionRoutes from './routes/distribution.js';
 
 // dotenv is loaded in database.js with the correct path
 // No need to load it again here
@@ -107,6 +108,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/branch-products', branchProductsRoutes);
 app.use('/api/delivery-slots', deliverySlotsRoutes);
 app.use('/api/branches', branchesRoutes);
+app.use('/api/distribution', distributionRoutes);
 
 // Health check endpoint (moved under /api for serverless route consistency)
 app.get('/api/health', (req, res) => {

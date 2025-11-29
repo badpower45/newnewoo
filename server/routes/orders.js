@@ -6,8 +6,11 @@ const router = express.Router();
 
 // Create Order
 router.post('/', async (req, res) => {
-    const { userId, total, items, branchId, deliverySlotId, paymentMethod } = req.body;
+    const { userId, total, items, branchId, deliverySlotId, paymentMethod, shippingDetails, deliveryAddress } = req.body;
     const status = 'pending';
+
+    // Build shipping_info from shippingDetails or deliveryAddress for backward compatibility
+    const shippingInfo = shippingDetails || (deliveryAddress ? { address: deliveryAddress } : null);
 
     try {
         await query('BEGIN');
@@ -67,8 +70,8 @@ router.post('/', async (req, res) => {
 
         // Insert Order
         const insertSql = `
-            INSERT INTO orders (user_id, branch_id, total, items, status, delivery_slot_id, payment_method, payment_status) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending') 
+            INSERT INTO orders (user_id, branch_id, total, items, status, delivery_slot_id, payment_method, payment_status, shipping_info) 
+            VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8) 
             RETURNING id
         `;
         const { rows } = await query(insertSql, [
@@ -78,23 +81,21 @@ router.post('/', async (req, res) => {
             JSON.stringify(items), 
             status,
             deliverySlotId || null,
-            paymentMethod || 'cod'
+            paymentMethod || 'cod',
+            shippingInfo ? JSON.stringify(shippingInfo) : null
         ]);
         const orderId = rows[0].id;
 
         // Clear cart
         await query("DELETE FROM cart WHERE user_id = $1", [userId]);
 
-        // Award Loyalty Points (1 point per 1 EGP)
-        const points = Math.floor(total);
-        await query("UPDATE users SET loyalty_points = COALESCE(loyalty_points, 0) + $1 WHERE id = $2", [points, userId]);
+        // Note: Loyalty points are awarded only when order is delivered
 
         await query('COMMIT');
 
         res.status(200).send({ 
             message: "Order created", 
-            orderId: orderId, 
-            pointsEarned: points 
+            orderId: orderId 
         });
     } catch (err) {
         await query('ROLLBACK');
@@ -231,6 +232,18 @@ router.put('/:id/status', [verifyToken, isAdmin], async (req, res) => {
                     "UPDATE delivery_slots SET current_orders = GREATEST(current_orders - 1, 0) WHERE id = $1",
                     [order.delivery_slot_id]
                 );
+            }
+        }
+
+        // Award Loyalty Points ONLY when order is delivered
+        if (status === 'delivered' && order.status !== 'delivered') {
+            const points = Math.floor(Number(order.total) || 0);
+            if (points > 0 && order.user_id) {
+                await query(
+                    "UPDATE users SET loyalty_points = COALESCE(loyalty_points, 0) + $1 WHERE id = $2",
+                    [points, order.user_id]
+                );
+                console.log(`Awarded ${points} loyalty points to user ${order.user_id} for order ${orderId}`);
             }
         }
 

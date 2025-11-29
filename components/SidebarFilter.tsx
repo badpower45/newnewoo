@@ -3,7 +3,7 @@ import { ChevronDown, ChevronUp, Filter } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const FILTER_SECTIONS = [
-  { id: 'category', name: 'القسم', options: ['خضار وفاكهة', 'لحوم ودواجن', 'مخبوزات', 'ألبان', 'خزين البيت'] },
+  { id: 'category', name: 'القسم', options: ['Cheese', 'Cosmetics', 'Chocolates', 'Candy', 'Cannedfood', 'Drinks', 'Legumes', 'healthy', 'Milk', 'Dates', 'Oils', 'Freezers', 'الورقيات', 'المساحيق', 'سناكس', 'بيكري', 'لحوم', 'فواكه وخضار'] },
   { id: 'dietary', name: 'نظام غذائي', options: ['حلال', 'أورجانيك', 'خالي من الجلوتين', 'دايت', 'كيتو'] },
   { id: 'brand', name: 'ماركات', options: ['مزارع علوش', 'مزارع دينا', 'المراعي', 'جهينة', 'نستله'] },
 ];

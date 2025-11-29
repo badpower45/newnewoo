@@ -7,12 +7,14 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
   requireAdmin?: boolean;
   requireEmployee?: boolean;
+  allowedRoles?: string[]; // New prop for flexible role-based access
 }
 
-const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
-  children, 
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
+  children,
   requireAdmin = false,
-  requireEmployee = false 
+  requireEmployee = false,
+  allowedRoles
 }) => {
   const { user, loading } = useAuth();
 
@@ -24,11 +26,18 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/login" replace />;
   }
 
+  // Check if user role is in allowedRoles (most flexible option)
+  if (allowedRoles && !allowedRoles.includes(user.role || '')) {
+    return <Navigate to="/" replace />;
+  }
+
+  // Backward compatibility: requireAdmin means only admin role
   if (requireAdmin && user.role !== 'admin') {
     return <Navigate to="/" replace />;
   }
 
-  if (requireEmployee && user.role !== 'employee' && user.role !== 'admin') {
+  // Backward compatibility: requireEmployee means employee, manager, or admin
+  if (requireEmployee && !['employee', 'manager', 'admin'].includes(user.role || '')) {
     return <Navigate to="/" replace />;
   }
 

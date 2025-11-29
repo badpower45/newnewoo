@@ -1,9 +1,12 @@
 export interface Product {
   id: string;
   name: string;
+  barcode?: string;
   price: number;
-  originalPrice?: number;
+  originalPrice?: number; // السعر قبل الخصم
+  discount_price?: number; // السعر قبل (الأصلي)
   category: string;
+  subcategory?: string; // التصنيف الفرعي
   rating: number;
   reviews: number;
   image: string;
@@ -11,6 +14,9 @@ export interface Product {
   isOrganic?: boolean;
   isWeighted?: boolean;
   weight: string;
+  stock_quantity?: number; // عدد القطع المتوفرة
+  expiry_date?: string; // تاريخ الصلاحية
+  branch_id?: number; // الفرع
 }
 
 export interface NavItem {

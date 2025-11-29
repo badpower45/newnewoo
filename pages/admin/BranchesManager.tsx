@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Edit, Trash2, MapPin, Phone, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Plus, Edit, Trash2, MapPin, Phone, ToggleLeft, ToggleRight, Navigation, Link2 } from 'lucide-react';
 import { api } from '../../services/api';
 
 interface Branch {
@@ -29,6 +29,7 @@ const BranchesManager: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<Branch | null>(null);
   const [form, setForm] = useState<Omit<Branch, 'id'>>(emptyBranch);
+  const [locationInput, setLocationInput] = useState('');
 
   const load = async () => {
     setLoading(true);
@@ -97,6 +98,78 @@ const BranchesManager: React.FC = () => {
     }
   };
 
+  // Get user's current location
+  const getMyLocation = () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation is not supported by your browser');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        setForm({ ...form, latitude: lat, longitude: lng });
+        setLocationInput(`${lat}, ${lng}`);
+        alert(`تم جلب موقعك بنجاح!\nLat: ${lat}\nLng: ${lng}`);
+      },
+      (error) => {
+        alert(`خطأ في جلب الموقع: ${error.message}`);
+      }
+    );
+  };
+
+  // Parse location input (Google Maps URL or coordinates)
+  const parseLocation = (input: string) => {
+    if (!input.trim()) return;
+
+    try {
+      // Case 1: Direct coordinates "31.25906894945564, 32.292874702221496"
+      if (/^-?\d+\.?\d*,\s*-?\d+\.?\d*$/.test(input.trim())) {
+        const [lat, lng] = input.split(',').map(s => parseFloat(s.trim()));
+        if (!isNaN(lat) && !isNaN(lng)) {
+          setForm({ ...form, latitude: lat, longitude: lng });
+          return;
+        }
+      }
+
+      // Case 2: Google Maps URL
+      // https://maps.app.goo.gl/VgvAuC9hSuKvCWiQ7
+      // https://www.google.com/maps?q=31.259069,32.292875
+      // https://www.google.com/maps/@31.259069,32.292875,15z
+
+      // Try to extract from @lat,lng pattern
+      const atMatch = input.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+      if (atMatch) {
+        const lat = parseFloat(atMatch[1]);
+        const lng = parseFloat(atMatch[2]);
+        setForm({ ...form, latitude: lat, longitude: lng });
+        setLocationInput(`${lat}, ${lng}`);
+        return;
+      }
+
+      // Try to extract from ?q=lat,lng pattern
+      const qMatch = input.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+      if (qMatch) {
+        const lat = parseFloat(qMatch[1]);
+        const lng = parseFloat(qMatch[2]);
+        setForm({ ...form, latitude: lat, longitude: lng });
+        setLocationInput(`${lat}, ${lng}`);
+        return;
+      }
+
+      // For shortened URLs like maps.app.goo.gl, we need to inform user
+      if (input.includes('maps.app.goo.gl') || input.includes('goo.gl')) {
+        alert('الرجاء فتح الرابط المختصر في المتصفح ونسخ الرابط الكامل الذي يحتوي على الإحداثيات');
+        return;
+      }
+
+      alert('لم يتم التعرف على الصيغة. استخدم:\n- إحداثيات مباشرة: 31.259, 32.293\n- رابط Google Maps كامل يحتوي على @lat,lng');
+    } catch (e) {
+      alert('خطأ في تحليل الموقع');
+    }
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -158,19 +231,99 @@ const BranchesManager: React.FC = () => {
                 <label className="block text-sm text-gray-700 mb-1">Phone</label>
                 <input required value={form.phone} onChange={e=>setForm({...form, phone:e.target.value})} className="w-full border rounded-lg px-3 py-2" />
               </div>
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-sm text-gray-700 mb-1">Latitude</label>
-                  <input type="number" step="0.000001" value={form.latitude} onChange={e=>setForm({...form, latitude: Number(e.target.value)})} className="w-full border rounded-lg px-3 py-2" />
+
+              {/* Location Input Section */}
+              <div className="border-t border-gray-200 pt-4">
+                <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                  <MapPin size={16} className="text-primary" />
+                  الموقع (Location)
+                </label>
+
+                {/* Quick Location Input */}
+                <div className="space-y-3">
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <input
+                        type="text"
+                        value={locationInput}
+                        onChange={(e) => setLocationInput(e.target.value)}
+                        onBlur={() => parseLocation(locationInput)}
+                        placeholder="الصق رابط Google Maps أو الإحداثيات (31.259, 32.293)"
+                        className="w-full border rounded-lg px-3 py-2 text-sm"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={getMyLocation}
+                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 whitespace-nowrap"
+                      title="جلب موقعي الحالي"
+                    >
+                      <Navigation size={16} />
+                      موقعي
+                    </button>
+                  </div>
+
+                  <p className="text-xs text-gray-500 flex items-start gap-1">
+                    <Link2 size={12} className="mt-0.5" />
+                    يمكنك لصق رابط Google Maps أو كتابة الإحداثيات مباشرة
+                  </p>
                 </div>
-                <div>
-                  <label className="block text-sm text-gray-700 mb-1">Longitude</label>
-                  <input type="number" step="0.000001" value={form.longitude} onChange={e=>setForm({...form, longitude: Number(e.target.value)})} className="w-full border rounded-lg px-3 py-2" />
+
+                {/* Manual Coordinate Inputs */}
+                <div className="grid grid-cols-3 gap-3 mt-4">
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">Latitude</label>
+                    <input
+                      type="number"
+                      step="0.000001"
+                      value={form.latitude}
+                      onChange={e => {
+                        const lat = Number(e.target.value);
+                        setForm({...form, latitude: lat});
+                        setLocationInput(`${lat}, ${form.longitude}`);
+                      }}
+                      className="w-full border rounded-lg px-3 py-2 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">Longitude</label>
+                    <input
+                      type="number"
+                      step="0.000001"
+                      value={form.longitude}
+                      onChange={e => {
+                        const lng = Number(e.target.value);
+                        setForm({...form, longitude: lng});
+                        setLocationInput(`${form.latitude}, ${lng}`);
+                      }}
+                      className="w-full border rounded-lg px-3 py-2 text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">Radius (km)</label>
+                    <input
+                      type="number"
+                      value={form.delivery_radius}
+                      onChange={e=>setForm({...form, delivery_radius: Number(e.target.value)})}
+                      className="w-full border rounded-lg px-3 py-2 text-sm"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm text-gray-700 mb-1">Radius (km)</label>
-                  <input type="number" value={form.delivery_radius} onChange={e=>setForm({...form, delivery_radius: Number(e.target.value)})} className="w-full border rounded-lg px-3 py-2" />
-                </div>
+
+                {/* Show Google Maps Link */}
+                {form.latitude !== 0 && form.longitude !== 0 && (
+                  <div className="mt-3">
+                    <a
+                      href={`https://www.google.com/maps?q=${form.latitude},${form.longitude}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                    >
+                      <MapPin size={12} />
+                      عرض على Google Maps
+                    </a>
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <input id="active" type="checkbox" checked={!!form.is_active} onChange={e=>setForm({...form, is_active: e.target.checked})} />

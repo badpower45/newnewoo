@@ -5,6 +5,7 @@ import { api } from '../services/api';
 import { Product } from '../types';
 import { useCart } from '../context/CartContext';
 import { useBranch } from '../context/BranchContext';
+import TopBar from '../components/TopBar';
 
 const ProductDetailsPage = () => {
     const navigate = useNavigate();
@@ -81,6 +82,9 @@ const ProductDetailsPage = () => {
 
     return (
         <div className="bg-white min-h-screen pb-24 md:pb-8">
+            {/* TopBar for all screens */}
+            <TopBar />
+            
             {/* Mobile Header */}
             <div className="flex justify-between items-center p-4 sticky top-0 bg-white z-40 md:hidden">
                 <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-gray-800">

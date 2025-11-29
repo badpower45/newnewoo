@@ -410,5 +410,156 @@ export const api = {
             });
             return res.json();
         }
+    },
+    
+    // Distribution APIs (توزيع الطلبات)
+    distribution: {
+        // موظفي التوصيل
+        getDeliveryStaff: async (branchId?: number) => {
+            const url = branchId 
+                ? `${API_URL}/distribution/delivery-staff?branchId=${branchId}`
+                : `${API_URL}/distribution/delivery-staff`;
+            const res = await fetch(url, { headers: getHeaders() });
+            return res.json();
+        },
+        createDeliveryStaff: async (data: any) => {
+            const res = await fetch(`${API_URL}/distribution/delivery-staff`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+        updateDeliveryStaff: async (id: number, data: any) => {
+            const res = await fetch(`${API_URL}/distribution/delivery-staff/${id}`, {
+                method: 'PUT',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+        deleteDeliveryStaff: async (id: number) => {
+            const res = await fetch(`${API_URL}/distribution/delivery-staff/${id}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+        
+        // طلبات للتحضير
+        getOrdersToPrepare: async (branchId?: number, status?: string) => {
+            let url = `${API_URL}/distribution/orders-to-prepare?`;
+            if (branchId) url += `branchId=${branchId}&`;
+            if (status) url += `status=${status}`;
+            const res = await fetch(url, { headers: getHeaders() });
+            return res.json();
+        },
+        
+        // بدء تحضير الطلب
+        startPreparation: async (orderId: number) => {
+            const res = await fetch(`${API_URL}/distribution/start-preparation/${orderId}`, {
+                method: 'POST',
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+        
+        // عناصر التحضير
+        getPreparationItems: async (orderId: number) => {
+            const res = await fetch(`${API_URL}/distribution/preparation-items/${orderId}`, { 
+                headers: getHeaders() 
+            });
+            return res.json();
+        },
+        updatePreparationItem: async (itemId: number, isPrepared: boolean, notes?: string) => {
+            const res = await fetch(`${API_URL}/distribution/preparation-items/${itemId}`, {
+                method: 'PUT',
+                headers: getHeaders(),
+                body: JSON.stringify({ isPrepared, notes })
+            });
+            return res.json();
+        },
+        
+        // إتمام التحضير
+        completePreparation: async (orderId: number) => {
+            const res = await fetch(`${API_URL}/distribution/complete-preparation/${orderId}`, {
+                method: 'POST',
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+        
+        // موظفي التوصيل المتاحين
+        getAvailableDelivery: async (branchId: number) => {
+            const res = await fetch(`${API_URL}/distribution/available-delivery/${branchId}`, { 
+                headers: getHeaders() 
+            });
+            return res.json();
+        },
+        
+        // تعيين ديليفري للطلب
+        assignDelivery: async (orderId: number, deliveryStaffId: number) => {
+            const res = await fetch(`${API_URL}/distribution/assign-delivery/${orderId}`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ deliveryStaffId })
+            });
+            return res.json();
+        },
+        
+        // الديليفري يستلم الطلب
+        pickupOrder: async (orderId: number) => {
+            const res = await fetch(`${API_URL}/distribution/pickup-order/${orderId}`, {
+                method: 'POST',
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+        
+        // الديليفري يوصل الطلب
+        deliverOrder: async (orderId: number) => {
+            const res = await fetch(`${API_URL}/distribution/deliver-order/${orderId}`, {
+                method: 'POST',
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+        
+        // جلب طلبات الديليفري الحالي
+        getDeliveryOrders: async () => {
+            const res = await fetch(`${API_URL}/distribution/my-delivery-orders`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+        
+        // الديليفري وصل - في انتظار العميل
+        arrivingOrder: async (orderId: number) => {
+            const res = await fetch(`${API_URL}/distribution/arriving-order/${orderId}`, {
+                method: 'POST',
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+        
+        // الديليفري يرفض الطلب
+        rejectOrder: async (orderId: number, reason: string) => {
+            const res = await fetch(`${API_URL}/distribution/reject-order/${orderId}`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ reason })
+            });
+            return res.json();
+        },
+        
+        // تحديث بيانات الفرع
+        updateBranchContact: async (branchId: number, data: any) => {
+            const res = await fetch(`${API_URL}/distribution/branches/${branchId}/contact`, {
+                method: 'PUT',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        }
     }
 };

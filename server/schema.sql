@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS products (
   name TEXT NOT NULL,
   description TEXT,
   category TEXT,
+  subcategory TEXT, -- New: Sub-category for better organization
   rating DECIMAL(3, 2) DEFAULT 0,
   reviews INTEGER DEFAULT 0,
   image TEXT,
@@ -42,10 +43,11 @@ CREATE TABLE IF NOT EXISTS products (
 CREATE TABLE IF NOT EXISTS branch_products (
   branch_id INTEGER NOT NULL,
   product_id TEXT NOT NULL,
-  price DECIMAL(10, 2) NOT NULL,
-  discount_price DECIMAL(10, 2),
-  stock_quantity INTEGER DEFAULT 0,
-  reserved_quantity INTEGER DEFAULT 0,
+  price DECIMAL(10, 2) NOT NULL, -- السعر بعد (السعر الحالي)
+  discount_price DECIMAL(10, 2), -- السعر قبل (السعر الأصلي قبل الخصم)
+  stock_quantity INTEGER DEFAULT 0, -- عدد القطع المتوفرة
+  reserved_quantity INTEGER DEFAULT 0, -- الكمية المحجوزة للطلبات الجارية
+  expiry_date DATE, -- تاريخ الصلاحية
   is_available BOOLEAN DEFAULT TRUE,
   PRIMARY KEY (branch_id, product_id),
   FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE CASCADE,
@@ -76,6 +78,7 @@ CREATE TABLE IF NOT EXISTS orders (
   payment_method VARCHAR(20) DEFAULT 'cod',
   payment_status VARCHAR(20) DEFAULT 'pending',
   payment_transaction_id TEXT,
+  shipping_info JSONB, -- Stores name, phone, address, GPS coordinates
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (branch_id) REFERENCES branches(id)
 );
@@ -129,4 +132,73 @@ CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
 CREATE INDEX IF NOT EXISTS idx_delivery_slots_date ON delivery_slots(date);
 CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
 CREATE INDEX IF NOT EXISTS idx_orders_user ON orders(user_id);
+
+-- 10. Delivery Staff (موظفي التوصيل)
+CREATE TABLE IF NOT EXISTS delivery_staff (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL, -- ربط بجدول المستخدمين
+  name TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  phone2 TEXT, -- رقم بديل
+  is_available BOOLEAN DEFAULT TRUE,
+  current_orders INTEGER DEFAULT 0, -- عدد الطلبات الحالية
+  max_orders INTEGER DEFAULT 5, -- الحد الأقصى للطلبات
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- 11. Delivery Staff Branches (ربط الديليفري بالفروع)
+CREATE TABLE IF NOT EXISTS delivery_staff_branches (
+  delivery_staff_id INTEGER NOT NULL,
+  branch_id INTEGER NOT NULL,
+  PRIMARY KEY (delivery_staff_id, branch_id),
+  FOREIGN KEY (delivery_staff_id) REFERENCES delivery_staff(id) ON DELETE CASCADE,
+  FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE CASCADE
+);
+
+-- 12. Order Assignments (تعيين الطلبات لموظفي التوصيل)
+CREATE TABLE IF NOT EXISTS order_assignments (
+  id SERIAL PRIMARY KEY,
+  order_id INTEGER NOT NULL,
+  delivery_staff_id INTEGER,
+  distributor_id INTEGER, -- موزع الطلبات
+  assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  picked_up_at TIMESTAMP, -- وقت استلام الديليفري للطلب
+  delivered_at TIMESTAMP, -- وقت التوصيل
+  status TEXT DEFAULT 'pending', -- pending, preparing, ready, assigned, picked_up, delivered
+  notes TEXT,
+  FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+  FOREIGN KEY (delivery_staff_id) REFERENCES delivery_staff(id),
+  FOREIGN KEY (distributor_id) REFERENCES users(id)
+);
+
+-- 13. Order Preparation Items (عناصر تحضير الطلب - Todo List)
+CREATE TABLE IF NOT EXISTS order_preparation_items (
+  id SERIAL PRIMARY KEY,
+  order_id INTEGER NOT NULL,
+  product_id TEXT NOT NULL,
+  product_name TEXT NOT NULL,
+  quantity INTEGER NOT NULL,
+  is_prepared BOOLEAN DEFAULT FALSE,
+  prepared_at TIMESTAMP,
+  prepared_by INTEGER, -- موزع الطلبات
+  notes TEXT,
+  FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE,
+  FOREIGN KEY (prepared_by) REFERENCES users(id)
+);
+
+-- Update branches table to add contact info and maps link
+ALTER TABLE branches ADD COLUMN IF NOT EXISTS phone TEXT;
+ALTER TABLE branches ADD COLUMN IF NOT EXISTS phone2 TEXT;
+ALTER TABLE branches ADD COLUMN IF NOT EXISTS maps_link TEXT;
+ALTER TABLE branches ADD COLUMN IF NOT EXISTS address TEXT;
+
+-- Update users table to add branch assignment for distributors
+ALTER TABLE users ADD COLUMN IF NOT EXISTS assigned_branch_id INTEGER;
+
+-- Indexes for new tables
+CREATE INDEX IF NOT EXISTS idx_delivery_staff_available ON delivery_staff(is_available);
+CREATE INDEX IF NOT EXISTS idx_order_assignments_status ON order_assignments(status);
+CREATE INDEX IF NOT EXISTS idx_order_assignments_order ON order_assignments(order_id);
+CREATE INDEX IF NOT EXISTS idx_order_prep_items_order ON order_preparation_items(order_id);
 CREATE INDEX IF NOT EXISTS idx_products_barcode ON products(barcode);

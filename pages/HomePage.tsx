@@ -8,6 +8,7 @@ import SponsoredAds from '../components/SponsoredAds';
 import FlyerCarousel from '../components/FlyerCarousel';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
+import BrandsCarousel from '../components/BrandsCarousel';
 import { ChevronRight } from 'lucide-react';
 import { CATEGORIES, ALL_CATEGORIES, SPONSORED_ADS, FLYER_PAGES } from '../data/mockData';
 import { api } from '../services/api';
@@ -102,6 +103,9 @@ const HomePage = () => {
 
                 {/* Weekly Flyer Magazine */}
                 <FlyerCarousel pages={FLYER_PAGES} />
+
+                {/* Featured Brands Carousel */}
+                <BrandsCarousel title="براندات مميزة" />
 
                 {/* Sponsored Ads - Grid Layout (Scattered) */}
                 <SponsoredAds ads={SPONSORED_ADS.slice(0, 2)} layout="grid" />

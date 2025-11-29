@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, LogOut, Package, ChevronLeft, Edit2, Award, Clock } from 'lucide-react';
+import { User, Mail, LogOut, Package, ChevronLeft, Edit2, Award, Clock, MessageCircle, Headphones, LayoutDashboard } from 'lucide-react';
 import { api } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
@@ -120,8 +120,65 @@ const ProfilePage = () => {
 
                 {/* Menu Options */}
                 <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                    {/* Admin Dashboard for Admins/Managers */}
+                    {user.role && ['manager', 'admin'].includes(user.role) && (
+                        <button
+                            onClick={() => navigate('/admin')}
+                            className="w-full p-4 border-b border-gray-100 flex items-center justify-between hover:bg-purple-50 transition-colors text-right"
+                        >
+                            <div className="flex items-center space-x-3 space-x-reverse">
+                                <div className="bg-purple-50 p-2 rounded-lg text-purple-600">
+                                    <LayoutDashboard size={20} />
+                                </div>
+                                <div className="text-right">
+                                    <span className="font-medium text-gray-900 block">لوحة الإدارة</span>
+                                    <span className="text-xs text-gray-500">إدارة المنتجات والطلبات والفروع</span>
+                                </div>
+                            </div>
+                            <ChevronLeft size={18} className="text-gray-400 rotate-180" />
+                        </button>
+                    )}
+
+                    {/* Customer Service Dashboard for Employees/Managers/Admins */}
+                    {user.role && ['employee', 'manager', 'admin'].includes(user.role) && (
+                        <button
+                            onClick={() => navigate('/customer-service')}
+                            className="w-full p-4 border-b border-gray-100 flex items-center justify-between hover:bg-orange-50 transition-colors text-right"
+                        >
+                            <div className="flex items-center space-x-3 space-x-reverse">
+                                <div className="bg-orange-50 p-2 rounded-lg text-primary">
+                                    <Headphones size={20} />
+                                </div>
+                                <div className="text-right">
+                                    <span className="font-medium text-gray-900 block">لوحة خدمة العملاء</span>
+                                    <span className="text-xs text-gray-500">الرد على استفسارات العملاء</span>
+                                </div>
+                            </div>
+                            <ChevronLeft size={18} className="text-gray-400 rotate-180" />
+                        </button>
+                    )}
+
+                    {/* Customer Chat for Regular Customers */}
+                    {(!user.role || user.role === 'customer') && (
+                        <button
+                            onClick={() => navigate('/chat')}
+                            className="w-full p-4 border-b border-gray-100 flex items-center justify-between hover:bg-green-50 transition-colors text-right"
+                        >
+                            <div className="flex items-center space-x-3 space-x-reverse">
+                                <div className="bg-green-50 p-2 rounded-lg text-green-600">
+                                    <MessageCircle size={20} />
+                                </div>
+                                <div className="text-right">
+                                    <span className="font-medium text-gray-900 block">تحدث مع خدمة العملاء</span>
+                                    <span className="text-xs text-gray-500">نحن هنا لمساعدتك</span>
+                                </div>
+                            </div>
+                            <ChevronLeft size={18} className="text-gray-400 rotate-180" />
+                        </button>
+                    )}
+
                     <div className="p-4 border-b border-gray-100 flex items-center justify-between hover:bg-gray-50 cursor-pointer transition-colors">
-                        <div className="flex items-center space-x-3">
+                        <div className="flex items-center space-x-3 space-x-reverse">
                             <div className="bg-blue-50 p-2 rounded-lg text-blue-600">
                                 <Package size={20} />
                             </div>
@@ -132,7 +189,7 @@ const ProfilePage = () => {
 
                     <button
                         onClick={handleLogout}
-                        className="w-full p-4 flex items-center space-x-3 hover:bg-red-50 text-red-600 transition-colors text-left"
+                        className="w-full p-4 flex items-center space-x-3 space-x-reverse hover:bg-red-50 text-red-600 transition-colors text-right"
                     >
                         <div className="bg-red-50 p-2 rounded-lg">
                             <LogOut size={20} />

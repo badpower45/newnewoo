@@ -1,12 +1,24 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingBag, Users, Settings, LogOut, Upload, MessageCircle, Store, Boxes, CalendarClock } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, Users, Settings, LogOut, Upload, MessageCircle, Store, Boxes, CalendarClock, ClipboardList, Truck } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const AdminLayout = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { logout, user } = useAuth();
+
+    // Check if user has access to admin panel
+    useEffect(() => {
+        if (user && !['admin', 'manager', 'distributor'].includes(user.role || '')) {
+            // Redirect unauthorized users (delivery goes to /delivery, others to home)
+            if (user.role === 'delivery') {
+                navigate('/delivery');
+            } else {
+                navigate('/');
+            }
+        }
+    }, [user, navigate]);
 
     const handleLogout = () => {
         logout();
@@ -15,20 +27,25 @@ const AdminLayout = () => {
 
     const isActive = (path: string) => location.pathname === path;
 
-    const navItems = [
-        { path: '/admin', icon: <LayoutDashboard size={20} />, label: 'Overview' },
-        { path: '/admin/products', icon: <Package size={20} />, label: 'Products' },
-        { path: '/admin/upload', icon: <Upload size={20} />, label: 'Excel Upload' },
-        { path: '/admin/orders', icon: <ShoppingBag size={20} />, label: 'Orders' },
-        { path: '/admin/branches', icon: <Store size={20} />, label: 'Branches' },
-        { path: '/admin/inventory', icon: <Boxes size={20} />, label: 'Branch Inventory' },
-        { path: '/admin/slots', icon: <CalendarClock size={20} />, label: 'Delivery Slots' },
-        { path: '/admin/employees', icon: <Users size={20} />, label: 'Employees' },
-        { path: '/admin/chat', icon: <MessageCircle size={20} />, label: 'Live Chat' },
-        { path: '/admin/settings', icon: <Settings size={20} />, label: 'Settings' },
+    // Define menu items with role-based access control
+    const allNavItems = [
+        { path: '/admin', icon: <LayoutDashboard size={20} />, label: 'لوحة التحكم', roles: ['admin', 'manager'] },
+        { path: '/admin/products', icon: <Package size={20} />, label: 'المنتجات', roles: ['admin', 'manager'] },
+        { path: '/admin/upload', icon: <Upload size={20} />, label: 'رفع Excel', roles: ['admin', 'manager'] },
+        { path: '/admin/orders', icon: <ShoppingBag size={20} />, label: 'الطلبات', roles: ['admin', 'manager'] },
+        { path: '/admin/distribution', icon: <ClipboardList size={20} />, label: 'توزيع الطلبات', roles: ['admin', 'manager', 'distributor'] },
+        { path: '/admin/delivery-staff', icon: <Truck size={20} />, label: 'موظفي التوصيل', roles: ['admin', 'manager'] },
+        { path: '/admin/branches', icon: <Store size={20} />, label: 'الفروع', roles: ['admin', 'manager'] },
+        { path: '/admin/inventory', icon: <Boxes size={20} />, label: 'المخزون', roles: ['admin', 'manager'] },
+        { path: '/admin/slots', icon: <CalendarClock size={20} />, label: 'مواعيد التوصيل', roles: ['admin', 'manager'] },
+        { path: '/admin/employees', icon: <Users size={20} />, label: 'الموظفين', roles: ['admin'] },
+        { path: '/admin/chat', icon: <MessageCircle size={20} />, label: 'الدردشة', roles: ['admin'] },
+        { path: '/admin/settings', icon: <Settings size={20} />, label: 'الإعدادات', roles: ['admin'] },
     ];
 
-    // Temporary: allow access without role restrictions
+    // Filter menu items based on user role
+    const userRole = user?.role || 'customer';
+    const navItems = allNavItems.filter(item => item.roles.includes(userRole));
 
     return (
         <div className="flex h-screen bg-gray-100">

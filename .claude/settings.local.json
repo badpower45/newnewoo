@@ -15,7 +15,9 @@
       "Bash(dir:*)",
       "Bash(cat:*)",
       "Bash(git add:*)",
-      "Bash(git commit -m \"$(cat <<''EOF''\n✅ Phase 0: Security & Setup Complete\n\n- حذف ملفات .env من Git وإضافتها إلى .gitignore\n- إنشاء .env.example كقوالب آمنة للبيئة\n- تأمين JWT_SECRET: إجباري في middleware/auth\n- تحسين تحميل .env في database.js مع override\n- إزالة dotenv المكرر من index.js\n- إصلاح syntax error في chat.js\n- إضافة PRD.md و TASKS.md\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
+      "Bash(git commit -m \"$(cat <<''EOF''\n✅ Phase 0: Security & Setup Complete\n\n- حذف ملفات .env من Git وإضافتها إلى .gitignore\n- إنشاء .env.example كقوالب آمنة للبيئة\n- تأمين JWT_SECRET: إجباري في middleware/auth\n- تحسين تحميل .env في database.js مع override\n- إزالة dotenv المكرر من index.js\n- إصلاح syntax error في chat.js\n- إضافة PRD.md و TASKS.md\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(node seed_employees.js:*)",
+      "Bash(node run_migration.js:*)"
     ],
     "deny": [],
     "ask": []

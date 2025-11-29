@@ -31,6 +31,8 @@ import ProfilePage from './pages/ProfilePage';
 import FavoritesPage from './pages/FavoritesPage';
 import OrderConfirmationPage from './pages/OrderConfirmationPage';
 import OrderTrackingPage from './pages/OrderTrackingPage';
+import CustomerChatPage from './pages/CustomerChatPage';
+import CustomerServiceDashboard from './pages/CustomerServiceDashboard';
 
 import AdminLayout from './pages/admin/AdminLayout';
 import DashboardOverview from './pages/admin/DashboardOverview';
@@ -43,6 +45,10 @@ import BranchesManager from './pages/admin/BranchesManager';
 import BranchInventory from './pages/admin/BranchInventory';
 import DeliverySlotsManager from './pages/admin/DeliverySlotsManager';
 import AdminSettingsPage from './pages/admin/AdminSettingsPage';
+import OrderDistributorPage from './pages/admin/OrderDistributorPage';
+import DeliveryStaffManager from './pages/admin/DeliveryStaffManager';
+import DeliveryDriverPage from './pages/DeliveryDriverPage';
+import BrandPage from './pages/BrandPage';
 
 import { FavoritesProvider } from './context/FavoritesContext';
 import ChatWidget from './components/ChatWidget';
@@ -73,9 +79,13 @@ function AppContent() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/favorites" element={<FavoritesPage />} />
+            <Route path="/chat" element={<ProtectedRoute><CustomerChatPage /></ProtectedRoute>} />
+            <Route path="/customer-service" element={<ProtectedRoute><CustomerServiceDashboard /></ProtectedRoute>} />
+            <Route path="/delivery" element={<ProtectedRoute><DeliveryDriverPage /></ProtectedRoute>} />
+            <Route path="/brand/:brandName" element={<BrandPage />} />
 
-            {/* Admin Routes (temporarily unprotected) */}
-            <Route path="/admin" element={<AdminLayout />}>
+            {/* Admin Routes - Protected with role-based access */}
+            <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'distributor']}><AdminLayout /></ProtectedRoute>}>
               <Route index element={<DashboardOverview />} />
               <Route path="products" element={<ProductsManager />} />
               <Route path="upload" element={<ProductUploadPage />} />
@@ -83,9 +93,11 @@ function AppContent() {
               <Route path="branches" element={<BranchesManager />} />
               <Route path="inventory" element={<BranchInventory />} />
               <Route path="slots" element={<DeliverySlotsManager />} />
-              <Route path="employees" element={<EmployeesManager />} />
-              <Route path="chat" element={<LiveChatDashboard />} />
-              <Route path="settings" element={<AdminSettingsPage />} />
+              <Route path="employees" element={<ProtectedRoute requireAdmin><EmployeesManager /></ProtectedRoute>} />
+              <Route path="chat" element={<ProtectedRoute requireAdmin><LiveChatDashboard /></ProtectedRoute>} />
+              <Route path="settings" element={<ProtectedRoute requireAdmin><AdminSettingsPage /></ProtectedRoute>} />
+              <Route path="distribution" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'distributor']}><OrderDistributorPage /></ProtectedRoute>} />
+              <Route path="delivery-staff" element={<DeliveryStaffManager />} />
             </Route>
           </Routes>
         </div>
@@ -96,7 +108,6 @@ function AppContent() {
           <div className="md:hidden">
             <BottomNav />
           </div>
-          <ChatWidget />
         </>
       )}
       {/* Debug panel is always available */}

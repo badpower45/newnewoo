@@ -69,7 +69,7 @@ router.get('/', async (req, res) => {
 
     try {
         let sql = `
-            SELECT p.*, bp.price, bp.discount_price, bp.stock_quantity, bp.is_available
+            SELECT p.*, bp.price, bp.discount_price, bp.stock_quantity, bp.expiry_date, bp.is_available
             FROM products p
             JOIN branch_products bp ON p.id = bp.product_id
             WHERE bp.branch_id = $1 AND bp.is_available = TRUE
@@ -174,36 +174,67 @@ router.get('/barcode/:barcode', async (req, res) => {
 });
 
 // Create Product (Admin only)
-// Note: This only creates the product definition. Pricing/Stock must be added to branches separately.
+// Creates product and optionally adds to branch inventory with price/stock
 router.post('/', [verifyToken, isAdmin], async (req, res) => {
-    const { name, category, image, weight, description, barcode, isOrganic, isNew } = req.body;
+    const { 
+        name, category, subcategory, image, weight, description, barcode, isOrganic, isNew,
+        price, originalPrice, branchId, stockQuantity, expiryDate 
+    } = req.body;
+    
     // ID generation: keep using timestamp or UUID. Schema says TEXT.
     const id = Date.now().toString();
 
-    const sql = `
-        INSERT INTO products (id, name, category, image, weight, description, rating, reviews, is_organic, is_new, barcode)
-        VALUES ($1, $2, $3, $4, $5, $6, 0, 0, $7, $8, $9)
-        RETURNING *
-    `;
-    const params = [
-        id,
-        name,
-        category,
-        image,
-        weight,
-        description,
-        isOrganic ? true : false,
-        isNew ? true : false,
-        barcode || null
-    ];
-
     try {
-        const { rows } = await query(sql, params);
+        await query('BEGIN');
+
+        // Insert product
+        const sql = `
+            INSERT INTO products (id, name, category, subcategory, image, weight, description, rating, reviews, is_organic, is_new, barcode)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, 0, 0, $8, $9, $10)
+            RETURNING *
+        `;
+        const { rows } = await query(sql, [
+            id,
+            name,
+            category,
+            subcategory || null,
+            image,
+            weight,
+            description,
+            isOrganic ? true : false,
+            isNew ? true : false,
+            barcode || null
+        ]);
+
+        // Add to branch inventory if price provided
+        if (price && branchId) {
+            const bpSql = `
+                INSERT INTO branch_products (branch_id, product_id, price, discount_price, stock_quantity, expiry_date, is_available)
+                VALUES ($1, $2, $3, $4, $5, $6, TRUE)
+                ON CONFLICT (branch_id, product_id) DO UPDATE SET
+                    price = EXCLUDED.price,
+                    discount_price = EXCLUDED.discount_price,
+                    stock_quantity = EXCLUDED.stock_quantity,
+                    expiry_date = EXCLUDED.expiry_date
+            `;
+            await query(bpSql, [
+                branchId,
+                id,
+                price,
+                originalPrice || null, // السعر قبل (الأصلي) يُخزن في discount_price
+                stockQuantity || 0,
+                expiryDate || null
+            ]);
+        }
+
+        await query('COMMIT');
+
         res.json({
             "message": "success",
             "data": rows[0]
         });
     } catch (err) {
+        await query('ROLLBACK');
         console.error("Error creating product:", err);
         res.status(400).json({ "error": err.message });
     }
@@ -211,35 +242,66 @@ router.post('/', [verifyToken, isAdmin], async (req, res) => {
 
 // Update Product (Admin only)
 router.put('/:id', [verifyToken, isAdmin], async (req, res) => {
-    const { name, category, image, weight, description, barcode, isOrganic, isNew, isWeighted } = req.body;
+    const { 
+        name, category, subcategory, image, weight, description, barcode, isOrganic, isNew, isWeighted,
+        price, originalPrice, branchId, stockQuantity, expiryDate 
+    } = req.body;
     
     try {
+        await query('BEGIN');
+
         const sql = `
             UPDATE products 
             SET name = COALESCE($1, name),
                 category = COALESCE($2, category),
-                image = COALESCE($3, image),
-                weight = COALESCE($4, weight),
-                description = COALESCE($5, description),
-                barcode = COALESCE($6, barcode),
-                is_organic = COALESCE($7, is_organic),
-                is_new = COALESCE($8, is_new),
-                is_weighted = COALESCE($9, is_weighted)
-            WHERE id = $10
+                subcategory = COALESCE($3, subcategory),
+                image = COALESCE($4, image),
+                weight = COALESCE($5, weight),
+                description = COALESCE($6, description),
+                barcode = COALESCE($7, barcode),
+                is_organic = COALESCE($8, is_organic),
+                is_new = COALESCE($9, is_new),
+                is_weighted = COALESCE($10, is_weighted)
+            WHERE id = $11
             RETURNING *
         `;
         
         const { rows } = await query(sql, [
-            name, category, image, weight, description, barcode,
+            name, category, subcategory, image, weight, description, barcode,
             isOrganic, isNew, isWeighted, req.params.id
         ]);
 
         if (rows.length === 0) {
+            await query('ROLLBACK');
             return res.status(404).json({ error: 'Product not found' });
         }
 
+        // Update branch inventory if price provided
+        if (price !== undefined && branchId) {
+            const bpSql = `
+                INSERT INTO branch_products (branch_id, product_id, price, discount_price, stock_quantity, expiry_date, is_available)
+                VALUES ($1, $2, $3, $4, $5, $6, TRUE)
+                ON CONFLICT (branch_id, product_id) DO UPDATE SET
+                    price = EXCLUDED.price,
+                    discount_price = EXCLUDED.discount_price,
+                    stock_quantity = EXCLUDED.stock_quantity,
+                    expiry_date = EXCLUDED.expiry_date
+            `;
+            await query(bpSql, [
+                branchId,
+                req.params.id,
+                price,
+                originalPrice || null,
+                stockQuantity || 0,
+                expiryDate || null
+            ]);
+        }
+
+        await query('COMMIT');
+
         res.json({ message: 'success', data: rows[0] });
     } catch (err) {
+        await query('ROLLBACK');
         console.error("Error updating product:", err);
         res.status(400).json({ error: err.message });
     }
@@ -341,14 +403,17 @@ router.post('/upload', [verifyToken, isAdmin, upload.single('file')], async (req
                 const id = p.id ? p.id.toString() : Date.now().toString() + Math.random().toString(36).substr(2, 5);
                 const isOrganic = p.isOrganic === 'true' || p.isOrganic === 1 || p.isOrganic === true;
                 const isNew = p.isNew === 'true' || p.isNew === 1 || p.isNew === true;
-                const barcode = p.barcode || null;
+                const barcode = p.barcode || p.parcode || null; // Support both spellings
+                const subcategory = p.subcategory || p["التصنيف الفرعي"] || null;
+                const category = p.category || p["التصنيف الاساسي"] || 'Uncategorized';
 
                 const sql = `
-                    INSERT INTO products (id, name, category, image, weight, rating, reviews, is_organic, is_new, barcode)
-                    VALUES ($1, $2, $3, $4, $5, 0, 0, $6, $7, $8)
+                    INSERT INTO products (id, name, category, subcategory, image, weight, rating, reviews, is_organic, is_new, barcode)
+                    VALUES ($1, $2, $3, $4, $5, $6, 0, 0, $7, $8, $9)
                     ON CONFLICT (id) DO UPDATE SET
                         name = EXCLUDED.name,
                         category = EXCLUDED.category,
+                        subcategory = EXCLUDED.subcategory,
                         image = EXCLUDED.image,
                         weight = EXCLUDED.weight,
                         is_organic = EXCLUDED.is_organic,
@@ -358,14 +423,35 @@ router.post('/upload', [verifyToken, isAdmin, upload.single('file')], async (req
 
                 await query(sql, [
                     id,
-                    p.name,
-                    p.category || 'Uncategorized',
-                    p.image || '',
+                    p.name || p["اسم المنتج"],
+                    category,
+                    subcategory,
+                    p.image || p["لينك الصوره"] || '',
                     p.weight || '',
                     isOrganic,
                     isNew,
                     barcode
                 ]);
+
+                // If branch and price info provided, also add to branch_products
+                const branchId = p.branchId || p.branch_id || p["الفرع"] || 1;
+                const price = p.price || p["السعر بعد"] || 0;
+                const discountPrice = p.originalPrice || p.discount_price || p["السعر قبل"] || null;
+                const stockQty = p.stock_quantity || p["عدد القطع المتوفره"] || 0;
+                const expiryDate = p.expiry_date || p["تاريخ الصلاحيه"] || null;
+
+                if (price > 0) {
+                    const bpSql = `
+                        INSERT INTO branch_products (branch_id, product_id, price, discount_price, stock_quantity, expiry_date, is_available)
+                        VALUES ($1, $2, $3, $4, $5, $6, TRUE)
+                        ON CONFLICT (branch_id, product_id) DO UPDATE SET
+                            price = EXCLUDED.price,
+                            discount_price = EXCLUDED.discount_price,
+                            stock_quantity = EXCLUDED.stock_quantity,
+                            expiry_date = EXCLUDED.expiry_date
+                    `;
+                    await query(bpSql, [branchId, id, price, discountPrice, stockQty, expiryDate]);
+                }
 
                 successCount++;
             } catch (e) {
