@@ -25,9 +25,15 @@ const app = express();
 const httpServer = createServer(app);
 
 // Determine allowed origins
-const allowedOrigins = process.env.FRONTEND_URL 
-    ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
-    : ['http://localhost:5173'];
+const allowedOrigins = [
+    'http://localhost:5173',
+    'https://newnewoo.vercel.app',
+    'https://newnewoo-git-main-bode-ahmeds-projects.vercel.app',
+    'https://newnewoo-ag9qdglgo-bode-ahmeds-projects.vercel.app',
+    'https://newnewoo-92m6214ih-bode-ahmeds-projects.vercel.app',
+    'https://newnewoo-22ou4sjsu-bode-ahmeds-projects.vercel.app',
+    ...(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',').map(url => url.trim()) : [])
+];
 
 const io = new Server(httpServer, {
     cors: {
@@ -71,7 +77,16 @@ const authLimiter = rateLimit({
 
 // Middleware
 app.use(cors({
-    origin: allowedOrigins,
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or Postman)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            console.log('CORS blocked origin:', origin);
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
     credentials: true
 }));
 app.use(bodyParser.json({ limit: '10mb' }));
