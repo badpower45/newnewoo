@@ -1,121 +1,56 @@
-import express from 'express';
-import cors from 'cors';
-import bodyParser from 'body-parser';
-import dotenv from 'dotenv';
-import { createServer } from 'http';
-import rateLimit from 'express-rate-limit';
-import helmet from 'helmet';
+// Minimal serverless handler for Vercel
+export default async function handler(req, res) {
+    // Enable CORS
+    const allowedOrigins = [
+        'http://localhost:5173',
+        'https://newnewoo.vercel.app',
+        'https://newnewoo-git-main-bode-ahmeds-projects.vercel.app',
+        'https://newnewoo-ag9qdglgo-bode-ahmeds-projects.vercel.app',
+        'https://newnewoo-92m6214ih-bode-ahmeds-projects.vercel.app',
+        'https://newnewoo-22ou4sjsu-bode-ahmeds-projects.vercel.app'
+    ];
 
-// Load environment variables
-dotenv.config();
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Access-Control-Allow-Credentials', 'true');
+    }
 
-// Import routes
-import authRoutes from '../routes/auth.js';
-import productRoutes from '../routes/products.js';
-import cartRoutes from '../routes/cart.js';
-import orderRoutes from '../routes/orders.js';
-import userRoutes from '../routes/users.js';
-import chatRoutes from '../routes/chat.js';
-import branchProductsRoutes from '../routes/branchProducts.js';
-import deliverySlotsRoutes from '../routes/deliverySlots.js';
-import branchesRoutes from '../routes/branches.js';
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, apikey');
 
-const app = express();
-const NODE_ENV = process.env.NODE_ENV || 'production';
+    // Handle preflight
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
 
-// Determine allowed origins
-const allowedOrigins = [
-    'http://localhost:5173',
-    'https://newnewoo.vercel.app',
-    'https://newnewoo-git-main-bode-ahmeds-projects.vercel.app',
-    'https://newnewoo-ag9qdglgo-bode-ahmeds-projects.vercel.app',
-    'https://newnewoo-92m6214ih-bode-ahmeds-projects.vercel.app',
-    'https://newnewoo-22ou4sjsu-bode-ahmeds-projects.vercel.app',
-    ...(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',').map(url => url.trim()) : [])
-];
+    // Health check
+    if (req.url === '/api/health' || req.url === '/health') {
+        return res.status(200).json({
+            status: 'ok',
+            timestamp: new Date().toISOString(),
+            environment: 'production'
+        });
+    }
 
-// Security: Trust proxy
-app.set('trust proxy', 1);
+    // Root
+    if (req.url === '/' || req.url === '/api') {
+        return res.status(200).json({
+            message: 'Lumina Fresh Market API',
+            version: '1.0.0',
+            status: 'running'
+        });
+    }
 
-// Security headers
-app.use(helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" },
-    contentSecurityPolicy: false
-}));
-
-// Rate limiting
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 100,
-    message: { error: 'Too many requests, please try again later.' },
-    standardHeaders: true,
-    legacyHeaders: false
-});
-
-app.use('/api', limiter);
-
-// Stricter rate limit for auth
-const authLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 10,
-    message: { error: 'Too many authentication attempts, please try again later.' }
-});
-
-// Middleware
-app.use(cors({
-    origin: function (origin, callback) {
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            console.log('CORS blocked origin:', origin);
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    credentials: true
-}));
-app.use(bodyParser.json({ limit: '10mb' }));
-app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
-
-// Routes
-app.use('/api/auth', authLimiter, authRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/cart', cartRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/chat', chatRoutes);
-app.use('/api/branch-products', branchProductsRoutes);
-app.use('/api/delivery-slots', deliverySlotsRoutes);
-app.use('/api/branches', branchesRoutes);
-
-// Health check
-app.get('/api/health', (req, res) => {
-    res.status(200).json({ 
-        status: 'ok', 
-        timestamp: new Date().toISOString(),
-        environment: NODE_ENV
-    });
-});
-
-app.get('/', (req, res) => {
-    res.json({ 
-        message: 'Lumina Fresh Market API',
-        version: '1.0.0',
-        status: 'running'
-    });
-});
-
-// 404 handler
-app.use((req, res) => {
-    res.status(404).json({ error: 'Endpoint not found' });
-});
-
-// Global error handler
-app.use((err, req, res, next) => {
-    console.error('Global error:', err);
-    res.status(err.status || 500).json({ 
-        error: NODE_ENV === 'production' ? 'Internal server error' : err.message
-    });
-});
-
-export default app;
+    // Try to dynamically import and run the main app
+    try {
+        const { default: app } = await import('../index.js');
+        return app(req, res);
+    } catch (error) {
+        console.error('Error loading app:', error);
+        return res.status(500).json({
+            error: 'Internal server error',
+            message: error.message
+        });
+    }
+}
