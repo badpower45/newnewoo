@@ -33,27 +33,11 @@ const HomePage = () => {
             const branchId = selectedBranch?.id || DEFAULT_BRANCH_ID;
             const data = await api.products.getAllByBranch(branchId);
             const list = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
-
-            if (list.length > 0) {
-                setProducts(list);
-            } else {
-                const fallback: Product[] = [
-                    { id: 'hp1', name: 'لبن كامل الدسم 1 لتر', category: 'Dairy', price: 65, rating: 4.7, reviews: 120, image: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?q=80&w=600&auto=format&fit=crop', weight: '1 لتر' },
-                    { id: 'hp2', name: 'أرز مصري ممتاز', category: 'Food', price: 42, rating: 4.8, reviews: 300, image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?q=80&w=600&auto=format&fit=crop', weight: '1 كجم' },
-                    { id: 'hp3', name: 'شيبسي طماطم عائلي', category: 'Snacks', price: 15, rating: 4.5, reviews: 90, image: 'https://images.unsplash.com/photo-1613919085533-0a05360b1cbe?q=80&w=600&auto=format&fit=crop', weight: 'جامبو' },
-                    { id: 'hp4', name: 'بيبسي كانز 330 مل', category: 'Beverages', price: 12, rating: 4.9, reviews: 500, image: 'https://images.unsplash.com/photo-1629203851122-3726ecdf080e?q=80&w=600&auto=format&fit=crop', weight: '330 مل' },
-                ];
-                setProducts(fallback);
-            }
+            setProducts(list);
         } catch (err) {
-            const fallback: Product[] = [
-                { id: 'hp1', name: 'لبن كامل الدسم 1 لتر', category: 'Dairy', price: 65, rating: 4.7, reviews: 120, image: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?q=80&w=600&auto=format&fit=crop', weight: '1 لتر' },
-                { id: 'hp2', name: 'أرز مصري ممتاز', category: 'Food', price: 42, rating: 4.8, reviews: 300, image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?q=80&w=600&auto=format&fit=crop', weight: '1 كجم' },
-                { id: 'hp3', name: 'شيبسي طماطم عائلي', category: 'Snacks', price: 15, rating: 4.5, reviews: 90, image: 'https://images.unsplash.com/photo-1613919085533-0a05360b1cbe?q=80&w=600&auto=format&fit=crop', weight: 'جامبو' },
-                { id: 'hp4', name: 'بيبسي كانز 330 مل', category: 'Beverages', price: 12, rating: 4.9, reviews: 500, image: 'https://images.unsplash.com/photo-1629203851122-3726ecdf080e?q=80&w=600&auto=format&fit=crop', weight: '330 مل' },
-            ];
-            setProducts(fallback);
-            setError(null);
+            console.error('Failed to fetch products', err);
+            setProducts([]);
+            setError('فشل تحميل المنتجات');
         } finally {
             setLoading(false);
         }
@@ -151,6 +135,10 @@ const HomePage = () => {
                         <LoadingSpinner message="جاري تحميل المنتجات..." />
                     ) : error ? (
                         <ErrorMessage message={error} onRetry={fetchProducts} />
+                    ) : products.length === 0 ? (
+                        <div className="text-center py-8 text-gray-500">
+                            لا توجد منتجات متاحة حالياً
+                        </div>
                     ) : products.length === 0 ? (
                         <div className="text-center py-8 text-gray-500">
                             لا توجد منتجات متاحة حالياً
