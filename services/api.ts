@@ -31,15 +31,29 @@ export const api = {
     products: {
         getAll: async () => {
             const res = await fetch(`${API_URL}/products`, { headers: getHeaders() });
-            return res.json();
+            const json = await res.json();
+            const normalize = (p: any) => ({ ...p, price: Number(p?.price) || 0 });
+            return {
+                ...json,
+                data: Array.isArray(json.data) ? json.data.map(normalize) : json.data
+            };
         },
         getAllByBranch: async (branchId: number) => {
             const res = await fetch(`${API_URL}/products?branchId=${branchId}`, { headers: getHeaders() });
-            return res.json();
+            const json = await res.json();
+            const normalize = (p: any) => ({ ...p, price: Number(p?.price) || 0 });
+            return {
+                ...json,
+                data: Array.isArray(json.data) ? json.data.map(normalize) : json.data
+            };
         },
         getOne: async (id: string) => {
             const res = await fetch(`${API_URL}/products/${id}`, { headers: getHeaders() });
-            return res.json();
+            const json = await res.json();
+            if (json && json.data && typeof json.data === 'object') {
+                return { ...json, data: { ...json.data, price: Number(json.data.price) || 0 } };
+            }
+            return json;
         },
         getByCategory: async (category: string) => {
             const res = await fetch(`${API_URL}/products?category=${encodeURIComponent(category)}`, { headers: getHeaders() });
