@@ -65,10 +65,10 @@ export default function ProductsPage() {
         setLoading(true);
         setError(null);
         try {
-            const data = await api.products.getAll();
-            if (data.data) {
-                setAllProducts(data.data);
-            }
+            const branchId = selectedBranch?.id || 1;
+            const data = await api.products.getAllByBranch(branchId);
+            const list = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
+            setAllProducts(list);
         } catch (err) {
             setError('فشل تحميل المنتجات');
             console.error(err);
@@ -150,7 +150,7 @@ export default function ProductsPage() {
         }
 
         return filtered;
-    }, [allProducts, selectedCategory, sortBy]);
+    }, [allProducts, selectedCategory, sortBy, branchMap]);
 
     // Pagination
     const totalPages = Math.ceil(filteredAndSortedProducts.length / ITEMS_PER_PAGE);
