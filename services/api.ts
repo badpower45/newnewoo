@@ -26,6 +26,42 @@ export const api = {
                 body: JSON.stringify(data)
             });
             return res.json();
+        },
+        forgotPassword: async (email: string) => {
+            const res = await fetch(`${API_URL}/auth/forgot-password`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+            return data;
+        },
+        resetPassword: async (token: string, newPassword: string) => {
+            const res = await fetch(`${API_URL}/auth/reset-password`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token, newPassword })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error);
+            return data;
+        },
+        googleLogin: async (googleData: { googleId: string; email: string; name: string; picture?: string }) => {
+            const res = await fetch(`${API_URL}/auth/google`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(googleData)
+            });
+            return res.json();
+        },
+        facebookLogin: async (fbData: { facebookId: string; email?: string; name: string; picture?: string }) => {
+            const res = await fetch(`${API_URL}/auth/facebook`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(fbData)
+            });
+            return res.json();
         }
     },
     products: {
@@ -47,17 +83,29 @@ export const api = {
                 data: Array.isArray(json.data) ? json.data.map(normalize) : json.data
             };
         },
-        getOne: async (id: string) => {
-            const res = await fetch(`${API_URL}/products/${id}`, { headers: getHeaders() });
+        getOne: async (id: string, branchId?: number) => {
+            const url = branchId 
+                ? `${API_URL}/products/${id}?branchId=${branchId}`
+                : `${API_URL}/products/${id}`;
+            const res = await fetch(url, { headers: getHeaders() });
             const json = await res.json();
             if (json && json.data && typeof json.data === 'object') {
                 return { ...json, data: { ...json.data, price: Number(json.data.price) || 0 } };
             }
             return json;
         },
-        getByCategory: async (category: string) => {
-            const res = await fetch(`${API_URL}/products?category=${encodeURIComponent(category)}`, { headers: getHeaders() });
-            return res.json();
+        getByCategory: async (category: string, branchId?: number) => {
+            let url = `${API_URL}/products?category=${encodeURIComponent(category)}`;
+            if (branchId) {
+                url += `&branchId=${branchId}`;
+            }
+            const res = await fetch(url, { headers: getHeaders() });
+            const json = await res.json();
+            const normalize = (p: any) => ({ ...p, price: Number(p?.price) || 0 });
+            return {
+                ...json,
+                data: Array.isArray(json.data) ? json.data.map(normalize) : json.data
+            };
         },
         search: async (query: string) => {
             const res = await fetch(`${API_URL}/products/search?q=${encodeURIComponent(query)}`, { headers: getHeaders() });
@@ -102,8 +150,9 @@ export const api = {
         }
     },
     cart: {
-        get: async (userId: string) => {
-            const res = await fetch(`${API_URL}/cart?userId=${userId}`, { headers: getHeaders() });
+        get: async (userId: string, branchId?: number) => {
+            const branch = branchId || 1;
+            const res = await fetch(`${API_URL}/cart?userId=${userId}&branchId=${branch}`, { headers: getHeaders() });
             return res.json();
         },
         add: async (data: { userId: string, productId: string, quantity: number, substitutionPreference?: string }) => {
@@ -155,6 +204,14 @@ export const api = {
         },
         getOne: async (id: string) => {
             const res = await fetch(`${API_URL}/orders/${id}`, { headers: getHeaders() });
+            return res.json();
+        },
+        getByCode: async (orderCode: string) => {
+            const res = await fetch(`${API_URL}/orders/track/${orderCode}`, { headers: getHeaders() });
+            if (!res.ok) {
+                const error = await res.json();
+                throw { response: { data: error } };
+            }
             return res.json();
         },
         updateStatus: async (id: string, status: string) => {
@@ -507,7 +564,16 @@ export const api = {
             return res.json();
         },
         
-        // الديليفري يستلم الطلب
+        // الديليفري يقبل الطلب
+        acceptOrder: async (orderId: number) => {
+            const res = await fetch(`${API_URL}/distribution/accept-order/${orderId}`, {
+                method: 'POST',
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+        
+        // الديليفري يستلم الطلب من الفرع
         pickupOrder: async (orderId: number) => {
             const res = await fetch(`${API_URL}/distribution/pickup-order/${orderId}`, {
                 method: 'POST',
@@ -552,6 +618,68 @@ export const api = {
             return res.json();
         },
         
+        // انتهاء وقت قبول الطلب
+        expireOrder: async (orderId: number) => {
+            const res = await fetch(`${API_URL}/distribution/expire-order/${orderId}`, {
+                method: 'POST',
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+        
+        // تقييم الديليفري
+        rateDelivery: async (orderId: number, ratingData: {
+            orderRating: number;
+            deliveryRating: number;
+            speedRating: number;
+            comment?: string;
+        }) => {
+            const res = await fetch(`${API_URL}/distribution/rate-delivery/${orderId}`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(ratingData)
+            });
+            return res.json();
+        },
+        
+        // جلب التقييمات المعلقة (بعد 15 دقيقة من التوصيل)
+        checkPendingRatings: async () => {
+            const res = await fetch(`${API_URL}/distribution/pending-ratings`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+        
+        // جلب إحصائيات الديليفري
+        getDeliveryStats: async () => {
+            const res = await fetch(`${API_URL}/distribution/delivery-stats`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+        
+        // جلب جميع التوصيلات النشطة للموزع
+        getActiveDeliveries: async (branchId?: number) => {
+            const url = branchId 
+                ? `${API_URL}/distribution/active-deliveries?branchId=${branchId}`
+                : `${API_URL}/distribution/active-deliveries`;
+            const res = await fetch(url, {
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+        
+        // جلب جميع موظفي التوصيل مع إحصائياتهم
+        getAllDeliveryStaff: async (branchId?: number) => {
+            const url = branchId 
+                ? `${API_URL}/distribution/all-delivery-staff?branchId=${branchId}`
+                : `${API_URL}/distribution/all-delivery-staff`;
+            const res = await fetch(url, {
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+        
         // تحديث بيانات الفرع
         updateBranchContact: async (branchId: number, data: any) => {
             const res = await fetch(`${API_URL}/distribution/branches/${branchId}/contact`, {
@@ -561,5 +689,196 @@ export const api = {
             });
             return res.json();
         }
+    },
+
+    // Delivery Fees APIs
+    deliveryFees: {
+        // حساب رسوم التوصيل
+        calculate: async (branchId: number, subtotal: number, customerLat?: number, customerLng?: number) => {
+            const res = await fetch(`${API_URL}/delivery-fees/calculate`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ branchId, subtotal, customerLat, customerLng })
+            });
+            return res.json();
+        },
+
+        // الحصول على إعدادات رسوم التوصيل لفرع
+        getByBranch: async (branchId: number) => {
+            const res = await fetch(`${API_URL}/delivery-fees/${branchId}`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+
+        // تحديث إعدادات رسوم التوصيل (Admin only)
+        update: async (id: number, data: any) => {
+            const res = await fetch(`${API_URL}/delivery-fees/${id}`, {
+                method: 'PUT',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        }
+    },
+
+    // Coupons APIs
+    coupons: {
+        // التحقق من صحة الكوبون وتطبيقه
+        validate: async (code: string, subtotal: number) => {
+            const res = await fetch(`${API_URL}/coupons/validate`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ code, subtotal })
+            });
+            return res.json();
+        },
+
+        // الحصول على جميع الكوبونات (Admin only)
+        getAll: async () => {
+            const res = await fetch(`${API_URL}/coupons`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+
+        // إنشاء كوبون جديد (Admin only)
+        create: async (data: any) => {
+            const res = await fetch(`${API_URL}/coupons`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+
+        // تحديث كوبون (Admin only)
+        update: async (id: number, data: any) => {
+            const res = await fetch(`${API_URL}/coupons/${id}`, {
+                method: 'PUT',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+
+        // حذف كوبون (Admin only)
+        delete: async (id: number) => {
+            const res = await fetch(`${API_URL}/coupons/${id}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+
+        // الحصول على إحصائيات استخدام كوبون (Admin only)
+        getUsage: async (code: string) => {
+            const res = await fetch(`${API_URL}/coupons/usage/${code}`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        }
+    },
+
+    // Magazine Offers API
+    magazine: {
+        // جلب جميع العروض
+        getAll: async (category?: string) => {
+            let url = `${API_URL}/magazine`;
+            if (category) url += `?category=${encodeURIComponent(category)}`;
+            const res = await fetch(url, { headers: getHeaders() });
+            return res.json();
+        },
+
+        // جلب الفئات
+        getCategories: async () => {
+            const res = await fetch(`${API_URL}/magazine/categories`, { headers: getHeaders() });
+            return res.json();
+        },
+
+        // إنشاء عرض جديد (Admin)
+        create: async (data: any) => {
+            const res = await fetch(`${API_URL}/magazine`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+
+        // تحديث عرض (Admin)
+        update: async (id: number, data: any) => {
+            const res = await fetch(`${API_URL}/magazine/${id}`, {
+                method: 'PUT',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+
+        // حذف عرض (Admin)
+        delete: async (id: number) => {
+            const res = await fetch(`${API_URL}/magazine/${id}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+            return res.json();
+        }
+    },
+
+    // Hot Deals API
+    hotDeals: {
+        // جلب جميع العروض الساخنة
+        getAll: async () => {
+            const res = await fetch(`${API_URL}/hot-deals`, { headers: getHeaders() });
+            return res.json();
+        },
+
+        // جلب العرض السريع (Flash Deal)
+        getFlashDeal: async () => {
+            const res = await fetch(`${API_URL}/hot-deals/flash`, { headers: getHeaders() });
+            return res.json();
+        },
+
+        // إنشاء عرض جديد (Admin)
+        create: async (data: any) => {
+            const res = await fetch(`${API_URL}/hot-deals`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+
+        // تحديث عرض (Admin)
+        update: async (id: number, data: any) => {
+            const res = await fetch(`${API_URL}/hot-deals/${id}`, {
+                method: 'PUT',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+
+        // تحديث الكمية المباعة
+        updateSold: async (id: number, quantity: number = 1) => {
+            const res = await fetch(`${API_URL}/hot-deals/${id}/sold`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ quantity })
+            });
+            return res.json();
+        },
+
+        // حذف عرض (Admin)
+        delete: async (id: number) => {
+            const res = await fetch(`${API_URL}/hot-deals/${id}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+            return res.json();
+        }
     }
 };
+
+export default api;

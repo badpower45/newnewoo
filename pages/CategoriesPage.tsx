@@ -2,6 +2,7 @@ import React from 'react';
 import { ChevronLeft, Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import CategoryCard from '../components/CategoryCard';
+import Footer from '../components/Footer';
 import { ALL_CATEGORIES } from '../data/mockData';
 
 const CategoriesPage = () => {
@@ -35,6 +36,7 @@ const CategoriesPage = () => {
                     ))}
                 </div>
             </div>
+            <Footer />
         </div>
     );
 };

@@ -20,16 +20,39 @@ router.get('/', [verifyToken, isAdmin], async (req, res) => {
 
 // Create User (Admin only - for adding employees)
 router.post('/', [verifyToken, isAdmin], async (req, res) => {
-    const { name, email, password, role } = req.body;
+    const { name, email, password, role, phone, phone2, branchId, assigned_branch_id } = req.body;
     const hashedPassword = bcrypt.hashSync(password, 8);
 
     try {
+        // أولاً: إنشاء المستخدم
         const { rows } = await query(
-            `INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id`,
-            [name, email, hashedPassword, role || 'employee']
+            `INSERT INTO users (name, email, password, role, assigned_branch_id) VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+            [name, email, hashedPassword, role || 'employee', branchId || assigned_branch_id || null]
         );
-        res.status(200).send({ message: "User created successfully", userId: rows[0].id });
+        
+        const userId = rows[0].id;
+        
+        // إذا كان ديليفري، أنشئ سجل في delivery_staff
+        if (role === 'delivery' && branchId) {
+            // إنشاء سجل في جدول delivery_staff
+            const { rows: staffRows } = await query(
+                `INSERT INTO delivery_staff (user_id, name, phone, phone2, is_available, max_orders) 
+                 VALUES ($1, $2, $3, $4, true, 5) RETURNING id`,
+                [userId, name, phone || '', phone2 || '']
+            );
+            
+            // ربط الديليفري بالفرع
+            if (staffRows.length > 0) {
+                await query(
+                    `INSERT INTO delivery_staff_branches (delivery_staff_id, branch_id) VALUES ($1, $2)`,
+                    [staffRows[0].id, branchId]
+                );
+            }
+        }
+        
+        res.status(200).send({ message: "User created successfully", userId });
     } catch (err) {
+        console.error('Error creating user:', err);
         if (err.code === '23505') {
             return res.status(500).send({ error: "Email already exists." });
         }

@@ -1,13 +1,50 @@
 import express from 'express';
 import { query } from '../database.js';
-import { verifyToken, isAdmin } from '../middleware/auth.js';
+import { verifyToken, isAdmin, optionalAuth } from '../middleware/auth.js';
 
 const router = express.Router();
 
+// Helper function to generate order code
+function generateOrderCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = 'ORD-';
+    for (let i = 0; i < 6; i++) {
+        code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
+}
+
 // Create Order
 router.post('/', async (req, res) => {
-    const { userId, total, items, branchId, deliverySlotId, paymentMethod, shippingDetails, deliveryAddress } = req.body;
+    console.log('📦 Creating new order...');
+    console.log('📦 Request body:', JSON.stringify(req.body, null, 2));
+    
+    const {
+        userId, total, items, branchId, deliverySlotId, paymentMethod,
+        shippingDetails, deliveryAddress, couponId, couponCode, couponDiscount
+    } = req.body;
     const status = 'pending';
+
+    // Validation
+    if (!userId) {
+        console.log('❌ Order creation failed: No userId');
+        return res.status(400).json({ error: 'User ID is required' });
+    }
+    if (!items || !Array.isArray(items) || items.length === 0) {
+        console.log('❌ Order creation failed: No items');
+        return res.status(400).json({ error: 'Order items are required' });
+    }
+    if (!total || total <= 0) {
+        console.log('❌ Order creation failed: Invalid total:', total);
+        return res.status(400).json({ error: 'Valid total amount is required' });
+    }
+
+    // Handle guest users - user_id can be null for guests
+    // Check if userId is a valid integer or a guest string
+    const isGuest = String(userId).startsWith('guest-');
+    const actualUserId = isGuest ? null : (parseInt(userId) || null);
+    
+    console.log('👤 User type:', isGuest ? 'Guest' : 'Registered', '| userId:', actualUserId);
 
     // Build shipping_info from shippingDetails or deliveryAddress for backward compatibility
     const shippingInfo = shippingDetails || (deliveryAddress ? { address: deliveryAddress } : null);
@@ -15,33 +52,35 @@ router.post('/', async (req, res) => {
     try {
         await query('BEGIN');
 
-        // Reserve inventory for each item
-        for (const item of items) {
-            const { rows: stockRows } = await query(
-                "SELECT stock_quantity, reserved_quantity FROM branch_products WHERE branch_id = $1 AND product_id = $2 FOR UPDATE",
-                [branchId, item.id || item.productId]
-            );
+        // Reserve inventory for each item (only if branchId is provided)
+        if (branchId) {
+            for (const item of items) {
+                const productId = item.id || item.productId;
+                
+                const { rows: stockRows } = await query(
+                    "SELECT stock_quantity, reserved_quantity FROM branch_products WHERE branch_id = $1 AND product_id = $2 FOR UPDATE",
+                    [branchId, productId]
+                );
 
-            if (stockRows.length === 0) {
-                await query('ROLLBACK');
-                return res.status(400).send({ error: `Product ${item.name} not available at this branch` });
+                // Skip inventory check if product not in branch_products (allow order anyway)
+                if (stockRows.length > 0) {
+                    const stock = stockRows[0];
+                    const availableStock = (stock.stock_quantity || 0) - (stock.reserved_quantity || 0);
+
+                    if (availableStock < item.quantity) {
+                        await query('ROLLBACK');
+                        return res.status(400).json({ 
+                            error: `Insufficient stock for ${item.name || 'product'}. Available: ${availableStock}` 
+                        });
+                    }
+
+                    // Reserve the quantity
+                    await query(
+                        "UPDATE branch_products SET reserved_quantity = COALESCE(reserved_quantity, 0) + $1 WHERE branch_id = $2 AND product_id = $3",
+                        [item.quantity, branchId, productId]
+                    );
+                }
             }
-
-            const stock = stockRows[0];
-            const availableStock = stock.stock_quantity - stock.reserved_quantity;
-
-            if (availableStock < item.quantity) {
-                await query('ROLLBACK');
-                return res.status(400).send({ 
-                    error: `Insufficient stock for ${item.name}. Available: ${availableStock}` 
-                });
-            }
-
-            // Reserve the quantity
-            await query(
-                "UPDATE branch_products SET reserved_quantity = reserved_quantity + $1 WHERE branch_id = $2 AND product_id = $3",
-                [item.quantity, branchId, item.id || item.productId]
-            );
         }
 
         // Reserve delivery slot if provided
@@ -51,56 +90,123 @@ router.post('/', async (req, res) => {
                 [deliverySlotId]
             );
 
-            if (slotRows.length === 0) {
-                await query('ROLLBACK');
-                return res.status(400).send({ error: 'Delivery slot not found' });
-            }
+            if (slotRows.length > 0) {
+                const slot = slotRows[0];
+                if (slot.current_orders >= slot.max_orders) {
+                    await query('ROLLBACK');
+                    return res.status(400).json({ error: 'Delivery slot is full' });
+                }
 
-            const slot = slotRows[0];
-            if (slot.current_orders >= slot.max_orders) {
-                await query('ROLLBACK');
-                return res.status(400).send({ error: 'Delivery slot is full' });
+                await query(
+                    "UPDATE delivery_slots SET current_orders = current_orders + 1 WHERE id = $1",
+                    [deliverySlotId]
+                );
             }
-
-            await query(
-                "UPDATE delivery_slots SET current_orders = current_orders + 1 WHERE id = $1",
-                [deliverySlotId]
-            );
         }
 
-        // Insert Order
+        // Insert Order - using only basic columns that exist
+        const orderCode = generateOrderCode();
         const insertSql = `
-            INSERT INTO orders (user_id, branch_id, total, items, status, delivery_slot_id, payment_method, payment_status, shipping_info) 
-            VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8) 
-            RETURNING id
+            INSERT INTO orders (
+                user_id, branch_id, total, items, status, payment_method, shipping_info, order_code
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            RETURNING id, order_code
         `;
         const { rows } = await query(insertSql, [
-            userId, 
-            branchId || null, 
-            total, 
-            JSON.stringify(items), 
+            actualUserId,
+            branchId || null,
+            total,
+            JSON.stringify(items),
             status,
-            deliverySlotId || null,
             paymentMethod || 'cod',
-            shippingInfo ? JSON.stringify(shippingInfo) : null
+            shippingInfo ? JSON.stringify(shippingInfo) : null,
+            orderCode
         ]);
         const orderId = rows[0].id;
+        const returnedOrderCode = rows[0].order_code;
 
-        // Clear cart
-        await query("DELETE FROM cart WHERE user_id = $1", [userId]);
+        // إذا تم استخدام كوبون، نحاول تسجيل الاستخدام (optional - may fail if tables don't exist)
+        if (couponId && couponDiscount > 0 && actualUserId) {
+            try {
+                await query(
+                    `INSERT INTO coupon_usage (coupon_id, user_id, order_id, discount_amount)
+                     VALUES ($1, $2, $3, $4)`,
+                    [couponId, actualUserId, orderId, couponDiscount]
+                );
+                await query(
+                    `UPDATE coupons SET used_count = used_count + 1 WHERE id = $1`,
+                    [couponId]
+                );
+            } catch (couponErr) {
+                console.log('⚠️ Could not record coupon usage (table may not exist):', couponErr.message);
+            }
+        }
 
-        // Note: Loyalty points are awarded only when order is delivered
+        // Clear cart (only for registered users)
+        if (actualUserId) {
+            try {
+                await query("DELETE FROM cart WHERE user_id = $1", [actualUserId]);
+            } catch (cartErr) {
+                console.log('⚠️ Could not clear cart:', cartErr.message);
+            }
+        }
 
         await query('COMMIT');
+        
+        console.log('✅ Order created successfully! ID:', orderId, 'Code:', returnedOrderCode);
 
         res.status(200).send({ 
             message: "Order created", 
-            orderId: orderId 
+            orderId: orderId,
+            id: orderId,
+            orderCode: returnedOrderCode
         });
     } catch (err) {
         await query('ROLLBACK');
-        console.error("Order creation error:", err);
+        console.error("❌ Order creation error:", err);
         res.status(500).send({ error: "Problem creating order.", details: err.message });
+    }
+});
+
+// Track Order by Code (Public - no auth required)
+router.get('/track/:orderCode', async (req, res) => {
+    const { orderCode } = req.params;
+    
+    console.log('🔍 Tracking order with code:', orderCode);
+
+    try {
+        const { rows } = await query(
+            "SELECT * FROM orders WHERE order_code = $1 OR UPPER(order_code) = $1",
+            [orderCode.toUpperCase()]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({ 
+                message: 'لم يتم العثور على طلب بهذا الكود',
+                error: 'Order not found' 
+            });
+        }
+
+        const order = rows[0];
+        
+        res.json({
+            message: 'success',
+            data: {
+                id: order.id,
+                order_code: order.order_code,
+                status: order.status,
+                total: order.total,
+                date: order.date,
+                payment_method: order.payment_method,
+                payment_status: order.payment_status,
+                shipping_info: typeof order.shipping_info === 'string' ? JSON.parse(order.shipping_info) : order.shipping_info,
+                items: typeof order.items === 'string' ? JSON.parse(order.items) : order.items
+            }
+        });
+    } catch (err) {
+        console.error('Error tracking order:', err);
+        res.status(500).json({ error: err.message });
     }
 });
 
@@ -110,17 +216,22 @@ router.get('/', [verifyToken], async (req, res) => {
     const userRole = req.userRole;
     const requesterId = req.userId;
 
+    console.log('GET /orders - userRole:', userRole, 'requesterId:', requesterId, 'queryUserId:', userId);
+
     let sql = "SELECT * FROM orders";
     let params = [];
 
-    // If admin/employee, can see all orders or filter by userId
-    if (userRole === 'owner' || userRole === 'manager' || userRole === 'employee') {
+    // If admin/manager/distributor, can see all orders or filter by userId
+    if (['admin', 'owner', 'manager', 'employee', 'distributor'].includes(userRole)) {
         if (userId) {
             sql += " WHERE user_id = $1";
             params.push(userId);
         }
     } else {
         // Regular user can only see their own orders
+        if (!requesterId) {
+            return res.status(400).json({ error: 'User ID not found in token' });
+        }
         sql += " WHERE user_id = $1";
         params.push(requesterId);
     }
@@ -144,15 +255,17 @@ router.get('/', [verifyToken], async (req, res) => {
             "data": orders
         });
     } catch (err) {
+        console.error('Error fetching orders:', err);
         res.status(400).json({ "error": err.message });
     }
 });
 
-// Get single order
-router.get('/:orderId', [verifyToken], async (req, res) => {
+// Get single order - allows guests to view their orders
+router.get('/:orderId', [optionalAuth], async (req, res) => {
     const { orderId } = req.params;
     const userRole = req.userRole;
     const requesterId = req.userId;
+    const isGuestRequest = req.isGuest;
 
     try {
         const { rows } = await query("SELECT * FROM orders WHERE id = $1", [orderId]);
@@ -163,8 +276,14 @@ router.get('/:orderId', [verifyToken], async (req, res) => {
 
         const order = rows[0];
 
-        // Check authorization
-        if (userRole !== 'owner' && userRole !== 'manager' && userRole !== 'employee' && order.user_id !== requesterId) {
+        // Check authorization - guests can view guest orders (user_id is null)
+        // Logged in users can only view their own orders
+        // Admins can view all
+        const isAdmin = ['owner', 'manager', 'employee', 'admin'].includes(userRole);
+        const isOwnOrder = order.user_id === requesterId;
+        const isGuestOrder = order.user_id === null;
+        
+        if (!isAdmin && !isOwnOrder && !(isGuestRequest && isGuestOrder)) {
             return res.status(403).json({ error: 'Unauthorized' });
         }
 

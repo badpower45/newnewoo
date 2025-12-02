@@ -1,6 +1,7 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import { query } from '../database.js';
 
 const router = express.Router();
@@ -145,6 +146,227 @@ router.post('/refresh-token', async (req, res) => {
 // Logout (Client-side token removal, optional endpoint)
 router.post('/logout', (req, res) => {
     res.status(200).send({ auth: false, token: null, message: 'Logged out successfully.' });
+});
+
+// ============================================
+// Forgot Password System
+// ============================================
+
+// Request Password Reset
+router.post('/forgot-password', async (req, res) => {
+    const { email } = req.body;
+    
+    if (!email) {
+        return res.status(400).json({ error: 'Email is required' });
+    }
+
+    try {
+        // Check if user exists
+        const { rows } = await query("SELECT id, name FROM users WHERE email = $1", [email]);
+        
+        if (rows.length === 0) {
+            // Don't reveal if email exists or not for security
+            return res.status(200).json({ 
+                message: 'If this email exists, a reset link will be sent.' 
+            });
+        }
+
+        const user = rows[0];
+        
+        // Generate reset token
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
+        const resetExpiry = new Date(Date.now() + 3600000); // 1 hour from now
+
+        // Save token to database
+        await query(`
+            UPDATE users 
+            SET reset_token = $1, reset_token_expiry = $2 
+            WHERE id = $3
+        `, [resetTokenHash, resetExpiry, user.id]);
+
+        // In production, send email with reset link
+        // For now, we'll return the token (in production, remove this!)
+        const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${resetToken}`;
+        
+        console.log(`📧 Password reset requested for ${email}`);
+        console.log(`🔗 Reset URL: ${resetUrl}`);
+        
+        // TODO: Send actual email using nodemailer or similar
+        // await sendResetEmail(email, user.name, resetUrl);
+
+        res.status(200).json({ 
+            message: 'If this email exists, a reset link will be sent.',
+            // Remove in production - for testing only:
+            resetUrl: process.env.NODE_ENV !== 'production' ? resetUrl : undefined
+        });
+    } catch (err) {
+        console.error('Forgot password error:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Reset Password with Token
+router.post('/reset-password', async (req, res) => {
+    const { token, newPassword } = req.body;
+    
+    if (!token || !newPassword) {
+        return res.status(400).json({ error: 'Token and new password are required' });
+    }
+
+    if (newPassword.length < 6) {
+        return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+
+    try {
+        // Hash the token to compare with stored hash
+        const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+        
+        // Find user with valid token
+        const { rows } = await query(`
+            SELECT id, email FROM users 
+            WHERE reset_token = $1 AND reset_token_expiry > NOW()
+        `, [tokenHash]);
+
+        if (rows.length === 0) {
+            return res.status(400).json({ error: 'Invalid or expired reset token' });
+        }
+
+        const user = rows[0];
+        
+        // Hash new password
+        const hashedPassword = bcrypt.hashSync(newPassword, 8);
+        
+        // Update password and clear reset token
+        await query(`
+            UPDATE users 
+            SET password = $1, reset_token = NULL, reset_token_expiry = NULL 
+            WHERE id = $2
+        `, [hashedPassword, user.id]);
+
+        console.log(`✅ Password reset successful for ${user.email}`);
+
+        res.status(200).json({ message: 'Password has been reset successfully' });
+    } catch (err) {
+        console.error('Reset password error:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// ============================================
+// Social OAuth Login (Google/Facebook)
+// ============================================
+
+// Google OAuth Login/Register
+router.post('/google', async (req, res) => {
+    const { googleId, email, name, picture } = req.body;
+    
+    if (!googleId || !email) {
+        return res.status(400).json({ error: 'Google ID and email are required' });
+    }
+
+    try {
+        // Check if user exists by google_id or email
+        let { rows } = await query(
+            "SELECT * FROM users WHERE google_id = $1 OR email = $2",
+            [googleId, email]
+        );
+
+        let user;
+
+        if (rows.length === 0) {
+            // Create new user
+            const { rows: newUserRows } = await query(`
+                INSERT INTO users (name, email, google_id, avatar, role, password)
+                VALUES ($1, $2, $3, $4, 'customer', '')
+                RETURNING id, name, email, role
+            `, [name, email, googleId, picture]);
+            user = newUserRows[0];
+            console.log(`✅ New Google user registered: ${email}`);
+        } else {
+            user = rows[0];
+            // Update google_id and avatar if not set
+            if (!user.google_id || !user.avatar) {
+                await query(`
+                    UPDATE users SET google_id = $1, avatar = COALESCE(avatar, $2) WHERE id = $3
+                `, [googleId, picture, user.id]);
+            }
+            console.log(`✅ Google user logged in: ${email}`);
+        }
+
+        const token = jwt.sign({ id: user.id, role: user.role }, SECRET_KEY, { expiresIn: 86400 });
+
+        res.status(200).json({
+            auth: true,
+            token,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                avatar: picture || user.avatar
+            }
+        });
+    } catch (err) {
+        console.error('Google auth error:', err);
+        res.status(500).json({ error: 'Server error during Google authentication' });
+    }
+});
+
+// Facebook OAuth Login/Register
+router.post('/facebook', async (req, res) => {
+    const { facebookId, email, name, picture } = req.body;
+    
+    if (!facebookId) {
+        return res.status(400).json({ error: 'Facebook ID is required' });
+    }
+
+    try {
+        // Check if user exists by facebook_id or email
+        let { rows } = await query(
+            "SELECT * FROM users WHERE facebook_id = $1 OR (email = $2 AND email IS NOT NULL)",
+            [facebookId, email]
+        );
+
+        let user;
+
+        if (rows.length === 0) {
+            // Create new user
+            const { rows: newUserRows } = await query(`
+                INSERT INTO users (name, email, facebook_id, avatar, role, password)
+                VALUES ($1, $2, $3, $4, 'customer', '')
+                RETURNING id, name, email, role
+            `, [name, email || null, facebookId, picture]);
+            user = newUserRows[0];
+            console.log(`✅ New Facebook user registered: ${name}`);
+        } else {
+            user = rows[0];
+            // Update facebook_id and avatar if not set
+            if (!user.facebook_id || !user.avatar) {
+                await query(`
+                    UPDATE users SET facebook_id = $1, avatar = COALESCE(avatar, $2) WHERE id = $3
+                `, [facebookId, picture, user.id]);
+            }
+            console.log(`✅ Facebook user logged in: ${name}`);
+        }
+
+        const token = jwt.sign({ id: user.id, role: user.role }, SECRET_KEY, { expiresIn: 86400 });
+
+        res.status(200).json({
+            auth: true,
+            token,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                avatar: picture || user.avatar
+            }
+        });
+    } catch (err) {
+        console.error('Facebook auth error:', err);
+        res.status(500).json({ error: 'Server error during Facebook authentication' });
+    }
 });
 
 export default router;

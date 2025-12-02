@@ -1,6 +1,7 @@
 import React from 'react';
 import { User, Settings, MapPin, CreditCard, HelpCircle, LogOut, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import Footer from '../components/Footer';
 
 const MorePage = () => {
     const navigate = useNavigate();
@@ -49,6 +50,7 @@ const MorePage = () => {
                     </button>
                 </div>
             </div>
+            <Footer />
         </div>
     );
 };

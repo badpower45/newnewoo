@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { useBranch } from '../context/BranchContext';
-import { ArrowLeft, MapPin, Loader, CheckCircle } from 'lucide-react';
+import { ArrowLeft, MapPin, Loader, CheckCircle, Tag, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import SubstitutionSelector from '../components/SubstitutionSelector';
+import Footer from '../components/Footer';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { PAYMENT_METHOD_LABELS } from '../src/config';
@@ -16,12 +17,25 @@ export default function CheckoutPage() {
     const navigate = useNavigate();
     const { showToast, ToastContainer } = useToast();
     const [paymentMethod, setPaymentMethod] = useState('cod');
-    
+
     // State for Location
     const [locationCoords, setLocationCoords] = useState<{lat: number, lng: number} | null>(null);
     const [isLoadingLocation, setIsLoadingLocation] = useState(false);
     const [locationError, setLocationError] = useState('');
-    
+
+    // State for Delivery Fee
+    const [deliveryFee, setDeliveryFee] = useState(20);
+    const [freeDelivery, setFreeDelivery] = useState(false);
+    const [deliveryMessage, setDeliveryMessage] = useState<string | null>(null);
+    const [canDeliver, setCanDeliver] = useState(true);
+
+    // State for Coupon
+    const [couponCode, setCouponCode] = useState('');
+    const [appliedCoupon, setAppliedCoupon] = useState<any>(null);
+    const [couponDiscount, setCouponDiscount] = useState(0);
+    const [couponError, setCouponError] = useState('');
+    const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -45,6 +59,36 @@ export default function CheckoutPage() {
             }));
         }
     }, [user]);
+
+    // Calculate delivery fee when branch or total changes
+    useEffect(() => {
+        const calculateDeliveryFee = async () => {
+            if (!selectedBranch) return;
+
+            try {
+                const result = await api.deliveryFees.calculate(
+                    selectedBranch.id,
+                    totalPrice,
+                    locationCoords?.lat,
+                    locationCoords?.lng
+                );
+
+                if (result.deliveryFee !== undefined) {
+                    setDeliveryFee(result.deliveryFee);
+                    setFreeDelivery(result.freeDelivery || false);
+                    setDeliveryMessage(result.message || null);
+                    setCanDeliver(result.canDeliver !== false);
+                }
+            } catch (err) {
+                console.error('Failed to calculate delivery fee:', err);
+                // Fallback to default
+                setDeliveryFee(20);
+                setCanDeliver(true);
+            }
+        };
+
+        calculateDeliveryFee();
+    }, [selectedBranch, totalPrice, locationCoords]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -73,14 +117,14 @@ export default function CheckoutPage() {
             (position) => {
                 const { latitude, longitude } = position.coords;
                 setLocationCoords({ lat: latitude, lng: longitude });
-                
+
                 // Append Google Maps link to address for easy access
                 const mapLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
                 setFormData(prev => ({
                     ...prev,
                     address: prev.address ? `${prev.address}\n\n📍 الموقع: ${mapLink}` : `📍 الموقع: ${mapLink}`
                 }));
-                
+
                 setIsLoadingLocation(false);
             },
             (error) => {
@@ -92,11 +136,57 @@ export default function CheckoutPage() {
         );
     };
 
+    // --- Function: Apply Coupon ---
+    const handleApplyCoupon = async () => {
+        if (!couponCode.trim()) {
+            setCouponError('الرجاء إدخال كود الكوبون');
+            return;
+        }
+
+        setIsValidatingCoupon(true);
+        setCouponError('');
+
+        try {
+            const result = await api.coupons.validate(couponCode.trim(), totalPrice);
+
+            if (result.valid) {
+                setAppliedCoupon(result);
+                setCouponDiscount(result.discountAmount || 0);
+                showToast(result.message || 'تم تطبيق الكوبون بنجاح!', 'success');
+                setCouponError('');
+            } else {
+                setCouponError(result.error || 'كود الكوبون غير صحيح');
+                setAppliedCoupon(null);
+                setCouponDiscount(0);
+            }
+        } catch (err: any) {
+            setCouponError(err.response?.data?.error || 'فشل التحقق من الكوبون');
+            setAppliedCoupon(null);
+            setCouponDiscount(0);
+        } finally {
+            setIsValidatingCoupon(false);
+        }
+    };
+
+    // --- Function: Remove Coupon ---
+    const handleRemoveCoupon = () => {
+        setAppliedCoupon(null);
+        setCouponDiscount(0);
+        setCouponCode('');
+        setCouponError('');
+        showToast('تم إزالة الكوبون', 'info');
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!selectedBranch) {
             showToast('يرجى اختيار فرع أولاً', 'warning');
+            return;
+        }
+
+        if (!canDeliver) {
+            showToast(deliveryMessage || 'لا يمكن التوصيل لهذا الطلب', 'error');
             return;
         }
 
@@ -133,6 +223,7 @@ export default function CheckoutPage() {
             const orderData = {
                 userId: currentUserId,
                 branchId: selectedBranch.id,
+                total: totalPrice + deliveryFee - couponDiscount, // Subtotal + delivery - coupon discount
                 paymentMethod: paymentMethod,
                 deliveryAddress: `${formData.firstName} ${formData.lastName}, ${formData.phone}, ${formData.building}, ${formData.street}, ${formData.address}`,
                 shippingDetails: {
@@ -147,10 +238,17 @@ export default function CheckoutPage() {
                     notes: formData.notes,
                     coordinates: locationCoords
                 },
+                // إضافة معلومات الكوبون
+                couponCode: appliedCoupon ? appliedCoupon.code : null,
+                couponId: appliedCoupon ? appliedCoupon.couponId : null,
+                couponDiscount: couponDiscount,
                 items: items.map(item => ({
+                    id: item.id,
                     productId: item.id,
+                    name: item.name || (item as any).title,
                     quantity: item.quantity,
                     price: item.price,
+                    image: item.image,
                     substitutionPreference: item.substitutionPreference || 'none'
                 }))
             };
@@ -384,11 +482,26 @@ export default function CheckoutPage() {
                         </div>
                     </div>
 
-                    <button 
-                        onClick={handleSubmit} 
-                        className="w-full bg-green-600 text-white font-bold py-4 rounded-xl hover:bg-green-700 transition-colors shadow-lg"
+                    {deliveryMessage && (
+                        <div className={`p-4 rounded-xl mb-4 ${
+                            freeDelivery ? 'bg-green-50 text-green-700' :
+                            !canDeliver ? 'bg-red-50 text-red-700' :
+                            'bg-blue-50 text-blue-700'
+                        }`}>
+                            <p className="text-sm font-medium text-center">{deliveryMessage}</p>
+                        </div>
+                    )}
+
+                    <button
+                        onClick={handleSubmit}
+                        disabled={!canDeliver}
+                        className={`w-full font-bold py-4 rounded-xl transition-colors shadow-lg ${
+                            canDeliver
+                                ? 'bg-green-600 text-white hover:bg-green-700'
+                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        }`}
                     >
-                        تأكيد الطلب ({(totalPrice + 20).toFixed(2)} جنيه)
+                        {canDeliver ? `تأكيد الطلب (${(totalPrice + deliveryFee - couponDiscount).toFixed(2)} جنيه)` : 'لا يمكن إتمام الطلب'}
                     </button>
                 </div>
 
@@ -399,11 +512,67 @@ export default function CheckoutPage() {
                         <div className="space-y-3 mb-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                             {items.map(item => (
                                 <div key={item.id} className="flex justify-between text-sm">
-                                    <span className="text-slate-600">{item.title} <span className="text-xs text-slate-400">x{item.quantity}</span></span>
-                                    <span className="font-bold text-slate-800">{(item.price * item.quantity).toFixed(2)} EGP</span>
+                                    <span className="text-slate-600">{item.name || (item as any).title} <span className="text-xs text-slate-400">x{item.quantity}</span></span>
+                                    <span className="font-bold text-slate-800">{((item.price || 0) * item.quantity).toFixed(2)} EGP</span>
                                 </div>
                             ))}
                         </div>
+
+                        {/* مربع الكوبون */}
+                        <div className="mb-4 border-t border-slate-200 pt-4">
+                            <label className="text-sm font-bold text-slate-700 mb-2 block">كوبون الخصم</label>
+                            {!appliedCoupon ? (
+                                <div className="space-y-2">
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={couponCode}
+                                            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                                            onKeyPress={(e) => e.key === 'Enter' && handleApplyCoupon()}
+                                            placeholder="أدخل كود الكوبون"
+                                            className="flex-1 px-3 py-2 rounded-lg border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all text-sm"
+                                        />
+                                        <button
+                                            onClick={handleApplyCoupon}
+                                            disabled={isValidatingCoupon || !couponCode.trim()}
+                                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-1 text-sm font-medium"
+                                        >
+                                            {isValidatingCoupon ? (
+                                                <Loader size={16} className="animate-spin" />
+                                            ) : (
+                                                <Tag size={16} />
+                                            )}
+                                            تطبيق
+                                        </button>
+                                    </div>
+                                    {couponError && (
+                                        <p className="text-xs text-red-600">{couponError}</p>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <Tag size={16} className="text-green-600" />
+                                            <div>
+                                                <p className="text-sm font-bold text-green-900">{appliedCoupon.code}</p>
+                                                {appliedCoupon.description && (
+                                                    <p className="text-xs text-green-700">{appliedCoupon.description}</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={handleRemoveCoupon}
+                                            className="text-red-500 hover:text-red-700 p-1"
+                                            title="إزالة الكوبون"
+                                        >
+                                            <X size={16} />
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
                         <div className="border-t border-slate-200 pt-4 space-y-2">
                             <div className="flex justify-between items-center text-sm text-gray-600">
                                 <span>Subtotal</span>
@@ -411,16 +580,25 @@ export default function CheckoutPage() {
                             </div>
                             <div className="flex justify-between items-center text-sm text-gray-600">
                                 <span>Delivery</span>
-                                <span>20.00 EGP</span>
+                                <span className={freeDelivery ? 'text-green-600 font-bold' : ''}>
+                                    {freeDelivery ? 'FREE!' : `${deliveryFee.toFixed(2)} EGP`}
+                                </span>
                             </div>
+                            {couponDiscount > 0 && (
+                                <div className="flex justify-between items-center text-sm text-green-600 font-medium">
+                                    <span>Coupon Discount</span>
+                                    <span>-{couponDiscount.toFixed(2)} EGP</span>
+                                </div>
+                            )}
                             <div className="flex justify-between items-center pt-2 border-t border-gray-200">
                                 <span className="font-bold text-slate-800">Total</span>
-                                <span className="font-bold text-xl text-primary">{(totalPrice + 20).toFixed(2)} EGP</span>
+                                <span className="font-bold text-xl text-primary">{(totalPrice + deliveryFee - couponDiscount).toFixed(2)} EGP</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+            <Footer />
         </div>
     );
 }

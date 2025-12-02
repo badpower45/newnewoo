@@ -57,7 +57,7 @@ router.post('/dev/seed-sample', async (req, res) => {
 
 // Get all products (filtered by branch)
 router.get('/', async (req, res) => {
-    const { branchId, category, search } = req.query;
+    const { branchId, category, search, limit } = req.query;
 
     if (!branchId) {
         // Enforce branch selection as per requirements
@@ -68,8 +68,12 @@ router.get('/', async (req, res) => {
     }
 
     try {
+        // Add cache headers for better performance
+        res.set('Cache-Control', 'public, max-age=60'); // Cache for 1 minute
+        
         let sql = `
-            SELECT p.*, bp.price, bp.discount_price, bp.stock_quantity, bp.expiry_date, bp.is_available
+            SELECT p.id, p.name, p.category, p.image, p.weight, p.rating, p.reviews, p.is_organic, p.is_new, p.barcode,
+                   bp.price, bp.discount_price, bp.stock_quantity, bp.is_available
             FROM products p
             JOIN branch_products bp ON p.id = bp.product_id
             WHERE bp.branch_id = $1 AND bp.is_available = TRUE
@@ -86,6 +90,16 @@ router.get('/', async (req, res) => {
         if (search) {
             sql += ` AND (p.name ILIKE $${paramIndex} OR p.description ILIKE $${paramIndex})`;
             params.push(`%${search}%`);
+            paramIndex++;
+        }
+        
+        // Add ORDER BY for consistent results
+        sql += ` ORDER BY p.id`;
+        
+        // Add LIMIT for pagination
+        if (limit) {
+            sql += ` LIMIT $${paramIndex}`;
+            params.push(parseInt(limit));
             paramIndex++;
         }
 

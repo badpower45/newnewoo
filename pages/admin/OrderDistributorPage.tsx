@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
     Package, User, Phone, MapPin, Clock, CheckCircle, 
-    Truck, Play, List, ChevronDown, ChevronUp, RefreshCw 
+    Truck, Play, List, ChevronDown, ChevronUp, RefreshCw,
+    Navigation, Star, Timer, AlertCircle, Eye, Activity
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { useBranch } from '../../context/BranchContext';
@@ -16,6 +17,17 @@ const ORDER_STATUS = {
     delivered: { label: 'تم التوصيل', color: 'bg-green-100 text-green-700', icon: CheckCircle },
 };
 
+// حالات تعيين الديليفري
+const ASSIGNMENT_STATUS: { [key: string]: { label: string; color: string; icon: any } } = {
+    assigned: { label: 'في انتظار القبول', color: 'bg-yellow-100 text-yellow-700', icon: Timer },
+    accepted: { label: 'تم القبول - متوجه للفرع', color: 'bg-blue-100 text-blue-700', icon: Navigation },
+    picked_up: { label: 'استلم الطلب - متوجه للعميل', color: 'bg-purple-100 text-purple-700', icon: Truck },
+    arriving: { label: 'وصل - في انتظار العميل', color: 'bg-orange-100 text-orange-700', icon: Clock },
+    delivered: { label: 'تم التوصيل', color: 'bg-green-100 text-green-700', icon: CheckCircle },
+    rejected: { label: 'مرفوض', color: 'bg-red-100 text-red-700', icon: AlertCircle },
+    expired: { label: 'انتهى الوقت', color: 'bg-gray-100 text-gray-600', icon: Clock },
+};
+
 const OrderDistributorPage = () => {
     const { selectedBranch } = useBranch();
     const [orders, setOrders] = useState<any[]>([]);
@@ -23,19 +35,47 @@ const OrderDistributorPage = () => {
     const [preparationItems, setPreparationItems] = useState<any[]>([]);
     const [availableDelivery, setAvailableDelivery] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
-    const [activeTab, setActiveTab] = useState<'pending' | 'preparing' | 'ready'>('pending');
+    const [activeTab, setActiveTab] = useState<'pending' | 'preparing' | 'ready' | 'tracking'>('pending');
+    
+    // Delivery tracking state
+    const [activeDeliveries, setActiveDeliveries] = useState<any[]>([]);
+    const [deliveryStaffList, setDeliveryStaffList] = useState<any[]>([]);
+    const [selectedDeliveryStaff, setSelectedDeliveryStaff] = useState<any>(null);
+    const [countdowns, setCountdowns] = useState<{ [key: number]: number }>({});
 
     useEffect(() => {
-        loadOrders();
+        if (activeTab === 'tracking') {
+            loadActiveDeliveries();
+            loadDeliveryStaffList();
+        } else {
+            loadOrders();
+        }
     }, [selectedBranch, activeTab]);
+    
+    // Update countdowns every second
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const newCountdowns: { [key: number]: number } = {};
+            activeDeliveries.forEach(delivery => {
+                if (delivery.assignment_status === 'assigned' && delivery.accept_deadline) {
+                    const remaining = Math.max(0, new Date(delivery.accept_deadline).getTime() - Date.now());
+                    newCountdowns[delivery.order_id] = Math.floor(remaining / 1000);
+                }
+            });
+            setCountdowns(newCountdowns);
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [activeDeliveries]);
 
     const loadOrders = async () => {
         setLoading(true);
         try {
             const statusMap = {
-                pending: 'confirmed',
+                pending: 'pending',
                 preparing: 'preparing',
-                ready: 'ready'
+                ready: 'ready',
+                tracking: 'out_for_delivery'
             };
             const res = await api.distribution.getOrdersToPrepare(selectedBranch?.id, statusMap[activeTab]);
             setOrders(res.data || []);
@@ -43,6 +83,43 @@ const OrderDistributorPage = () => {
             console.error('Failed to load orders:', err);
         }
         setLoading(false);
+    };
+    
+    // Load all active deliveries with their current status
+    const loadActiveDeliveries = async () => {
+        setLoading(true);
+        try {
+            const res = await api.distribution.getActiveDeliveries(selectedBranch?.id);
+            setActiveDeliveries(res.data || []);
+        } catch (err) {
+            console.error('Failed to load active deliveries:', err);
+        }
+        setLoading(false);
+    };
+    
+    // Load all delivery staff with their stats
+    const loadDeliveryStaffList = async () => {
+        try {
+            const res = await api.distribution.getAllDeliveryStaff(selectedBranch?.id);
+            setDeliveryStaffList(res.data || []);
+        } catch (err) {
+            console.error('Failed to load delivery staff:', err);
+        }
+    };
+    
+    // Format countdown
+    const formatCountdown = (seconds: number) => {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
+    
+    // Format time difference
+    const formatTimeDiff = (date: string) => {
+        const diff = Math.floor((Date.now() - new Date(date).getTime()) / 1000 / 60);
+        if (diff < 1) return 'الآن';
+        if (diff < 60) return `منذ ${diff} دقيقة`;
+        return `منذ ${Math.floor(diff / 60)} ساعة`;
     };
 
     const loadPreparationItems = async (orderId: number) => {
@@ -68,6 +145,20 @@ const OrderDistributorPage = () => {
         await loadPreparationItems(order.id);
         if (order.branch_id) {
             await loadAvailableDelivery(order.branch_id);
+        }
+    };
+
+    // تأكيد الطلب (من pending إلى confirmed)
+    const handleConfirmOrder = async (orderId: number) => {
+        try {
+            await api.orders.updateStatus(orderId.toString(), 'confirmed');
+            await loadOrders();
+            if (selectedOrder?.id === orderId) {
+                setSelectedOrder((prev: any) => prev ? { ...prev, status: 'confirmed' } : null);
+            }
+        } catch (err) {
+            console.error('Failed to confirm order:', err);
+            alert('فشل تأكيد الطلب');
         }
     };
 
@@ -186,9 +277,252 @@ const OrderDistributorPage = () => {
                     >
                         جاهز للتوصيل
                     </button>
+                    <button
+                        onClick={() => setActiveTab('tracking')}
+                        className={`px-4 py-2 rounded-lg font-medium transition flex items-center gap-2 ${
+                            activeTab === 'tracking' 
+                                ? 'bg-indigo-600 text-white' 
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                    >
+                        <Activity size={16} />
+                        تتبع الديليفري
+                        {activeDeliveries.length > 0 && (
+                            <span className="px-1.5 py-0.5 bg-white/20 rounded-full text-xs">
+                                {activeDeliveries.length}
+                            </span>
+                        )}
+                    </button>
                 </div>
             </div>
 
+            {/* Tracking Tab Content */}
+            {activeTab === 'tracking' ? (
+                <div className="flex">
+                    {/* Delivery Staff List */}
+                    <div className="w-1/3 border-l bg-white min-h-[calc(100vh-140px)] overflow-y-auto">
+                        <div className="p-4 border-b bg-gray-50">
+                            <h3 className="font-bold text-gray-900">موظفي التوصيل</h3>
+                            <p className="text-xs text-gray-500">{deliveryStaffList.length} موظف</p>
+                        </div>
+                        
+                        {loading ? (
+                            <div className="flex items-center justify-center py-20">
+                                <RefreshCw className="animate-spin text-gray-400" size={32} />
+                            </div>
+                        ) : deliveryStaffList.length === 0 ? (
+                            <div className="text-center py-20 text-gray-500">
+                                <Truck size={48} className="mx-auto mb-4 opacity-50" />
+                                <p>لا يوجد موظفي توصيل</p>
+                            </div>
+                        ) : (
+                            <div className="divide-y">
+                                {deliveryStaffList.map(staff => {
+                                    const activeOrders = activeDeliveries.filter(d => d.delivery_staff_id === staff.id);
+                                    return (
+                                        <div
+                                            key={staff.id}
+                                            onClick={() => setSelectedDeliveryStaff(staff)}
+                                            className={`p-4 cursor-pointer hover:bg-gray-50 transition ${
+                                                selectedDeliveryStaff?.id === staff.id ? 'bg-indigo-50 border-r-4 border-indigo-500' : ''
+                                            }`}
+                                        >
+                                            <div className="flex items-center justify-between mb-2">
+                                                <div className="flex items-center gap-2">
+                                                    <div className={`w-3 h-3 rounded-full ${staff.is_available ? 'bg-green-500' : 'bg-gray-400'}`} />
+                                                    <span className="font-bold">{staff.name}</span>
+                                                </div>
+                                                {staff.average_rating > 0 && (
+                                                    <div className="flex items-center gap-1 text-yellow-500">
+                                                        <Star size={14} className="fill-current" />
+                                                        <span className="text-sm">{parseFloat(staff.average_rating).toFixed(1)}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <div className="text-sm text-gray-500 space-y-1">
+                                                <p>{staff.phone}</p>
+                                                <div className="flex items-center gap-4">
+                                                    <span className="flex items-center gap-1">
+                                                        <Package size={12} />
+                                                        {activeOrders.length} طلب نشط
+                                                    </span>
+                                                    <span className="flex items-center gap-1">
+                                                        <CheckCircle size={12} />
+                                                        {staff.total_deliveries || 0} إجمالي
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Active Deliveries Panel */}
+                    <div className="flex-1 p-6 overflow-y-auto max-h-[calc(100vh-140px)]">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-bold">
+                                {selectedDeliveryStaff ? `طلبات ${selectedDeliveryStaff.name}` : 'جميع الطلبات النشطة'}
+                            </h2>
+                            <button
+                                onClick={() => { loadActiveDeliveries(); loadDeliveryStaffList(); }}
+                                className="flex items-center gap-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg hover:bg-indigo-200"
+                            >
+                                <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+                                تحديث
+                            </button>
+                        </div>
+
+                        {/* Filter by staff if selected */}
+                        {(() => {
+                            const filteredDeliveries = selectedDeliveryStaff
+                                ? activeDeliveries.filter(d => d.delivery_staff_id === selectedDeliveryStaff.id)
+                                : activeDeliveries;
+
+                            if (filteredDeliveries.length === 0) {
+                                return (
+                                    <div className="text-center py-20 text-gray-500">
+                                        <Truck size={64} className="mx-auto mb-4 opacity-30" />
+                                        <p>لا توجد طلبات نشطة</p>
+                                    </div>
+                                );
+                            }
+
+                            return (
+                                <div className="grid gap-4">
+                                    {filteredDeliveries.map(delivery => {
+                                        const status = ASSIGNMENT_STATUS[delivery.assignment_status] || ASSIGNMENT_STATUS.assigned;
+                                        const StatusIcon = status.icon;
+                                        const countdown = countdowns[delivery.order_id];
+                                        const shipping = delivery.shipping_info 
+                                            ? (typeof delivery.shipping_info === 'string' ? JSON.parse(delivery.shipping_info) : delivery.shipping_info)
+                                            : null;
+
+                                        return (
+                                            <div key={delivery.id} className="bg-white rounded-xl p-5 shadow-sm border">
+                                                {/* Header */}
+                                                <div className="flex items-start justify-between mb-4">
+                                                    <div>
+                                                        <div className="flex items-center gap-3">
+                                                            <span className="text-lg font-bold">طلب #{delivery.order_id}</span>
+                                                            <span className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1 ${status.color}`}>
+                                                                <StatusIcon size={14} />
+                                                                {status.label}
+                                                            </span>
+                                                        </div>
+                                                        <p className="text-sm text-gray-500 mt-1">
+                                                            الديليفري: <span className="font-medium">{delivery.staff_name}</span>
+                                                        </p>
+                                                    </div>
+                                                    <span className="text-xl font-bold text-green-600">
+                                                        {Number(delivery.total || 0).toFixed(0)} ج.م
+                                                    </span>
+                                                </div>
+
+                                                {/* Countdown for pending acceptance */}
+                                                {delivery.assignment_status === 'assigned' && countdown !== undefined && (
+                                                    <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                                        <div className="flex items-center justify-between">
+                                                            <div className="flex items-center gap-2 text-yellow-700">
+                                                                <Timer size={18} />
+                                                                <span className="font-medium">في انتظار قبول الديليفري</span>
+                                                            </div>
+                                                            <span className={`text-xl font-bold ${countdown < 60 ? 'text-red-600 animate-pulse' : 'text-yellow-700'}`}>
+                                                                {formatCountdown(countdown)}
+                                                            </span>
+                                                        </div>
+                                                        <div className="h-2 bg-yellow-100 rounded-full mt-2 overflow-hidden">
+                                                            <div 
+                                                                className={`h-full transition-all duration-1000 ${countdown < 60 ? 'bg-red-500' : 'bg-yellow-500'}`}
+                                                                style={{ width: `${Math.min(100, (countdown / 300) * 100)}%` }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Timeline */}
+                                                <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                                                    <div className="grid grid-cols-4 gap-2 text-center text-xs">
+                                                        <div className={delivery.accepted_at ? 'text-green-600' : 'text-gray-400'}>
+                                                            <CheckCircle size={16} className="mx-auto mb-1" />
+                                                            <span>قبول</span>
+                                                            {delivery.accepted_at && (
+                                                                <p className="text-[10px]">{formatTimeDiff(delivery.accepted_at)}</p>
+                                                            )}
+                                                        </div>
+                                                        <div className={delivery.picked_up_at ? 'text-green-600' : 'text-gray-400'}>
+                                                            <Package size={16} className="mx-auto mb-1" />
+                                                            <span>استلام</span>
+                                                            {delivery.picked_up_at && (
+                                                                <p className="text-[10px]">{formatTimeDiff(delivery.picked_up_at)}</p>
+                                                            )}
+                                                        </div>
+                                                        <div className={delivery.customer_arrived_at ? 'text-green-600' : 'text-gray-400'}>
+                                                            <Navigation size={16} className="mx-auto mb-1" />
+                                                            <span>وصول</span>
+                                                            {delivery.customer_arrived_at && (
+                                                                <p className="text-[10px]">{formatTimeDiff(delivery.customer_arrived_at)}</p>
+                                                            )}
+                                                        </div>
+                                                        <div className={delivery.delivered_at ? 'text-green-600' : 'text-gray-400'}>
+                                                            <CheckCircle size={16} className="mx-auto mb-1" />
+                                                            <span>تسليم</span>
+                                                            {delivery.delivered_at && (
+                                                                <p className="text-[10px]">{formatTimeDiff(delivery.delivered_at)}</p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Customer Info */}
+                                                {shipping && (
+                                                    <div className="flex items-center justify-between text-sm">
+                                                        <div className="flex items-center gap-4">
+                                                            <span className="flex items-center gap-1 text-gray-600">
+                                                                <User size={14} />
+                                                                {shipping.firstName} {shipping.lastName}
+                                                            </span>
+                                                            <a href={`tel:${shipping.phone}`} className="flex items-center gap-1 text-blue-600">
+                                                                <Phone size={14} />
+                                                                {shipping.phone}
+                                                            </a>
+                                                        </div>
+                                                        {shipping.coordinates && (
+                                                            <a
+                                                                href={`https://maps.google.com/?q=${shipping.coordinates.lat},${shipping.coordinates.lng}`}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                className="flex items-center gap-1 text-indigo-600 hover:underline"
+                                                            >
+                                                                <MapPin size={14} />
+                                                                الموقع
+                                                            </a>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                {/* Time stats for delivered */}
+                                                {delivery.assignment_status === 'delivered' && delivery.total_delivery_time && (
+                                                    <div className="mt-3 pt-3 border-t flex items-center gap-4 text-sm text-gray-600">
+                                                        <span>⏱️ وقت التوصيل: {delivery.total_delivery_time} دقيقة</span>
+                                                        {delivery.delivery_rating && (
+                                                            <span className="flex items-center gap-1 text-yellow-600">
+                                                                <Star size={14} className="fill-current" />
+                                                                {delivery.delivery_rating}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            );
+                        })()}
+                    </div>
+                </div>
+            ) : (
             <div className="flex">
                 {/* Orders List */}
                 <div className="w-1/3 border-l bg-white min-h-[calc(100vh-140px)] overflow-y-auto">
@@ -295,6 +629,16 @@ const OrderDistributorPage = () => {
                             </div>
 
                             {/* Actions based on status */}
+                            {selectedOrder.status === 'pending' && (
+                                <button
+                                    onClick={() => handleConfirmOrder(selectedOrder.id)}
+                                    className="w-full py-4 bg-green-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-green-700 transition"
+                                >
+                                    <CheckCircle size={20} />
+                                    تأكيد الطلب
+                                </button>
+                            )}
+
                             {selectedOrder.status === 'confirmed' && (
                                 <button
                                     onClick={() => handleStartPreparation(selectedOrder.id)}
@@ -430,6 +774,7 @@ const OrderDistributorPage = () => {
                     )}
                 </div>
             </div>
+            )}
         </div>
     );
 };

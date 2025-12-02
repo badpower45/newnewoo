@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, LogOut, Package, ChevronLeft, Edit2, Award, Clock, MessageCircle, Headphones, LayoutDashboard } from 'lucide-react';
+import { User, Mail, LogOut, Package, ChevronLeft, Edit2, Award, Clock, MessageCircle, Headphones, LayoutDashboard, Truck, ClipboardList } from 'lucide-react';
 import { api } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
+import Footer from '../components/Footer';
 import ErrorMessage from '../components/ErrorMessage';
 import { ORDER_STATUS_LABELS } from '../src/config';
 
@@ -20,13 +21,13 @@ const ProfilePage = () => {
     });
 
     useEffect(() => {
-        if (user) {
+        if (user && !user.isGuest) {
             fetchOrders();
         }
     }, [user]);
 
     const fetchOrders = async () => {
-        if (!user) return;
+        if (!user || user.isGuest) return;
         setLoading(true);
         setError(null);
         try {
@@ -139,6 +140,44 @@ const ProfilePage = () => {
                         </button>
                     )}
 
+                    {/* Order Distributor Dashboard */}
+                    {user.role === 'distributor' && (
+                        <button
+                            onClick={() => navigate('/admin/distribution')}
+                            className="w-full p-4 border-b border-gray-100 flex items-center justify-between hover:bg-orange-50 transition-colors text-right"
+                        >
+                            <div className="flex items-center space-x-3 space-x-reverse">
+                                <div className="bg-orange-50 p-2 rounded-lg text-orange-600">
+                                    <ClipboardList size={20} />
+                                </div>
+                                <div className="text-right">
+                                    <span className="font-medium text-gray-900 block">لوحة توزيع الطلبات</span>
+                                    <span className="text-xs text-gray-500">توزيع الطلبات على عمال التوصيل</span>
+                                </div>
+                            </div>
+                            <ChevronLeft size={18} className="text-gray-400 rotate-180" />
+                        </button>
+                    )}
+
+                    {/* Delivery Driver Page */}
+                    {user.role === 'delivery' && (
+                        <button
+                            onClick={() => navigate('/delivery')}
+                            className="w-full p-4 border-b border-gray-100 flex items-center justify-between hover:bg-cyan-50 transition-colors text-right"
+                        >
+                            <div className="flex items-center space-x-3 space-x-reverse">
+                                <div className="bg-cyan-50 p-2 rounded-lg text-cyan-600">
+                                    <Truck size={20} />
+                                </div>
+                                <div className="text-right">
+                                    <span className="font-medium text-gray-900 block">صفحة التوصيل</span>
+                                    <span className="text-xs text-gray-500">إدارة طلباتك والتوصيل</span>
+                                </div>
+                            </div>
+                            <ChevronLeft size={18} className="text-gray-400 rotate-180" />
+                        </button>
+                    )}
+
                     {/* Customer Service Dashboard for Employees/Managers/Admins */}
                     {user.role && ['employee', 'manager', 'admin'].includes(user.role) && (
                         <button
@@ -177,15 +216,21 @@ const ProfilePage = () => {
                         </button>
                     )}
 
-                    <div className="p-4 border-b border-gray-100 flex items-center justify-between hover:bg-gray-50 cursor-pointer transition-colors">
+                    <button
+                        onClick={() => navigate('/my-orders')}
+                        className="w-full p-4 border-b border-gray-100 flex items-center justify-between hover:bg-blue-50 cursor-pointer transition-colors text-right"
+                    >
                         <div className="flex items-center space-x-3 space-x-reverse">
                             <div className="bg-blue-50 p-2 rounded-lg text-blue-600">
                                 <Package size={20} />
                             </div>
-                            <span className="font-medium text-gray-900">My Orders</span>
+                            <div className="text-right">
+                                <span className="font-medium text-gray-900 block">طلباتي</span>
+                                <span className="text-xs text-gray-500">تتبع طلباتك وحالتها</span>
+                            </div>
                         </div>
-                        <span className="text-xs text-gray-400">Coming Soon</span>
-                    </div>
+                        <ChevronLeft size={18} className="text-gray-400 rotate-180" />
+                    </button>
 
                     <button
                         onClick={handleLogout}
@@ -198,6 +243,7 @@ const ProfilePage = () => {
                     </button>
                 </div>
             </div>
+            <Footer />
         </div>
     );
 };

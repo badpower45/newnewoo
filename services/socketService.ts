@@ -7,6 +7,8 @@ class SocketService {
     private connected: boolean = false;
     private currentConversationId: number | null = null;
     private currentCustomerName: string | null = null;
+    private trackingOrderId: number | null = null;
+    private driverId: number | null = null;
 
     connect() {
         if (this.socket) return;
@@ -25,6 +27,16 @@ class SocketService {
             if (this.currentConversationId && this.currentCustomerName) {
                 console.log('🔄 Re-joining conversation after connection...');
                 this.joinAsCustomer(this.currentConversationId, this.currentCustomerName);
+            }
+            
+            // Re-join order tracking if we were tracking
+            if (this.trackingOrderId) {
+                this.trackOrder(this.trackingOrderId, 0);
+            }
+            
+            // Re-join as driver if we were connected
+            if (this.driverId) {
+                this.joinAsDriver(this.driverId, 0);
             }
         });
 
@@ -45,7 +57,49 @@ class SocketService {
             this.connected = false;
             this.currentConversationId = null;
             this.currentCustomerName = null;
+            this.trackingOrderId = null;
+            this.driverId = null;
         }
+    }
+
+    // =============================================
+    // Delivery Driver Events
+    // =============================================
+    
+    // السائق يسجل دخوله
+    joinAsDriver(driverId: number, userId: number) {
+        this.driverId = driverId;
+        this.socket?.emit('driver:join', { driverId, userId });
+    }
+    
+    // تحديث موقع السائق
+    updateDriverLocation(driverId: number, lat: number, lng: number, orderId?: number) {
+        this.socket?.emit('driver:location', { driverId, lat, lng, orderId });
+    }
+    
+    // =============================================
+    // Order Tracking Events (للعميل)
+    // =============================================
+    
+    // بدء تتبع الطلب
+    trackOrder(orderId: number, userId: number) {
+        this.trackingOrderId = orderId;
+        this.socket?.emit('order:track', { orderId, userId });
+    }
+    
+    // إيقاف تتبع الطلب
+    untrackOrder(orderId: number, userId: number) {
+        this.trackingOrderId = null;
+        this.socket?.emit('order:untrack', { orderId, userId });
+    }
+    
+    // =============================================
+    // Distributor Events
+    // =============================================
+    
+    // الموزع يسجل دخوله
+    joinAsDistributor(distributorId: number, branchId: number) {
+        this.socket?.emit('distributor:join', { distributorId, branchId });
     }
 
     // Customer joins conversation

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from 'lucide-react';
 
 export default function Footer() {
@@ -30,22 +31,22 @@ export default function Footer() {
           <div>
             <h4 className="font-bold text-brand-brown mb-6">الأقسام</h4>
             <ul className="space-y-4 text-sm text-slate-500">
-              <li><a href="#" className="hover:text-brand-orange transition-colors">خضار وفاكهة</a></li>
-              <li><a href="#" className="hover:text-brand-orange transition-colors">لحوم وأسماك</a></li>
-              <li><a href="#" className="hover:text-brand-orange transition-colors">مخبوزات</a></li>
-              <li><a href="#" className="hover:text-brand-orange transition-colors">ألبان وجبن</a></li>
-              <li><a href="#" className="hover:text-brand-orange transition-colors">مشروبات</a></li>
+              <li><Link to="/products?category=Vegetables" className="hover:text-brand-orange transition-colors">خضار وفاكهة</Link></li>
+              <li><Link to="/products?category=Meat" className="hover:text-brand-orange transition-colors">لحوم وأسماك</Link></li>
+              <li><Link to="/products?category=Bakery" className="hover:text-brand-orange transition-colors">مخبوزات</Link></li>
+              <li><Link to="/products?category=Dairy" className="hover:text-brand-orange transition-colors">ألبان وجبن</Link></li>
+              <li><Link to="/products?category=Beverages" className="hover:text-brand-orange transition-colors">مشروبات</Link></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-bold text-brand-brown mb-6">خدمة العملاء</h4>
             <ul className="space-y-4 text-sm text-slate-500">
-              <li><a href="#" className="hover:text-brand-orange transition-colors">تتبع طلبك</a></li>
-              <li><a href="#" className="hover:text-brand-orange transition-colors">سياسة التوصيل</a></li>
-              <li><a href="#" className="hover:text-brand-orange transition-colors">الاستبدال والاسترجاع</a></li>
-              <li><a href="#" className="hover:text-brand-orange transition-colors">الأسئلة الشائعة</a></li>
-              <li><a href="#" className="hover:text-brand-orange transition-colors flex items-center"><Phone size={14} className="ml-1"/> 19999</a></li>
+              <li><Link to="/track-order" className="hover:text-brand-orange transition-colors">تتبع طلبك</Link></li>
+              <li><Link to="/delivery-policy" className="hover:text-brand-orange transition-colors">سياسة التوصيل</Link></li>
+              <li><Link to="/return-policy" className="hover:text-brand-orange transition-colors">الاستبدال والاسترجاع</Link></li>
+              <li><Link to="/faq" className="hover:text-brand-orange transition-colors">الأسئلة الشائعة</Link></li>
+              <li><a href="tel:19999" className="hover:text-brand-orange transition-colors flex items-center"><Phone size={14} className="ml-1"/> 19999</a></li>
             </ul>
           </div>
 

@@ -23,15 +23,50 @@ export const verifyToken = (req, res, next) => {
     });
 };
 
+// Optional authentication - doesn't reject if no token, just doesn't set userId
+export const optionalAuth = (req, res, next) => {
+    const tokenHeader = req.headers['authorization'];
+    if (!tokenHeader) {
+        // No token - continue as guest
+        req.userId = null;
+        req.userRole = null;
+        req.isGuest = true;
+        return next();
+    }
+
+    const token = tokenHeader.split(' ')[1]; // Bearer <token>
+
+    jwt.verify(token, SECRET_KEY, (err, decoded) => {
+        if (err) {
+            // Invalid token - continue as guest
+            req.userId = null;
+            req.userRole = null;
+            req.isGuest = true;
+            return next();
+        }
+
+        // Valid token - set user info
+        req.userId = decoded.id;
+        req.userRole = decoded.role;
+        req.isGuest = false;
+        next();
+    });
+};
+
 export const isAdmin = (req, res, next) => {
-    if (req.userRole !== 'owner' && req.userRole !== 'manager') {
+    console.log('🔐 isAdmin check - userRole:', req.userRole);
+    const adminRoles = ['admin', 'owner', 'manager'];
+    if (!adminRoles.includes(req.userRole)) {
+        console.log('❌ Role not in adminRoles:', adminRoles);
         return res.status(403).send({ message: "Require Admin Role!" });
     }
+    console.log('✅ Admin access granted');
     next();
 };
 
 export const isEmployee = (req, res, next) => {
-    if (req.userRole !== 'owner' && req.userRole !== 'manager' && req.userRole !== 'employee') {
+    const employeeRoles = ['admin', 'owner', 'manager', 'employee', 'distributor'];
+    if (!employeeRoles.includes(req.userRole)) {
         return res.status(403).send({ message: "Require Employee Role!" });
     }
     next();

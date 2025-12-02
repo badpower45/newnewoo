@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { socketService } from '../services/socketService';
 import { api } from '../services/api';
-import { ChevronLeft, Send, MessageCircle } from 'lucide-react';
+import { ArrowRight, Send, Phone, Plus, MessageCircle } from 'lucide-react';
 
 interface Message {
     id: string;
@@ -163,130 +163,150 @@ const CustomerChatPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="h-screen flex flex-col bg-[#FAFAFA] max-w-md mx-auto">
             {/* Header */}
-            <div className="bg-white shadow-sm sticky top-0 z-10">
-                <div className="max-w-4xl mx-auto px-4 py-3 flex items-center">
+            <div className="bg-[#23110C] text-white p-4 shadow-lg">
+                <div className="flex items-center gap-3">
                     <button
-                        onClick={() => navigate('/profile')}
-                        className="p-2 hover:bg-gray-100 rounded-full ml-2 transition-colors"
+                        onClick={() => navigate(-1)}
+                        className="w-10 h-10 flex items-center justify-center"
                     >
-                        <ChevronLeft size={24} className="text-gray-700" />
+                        <ArrowRight className="w-6 h-6" />
                     </button>
-                    <div className="flex items-center flex-1">
-                        <div className="bg-primary/10 p-2 rounded-full ml-3">
-                            <MessageCircle size={24} className="text-primary" />
+
+                    <div className="flex items-center gap-3 flex-1">
+                        {/* Agent Avatar */}
+                        <div className="relative">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#F97316] to-[#ea580c] flex items-center justify-center text-white">
+                                👤
+                            </div>
+                            <div className={`absolute bottom-0 left-0 w-3 h-3 ${isConnected ? 'bg-[#10B981]' : 'bg-gray-400'} border-2 border-[#23110C] rounded-full`} />
                         </div>
-                        <div>
-                            <h1 className="text-lg font-bold text-gray-900">خدمة العملاء</h1>
-                            <p className="text-xs text-gray-500">
-                                {isConnected ? 'متصل' : 'غير متصل'}
+
+                        <div className="flex-1">
+                            <h3 className="text-white text-lg font-semibold">دعم علوش</h3>
+                            <p className="text-[#9CA3AF] text-sm">
+                                {isConnected ? 'متصل • يرد عادة خلال دقيقتين' : 'غير متصل'}
                             </p>
                         </div>
                     </div>
+
+                    <button className="w-10 h-10 flex items-center justify-center text-white hover:bg-white/10 rounded-full transition-colors">
+                        <Phone className="w-5 h-5" />
+                    </button>
                 </div>
             </div>
 
-            {/* Messages Container */}
-            <div className="flex-1 overflow-y-auto bg-gray-50">
-                <div className="max-w-4xl mx-auto p-4 space-y-4">
-                    {isLoading ? (
-                        <div className="flex items-center justify-center h-64">
-                            <div className="text-center">
-                                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                                <p className="text-gray-500">جاري التحميل...</p>
+            {/* Chat Area */}
+            <div
+                className="flex-1 overflow-y-auto p-4"
+                style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23F97316' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                }}
+            >
+                {isLoading ? (
+                    <div className="flex items-center justify-center h-64">
+                        <div className="text-center">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F97316] mx-auto mb-4"></div>
+                            <p className="text-[#6B7280]">جاري التحميل...</p>
+                        </div>
+                    </div>
+                ) : messages.length === 0 ? (
+                    <div className="flex items-center justify-center h-64">
+                        <div className="text-center">
+                            <div className="bg-gradient-to-br from-[#F97316] to-[#ea580c] p-6 rounded-full w-24 h-24 mx-auto mb-4 flex items-center justify-center shadow-xl">
+                                <MessageCircle size={48} className="text-white" />
+                            </div>
+                            <h2 className="text-xl font-bold text-[#23110C] mb-2">مرحباً {user?.name}! 🍊</h2>
+                            <p className="text-[#6B7280]">ابدأ محادثة مع خدمة العملاء</p>
+                            <p className="text-sm text-[#9CA3AF] mt-2">نحن هنا لمساعدتك في أي استفسار</p>
+                        </div>
+                    </div>
+                ) : (
+                    <>
+                        {/* Date Separator */}
+                        <div className="flex justify-center mb-4">
+                            <div className="bg-white/80 backdrop-blur-sm px-4 py-1.5 rounded-full shadow-sm">
+                                <span className="text-[#6B7280] text-sm">اليوم</span>
                             </div>
                         </div>
-                    ) : messages.length === 0 ? (
-                        <div className="flex items-center justify-center h-64">
-                            <div className="text-center">
-                                <div className="bg-primary/10 p-6 rounded-full w-24 h-24 mx-auto mb-4 flex items-center justify-center">
-                                    <MessageCircle size={48} className="text-primary" />
-                                </div>
-                                <h2 className="text-xl font-bold text-gray-900 mb-2">مرحباً {user?.name}!</h2>
-                                <p className="text-gray-500">ابدأ محادثة مع خدمة العملاء</p>
-                                <p className="text-sm text-gray-400 mt-2">نحن هنا لمساعدتك في أي استفسار</p>
-                            </div>
-                        </div>
-                    ) : (
-                        <>
+
+                        {/* Messages */}
+                        <div className="space-y-4">
                             {messages.map((msg) => (
                                 <div
                                     key={msg.id}
-                                    className={`flex ${msg.senderType === 'customer' ? 'justify-end' : 'justify-start'}`}
+                                    className={`flex ${msg.senderType === 'customer' ? 'justify-start' : 'justify-end'}`}
                                 >
                                     <div
-                                        className={`max-w-[70%] rounded-2xl px-4 py-3 ${
+                                        className={`max-w-[75%] p-3 rounded-2xl shadow-sm ${
                                             msg.senderType === 'customer'
-                                                ? 'bg-primary text-white rounded-br-sm'
-                                                : 'bg-white text-gray-900 shadow-sm rounded-bl-sm'
+                                                ? 'bg-[#F97316] text-white rounded-br-sm'
+                                                : 'bg-white text-[#23110C] rounded-bl-sm'
                                         }`}
                                     >
-                                        <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.message}</p>
-                                        <p
-                                            className={`text-xs mt-1 ${
-                                                msg.senderType === 'customer' ? 'text-white/70' : 'text-gray-400'
+                                        <p className="mb-1 leading-relaxed whitespace-pre-wrap">{msg.message}</p>
+                                        <span
+                                            className={`text-xs ${
+                                                msg.senderType === 'customer' ? 'text-white/70' : 'text-[#9CA3AF]'
                                             }`}
                                         >
                                             {new Date(msg.timestamp).toLocaleTimeString('ar-EG', {
                                                 hour: '2-digit',
                                                 minute: '2-digit'
                                             })}
-                                        </p>
+                                        </span>
                                     </div>
                                 </div>
                             ))}
+                        </div>
 
-                            {/* Typing Indicator */}
-                            {isTyping && (
-                                <div className="flex justify-start">
-                                    <div className="bg-white rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
-                                        <div className="flex items-center space-x-1">
-                                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                                        </div>
+                        {/* Typing Indicator */}
+                        {isTyping && (
+                            <div className="flex justify-end mt-4">
+                                <div className="bg-white rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
+                                    <div className="flex items-center gap-1">
+                                        <div className="w-2 h-2 bg-[#F97316] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                                        <div className="w-2 h-2 bg-[#F97316] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                                        <div className="w-2 h-2 bg-[#F97316] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                                     </div>
                                 </div>
-                            )}
-                        </>
-                    )}
-                    <div ref={messagesEndRef} />
-                </div>
+                            </div>
+                        )}
+                    </>
+                )}
+                <div ref={messagesEndRef} />
             </div>
 
             {/* Input Area */}
-            <div className="bg-white border-t border-gray-200 sticky bottom-0">
-                <div className="max-w-4xl mx-auto p-4">
-                    <div className="flex items-end gap-2" dir="rtl">
-                        <div className="flex-1">
-                            <textarea
-                                value={message}
-                                onChange={(e) => {
-                                    setMessage(e.target.value);
-                                    handleTyping();
-                                }}
-                                onKeyDown={handleKeyDown}
-                                placeholder="اكتب رسالتك..."
-                                rows={1}
-                                dir="rtl"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none text-right"
-                                style={{
-                                    minHeight: '48px',
-                                    maxHeight: '120px',
-                                    overflowY: 'auto'
-                                }}
-                            />
-                        </div>
-                        <button
-                            onClick={handleSendMessage}
-                            disabled={!message.trim()}
-                            className="bg-primary text-white p-3 rounded-full hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
-                            title="إرسال"
-                        >
-                            <Send size={20} />
-                        </button>
+            <div className="bg-white border-t border-[#E5E7EB] p-4 shadow-[0_-2px_8px_rgba(0,0,0,0.05)]">
+                <div className="flex items-center gap-2">
+                    <button className="w-10 h-10 flex items-center justify-center text-[#9CA3AF] hover:text-[#F97316] transition-colors">
+                        <Plus className="w-6 h-6" />
+                    </button>
+
+                    <div className="flex-1 relative">
+                        <input
+                            type="text"
+                            value={message}
+                            onChange={(e) => {
+                                setMessage(e.target.value);
+                                handleTyping();
+                            }}
+                            onKeyDown={handleKeyDown}
+                            placeholder="اكتب رسالة..."
+                            dir="rtl"
+                            className="w-full bg-[#F3F4F6] rounded-full px-4 py-2.5 text-[#23110C] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#F97316]/20"
+                        />
                     </div>
+
+                    <button
+                        onClick={handleSendMessage}
+                        disabled={!message.trim()}
+                        className="w-10 h-10 bg-[#F97316] rounded-full flex items-center justify-center shadow-lg hover:bg-[#ea580c] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        <Send className="w-5 h-5 text-white" />
+                    </button>
                 </div>
             </div>
         </div>

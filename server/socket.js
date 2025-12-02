@@ -2,11 +2,121 @@ import { query } from './database.js';
 
 let io;
 
+// تخزين مواقع السائقين في الذاكرة (يمكن استخدام Redis للإنتاج)
+const driverLocations = new Map();
+
+// تخزين السائقين المتصلين
+const connectedDrivers = new Map();
+
+// تخزين العملاء المتصلين لمتابعة الطلبات
+const orderTrackers = new Map();
+
 export const initializeSocket = (socketServer) => {
     io = socketServer;
 
     io.on('connection', (socket) => {
         console.log('🔌 User connected:', socket.id);
+
+        // =============================================
+        // أحداث السائق (Delivery Driver)
+        // =============================================
+
+        // السائق يسجل دخوله
+        socket.on('driver:join', async ({ driverId, userId }) => {
+            socket.join(`driver_${driverId}`);
+            socket.driverId = driverId;
+            socket.userId = userId;
+            connectedDrivers.set(driverId, socket.id);
+            console.log(`🚗 Driver ${driverId} connected`);
+
+            // تحديث حالة السائق في قاعدة البيانات
+            try {
+                await query(
+                    'UPDATE delivery_staff SET is_available = TRUE WHERE id = $1',
+                    [driverId]
+                );
+            } catch (err) {
+                console.error('Error updating driver status:', err);
+            }
+        });
+
+        // تحديث موقع السائق GPS
+        socket.on('driver:location', async ({ driverId, lat, lng, orderId }) => {
+            const locationData = {
+                driverId,
+                lat,
+                lng,
+                timestamp: Date.now()
+            };
+            
+            driverLocations.set(driverId, locationData);
+
+            // إرسال الموقع للعميل إذا كان متتبعاً للطلب
+            if (orderId) {
+                io.to(`order_${orderId}`).emit('driver:location:update', locationData);
+            }
+
+            // حفظ آخر موقع في قاعدة البيانات (كل 30 ثانية)
+            if (!socket.lastLocationSave || Date.now() - socket.lastLocationSave > 30000) {
+                socket.lastLocationSave = Date.now();
+                try {
+                    await query(
+                        'UPDATE delivery_staff SET last_lat = $1, last_lng = $2, last_location_at = CURRENT_TIMESTAMP WHERE id = $3',
+                        [lat, lng, driverId]
+                    );
+                } catch (err) {
+                    console.error('Error saving driver location:', err);
+                }
+            }
+        });
+
+        // =============================================
+        // أحداث العميل - تتبع الطلب
+        // =============================================
+
+        // العميل يبدأ تتبع الطلب
+        socket.on('order:track', ({ orderId, userId }) => {
+            socket.join(`order_${orderId}`);
+            socket.trackingOrderId = orderId;
+            orderTrackers.set(`${userId}_${orderId}`, socket.id);
+            console.log(`👤 User ${userId} tracking order ${orderId}`);
+
+            // إرسال آخر موقع للسائق إذا كان متاحاً
+            // سيتم تحديثه عندما يتصل السائق
+        });
+
+        // العميل يوقف تتبع الطلب
+        socket.on('order:untrack', ({ orderId, userId }) => {
+            socket.leave(`order_${orderId}`);
+            orderTrackers.delete(`${userId}_${orderId}`);
+        });
+
+        // =============================================
+        // أحداث الموزع (Distributor)
+        // =============================================
+
+        // الموزع يسجل دخوله
+        socket.on('distributor:join', ({ distributorId, branchId }) => {
+            socket.join('distributors');
+            socket.join(`branch_${branchId}`);
+            socket.distributorId = distributorId;
+            socket.branchId = branchId;
+            console.log(`📦 Distributor ${distributorId} connected for branch ${branchId}`);
+        });
+
+        // =============================================
+        // أحداث الطلبات والإشعارات
+        // =============================================
+
+        // طلب جديد - إشعار الموزعين
+        socket.on('order:new', ({ orderId, branchId, orderData }) => {
+            io.to(`branch_${branchId}`).emit('order:notification', {
+                type: 'new_order',
+                orderId,
+                orderData,
+                message: `طلب جديد #${orderId}`
+            });
+        });
 
         // Customer joins chat
         socket.on('customer:join', ({ conversationId, customerName }) => {
@@ -118,8 +228,26 @@ export const initializeSocket = (socketServer) => {
         });
 
         // Disconnect
-        socket.on('disconnect', () => {
+        socket.on('disconnect', async () => {
             console.log('🔌 User disconnected:', socket.id);
+            
+            // إذا كان سائق
+            if (socket.driverId) {
+                connectedDrivers.delete(socket.driverId);
+                driverLocations.delete(socket.driverId);
+                
+                // تحديث حالة السائق - غير متاح
+                try {
+                    await query(
+                        'UPDATE delivery_staff SET is_available = FALSE WHERE id = $1',
+                        [socket.driverId]
+                    );
+                } catch (err) {
+                    console.error('Error updating driver status on disconnect:', err);
+                }
+                console.log(`🚗 Driver ${socket.driverId} disconnected`);
+            }
+            
             if (socket.agentId) {
                 io.to('agents').emit('agent:offline', {
                     agentId: socket.agentId,
@@ -128,6 +256,75 @@ export const initializeSocket = (socketServer) => {
             }
         });
     });
+};
+
+// =============================================
+// وظائف مساعدة للإشعارات من الـ Routes
+// =============================================
+
+// إشعار السائق بطلب جديد معين له
+export const notifyDriverNewOrder = (driverId, orderData) => {
+    if (io) {
+        io.to(`driver_${driverId}`).emit('order:assigned', {
+            type: 'new_assignment',
+            ...orderData,
+            message: `لديك طلب جديد #${orderData.orderId}`,
+            timestamp: Date.now()
+        });
+    }
+};
+
+// إشعار العميل بتحديث حالة الطلب
+export const notifyCustomerOrderUpdate = (orderId, status, additionalData = {}) => {
+    if (io) {
+        const statusMessages = {
+            'preparing': 'جاري تحضير طلبك',
+            'ready': 'طلبك جاهز للتوصيل',
+            'assigned_to_delivery': 'تم تعيين سائق لطلبك',
+            'accepted': 'السائق في الطريق للفرع',
+            'picked_up': 'السائق استلم طلبك وفي الطريق إليك',
+            'arriving': 'السائق وصل - في انتظارك',
+            'delivered': 'تم توصيل طلبك بنجاح! 🎉',
+            'rejected': 'حدثت مشكلة في التوصيل'
+        };
+        
+        io.to(`order_${orderId}`).emit('order:status:update', {
+            orderId,
+            status,
+            message: statusMessages[status] || `حالة الطلب: ${status}`,
+            timestamp: Date.now(),
+            ...additionalData
+        });
+    }
+};
+
+// إشعار الموزعين بطلب جديد
+export const notifyDistributorsNewOrder = (branchId, orderData) => {
+    if (io) {
+        io.to(`branch_${branchId}`).emit('order:new', {
+            type: 'new_order',
+            ...orderData,
+            message: `طلب جديد #${orderData.orderId}`,
+            timestamp: Date.now()
+        });
+    }
+};
+
+// إرسال موقع السائق للعميل
+export const sendDriverLocation = (orderId, locationData) => {
+    if (io) {
+        io.to(`order_${orderId}`).emit('driver:location:update', locationData);
+    }
+};
+
+// جلب موقع السائق الحالي
+export const getDriverLocation = (driverId) => {
+    return driverLocations.get(driverId);
+};
+
+// التحقق من اتصال السائق
+export const isDriverConnected = (driverId) => {
+    return connectedDrivers.has(driverId);
 };
 
 export const getIO = () => {

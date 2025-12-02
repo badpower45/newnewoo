@@ -33,6 +33,14 @@ import OrderConfirmationPage from './pages/OrderConfirmationPage';
 import OrderTrackingPage from './pages/OrderTrackingPage';
 import CustomerChatPage from './pages/CustomerChatPage';
 import CustomerServiceDashboard from './pages/CustomerServiceDashboard';
+import MagazinePage from './pages/MagazinePage';
+import HotDealsPage from './pages/HotDealsPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
+import TrackOrderPage from './pages/TrackOrderPage';
+import DeliveryPolicyPage from './pages/DeliveryPolicyPage';
+import ReturnPolicyPage from './pages/ReturnPolicyPage';
+import FAQPage from './pages/FAQPage';
 
 import AdminLayout from './pages/admin/AdminLayout';
 import DashboardOverview from './pages/admin/DashboardOverview';
@@ -47,8 +55,17 @@ import DeliverySlotsManager from './pages/admin/DeliverySlotsManager';
 import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 import OrderDistributorPage from './pages/admin/OrderDistributorPage';
 import DeliveryStaffManager from './pages/admin/DeliveryStaffManager';
+import CouponsManager from './pages/admin/CouponsManager';
+import MagazineManager from './pages/admin/MagazineManager';
+import HotDealsManager from './pages/admin/HotDealsManager';
 import DeliveryDriverPage from './pages/DeliveryDriverPage';
 import BrandPage from './pages/BrandPage';
+import MyOrdersPage from './pages/MyOrdersPage';
+
+// Premium Brand Pages
+import PepsiBrandPage from './pages/brands/PepsiBrandPage';
+import NescafeBrandPage from './pages/brands/NescafeBrandPage';
+import JuhaynaBrandPage from './pages/brands/JuhaynaBrandPage';
 
 import { FavoritesProvider } from './context/FavoritesContext';
 import ChatWidget from './components/ChatWidget';
@@ -73,16 +90,30 @@ function AppContent() {
             <Route path="/order-confirmation/:orderId" element={<ProtectedRoute><OrderConfirmationPage /></ProtectedRoute>} />
             <Route path="/orders/:orderId" element={<ProtectedRoute><OrderTrackingPage /></ProtectedRoute>} />
             <Route path="/deals" element={<DealsPage />} />
+            <Route path="/hot-deals" element={<HotDealsPage />} />
+            <Route path="/magazine" element={<MagazinePage />} />
             <Route path="/more" element={<MorePage />} />
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/track-order" element={<TrackOrderPage />} />
+            <Route path="/delivery-policy" element={<DeliveryPolicyPage />} />
+            <Route path="/return-policy" element={<ReturnPolicyPage />} />
+            <Route path="/faq" element={<FAQPage />} />
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+            <Route path="/my-orders" element={<ProtectedRoute><MyOrdersPage /></ProtectedRoute>} />
             <Route path="/favorites" element={<FavoritesPage />} />
             <Route path="/chat" element={<ProtectedRoute><CustomerChatPage /></ProtectedRoute>} />
             <Route path="/customer-service" element={<ProtectedRoute><CustomerServiceDashboard /></ProtectedRoute>} />
-            <Route path="/delivery" element={<ProtectedRoute><DeliveryDriverPage /></ProtectedRoute>} />
+            <Route path="/delivery" element={<ProtectedRoute allowedRoles={['delivery', 'admin']}><DeliveryDriverPage /></ProtectedRoute>} />
             <Route path="/brand/:brandName" element={<BrandPage />} />
+            
+            {/* Premium Brand Pages - Each with unique design */}
+            <Route path="/brand/pepsi" element={<PepsiBrandPage />} />
+            <Route path="/brand/nescafe" element={<NescafeBrandPage />} />
+            <Route path="/brand/juhayna" element={<JuhaynaBrandPage />} />
 
             {/* Admin Routes - Protected with role-based access */}
             <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'distributor']}><AdminLayout /></ProtectedRoute>}>
@@ -93,6 +124,9 @@ function AppContent() {
               <Route path="branches" element={<BranchesManager />} />
               <Route path="inventory" element={<BranchInventory />} />
               <Route path="slots" element={<DeliverySlotsManager />} />
+              <Route path="coupons" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><CouponsManager /></ProtectedRoute>} />
+              <Route path="magazine" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><MagazineManager /></ProtectedRoute>} />
+              <Route path="hot-deals" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><HotDealsManager /></ProtectedRoute>} />
               <Route path="employees" element={<ProtectedRoute requireAdmin><EmployeesManager /></ProtectedRoute>} />
               <Route path="chat" element={<ProtectedRoute requireAdmin><LiveChatDashboard /></ProtectedRoute>} />
               <Route path="settings" element={<ProtectedRoute requireAdmin><AdminSettingsPage /></ProtectedRoute>} />

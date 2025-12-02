@@ -1,32 +1,45 @@
 import express from 'express';
 import { query } from '../database.js';
+import { verifyToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
 // Get cart items for a user
-router.get('/', async (req, res) => {
-    const userId = req.query.userId;
+router.get('/', [verifyToken], async (req, res) => {
+    const userId = req.userId; // من التوكن فقط للأمان
+    const branchId = req.query.branchId || 1; // Default branch
+
     if (!userId) return res.status(400).json({ error: "User ID required" });
 
     try {
         const sql = `
-            SELECT c.id as cart_id, c.quantity, c.substitution_preference, p.* 
+            SELECT c.id as cart_id, c.quantity, c.substitution_preference, 
+                   p.id, p.name, p.image, p.category, p.description, p.weight, p.is_weighted, p.barcode,
+                   COALESCE(bp.price, p.price, 0) as price,
+                   COALESCE(bp.discount_price, p.discount_price) as discount_price,
+                   bp.stock_quantity
             FROM cart c
             JOIN products p ON c.product_id = p.id 
+            LEFT JOIN branch_products bp ON p.id = bp.product_id AND bp.branch_id = $2
             WHERE c.user_id = $1
         `;
-        const { rows } = await query(sql, [userId]);
+        const { rows } = await query(sql, [userId, branchId]);
 
         const items = rows.map(row => ({
-            id: row.id, // Product ID
+            id: row.id,
             cartId: row.cart_id,
             name: row.name,
             image: row.image,
+            price: Number(row.price) || 0,
+            discountPrice: row.discount_price ? Number(row.discount_price) : null,
             quantity: row.quantity,
             substitutionPreference: row.substitution_preference || 'none',
             category: row.category,
             description: row.description,
-            isWeighted: row.is_weighted
+            weight: row.weight,
+            isWeighted: row.is_weighted,
+            barcode: row.barcode,
+            stockQuantity: row.stock_quantity
         }));
 
         res.json({
@@ -34,13 +47,15 @@ router.get('/', async (req, res) => {
             "data": items
         });
     } catch (err) {
+        console.error('Error getting cart:', err);
         res.status(400).json({ "error": err.message });
     }
 });
 
 // Add to cart
-router.post('/add', async (req, res) => {
-    const { userId, productId, quantity, substitutionPreference } = req.body;
+router.post('/add', [verifyToken], async (req, res) => {
+    const userId = req.userId; // من التوكن فقط
+    const { productId, quantity, substitutionPreference } = req.body;
 
     try {
         // Check if item exists
@@ -66,8 +81,8 @@ router.post('/add', async (req, res) => {
 });
 
 // Remove from cart
-router.delete('/remove/:productId', async (req, res) => {
-    const { userId } = req.body; // Or query
+router.delete('/remove/:productId', [verifyToken], async (req, res) => {
+    const userId = req.userId; // من التوكن فقط
     const productId = req.params.productId;
 
     try {
@@ -79,8 +94,9 @@ router.delete('/remove/:productId', async (req, res) => {
 });
 
 // Update quantity
-router.post('/update', async (req, res) => {
-    const { userId, productId, quantity, substitutionPreference } = req.body;
+router.post('/update', [verifyToken], async (req, res) => {
+    const userId = req.userId; // من التوكن فقط
+    const { productId, quantity, substitutionPreference } = req.body;
     try {
         if (substitutionPreference !== undefined) {
             await query("UPDATE cart SET quantity = $1, substitution_preference = $2 WHERE user_id = $3 AND product_id = $4", [quantity, substitutionPreference, userId, productId]);
@@ -88,6 +104,22 @@ router.post('/update', async (req, res) => {
             await query("UPDATE cart SET quantity = $1 WHERE user_id = $2 AND product_id = $3", [quantity, userId, productId]);
         }
         res.json({ message: "updated" });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+// Clear cart - مسح السلة بالكامل
+router.delete('/clear', [verifyToken], async (req, res) => {
+    const userId = req.userId; // من التوكن فقط
+
+    if (!userId) {
+        return res.status(400).json({ error: "User ID required" });
+    }
+    
+    try {
+        const result = await query("DELETE FROM cart WHERE user_id = $1", [userId]);
+        res.json({ message: "cleared", rowCount: result.rowCount });
     } catch (err) {
         res.status(400).json({ error: err.message });
     }

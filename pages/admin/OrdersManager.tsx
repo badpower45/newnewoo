@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Search, Filter, Eye, X } from 'lucide-react';
 import { api } from '../../services/api';
 import { ORDER_STATUS_LABELS } from '../../src/config';
+import { TableSkeleton } from '../../components/Skeleton';
 
 const OrdersManager = () => {
     const [orders, setOrders] = useState<any[]>([]);
@@ -9,15 +10,20 @@ const OrdersManager = () => {
     const [statusFilter, setStatusFilter] = useState('all');
     const [selectedOrder, setSelectedOrder] = useState<any>(null);
     const [showModal, setShowModal] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         loadOrders();
     }, []);
 
-    const loadOrders = () => {
-        api.orders.getAll().then(data => {
+    const loadOrders = async () => {
+        setLoading(true);
+        try {
+            const data = await api.orders.getAll();
             if (data.data) setOrders(data.data);
-        });
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleStatusUpdate = async (id: string, newStatus: string) => {
@@ -42,7 +48,7 @@ const OrdersManager = () => {
     };
 
     const filteredOrders = orders.filter(order => {
-        const matchesSearch = order.id.toString().includes(searchTerm) || order.userId.toString().includes(searchTerm);
+        const matchesSearch = order.id?.toString().includes(searchTerm) || (order.userId || order.user_id || '').toString().includes(searchTerm);
         const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
         return matchesSearch && matchesStatus;
     });
@@ -82,6 +88,9 @@ const OrdersManager = () => {
             </div>
 
             {/* Orders Table */}
+            {loading ? (
+                <TableSkeleton rows={6} cols={6} />
+            ) : (
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <table className="w-full text-left">
                     <thead className="bg-gray-50 border-b border-gray-100">
@@ -99,8 +108,8 @@ const OrdersManager = () => {
                             <tr key={order.id} className="hover:bg-gray-50 transition-colors">
                                 <td className="px-6 py-4 font-medium text-gray-900">#{order.id}</td>
                                 <td className="px-6 py-4 text-gray-600">{new Date(order.date || order.created_at || Date.now()).toLocaleDateString()}</td>
-                                <td className="px-6 py-4 text-gray-600">User #{order.userId}</td>
-                                <td className="px-6 py-4 font-medium text-gray-900">{order.total.toFixed(2)} EGP</td>
+                                <td className="px-6 py-4 text-gray-600">User #{order.userId || order.user_id}</td>
+                                <td className="px-6 py-4 font-medium text-gray-900">{(Number(order.total) || 0).toFixed(2)} EGP</td>
                                 <td className="px-6 py-4">
                                     <span className={`px-2 py-1 text-xs font-bold rounded-full ${getStatusColor(order.status)}`}>
                                         {ORDER_STATUS_LABELS[order.status] || order.status}
@@ -133,6 +142,7 @@ const OrdersManager = () => {
                     </tbody>
                 </table>
             </div>
+            )}
 
             {/* Order Details Modal */}
             {showModal && selectedOrder && (

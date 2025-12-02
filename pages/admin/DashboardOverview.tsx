@@ -31,11 +31,11 @@ const DashboardOverview = () => {
         load();
     }, []);
 
-    const totalRevenue = Array.isArray(orders) ? orders.reduce((sum, o) => sum + (o.total || 0), 0) : 0;
+    const totalRevenue = Array.isArray(orders) ? orders.reduce((sum, o) => sum + (Number(o.total) || 0), 0) : 0;
     const recentOrders = Array.isArray(orders) ? orders.slice(0, 5) : [];
 
     const stats = [
-        { label: 'Total Sales', value: `EGP ${totalRevenue.toFixed(2)}`, icon: <DollarSign size={24} />, color: 'bg-green-100 text-green-600' },
+        { label: 'Total Sales', value: `EGP ${(totalRevenue || 0).toFixed(2)}`, icon: <DollarSign size={24} />, color: 'bg-green-100 text-green-600' },
         { label: 'Total Orders', value: orders.length.toString(), icon: <ShoppingBag size={24} />, color: 'bg-blue-100 text-blue-600' },
         { label: 'Total Products', value: products.length.toString(), icon: <Package size={24} />, color: 'bg-purple-100 text-purple-600' },
         { label: 'Pending Orders', value: orders.filter(o => o.status === 'pending').length.toString(), icon: <AlertTriangle size={24} />, color: 'bg-red-100 text-red-600' },

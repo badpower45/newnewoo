@@ -1,6 +1,7 @@
 import React from 'react';
 import { useFavorites } from '../context/FavoritesContext';
 import ProductCard from '../components/ProductCard';
+import Footer from '../components/Footer';
 import { ChevronLeft, Heart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -43,6 +44,7 @@ const FavoritesPage = () => {
                     </div>
                 )}
             </div>
+            <Footer />
         </div>
     );
 };

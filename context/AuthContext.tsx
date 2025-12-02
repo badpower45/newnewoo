@@ -45,6 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const userWithGuestStatus = { ...data.user, isGuest: false };
             localStorage.setItem('user', JSON.stringify(userWithGuestStatus));
             setUser(userWithGuestStatus);
+            return userWithGuestStatus; // Return user data for role-based navigation
         } else {
             throw new Error('Login failed');
         }

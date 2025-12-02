@@ -3,6 +3,7 @@ import { Plus, Edit, Trash2, Search, Upload, X } from 'lucide-react';
 import { api } from '../../services/api';
 import { Product } from '../../types';
 import { useNavigate } from 'react-router-dom';
+import { TableSkeleton } from '../../components/Skeleton';
 
 const emptyProduct = {
     barcode: '',
@@ -46,6 +47,7 @@ const sampleProducts: Product[] = [
 const ProductsManager = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
+    const [loading, setLoading] = useState(true);
     const navigate = useNavigate();
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState<Product | null>(null);
@@ -55,15 +57,19 @@ const ProductsManager = () => {
         loadProducts();
     }, []);
 
-    const loadProducts = () => {
-        // Use branch 1 for admin preview since API requires branchId
-        api.products.getAllByBranch(1)
-            .then(data => {
-                if (Array.isArray(data?.data)) setProducts(data.data);
-                else if (Array.isArray(data)) setProducts(data);
-                else setProducts(sampleProducts);
-            })
-            .catch(() => setProducts(sampleProducts));
+    const loadProducts = async () => {
+        setLoading(true);
+        try {
+            // Use branch 1 for admin preview since API requires branchId
+            const data = await api.products.getAllByBranch(1);
+            if (Array.isArray(data?.data)) setProducts(data.data);
+            else if (Array.isArray(data)) setProducts(data);
+            else setProducts(sampleProducts);
+        } catch {
+            setProducts(sampleProducts);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleDelete = async (id: string) => {
@@ -192,6 +198,9 @@ const ProductsManager = () => {
             </div>
 
             {/* Products Table */}
+            {loading ? (
+                <TableSkeleton rows={8} cols={7} />
+            ) : (
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <table className="w-full text-left">
                     <thead className="bg-gray-50 border-b border-gray-100">
@@ -251,6 +260,7 @@ const ProductsManager = () => {
                     </tbody>
                 </table>
             </div>
+            )}
 
             {/* Product Modal */}
             {showModal && (

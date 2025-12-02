@@ -8,6 +8,7 @@ import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import './database.js'; // Database connection initializes on import
 import { initializeSocket } from './socket.js';
+import { startScheduler } from './scheduler.js';
 import authRoutes from './routes/auth.js';
 import productRoutes from './routes/products.js';
 import cartRoutes from './routes/cart.js';
@@ -18,6 +19,10 @@ import branchProductsRoutes from './routes/branchProducts.js';
 import deliverySlotsRoutes from './routes/deliverySlots.js';
 import branchesRoutes from './routes/branches.js';
 import distributionRoutes from './routes/distribution.js';
+import deliveryFeesRoutes from './routes/delivery-fees.js';
+import couponsRoutes from './routes/coupons.js';
+import magazineRoutes from './routes/magazine.js';
+import hotDealsRoutes from './routes/hotDeals.js';
 
 // dotenv is loaded in database.js with the correct path
 // No need to load it again here
@@ -28,6 +33,8 @@ const httpServer = createServer(app);
 // Determine allowed origins
 const allowedOrigins = [
     'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:5175',
     'https://newnewoo.vercel.app',
     'https://newnewoo-git-main-bode-ahmeds-projects.vercel.app',
     'https://newnewoo-ag9qdglgo-bode-ahmeds-projects.vercel.app',
@@ -109,6 +116,10 @@ app.use('/api/branch-products', branchProductsRoutes);
 app.use('/api/delivery-slots', deliverySlotsRoutes);
 app.use('/api/branches', branchesRoutes);
 app.use('/api/distribution', distributionRoutes);
+app.use('/api/delivery-fees', deliveryFeesRoutes);
+app.use('/api/coupons', couponsRoutes);
+app.use('/api/magazine', magazineRoutes);
+app.use('/api/hot-deals', hotDealsRoutes);
 
 // Health check endpoint (moved under /api for serverless route consistency)
 app.get('/api/health', (req, res) => {
@@ -155,6 +166,10 @@ if (!process.env.VERCEL) {
         console.log(`🚀 Server running on port ${PORT}`);
         console.log(`📡 Environment: ${NODE_ENV}`);
         console.log(`🔌 Socket.io ready`);
+        
+        // Start the order scheduler
+        startScheduler();
+        
         if (NODE_ENV === 'production') {
             console.log(`✅ Production mode active`);
         }

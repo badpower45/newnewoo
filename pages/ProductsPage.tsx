@@ -1,32 +1,63 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import SidebarFilter from '../components/SidebarFilter';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import ProductCard from '../components/ProductCard';
 import BarcodeScanner from '../components/BarcodeScanner';
-import LoadingSpinner from '../components/LoadingSpinner';
-import ErrorMessage from '../components/ErrorMessage';
-import Pagination from '../components/Pagination';
-import { Filter, Scan, Search, X } from 'lucide-react';
+import { ProductGridSkeleton } from '../components/Skeleton';
+import TopBar from '../components/TopBar';
+import Footer from '../components/Footer';
+import { 
+    Filter, Scan, Search, X, Grid3X3, LayoutList, 
+    SlidersHorizontal, ChevronDown, ChevronUp, Sparkles,
+    TrendingUp, Clock, Tag, Check, ArrowUpDown
+} from 'lucide-react';
 import { api } from '../services/api';
 import { Product } from '../types';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ITEMS_PER_PAGE } from '../src/config';
 import { useBranch } from '../context/BranchContext';
+
+// Categories with icons and colors - using brand colors
+const CATEGORIES = [
+    { id: '', name: 'الكل', icon: '🛒', color: 'from-brand-brown to-brand-brown/80' },
+    { id: 'Dairy', name: 'الألبان', icon: '🥛', color: 'from-brand-orange to-amber-500' },
+    { id: 'Cheese', name: 'الجبن', icon: '🧀', color: 'from-yellow-500 to-amber-500' },
+    { id: 'Meat', name: 'اللحوم', icon: '🥩', color: 'from-red-500 to-rose-600' },
+    { id: 'Vegetables', name: 'الخضروات', icon: '🥬', color: 'from-green-500 to-emerald-600' },
+    { id: 'Fruits', name: 'الفواكه', icon: '🍎', color: 'from-pink-500 to-rose-500' },
+    { id: 'Bakery', name: 'المخبوزات', icon: '🍞', color: 'from-amber-500 to-orange-500' },
+    { id: 'Beverages', name: 'المشروبات', icon: '🥤', color: 'from-cyan-500 to-blue-500' },
+    { id: 'Snacks', name: 'سناكس', icon: '🍿', color: 'from-brand-orange to-red-500' },
+    { id: 'Frozen', name: 'مجمدات', icon: '🧊', color: 'from-sky-400 to-blue-500' },
+    { id: 'Cleaning', name: 'تنظيف', icon: '🧹', color: 'from-purple-500 to-violet-600' },
+    { id: 'Personal Care', name: 'عناية شخصية', icon: '🧴', color: 'from-rose-400 to-pink-500' },
+];
+
+const SORT_OPTIONS = [
+    { id: 'newest', name: 'الأحدث', icon: Clock },
+    { id: 'popular', name: 'الأكثر مبيعاً', icon: TrendingUp },
+    { id: 'price-asc', name: 'السعر: الأقل', icon: ArrowUpDown },
+    { id: 'price-desc', name: 'السعر: الأعلى', icon: ArrowUpDown },
+    { id: 'discount', name: 'أعلى خصم', icon: Tag },
+];
+
+const ITEMS_PER_PAGE = 20;
 
 export default function ProductsPage() {
     const [allProducts, setAllProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
     const [showScanner, setShowScanner] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('');
     const [sortBy, setSortBy] = useState<string>('newest');
     const [currentPage, setCurrentPage] = useState(1);
     const [showFilters, setShowFilters] = useState(false);
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+    const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
+    const [showOnlyOffers, setShowOnlyOffers] = useState(false);
+    const [showSortDropdown, setShowSortDropdown] = useState(false);
+    const [isSearchFocused, setIsSearchFocused] = useState(false);
+    
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const { selectedBranch } = useBranch();
-
-    const [branchMap, setBranchMap] = useState<Record<string | number, { price?: number; stockQuantity?: number; reservedQuantity?: number }>>({});
 
     useEffect(() => {
         const category = searchParams.get('category');
@@ -34,43 +65,16 @@ export default function ProductsPage() {
             setSelectedCategory(category);
         }
         fetchProducts();
-    }, [searchParams]);
-
-    useEffect(() => {
-        const loadBranchProducts = async () => {
-            if (!selectedBranch) { setBranchMap({}); return; }
-            try {
-                const res = await api.branchProducts.getByBranch(selectedBranch.id);
-                const list = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
-                const map: Record<string | number, { price?: number; stockQuantity?: number; reservedQuantity?: number }> = {};
-                for (const bp of list) {
-                    const pid = bp.product_id || bp.productId || bp.id;
-                    if (pid == null) continue;
-                    map[pid] = {
-                        price: bp.branch_price ?? bp.branchPrice ?? bp.price,
-                        stockQuantity: bp.available_quantity ?? bp.stock_quantity ?? bp.stockQuantity,
-                        reservedQuantity: bp.reserved_quantity ?? bp.reservedQuantity
-                    };
-                }
-                setBranchMap(map);
-            } catch (e) {
-                console.error('Failed to load branch products', e);
-                setBranchMap({});
-            }
-        };
-        loadBranchProducts();
-    }, [selectedBranch]);
+    }, [searchParams, selectedBranch]);
 
     const fetchProducts = async () => {
         setLoading(true);
-        setError(null);
         try {
             const branchId = selectedBranch?.id || 1;
             const data = await api.products.getAllByBranch(branchId);
             const list = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
             setAllProducts(list);
         } catch (err) {
-            setError('فشل تحميل المنتجات');
             console.error(err);
         } finally {
             setLoading(false);
@@ -78,9 +82,7 @@ export default function ProductsPage() {
     };
 
     const handleBarcodeScanned = async (barcode: string) => {
-        console.log('Scanned barcode:', barcode);
         setShowScanner(false);
-
         try {
             const response = await api.products.getByBarcode(barcode);
             if (response.data) {
@@ -89,12 +91,11 @@ export default function ProductsPage() {
                 alert('المنتج غير موجود');
             }
         } catch (error) {
-            console.error('Error fetching product:', error);
             alert('حدث خطأ في البحث عن المنتج');
         }
     };
 
-    const handleSearch = async (query: string) => {
+    const handleSearch = useCallback(async (query: string) => {
         setSearchQuery(query);
         setCurrentPage(1);
         
@@ -113,7 +114,7 @@ export default function ProductsPage() {
         } else {
             fetchProducts();
         }
-    };
+    }, []);
 
     // Filter and sort products
     const filteredAndSortedProducts = useMemo(() => {
@@ -124,33 +125,42 @@ export default function ProductsPage() {
             filtered = filtered.filter(p => p.category === selectedCategory);
         }
 
-        // Sort (price-aware of branch override)
+        // Filter by price range
+        filtered = filtered.filter(p => {
+            const price = Number(p.price) || 0;
+            return price >= priceRange[0] && price <= priceRange[1];
+        });
+
+        // Filter offers only
+        if (showOnlyOffers) {
+            filtered = filtered.filter(p => p.discount_price && Number(p.discount_price) > Number(p.price));
+        }
+
+        // Sort
         switch (sortBy) {
             case 'price-asc':
-                filtered.sort((a, b) => {
-                    const pa = branchMap[a.id]?.price ?? a.price ?? 0;
-                    const pb = branchMap[b.id]?.price ?? b.price ?? 0;
-                    return pa - pb;
-                });
+                filtered.sort((a, b) => (Number(a.price) || 0) - (Number(b.price) || 0));
                 break;
             case 'price-desc':
-                filtered.sort((a, b) => {
-                    const pa = branchMap[a.id]?.price ?? a.price ?? 0;
-                    const pb = branchMap[b.id]?.price ?? b.price ?? 0;
-                    return pb - pa;
-                });
+                filtered.sort((a, b) => (Number(b.price) || 0) - (Number(a.price) || 0));
                 break;
-            case 'name':
-                filtered.sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+            case 'popular':
+                filtered.sort((a, b) => (Number(b.reviews) || 0) - (Number(a.reviews) || 0));
+                break;
+            case 'discount':
+                filtered.sort((a, b) => {
+                    const discA = a.discount_price ? ((Number(a.discount_price) - Number(a.price)) / Number(a.discount_price)) * 100 : 0;
+                    const discB = b.discount_price ? ((Number(b.discount_price) - Number(b.price)) / Number(b.discount_price)) * 100 : 0;
+                    return discB - discA;
+                });
                 break;
             case 'newest':
             default:
-                // Keep original order (newest first from API)
                 break;
         }
 
         return filtered;
-    }, [allProducts, selectedCategory, sortBy, branchMap]);
+    }, [allProducts, selectedCategory, sortBy, priceRange, showOnlyOffers]);
 
     // Pagination
     const totalPages = Math.ceil(filteredAndSortedProducts.length / ITEMS_PER_PAGE);
@@ -159,144 +169,393 @@ export default function ProductsPage() {
         currentPage * ITEMS_PER_PAGE
     );
 
-    if (loading && allProducts.length === 0) {
-        return <LoadingSpinner fullScreen message="جاري تحميل المنتجات..." />;
-    }
+    const clearFilters = () => {
+        setSelectedCategory('');
+        setPriceRange([0, 1000]);
+        setShowOnlyOffers(false);
+        setSortBy('newest');
+        setSearchQuery('');
+    };
 
-    if (error && allProducts.length === 0) {
-        return <ErrorMessage message={error} onRetry={fetchProducts} fullScreen />;
-    }
+    const hasActiveFilters = selectedCategory || showOnlyOffers || priceRange[0] > 0 || priceRange[1] < 1000;
 
     return (
-        <div className="container mx-auto px-4 md:px-6 py-8">
-            <div className="flex flex-col lg:flex-row gap-8">
-                {/* Sidebar - Desktop */}
-                <div className="hidden lg:block">
-                    <SidebarFilter />
+        <div className="min-h-screen bg-gradient-to-b from-orange-50/30 to-white">
+            <TopBar />
+            
+            {/* Hero Search Section */}
+            <div className="bg-gradient-to-r from-brand-brown via-brand-brown/90 to-brand-orange pt-8 pb-16 px-4 relative overflow-hidden">
+                {/* Background Pattern */}
+                <div className="absolute inset-0 opacity-10">
+                    <div className="absolute top-10 left-10 text-6xl">🥬</div>
+                    <div className="absolute top-20 right-20 text-5xl">🍎</div>
+                    <div className="absolute bottom-10 left-1/4 text-4xl">🥛</div>
+                    <div className="absolute bottom-5 right-1/3 text-5xl">🧀</div>
                 </div>
-
-                {/* Main Content */}
-                <div className="flex-1">
-                    {/* Header */}
-                    <div className="flex flex-col gap-4 mb-6">
-                        <div className="flex items-center justify-between">
-                            <h1 className="text-2xl font-bold text-gray-900">كل المنتجات</h1>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => setShowScanner(true)}
-                                    className="flex items-center gap-2 bg-green-600 text-white font-bold px-4 py-2 rounded-lg hover:bg-green-700 transition-colors shadow-md"
-                                >
-                                    <Scan size={18} /> مسح باركود
-                                </button>
-                                <button 
-                                    onClick={() => setShowFilters(!showFilters)}
-                                    className="lg:hidden flex items-center gap-2 text-green-600 font-bold border-2 border-green-600 px-4 py-2 rounded-lg hover:bg-green-50 transition"
-                                >
-                                    <Filter size={18} /> تصفية
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Search Bar */}
-                        <div className="relative">
-                            <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                
+                <div className="max-w-4xl mx-auto relative z-10">
+                    <h1 className="text-3xl md:text-4xl font-bold text-white text-center mb-2">
+                        اكتشف منتجاتنا الطازجة 🛒
+                    </h1>
+                    <p className="text-orange-100 text-center mb-8">
+                        أكثر من {allProducts.length} منتج متاح للتوصيل
+                    </p>
+                    
+                    {/* Search Bar */}
+                    <div className={`relative transition-all duration-300 ${isSearchFocused ? 'scale-105' : ''}`}>
+                        <div className={`absolute inset-0 bg-white rounded-2xl transition-all duration-300 ${isSearchFocused ? 'shadow-2xl shadow-white/30' : 'shadow-lg'}`} />
+                        <div className="relative flex items-center">
+                            <Search className="absolute right-4 text-gray-400" size={24} />
                             <input
                                 type="text"
-                                placeholder="ابحث عن منتج..."
+                                placeholder="ابحث عن منتج، فئة، أو باركود..."
                                 value={searchQuery}
                                 onChange={(e) => handleSearch(e.target.value)}
-                                className="w-full pr-10 pl-10 py-3 border-2 border-gray-200 rounded-lg focus:border-green-600 focus:outline-none"
+                                onFocus={() => setIsSearchFocused(true)}
+                                onBlur={() => setIsSearchFocused(false)}
+                                className="w-full pr-14 pl-32 py-5 rounded-2xl text-lg focus:outline-none bg-transparent relative z-10"
                             />
-                            {searchQuery && (
+                            <div className="absolute left-2 flex items-center gap-2">
+                                {searchQuery && (
+                                    <button
+                                        onClick={() => handleSearch('')}
+                                        className="p-2 hover:bg-gray-100 rounded-full transition"
+                                    >
+                                        <X size={20} className="text-gray-400" />
+                                    </button>
+                                )}
                                 <button
-                                    onClick={() => handleSearch('')}
-                                    className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    onClick={() => setShowScanner(true)}
+                                    className="flex items-center gap-2 bg-gradient-to-r from-brand-orange to-amber-500 text-white px-4 py-2.5 rounded-xl hover:shadow-lg transition-all"
                                 >
-                                    <X size={20} />
+                                    <Scan size={18} />
+                                    <span className="hidden sm:inline">مسح</span>
                                 </button>
-                            )}
-                        </div>
-
-                        {/* Filters Bar */}
-                        <div className="flex items-center gap-4 flex-wrap">
-                            <select
-                                value={sortBy}
-                                onChange={(e) => setSortBy(e.target.value)}
-                                className="px-4 py-2 border-2 border-gray-200 rounded-lg focus:border-green-600 focus:outline-none"
-                            >
-                                <option value="newest">الأحدث</option>
-                                <option value="price-asc">السعر: من الأقل للأعلى</option>
-                                <option value="price-desc">السعر: من الأعلى للأقل</option>
-                                <option value="name">الاسم</option>
-                            </select>
-
-                            {selectedCategory && (
-                                <button
-                                    onClick={() => setSelectedCategory('')}
-                                    className="flex items-center gap-2 px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition"
-                                >
-                                    {selectedCategory}
-                                    <X size={16} />
-                                </button>
-                            )}
-
-                            <span className="text-gray-600 text-sm">
-                                {filteredAndSortedProducts.length} منتج
-                            </span>
+                            </div>
                         </div>
                     </div>
-
-                    {/* Mobile Filters */}
-                    {showFilters && (
-                        <div className="lg:hidden mb-6 p-4 bg-gray-50 rounded-lg">
-                            <SidebarFilter />
-                        </div>
-                    )}
-
-                    {/* Products Grid */}
-                    {loading ? (
-                        <LoadingSpinner message="جاري التحميل..." />
-                    ) : paginatedProducts.length === 0 ? (
-                        <div className="text-center py-12">
-                            <p className="text-gray-500 text-lg">لا توجد منتجات</p>
-                        </div>
-                    ) : (
-                        <>
-                            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-                                {paginatedProducts.map((product) => {
-                                    const bp = branchMap[product.id] || {};
-                                    const reserved = bp.reservedQuantity || 0;
-                                    const stock = bp.stockQuantity;
-                                    const available = typeof stock === 'number' ? (stock - reserved) > 0 : true;
-                                    const displayPrice = (bp.price ?? product.price) || 0;
-                                    return (
-                                        <ProductCard 
-                                            key={product.id} 
-                                            product={{ ...product, price: displayPrice }} 
-                                            variant="vertical"
-                                            available={available}
-                                        />
-                                    );
-                                })}
-                            </div>
-
-                            {/* Pagination */}
-                            <Pagination
-                                currentPage={currentPage}
-                                totalPages={totalPages}
-                                onPageChange={setCurrentPage}
-                            />
-                        </>
-                    )}
                 </div>
             </div>
 
+            {/* Categories Slider */}
+            <div className="bg-white shadow-sm sticky top-0 z-40">
+                <div className="max-w-7xl mx-auto">
+                    <div className="flex gap-2 py-4 px-4 overflow-x-auto scrollbar-hide">
+                        {CATEGORIES.map((cat) => (
+                            <button
+                                key={cat.id}
+                                onClick={() => {
+                                    setSelectedCategory(cat.id);
+                                    setCurrentPage(1);
+                                }}
+                                className={`flex items-center gap-2 px-4 py-2.5 rounded-full whitespace-nowrap transition-all duration-300 ${
+                                    selectedCategory === cat.id
+                                        ? `bg-gradient-to-r ${cat.color} text-white shadow-lg scale-105`
+                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                            >
+                                <span className="text-lg">{cat.icon}</span>
+                                <span className="font-medium">{cat.name}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            <div className="max-w-7xl mx-auto px-4 py-6">
+                {/* Toolbar */}
+                <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                    {/* Left Side */}
+                    <div className="flex items-center gap-3">
+                        {/* Filter Button */}
+                        <button
+                            onClick={() => setShowFilters(!showFilters)}
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all ${
+                                showFilters || hasActiveFilters
+                                    ? 'bg-brand-brown text-white shadow-lg'
+                                    : 'bg-white text-gray-700 border border-gray-200 hover:border-brand-orange'
+                            }`}
+                        >
+                            <SlidersHorizontal size={18} />
+                            <span>الفلاتر</span>
+                            {hasActiveFilters && (
+                                <span className="w-5 h-5 bg-white text-brand-brown rounded-full text-xs flex items-center justify-center font-bold">
+                                    !
+                                </span>
+                            )}
+                        </button>
+
+                        {/* Sort Dropdown */}
+                        <div className="relative">
+                            <button
+                                onClick={() => setShowSortDropdown(!showSortDropdown)}
+                                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 hover:border-brand-orange transition-all"
+                            >
+                                <ArrowUpDown size={18} className="text-gray-500" />
+                                <span className="text-gray-700">
+                                    {SORT_OPTIONS.find(s => s.id === sortBy)?.name}
+                                </span>
+                                <ChevronDown size={16} className={`text-gray-400 transition-transform ${showSortDropdown ? 'rotate-180' : ''}`} />
+                            </button>
+                            
+                            {showSortDropdown && (
+                                <>
+                                    <div className="fixed inset-0 z-40" onClick={() => setShowSortDropdown(false)} />
+                                    <div className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 py-2 min-w-[200px] z-50">
+                                        {SORT_OPTIONS.map((option) => (
+                                            <button
+                                                key={option.id}
+                                                onClick={() => {
+                                                    setSortBy(option.id);
+                                                    setShowSortDropdown(false);
+                                                }}
+                                                className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition ${
+                                                    sortBy === option.id ? 'text-brand-orange bg-orange-50' : 'text-gray-700'
+                                                }`}
+                                            >
+                                                <option.icon size={18} />
+                                                <span>{option.name}</span>
+                                                {sortBy === option.id && <Check size={16} className="mr-auto" />}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
+                        {/* Products Count */}
+                        <div className="hidden sm:flex items-center gap-2 text-gray-500">
+                            <Sparkles size={16} className="text-amber-500" />
+                            <span>{filteredAndSortedProducts.length} منتج</span>
+                        </div>
+                    </div>
+
+                    {/* Right Side - View Toggle */}
+                    <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-xl">
+                        <button
+                            onClick={() => setViewMode('grid')}
+                            className={`p-2 rounded-lg transition ${viewMode === 'grid' ? 'bg-white shadow-sm text-brand-orange' : 'text-gray-500'}`}
+                        >
+                            <Grid3X3 size={20} />
+                        </button>
+                        <button
+                            onClick={() => setViewMode('list')}
+                            className={`p-2 rounded-lg transition ${viewMode === 'list' ? 'bg-white shadow-sm text-brand-orange' : 'text-gray-500'}`}
+                        >
+                            <LayoutList size={20} />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Active Filters */}
+                {hasActiveFilters && (
+                    <div className="flex flex-wrap items-center gap-2 mb-6">
+                        {selectedCategory && (
+                            <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-100 text-brand-orange rounded-full text-sm">
+                                {CATEGORIES.find(c => c.id === selectedCategory)?.icon}
+                                {CATEGORIES.find(c => c.id === selectedCategory)?.name}
+                                <button onClick={() => setSelectedCategory('')} className="hover:bg-orange-200 rounded-full p-0.5">
+                                    <X size={14} />
+                                </button>
+                            </span>
+                        )}
+                        {showOnlyOffers && (
+                            <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-100 text-orange-700 rounded-full text-sm">
+                                <Tag size={14} />
+                                عروض فقط
+                                <button onClick={() => setShowOnlyOffers(false)} className="hover:bg-orange-200 rounded-full p-0.5">
+                                    <X size={14} />
+                                </button>
+                            </span>
+                        )}
+                        <button
+                            onClick={clearFilters}
+                            className="text-gray-500 hover:text-gray-700 text-sm underline"
+                        >
+                            مسح الكل
+                        </button>
+                    </div>
+                )}
+
+                {/* Filters Panel */}
+                {showFilters && (
+                    <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {/* Price Range */}
+                            <div>
+                                <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                    <Tag size={18} className="text-brand-orange" />
+                                    نطاق السعر
+                                </h3>
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="number"
+                                        value={priceRange[0]}
+                                        onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
+                                        className="w-24 px-3 py-2 border border-gray-200 rounded-lg text-center"
+                                        placeholder="من"
+                                    />
+                                    <span className="text-gray-400">—</span>
+                                    <input
+                                        type="number"
+                                        value={priceRange[1]}
+                                        onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
+                                        className="w-24 px-3 py-2 border border-gray-200 rounded-lg text-center"
+                                        placeholder="إلى"
+                                    />
+                                    <span className="text-gray-500">جنيه</span>
+                                </div>
+                            </div>
+
+                            {/* Offers Toggle */}
+                            <div>
+                                <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                    <Sparkles size={18} className="text-orange-500" />
+                                    العروض
+                                </h3>
+                                <button
+                                    onClick={() => setShowOnlyOffers(!showOnlyOffers)}
+                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all w-full ${
+                                        showOnlyOffers 
+                                            ? 'border-orange-500 bg-orange-50 text-orange-700' 
+                                            : 'border-gray-200 hover:border-orange-300'
+                                    }`}
+                                >
+                                    <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center ${
+                                        showOnlyOffers ? 'bg-orange-500 border-orange-500' : 'border-gray-300'
+                                    }`}>
+                                        {showOnlyOffers && <Check size={14} className="text-white" />}
+                                    </div>
+                                    <span>عرض المنتجات بخصم فقط</span>
+                                </button>
+                            </div>
+
+                            {/* Quick Categories */}
+                            <div>
+                                <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                    <Grid3X3 size={18} className="text-brand-brown" />
+                                    فئة سريعة
+                                </h3>
+                                <div className="flex flex-wrap gap-2">
+                                    {CATEGORIES.slice(1, 6).map((cat) => (
+                                        <button
+                                            key={cat.id}
+                                            onClick={() => setSelectedCategory(cat.id)}
+                                            className={`px-3 py-1.5 rounded-lg text-sm transition ${
+                                                selectedCategory === cat.id
+                                                    ? 'bg-brand-brown text-white'
+                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            }`}
+                                        >
+                                            {cat.icon} {cat.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Products Grid */}
+                {loading ? (
+                    <ProductGridSkeleton count={12} />
+                ) : paginatedProducts.length === 0 ? (
+                    <div className="text-center py-20">
+                        <div className="text-6xl mb-4">🔍</div>
+                        <h3 className="text-xl font-bold text-gray-800 mb-2">لا توجد منتجات</h3>
+                        <p className="text-gray-500 mb-4">جرب تغيير الفلاتر أو البحث بكلمات أخرى</p>
+                        <button
+                            onClick={clearFilters}
+                            className="px-6 py-2 bg-brand-orange text-white rounded-xl hover:bg-brand-brown transition"
+                        >
+                            مسح الفلاتر
+                        </button>
+                    </div>
+                ) : (
+                    <>
+                        <div className={`grid gap-4 ${
+                            viewMode === 'grid' 
+                                ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' 
+                                : 'grid-cols-1 md:grid-cols-2'
+                        }`}>
+                            {paginatedProducts.map((product) => {
+                                const reserved = product.reserved_quantity || 0;
+                                const stock = product.stock_quantity;
+                                const available = typeof stock === 'number' ? (stock - reserved) > 0 : true;
+                                return (
+                                    <ProductCard 
+                                        key={product.id}
+                                        product={product} 
+                                        variant={viewMode === 'list' ? 'horizontal' : 'vertical'}
+                                        available={available}
+                                    />
+                                );
+                            })}
+                        </div>
+
+                        {/* Pagination */}
+                        {totalPages > 1 && (
+                            <div className="flex justify-center items-center gap-2 mt-10">
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                    disabled={currentPage === 1}
+                                    className="px-4 py-2 rounded-xl bg-white border border-gray-200 hover:border-brand-orange disabled:opacity-50 disabled:cursor-not-allowed transition"
+                                >
+                                    السابق
+                                </button>
+                                
+                                <div className="flex items-center gap-1">
+                                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                        let pageNum;
+                                        if (totalPages <= 5) {
+                                            pageNum = i + 1;
+                                        } else if (currentPage <= 3) {
+                                            pageNum = i + 1;
+                                        } else if (currentPage >= totalPages - 2) {
+                                            pageNum = totalPages - 4 + i;
+                                        } else {
+                                            pageNum = currentPage - 2 + i;
+                                        }
+                                        
+                                        return (
+                                            <button
+                                                key={pageNum}
+                                                onClick={() => setCurrentPage(pageNum)}
+                                                className={`w-10 h-10 rounded-xl font-medium transition ${
+                                                    currentPage === pageNum
+                                                        ? 'bg-brand-orange text-white shadow-lg'
+                                                        : 'bg-white border border-gray-200 hover:border-brand-orange'
+                                                }`}
+                                            >
+                                                {pageNum}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                <button
+                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="px-4 py-2 rounded-xl bg-white border border-gray-200 hover:border-brand-orange disabled:opacity-50 disabled:cursor-not-allowed transition"
+                                >
+                                    التالي
+                                </button>
+                            </div>
+                        )}
+                    </>
+                )}
+            </div>
+
+            {/* Barcode Scanner Modal */}
             {showScanner && (
                 <BarcodeScanner
                     onScan={handleBarcodeScanned}
                     onClose={() => setShowScanner(false)}
                 />
             )}
+
+            {/* Footer */}
+            <Footer />
         </div>
     );
 }

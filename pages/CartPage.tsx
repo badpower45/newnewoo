@@ -1,11 +1,37 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ShoppingCart, Trash2, Plus, Minus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useBranch } from '../context/BranchContext';
+import Footer from '../components/Footer';
+import { api } from '../services/api';
 
 const CartPage = () => {
     const navigate = useNavigate();
     const { items, removeFromCart, updateQuantity, totalPrice, clearCart } = useCart();
+    const { selectedBranch } = useBranch();
+    const [deliveryFee, setDeliveryFee] = useState(20);
+    const [freeDelivery, setFreeDelivery] = useState(false);
+
+    // Calculate delivery fee
+    useEffect(() => {
+        const calculateDeliveryFee = async () => {
+            if (!selectedBranch) return;
+
+            try {
+                const result = await api.deliveryFees.calculate(selectedBranch.id, totalPrice);
+                if (result.deliveryFee !== undefined) {
+                    setDeliveryFee(result.deliveryFee);
+                    setFreeDelivery(result.freeDelivery || false);
+                }
+            } catch (err) {
+                console.error('Failed to calculate delivery fee:', err);
+                setDeliveryFee(20);
+            }
+        };
+
+        calculateDeliveryFee();
+    }, [selectedBranch, totalPrice]);
 
     if (items.length === 0) {
         return (
@@ -140,11 +166,13 @@ const CartPage = () => {
                                 </div>
                                 <div className="flex justify-between text-gray-600">
                                     <span>Delivery Fee</span>
-                                    <span>20.00 EGP</span>
+                                    <span className={freeDelivery ? 'text-green-600 font-bold' : ''}>
+                                        {freeDelivery ? 'FREE! 🎉' : `${deliveryFee.toFixed(2)} EGP`}
+                                    </span>
                                 </div>
                                 <div className="border-t border-gray-100 pt-3 flex justify-between font-bold text-lg text-gray-900">
                                     <span>Total</span>
-                                    <span>{(totalPrice + 20).toFixed(2)} EGP</span>
+                                    <span>{(totalPrice + deliveryFee).toFixed(2)} EGP</span>
                                 </div>
                             </div>
 
@@ -158,6 +186,7 @@ const CartPage = () => {
                     </div>
                 </div>
             </div>
+            <Footer />
         </div>
     );
 };

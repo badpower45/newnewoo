@@ -33,9 +33,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const { selectedBranch } = useBranch();
   const { showToast, ToastContainer } = useToast();
 
-  // Load cart from API if user is logged in, else local storage
+  // Load cart from API if user is logged in (not guest), else local storage
   useEffect(() => {
-    if (user) {
+    if (user && !user.isGuest) {
       syncCart();
     } else {
       try {
@@ -45,23 +45,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
         console.error('Failed to load cart from storage', error);
       }
     }
-  }, [user]);
+  }, [user, selectedBranch]); // Re-sync when branch changes
 
   const syncCart = async () => {
-    if (!user) return;
+    if (!user || user.isGuest) return;
     try {
-      const data = await api.cart.get(user.id);
+      const branchId = selectedBranch?.id || 1;
+      const data = await api.cart.get(user.id, branchId);
       if (data.data) {
         setItems(data.data);
       }
     } catch (err) {
       // Silent fallback: backend unavailable, use local state
+      console.error('Failed to sync cart:', err);
     }
   };
 
-  // Save to localStorage if not logged in
+  // Save to localStorage if not logged in or guest
   useEffect(() => {
-    if (!user) {
+    if (!user || user.isGuest) {
       try {
         localStorage.setItem('cart_items', JSON.stringify(items));
       } catch (error) {
@@ -100,7 +102,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         console.error('Failed to verify branch availability', e);
       }
     }
-    if (user) {
+    if (user && !user.isGuest) {
       // Optimistic update
       setItems(prev => {
         const existing = prev.find(item => item.id === product.id);
@@ -144,7 +146,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const removeFromCart = async (productId: string | number) => {
-    if (user) {
+    if (user && !user.isGuest) {
       setItems(prev => prev.filter(item => item.id !== productId));
       try {
         await api.cart.remove(user.id, String(productId));
@@ -185,7 +187,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    if (user) {
+    if (user && !user.isGuest) {
       setItems(prev =>
         prev.map(item =>
           item.id === productId 
@@ -216,7 +218,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const clearCart = async () => {
-    if (user) {
+    if (user && !user.isGuest) {
       setItems([]);
       try {
         await api.cart.clear(user.id);

@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import TopBar from '../components/TopBar';
+import Footer from '../components/Footer';
 import Banner from '../components/Banner';
 import CategoryCard from '../components/CategoryCard';
 import ProductCard from '../components/ProductCard';
 import CategoryFilter from '../components/CategoryFilter';
 import SponsoredAds from '../components/SponsoredAds';
 import FlyerCarousel from '../components/FlyerCarousel';
-import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorMessage from '../components/ErrorMessage';
+import { ProductGridSkeleton, BannerSkeleton, CategoriesGridSkeleton } from '../components/Skeleton';
 import BrandsCarousel from '../components/BrandsCarousel';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Flame, BookOpen } from 'lucide-react';
 import { CATEGORIES, ALL_CATEGORIES, SPONSORED_ADS, FLYER_PAGES } from '../data/mockData';
 import { api } from '../services/api';
 import { Product } from '../types';
@@ -74,10 +76,10 @@ const HomePage = () => {
     }, [selectedBranch]);
 
     return (
-        <div className="bg-gray-50 min-h-screen pb-24 md:pb-8">
+        <div className="bg-[#FAFAFA] min-h-screen pb-24 md:pb-8">
             <TopBar />
 
-            <div className="p-4 space-y-6 max-w-7xl mx-auto">
+            <div className="px-4 py-3 space-y-5 max-w-7xl mx-auto">
                 {/* Category Filter (Task Bar) */}
                 <CategoryFilter
                     categories={filterCategories}
@@ -86,7 +88,7 @@ const HomePage = () => {
                 />
 
                 {/* Desktop Grid for Banners */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {/* Login Banner - Only show if not authenticated */}
                     {!isAuthenticated && <Banner type="login" />}
                     {/* Promo Banner */}
@@ -97,12 +99,36 @@ const HomePage = () => {
                 <SponsoredAds ads={SPONSORED_ADS} layout="carousel" />
 
                 {/* Brand Banner */}
-                <div className="rounded-2xl overflow-hidden shadow-sm h-32 md:h-64">
+                <div className="rounded-2xl overflow-hidden shadow-sm h-28 md:h-56">
                     <img src="https://images.unsplash.com/photo-1599490659213-e2b9527bd087?auto=format&fit=crop&w=1200&q=80" alt="Chips" className="w-full h-full object-cover" />
                 </div>
 
                 {/* Weekly Flyer Magazine */}
                 <FlyerCarousel pages={FLYER_PAGES} />
+
+                {/* Quick Access - Hot Deals & Magazine */}
+                <div className="grid grid-cols-2 gap-3">
+                    <Link to="/deals" className="group">
+                        <div className="bg-gradient-to-br from-[#EF4444] to-[#dc2626] rounded-2xl p-3.5 h-24 flex flex-col justify-between relative overflow-hidden hover:shadow-xl transition-all active:scale-[0.98]">
+                            <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+                            <Flame className="w-7 h-7 text-white" />
+                            <div>
+                                <h3 className="text-white font-bold text-base">العروض الساخنة</h3>
+                                <p className="text-white/80 text-xs">عروض لفترة محدودة!</p>
+                            </div>
+                        </div>
+                    </Link>
+                    <Link to="/magazine" className="group">
+                        <div className="bg-gradient-to-br from-[#F97316] to-[#ea580c] rounded-2xl p-3.5 h-24 flex flex-col justify-between relative overflow-hidden hover:shadow-xl transition-all active:scale-[0.98]">
+                            <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+                            <BookOpen className="w-7 h-7 text-white" />
+                            <div>
+                                <h3 className="text-white font-bold text-base">مجلة العروض</h3>
+                                <p className="text-white/80 text-xs">عروض هذا الأسبوع</p>
+                            </div>
+                        </div>
+                    </Link>
+                </div>
 
                 {/* Featured Brands Carousel */}
                 <BrandsCarousel title="براندات مميزة" />
@@ -112,14 +138,14 @@ const HomePage = () => {
 
                 {/* Special Categories */}
                 <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-3">Special Categories</h3>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <h3 className="text-base font-bold text-[#1F2937] mb-2.5">فئات مميزة</h3>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
                         {CATEGORIES.map((cat, idx) => (
-                            <div key={idx} className={`flex items-center p-3 rounded-xl ${cat.color} space-x-3 hover:shadow-md transition-shadow cursor-pointer`}>
-                                <div className="w-10 h-10 bg-white/50 rounded-full flex items-center justify-center text-lg">
+                            <div key={idx} className={`flex items-center p-2.5 rounded-xl ${cat.color} gap-2.5 hover:shadow-md transition-all cursor-pointer active:scale-[0.98]`}>
+                                <div className="w-9 h-9 bg-white/50 rounded-full flex items-center justify-center text-base flex-shrink-0">
                                     {cat.icon}
                                 </div>
-                                <span className="font-medium text-sm text-gray-800">{cat.name}</span>
+                                <span className="font-medium text-sm text-[#1F2937]">{cat.name}</span>
                             </div>
                         ))}
                     </div>
@@ -127,29 +153,25 @@ const HomePage = () => {
 
                 {/* Products You Might Like */}
                 <div>
-                    <div className="flex justify-between items-center mb-3">
-                        <h3 className="text-lg font-bold text-gray-900">Products you might like</h3>
-                        <button className="text-sm text-gray-500 hover:text-primary flex items-center">
-                            View all <ChevronRight size={16} />
-                        </button>
+                    <div className="flex justify-between items-center mb-2.5">
+                        <h3 className="text-base font-bold text-[#1F2937]">منتجات قد تعجبك</h3>
+                        <Link to="/products" className="text-sm text-[#F97316] hover:underline flex items-center font-medium">
+                            عرض الكل <ChevronRight size={16} />
+                        </Link>
                     </div>
 
                     {/* Loading/Error States */}
                     {loading ? (
-                        <LoadingSpinner message="جاري تحميل المنتجات..." />
+                        <ProductGridSkeleton count={8} />
                     ) : error ? (
                         <ErrorMessage message={error} onRetry={fetchProducts} />
                     ) : products.length === 0 ? (
-                        <div className="text-center py-8 text-gray-500">
-                            لا توجد منتجات متاحة حالياً
-                        </div>
-                    ) : products.length === 0 ? (
-                        <div className="text-center py-8 text-gray-500">
+                        <div className="text-center py-8 text-[#6B7280]">
                             لا توجد منتجات متاحة حالياً
                         </div>
                     ) : (
                         /* Mobile: Horizontal Scroll, Desktop: Grid */
-                        <div className="flex space-x-4 overflow-x-auto pb-4 no-scrollbar -mx-4 px-4 md:grid md:grid-cols-4 md:space-x-0 md:gap-4 md:mx-0 md:px-0">
+                        <div className="flex gap-3 overflow-x-auto pb-3 no-scrollbar -mx-4 px-4 md:grid md:grid-cols-4 md:mx-0 md:px-0">
                             {products.slice(0, 8).map((product) => {
                                 const bp = branchMap[product.id] || {};
                                 const reserved = bp.reservedQuantity || 0;
@@ -157,7 +179,7 @@ const HomePage = () => {
                                 const available = typeof stock === 'number' ? (stock - reserved) > 0 : true;
                                 const displayPrice = (bp.price ?? product.price) || 0;
                                 return (
-                                    <div key={product.id} className="w-40 flex-shrink-0 md:w-auto">
+                                    <div key={product.id} className="w-36 flex-shrink-0 md:w-auto">
                                         <ProductCard product={{ ...product, price: displayPrice }} available={available} />
                                     </div>
                                 );
@@ -168,14 +190,15 @@ const HomePage = () => {
 
                 {/* Categories Grid Preview */}
                 <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-3">Categories</h3>
-                    <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+                    <h3 className="text-base font-bold text-[#1F2937] mb-2.5">الفئات</h3>
+                    <div className="grid grid-cols-3 md:grid-cols-6 gap-2.5">
                         {ALL_CATEGORIES.slice(0, 12).map((cat, idx) => (
                             <CategoryCard key={idx} name={cat} bgColor="bg-white" />
                         ))}
                     </div>
                 </div>
             </div>
+            <Footer />
         </div>
     );
 };
