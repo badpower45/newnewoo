@@ -878,6 +878,395 @@ export const api = {
             });
             return res.json();
         }
+    },
+
+    // ===================== STORIES =====================
+    stories: {
+        // Get all active stories
+        getAll: async () => {
+            const res = await fetch(`${API_URL}/stories`, { headers: getHeaders() });
+            return res.json();
+        },
+
+        // Get single story
+        getOne: async (id: number) => {
+            const res = await fetch(`${API_URL}/stories/${id}`, { headers: getHeaders() });
+            return res.json();
+        },
+
+        // Record a view
+        recordView: async (storyId: number, userId?: string) => {
+            const res = await fetch(`${API_URL}/stories/${storyId}/view`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ userId })
+            });
+            return res.json();
+        },
+
+        // Get all stories for admin (including expired)
+        getAllAdmin: async () => {
+            const res = await fetch(`${API_URL}/stories/admin/all`, { headers: getHeaders() });
+            return res.json();
+        },
+
+        // Create new story (Admin)
+        create: async (data: {
+            title: string;
+            media_url: string;
+            media_type?: 'image' | 'video';
+            duration?: number;
+            link_url?: string;
+            link_text?: string;
+            expires_in_hours?: number;
+            priority?: number;
+            branch_id?: number;
+        }) => {
+            const res = await fetch(`${API_URL}/stories`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+
+        // Update story (Admin)
+        update: async (id: number, data: any) => {
+            const res = await fetch(`${API_URL}/stories/${id}`, {
+                method: 'PUT',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+
+        // Delete story (Admin)
+        delete: async (id: number) => {
+            const res = await fetch(`${API_URL}/stories/${id}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+            return res.json();
+        }
+    },
+
+    // ===================== FAVORITES =====================
+    favorites: {
+        // Get user's favorites
+        get: async (userId: string) => {
+            const res = await fetch(`${API_URL}/favorites/${userId}`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+
+        // Add to favorites
+        add: async (userId: string, productId: string) => {
+            const res = await fetch(`${API_URL}/favorites`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ userId, productId })
+            });
+            return res.json();
+        },
+
+        // Remove from favorites
+        remove: async (userId: string, productId: string) => {
+            const res = await fetch(`${API_URL}/favorites/${userId}/${productId}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+
+        // Check if product is in favorites
+        check: async (userId: string, productId: string) => {
+            const res = await fetch(`${API_URL}/favorites/${userId}/check/${productId}`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+
+        // Clear all favorites
+        clear: async (userId: string) => {
+            const res = await fetch(`${API_URL}/favorites/${userId}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+            return res.json();
+        }
+    },
+
+    // ===================== CATEGORIES =====================
+    categories: {
+        // Get all active categories
+        getAll: async () => {
+            const res = await fetch(`${API_URL}/categories`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+
+        // Get single category
+        getOne: async (id: number) => {
+            const res = await fetch(`${API_URL}/categories/${id}`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+
+        // Get category by name
+        getByName: async (name: string) => {
+            const res = await fetch(`${API_URL}/categories/name/${encodeURIComponent(name)}`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+
+        // Admin: Get all categories (including inactive)
+        getAllAdmin: async () => {
+            const res = await fetch(`${API_URL}/categories/admin/all`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+
+        // Admin: Create category
+        create: async (data: {
+            name: string;
+            name_ar?: string;
+            image?: string;
+            icon?: string;
+            bg_color?: string;
+            description?: string;
+            parent_id?: number;
+            display_order?: number;
+            is_active?: boolean;
+        }) => {
+            const res = await fetch(`${API_URL}/categories`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+
+        // Admin: Update category
+        update: async (id: number, data: any) => {
+            const res = await fetch(`${API_URL}/categories/${id}`, {
+                method: 'PUT',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+
+        // Admin: Delete category
+        delete: async (id: number) => {
+            const res = await fetch(`${API_URL}/categories/${id}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+
+        // Admin: Reorder categories
+        reorder: async (categories: Array<{ id: number; display_order: number }>) => {
+            const res = await fetch(`${API_URL}/categories/reorder`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ categories })
+            });
+            return res.json();
+        },
+
+        // Get subcategories
+        getSubcategories: async (parentId: number) => {
+            const res = await fetch(`${API_URL}/categories/${parentId}/subcategories`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        }
+    },
+
+    // Facebook Reels API
+    facebookReels: {
+        getAll: async () => {
+            const res = await fetch(`${API_URL}/facebook-reels`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+
+        getAllAdmin: async () => {
+            const res = await fetch(`${API_URL}/facebook-reels/admin/all`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+
+        getById: async (id: number) => {
+            const res = await fetch(`${API_URL}/facebook-reels/${id}`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+
+        create: async (data: {
+            title: string;
+            thumbnail_url: string;
+            video_url?: string;
+            facebook_url: string;
+            views_count?: string;
+            duration?: string;
+            is_active?: boolean;
+            display_order?: number;
+        }) => {
+            const res = await fetch(`${API_URL}/facebook-reels`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+
+        update: async (id: number, data: Partial<{
+            title: string;
+            thumbnail_url: string;
+            video_url: string;
+            facebook_url: string;
+            views_count: string;
+            duration: string;
+            is_active: boolean;
+            display_order: number;
+        }>) => {
+            const res = await fetch(`${API_URL}/facebook-reels/${id}`, {
+                method: 'PUT',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+
+        delete: async (id: number) => {
+            const res = await fetch(`${API_URL}/facebook-reels/${id}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+
+        reorder: async (reels: Array<{ id: number; display_order: number }>) => {
+            const res = await fetch(`${API_URL}/facebook-reels/reorder`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ reels })
+            });
+            return res.json();
+        }
+    },
+
+    // Brand Offers API - عروض البراندات
+    brandOffers: {
+        getAll: async () => {
+            const res = await fetch(`${API_URL}/brand-offers`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+
+        getAllAdmin: async () => {
+            const res = await fetch(`${API_URL}/brand-offers/admin`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+
+        getById: async (id: number) => {
+            const res = await fetch(`${API_URL}/brand-offers/${id}`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+
+        create: async (data: {
+            title: string;
+            title_ar: string;
+            subtitle?: string;
+            subtitle_ar?: string;
+            discount_text?: string;
+            discount_text_ar?: string;
+            background_type?: string;
+            background_value?: string;
+            text_color?: string;
+            badge_color?: string;
+            badge_text_color?: string;
+            image_url?: string;
+            brand_logo_url?: string;
+            linked_product_id?: number;
+            linked_brand_id?: number;
+            link_type?: string;
+            custom_link?: string;
+            is_active?: boolean;
+            display_order?: number;
+            starts_at?: string;
+            expires_at?: string;
+        }) => {
+            const res = await fetch(`${API_URL}/brand-offers`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+
+        update: async (id: number, data: Partial<{
+            title: string;
+            title_ar: string;
+            subtitle: string;
+            subtitle_ar: string;
+            discount_text: string;
+            discount_text_ar: string;
+            background_type: string;
+            background_value: string;
+            text_color: string;
+            badge_color: string;
+            badge_text_color: string;
+            image_url: string;
+            brand_logo_url: string;
+            linked_product_id: number;
+            linked_brand_id: number;
+            link_type: string;
+            custom_link: string;
+            is_active: boolean;
+            display_order: number;
+            starts_at: string;
+            expires_at: string;
+        }>) => {
+            const res = await fetch(`${API_URL}/brand-offers/${id}`, {
+                method: 'PUT',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+
+        delete: async (id: number) => {
+            const res = await fetch(`${API_URL}/brand-offers/${id}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+
+        reorder: async (orders: Array<{ id: number; display_order: number }>) => {
+            const res = await fetch(`${API_URL}/brand-offers/reorder/batch`, {
+                method: 'PUT',
+                headers: getHeaders(),
+                body: JSON.stringify({ orders })
+            });
+            return res.json();
+        }
     }
 };
 

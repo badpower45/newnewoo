@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingBag, Users, Settings, LogOut, Upload, MessageCircle, Store, Boxes, CalendarClock, ClipboardList, Truck, Tag, Menu, X, BookOpen, Flame } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, Users, Settings, LogOut, Upload, MessageCircle, Store, Boxes, CalendarClock, ClipboardList, Truck, Tag, Menu, X, BookOpen, Flame, CircleDot, FolderTree, Facebook, Gift } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const AdminLayout = () => {
@@ -37,6 +37,7 @@ const AdminLayout = () => {
     const allNavItems = [
         { path: '/admin', icon: <LayoutDashboard size={20} />, label: 'لوحة التحكم', roles: ['admin', 'manager'] },
         { path: '/admin/products', icon: <Package size={20} />, label: 'المنتجات', roles: ['admin', 'manager'] },
+        { path: '/admin/categories', icon: <FolderTree size={20} />, label: 'التصنيفات', roles: ['admin', 'manager'] },
         { path: '/admin/upload', icon: <Upload size={20} />, label: 'رفع Excel', roles: ['admin', 'manager'] },
         { path: '/admin/orders', icon: <ShoppingBag size={20} />, label: 'الطلبات', roles: ['admin', 'manager'] },
         { path: '/admin/distribution', icon: <ClipboardList size={20} />, label: 'توزيع الطلبات', roles: ['admin', 'manager', 'distributor'] },
@@ -45,6 +46,9 @@ const AdminLayout = () => {
         { path: '/admin/inventory', icon: <Boxes size={20} />, label: 'المخزون', roles: ['admin', 'manager'] },
         { path: '/admin/slots', icon: <CalendarClock size={20} />, label: 'مواعيد التوصيل', roles: ['admin', 'manager'] },
         { path: '/admin/coupons', icon: <Tag size={20} />, label: 'الكوبونات', roles: ['admin', 'manager'] },
+        { path: '/admin/stories', icon: <CircleDot size={20} />, label: 'الاستوريز', roles: ['admin', 'manager'] },
+        { path: '/admin/facebook-reels', icon: <Facebook size={20} />, label: 'ريلز فيسبوك', roles: ['admin', 'manager'] },
+        { path: '/admin/brand-offers', icon: <Gift size={20} />, label: 'عروض البراندات', roles: ['admin', 'manager'] },
         { path: '/admin/magazine', icon: <BookOpen size={20} />, label: 'مجلة العروض', roles: ['admin', 'manager'] },
         { path: '/admin/hot-deals', icon: <Flame size={20} />, label: 'العروض الساخنة', roles: ['admin', 'manager'] },
         { path: '/admin/employees', icon: <Users size={20} />, label: 'الموظفين', roles: ['admin'] },

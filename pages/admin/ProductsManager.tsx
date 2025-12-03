@@ -18,7 +18,8 @@ const emptyProduct = {
     stockQuantity: 0,
     weight: '',
     rating: 0,
-    reviews: 0
+    reviews: 0,
+    shelfLocation: ''
 };
 
 const categories = ['بقالة', 'ألبان', 'مشروبات', 'سناكس', 'زيوت', 'منظفات', 'عناية شخصية', 'مخبوزات', 'مجمدات', 'خضروات', 'فواكه', 'لحوم', 'أخرى'];
@@ -105,7 +106,8 @@ const ProductsManager = () => {
             stockQuantity: p.stock_quantity || 0,
             weight: p.weight,
             rating: p.rating,
-            reviews: p.reviews
+            reviews: p.reviews,
+            shelfLocation: p.shelf_location || ''
         });
         setShowModal(true);
     };
@@ -124,7 +126,8 @@ const ProductsManager = () => {
                 expiryDate: form.expiryDate,
                 branchId: form.branchId,
                 stockQuantity: form.stockQuantity,
-                weight: form.weight
+                weight: form.weight,
+                shelfLocation: form.shelfLocation
             };
             
             if (editing) {
@@ -407,6 +410,18 @@ const ProductsManager = () => {
                                         placeholder="مثال: 1 كجم، 500 جم"
                                     />
                                 </div>
+                            </div>
+
+                            {/* Shelf Location */}
+                            <div>
+                                <label className="block text-sm font-medium mb-1">موقع الرف (اختياري)</label>
+                                <input
+                                    type="text"
+                                    value={form.shelfLocation}
+                                    onChange={e => setForm({ ...form, shelfLocation: e.target.value })}
+                                    className="w-full px-3 py-2 border rounded-md"
+                                    placeholder="مثال: صف 3 - رف A"
+                                />
                             </div>
 
                             <div className="flex gap-2 pt-4 border-t">

@@ -13,14 +13,14 @@ router.get('/', [verifyToken], async (req, res) => {
 
     try {
         const sql = `
-            SELECT c.id as cart_id, c.quantity, c.substitution_preference, 
-                   p.id, p.name, p.image, p.category, p.description, p.weight, p.is_weighted, p.barcode,
-                   COALESCE(bp.price, p.price, 0) as price,
-                   COALESCE(bp.discount_price, p.discount_price) as discount_price,
+            SELECT c.id as cart_id, c.quantity, 
+                   p.id, p.name, p.image, p.category, p.description, p.weight, p.barcode,
+                   COALESCE(bp.price, 0) as price,
+                   bp.discount_price as discount_price,
                    bp.stock_quantity
             FROM cart c
-            JOIN products p ON c.product_id = p.id 
-            LEFT JOIN branch_products bp ON p.id = bp.product_id AND bp.branch_id = $2
+            JOIN products p ON c.product_id::text = p.id::text 
+            LEFT JOIN branch_products bp ON p.id::text = bp.product_id::text AND bp.branch_id = $2
             WHERE c.user_id = $1
         `;
         const { rows } = await query(sql, [userId, branchId]);
@@ -33,11 +33,10 @@ router.get('/', [verifyToken], async (req, res) => {
             price: Number(row.price) || 0,
             discountPrice: row.discount_price ? Number(row.discount_price) : null,
             quantity: row.quantity,
-            substitutionPreference: row.substitution_preference || 'none',
+            substitutionPreference: 'none',
             category: row.category,
             description: row.description,
             weight: row.weight,
-            isWeighted: row.is_weighted,
             barcode: row.barcode,
             stockQuantity: row.stock_quantity
         }));

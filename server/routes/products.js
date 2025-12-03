@@ -72,7 +72,7 @@ router.get('/', async (req, res) => {
         res.set('Cache-Control', 'public, max-age=60'); // Cache for 1 minute
         
         let sql = `
-            SELECT p.id, p.name, p.category, p.image, p.weight, p.rating, p.reviews, p.is_organic, p.is_new, p.barcode,
+            SELECT p.id, p.name, p.category, p.image, p.weight, p.rating, p.reviews, p.is_organic, p.is_new, p.barcode, p.shelf_location,
                    bp.price, bp.discount_price, bp.stock_quantity, bp.is_available
             FROM products p
             JOIN branch_products bp ON p.id = bp.product_id
@@ -192,7 +192,7 @@ router.get('/barcode/:barcode', async (req, res) => {
 router.post('/', [verifyToken, isAdmin], async (req, res) => {
     const { 
         name, category, subcategory, image, weight, description, barcode, isOrganic, isNew,
-        price, originalPrice, branchId, stockQuantity, expiryDate 
+        price, originalPrice, branchId, stockQuantity, expiryDate, shelfLocation 
     } = req.body;
     
     // ID generation: keep using timestamp or UUID. Schema says TEXT.
@@ -203,8 +203,8 @@ router.post('/', [verifyToken, isAdmin], async (req, res) => {
 
         // Insert product
         const sql = `
-            INSERT INTO products (id, name, category, subcategory, image, weight, description, rating, reviews, is_organic, is_new, barcode)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, 0, 0, $8, $9, $10)
+            INSERT INTO products (id, name, category, subcategory, image, weight, description, rating, reviews, is_organic, is_new, barcode, shelf_location)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, 0, 0, $8, $9, $10, $11)
             RETURNING *
         `;
         const { rows } = await query(sql, [
@@ -217,7 +217,8 @@ router.post('/', [verifyToken, isAdmin], async (req, res) => {
             description,
             isOrganic ? true : false,
             isNew ? true : false,
-            barcode || null
+            barcode || null,
+            shelfLocation || null
         ]);
 
         // Add to branch inventory if price provided
@@ -258,7 +259,7 @@ router.post('/', [verifyToken, isAdmin], async (req, res) => {
 router.put('/:id', [verifyToken, isAdmin], async (req, res) => {
     const { 
         name, category, subcategory, image, weight, description, barcode, isOrganic, isNew, isWeighted,
-        price, originalPrice, branchId, stockQuantity, expiryDate 
+        price, originalPrice, branchId, stockQuantity, expiryDate, shelfLocation 
     } = req.body;
     
     try {
@@ -275,14 +276,15 @@ router.put('/:id', [verifyToken, isAdmin], async (req, res) => {
                 barcode = COALESCE($7, barcode),
                 is_organic = COALESCE($8, is_organic),
                 is_new = COALESCE($9, is_new),
-                is_weighted = COALESCE($10, is_weighted)
-            WHERE id = $11
+                is_weighted = COALESCE($10, is_weighted),
+                shelf_location = COALESCE($11, shelf_location)
+            WHERE id = $12
             RETURNING *
         `;
         
         const { rows } = await query(sql, [
             name, category, subcategory, image, weight, description, barcode,
-            isOrganic, isNew, isWeighted, req.params.id
+            isOrganic, isNew, isWeighted, shelfLocation, req.params.id
         ]);
 
         if (rows.length === 0) {

@@ -23,6 +23,11 @@ import deliveryFeesRoutes from './routes/delivery-fees.js';
 import couponsRoutes from './routes/coupons.js';
 import magazineRoutes from './routes/magazine.js';
 import hotDealsRoutes from './routes/hotDeals.js';
+import favoritesRoutes from './routes/favorites.js';
+import storiesRoutes from './routes/stories.js';
+import categoriesRoutes from './routes/categories.js';
+import facebookReelsRoutes from './routes/facebook_reels.js';
+import brandOffersRoutes from './routes/brandOffers.js';
 
 // dotenv is loaded in database.js with the correct path
 // No need to load it again here
@@ -120,6 +125,11 @@ app.use('/api/delivery-fees', deliveryFeesRoutes);
 app.use('/api/coupons', couponsRoutes);
 app.use('/api/magazine', magazineRoutes);
 app.use('/api/hot-deals', hotDealsRoutes);
+app.use('/api/favorites', favoritesRoutes);
+app.use('/api/stories', storiesRoutes);
+app.use('/api/categories', categoriesRoutes);
+app.use('/api/facebook-reels', facebookReelsRoutes);
+app.use('/api/brand-offers', brandOffersRoutes);
 
 // Health check endpoint (moved under /api for serverless route consistency)
 app.get('/api/health', (req, res) => {

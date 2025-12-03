@@ -36,14 +36,24 @@ export default function TrackOrderPage() {
 
         try {
             const response = await api.orders.getByCode(orderCode.trim().toUpperCase());
-            if (response.data) {
+            console.log('Track order response:', response);
+            if (response && response.data) {
                 setOrder(response.data);
+            } else if (response && !response.data) {
+                // If response exists but no data wrapper
+                setOrder(response);
             } else {
                 setError('لم يتم العثور على طلب بهذا الكود');
             }
         } catch (err: any) {
             console.error('Error fetching order:', err);
-            setError(err.response?.data?.message || 'حدث خطأ أثناء البحث عن الطلب');
+            if (err.response?.data?.message) {
+                setError(err.response.data.message);
+            } else if (err.message) {
+                setError(err.message);
+            } else {
+                setError('حدث خطأ أثناء البحث عن الطلب. تأكد من كود الطلب وحاول مرة أخرى.');
+            }
         } finally {
             setLoading(false);
         }

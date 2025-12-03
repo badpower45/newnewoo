@@ -3,7 +3,6 @@ import ProductCard from '../components/ProductCard';
 import BarcodeScanner from '../components/BarcodeScanner';
 import { ProductGridSkeleton } from '../components/Skeleton';
 import TopBar from '../components/TopBar';
-import Footer from '../components/Footer';
 import { 
     Filter, Scan, Search, X, Grid3X3, LayoutList, 
     SlidersHorizontal, ChevronDown, ChevronUp, Sparkles,
@@ -183,57 +182,23 @@ export default function ProductsPage() {
         <div className="min-h-screen bg-gradient-to-b from-orange-50/30 to-white">
             <TopBar />
             
-            {/* Hero Search Section */}
-            <div className="bg-gradient-to-r from-brand-brown via-brand-brown/90 to-brand-orange pt-8 pb-16 px-4 relative overflow-hidden">
+            {/* Hero Section */}
+            <div className="bg-gradient-to-r from-brand-brown via-brand-brown/90 to-brand-orange pt-6 pb-8 px-4 relative overflow-hidden">
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-10">
-                    <div className="absolute top-10 left-10 text-6xl">🥬</div>
-                    <div className="absolute top-20 right-20 text-5xl">🍎</div>
-                    <div className="absolute bottom-10 left-1/4 text-4xl">🥛</div>
-                    <div className="absolute bottom-5 right-1/3 text-5xl">🧀</div>
+                    <div className="absolute top-5 left-10 text-5xl">🥬</div>
+                    <div className="absolute top-10 right-20 text-4xl">🍎</div>
+                    <div className="absolute bottom-5 left-1/4 text-3xl">🥛</div>
+                    <div className="absolute bottom-3 right-1/3 text-4xl">🧀</div>
                 </div>
                 
-                <div className="max-w-4xl mx-auto relative z-10">
-                    <h1 className="text-3xl md:text-4xl font-bold text-white text-center mb-2">
+                <div className="max-w-4xl mx-auto relative z-10 text-center">
+                    <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
                         اكتشف منتجاتنا الطازجة 🛒
                     </h1>
-                    <p className="text-orange-100 text-center mb-8">
+                    <p className="text-orange-100 text-sm">
                         أكثر من {allProducts.length} منتج متاح للتوصيل
                     </p>
-                    
-                    {/* Search Bar */}
-                    <div className={`relative transition-all duration-300 ${isSearchFocused ? 'scale-105' : ''}`}>
-                        <div className={`absolute inset-0 bg-white rounded-2xl transition-all duration-300 ${isSearchFocused ? 'shadow-2xl shadow-white/30' : 'shadow-lg'}`} />
-                        <div className="relative flex items-center">
-                            <Search className="absolute right-4 text-gray-400" size={24} />
-                            <input
-                                type="text"
-                                placeholder="ابحث عن منتج، فئة، أو باركود..."
-                                value={searchQuery}
-                                onChange={(e) => handleSearch(e.target.value)}
-                                onFocus={() => setIsSearchFocused(true)}
-                                onBlur={() => setIsSearchFocused(false)}
-                                className="w-full pr-14 pl-32 py-5 rounded-2xl text-lg focus:outline-none bg-transparent relative z-10"
-                            />
-                            <div className="absolute left-2 flex items-center gap-2">
-                                {searchQuery && (
-                                    <button
-                                        onClick={() => handleSearch('')}
-                                        className="p-2 hover:bg-gray-100 rounded-full transition"
-                                    >
-                                        <X size={20} className="text-gray-400" />
-                                    </button>
-                                )}
-                                <button
-                                    onClick={() => setShowScanner(true)}
-                                    className="flex items-center gap-2 bg-gradient-to-r from-brand-orange to-amber-500 text-white px-4 py-2.5 rounded-xl hover:shadow-lg transition-all"
-                                >
-                                    <Scan size={18} />
-                                    <span className="hidden sm:inline">مسح</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
 
@@ -553,9 +518,6 @@ export default function ProductsPage() {
                     onClose={() => setShowScanner(false)}
                 />
             )}
-
-            {/* Footer */}
-            <Footer />
         </div>
     );
 }

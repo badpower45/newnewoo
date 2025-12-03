@@ -1,0 +1,295 @@
+import React, { useState, useRef } from 'react';
+import { Play, ExternalLink, Facebook, ChevronLeft, ChevronRight, X, Volume2, VolumeX } from 'lucide-react';
+
+interface FacebookReelsGridProps {
+    pageUsername?: string;
+    pageName?: string;
+}
+
+// Sample reel videos - In production, these would come from Facebook Graph API
+const reelVideos = [
+    {
+        id: '1',
+        thumbnail: 'https://images.unsplash.com/photo-1606312619070-d48b4c652a52?w=400',
+        title: 'شوكولاتة فاخرة 🍫',
+        views: '12K',
+        videoUrl: 'https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F&show_text=false&width=267&t=0'
+    },
+    {
+        id: '2', 
+        thumbnail: 'https://images.unsplash.com/photo-1587132137056-bfbf0166836e?w=400',
+        title: 'عروض حصرية 🔥',
+        views: '8.5K',
+        videoUrl: 'https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F&show_text=false&width=267&t=0'
+    },
+    {
+        id: '3',
+        thumbnail: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400',
+        title: 'منتجات الألبان الطازجة 🥛',
+        views: '15K',
+        videoUrl: 'https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F&show_text=false&width=267&t=0'
+    },
+    {
+        id: '4',
+        thumbnail: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400',
+        title: 'فواكه وخضروات طازجة 🥬',
+        views: '9.2K',
+        videoUrl: 'https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F&show_text=false&width=267&t=0'
+    },
+    {
+        id: '5',
+        thumbnail: 'https://images.unsplash.com/photo-1534353473418-4cfa6c56fd38?w=400',
+        title: 'مشروبات منعشة 🍹',
+        views: '11K',
+        videoUrl: 'https://www.facebook.com/plugins/video.php?height=476&href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F&show_text=false&width=267&t=0'
+    }
+];
+
+const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
+    pageUsername = 'Alloshchocolates',
+    pageName = 'Allosh Chocolates'
+}) => {
+    const [activeVideo, setActiveVideo] = useState<number | null>(null);
+    const [isMuted, setIsMuted] = useState(true);
+    const scrollRef = useRef<HTMLDivElement>(null);
+
+    const facebookPageUrl = `https://www.facebook.com/${pageUsername}`;
+    const facebookReelsUrl = `https://www.facebook.com/${pageUsername}/reels`;
+
+    const scroll = (direction: 'left' | 'right') => {
+        if (scrollRef.current) {
+            const scrollAmount = 200;
+            scrollRef.current.scrollBy({
+                left: direction === 'left' ? scrollAmount : -scrollAmount,
+                behavior: 'smooth'
+            });
+        }
+    };
+
+    const openVideoModal = (index: number) => {
+        setActiveVideo(index);
+    };
+
+    const closeVideoModal = () => {
+        setActiveVideo(null);
+    };
+
+    return (
+        <section className="py-4">
+            {/* Header */}
+            <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                    <div className="relative">
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 via-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <Facebook className="w-6 h-6 text-white" />
+                        </div>
+                        <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center border-2 border-white">
+                            <Play className="w-2.5 h-2.5 text-white fill-white" />
+                        </div>
+                    </div>
+                    <div>
+                        <h2 className="text-lg font-bold text-gray-800">فيديوهات {pageName}</h2>
+                        <p className="text-xs text-gray-500">شاهد أحدث فيديوهاتنا وعروضنا</p>
+                    </div>
+                </div>
+                <a
+                    href={facebookReelsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-full text-sm font-medium hover:bg-blue-700 transition-colors shadow-md"
+                >
+                    <span>عرض الكل</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+            </div>
+
+            {/* Reels Carousel */}
+            <div className="relative">
+                {/* Navigation Buttons */}
+                <button
+                    onClick={() => scroll('right')}
+                    className="absolute -right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white shadow-lg rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors"
+                >
+                    <ChevronRight className="w-5 h-5 text-gray-600" />
+                </button>
+                <button
+                    onClick={() => scroll('left')}
+                    className="absolute -left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white shadow-lg rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors"
+                >
+                    <ChevronLeft className="w-5 h-5 text-gray-600" />
+                </button>
+
+                {/* Scrollable Container */}
+                <div 
+                    ref={scrollRef}
+                    className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide scroll-smooth px-2"
+                >
+                    {reelVideos.map((video, index) => (
+                        <div
+                            key={video.id}
+                            className="flex-shrink-0 w-36 md:w-44 cursor-pointer group"
+                            onClick={() => openVideoModal(index)}
+                        >
+                            {/* Video Thumbnail */}
+                            <div className="relative aspect-[9/16] rounded-2xl overflow-hidden bg-gray-100 shadow-md group-hover:shadow-xl transition-all">
+                                <img
+                                    src={video.thumbnail}
+                                    alt={video.title}
+                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                />
+                                
+                                {/* Gradient Overlay */}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                                
+                                {/* Play Button */}
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <div className="w-14 h-14 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center group-hover:scale-110 group-hover:bg-white/50 transition-all">
+                                        <Play className="w-7 h-7 text-white fill-white ml-1" />
+                                    </div>
+                                </div>
+
+                                {/* Facebook Badge */}
+                                <div className="absolute top-2 right-2">
+                                    <div className="w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center shadow-md">
+                                        <Facebook className="w-4 h-4 text-white" />
+                                    </div>
+                                </div>
+
+                                {/* Views Count */}
+                                <div className="absolute bottom-2 right-2 bg-black/50 backdrop-blur-sm px-2 py-1 rounded-full">
+                                    <span className="text-white text-xs font-medium">{video.views} مشاهدة</span>
+                                </div>
+
+                                {/* Title */}
+                                <div className="absolute bottom-2 left-2 right-10">
+                                    <p className="text-white text-sm font-medium truncate">{video.title}</p>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+
+                    {/* View All Card */}
+                    <a
+                        href={facebookReelsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-shrink-0 w-36 md:w-44"
+                    >
+                        <div className="relative aspect-[9/16] rounded-2xl overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600 shadow-md hover:shadow-xl transition-all flex flex-col items-center justify-center gap-4">
+                            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
+                                <ExternalLink className="w-8 h-8 text-white" />
+                            </div>
+                            <div className="text-center px-4">
+                                <p className="text-white font-bold text-lg">عرض الكل</p>
+                                <p className="text-white/80 text-sm">على فيسبوك</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            {/* Video Modal */}
+            {activeVideo !== null && (
+                <div 
+                    className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+                    onClick={closeVideoModal}
+                >
+                    <div 
+                        className="relative w-full max-w-sm aspect-[9/16] bg-black rounded-2xl overflow-hidden"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Close Button */}
+                        <button
+                            onClick={closeVideoModal}
+                            className="absolute top-4 right-4 z-20 w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+
+                        {/* Mute Button */}
+                        <button
+                            onClick={() => setIsMuted(!isMuted)}
+                            className="absolute top-4 left-4 z-20 w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+                        >
+                            {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                        </button>
+
+                        {/* Video Embed */}
+                        <iframe
+                            src={`${reelVideos[activeVideo].videoUrl}&autoplay=1&mute=${isMuted ? 1 : 0}`}
+                            className="w-full h-full"
+                            style={{ border: 'none', overflow: 'hidden' }}
+                            allowFullScreen
+                            allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                        />
+
+                        {/* Video Info Overlay */}
+                        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                                    <Facebook className="w-4 h-4 text-white" />
+                                </div>
+                                <span className="text-white font-bold">{pageName}</span>
+                            </div>
+                            <p className="text-white text-sm">{reelVideos[activeVideo].title}</p>
+                            <p className="text-white/70 text-xs">{reelVideos[activeVideo].views} مشاهدة</p>
+                        </div>
+                    </div>
+
+                    {/* Navigation Arrows */}
+                    {activeVideo > 0 && (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); setActiveVideo(activeVideo - 1); }}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+                        >
+                            <ChevronRight className="w-6 h-6" />
+                        </button>
+                    )}
+                    {activeVideo < reelVideos.length - 1 && (
+                        <button
+                            onClick={(e) => { e.stopPropagation(); setActiveVideo(activeVideo + 1); }}
+                            className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+                        >
+                            <ChevronLeft className="w-6 h-6" />
+                        </button>
+                    )}
+                </div>
+            )}
+
+            {/* Follow CTA Banner */}
+            <div className="mt-4 bg-gradient-to-r from-blue-600 via-blue-500 to-purple-600 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center flex-shrink-0">
+                        <Facebook className="w-7 h-7 text-blue-600" />
+                    </div>
+                    <div className="text-white text-center md:text-right">
+                        <h3 className="font-bold text-lg">{pageName}</h3>
+                        <p className="text-white/80 text-sm">تابعنا لمشاهدة أحدث العروض والمنتجات 🍫</p>
+                    </div>
+                </div>
+                <div className="flex gap-2">
+                    <a
+                        href={facebookReelsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-white/20 backdrop-blur text-white rounded-full font-semibold hover:bg-white/30 transition-colors border border-white/30"
+                    >
+                        <Play className="w-4 h-4 fill-white" />
+                        الريلز
+                    </a>
+                    <a
+                        href={facebookPageUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-white text-blue-600 rounded-full font-bold hover:bg-blue-50 transition-colors shadow-lg"
+                    >
+                        <Facebook className="w-5 h-5" />
+                        متابعة
+                    </a>
+                </div>
+            </div>
+        </section>
+    );
+};
+
+export default FacebookReelsGrid;

@@ -58,8 +58,13 @@ import DeliveryStaffManager from './pages/admin/DeliveryStaffManager';
 import CouponsManager from './pages/admin/CouponsManager';
 import MagazineManager from './pages/admin/MagazineManager';
 import HotDealsManager from './pages/admin/HotDealsManager';
+import StoriesManager from './pages/admin/StoriesManager';
+import CategoriesManager from './pages/admin/CategoriesManager';
+import FacebookReelsManager from './pages/admin/FacebookReelsManager';
+import BrandOffersAdminPage from './pages/admin/BrandOffersAdminPage';
 import DeliveryDriverPage from './pages/DeliveryDriverPage';
 import BrandPage from './pages/BrandPage';
+import BrandsPage from './pages/BrandsPage';
 import MyOrdersPage from './pages/MyOrdersPage';
 
 // Premium Brand Pages
@@ -105,6 +110,7 @@ function AppContent() {
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/my-orders" element={<ProtectedRoute><MyOrdersPage /></ProtectedRoute>} />
             <Route path="/favorites" element={<FavoritesPage />} />
+            <Route path="/brands" element={<BrandsPage />} />
             <Route path="/chat" element={<ProtectedRoute><CustomerChatPage /></ProtectedRoute>} />
             <Route path="/customer-service" element={<ProtectedRoute><CustomerServiceDashboard /></ProtectedRoute>} />
             <Route path="/delivery" element={<ProtectedRoute allowedRoles={['delivery', 'admin']}><DeliveryDriverPage /></ProtectedRoute>} />
@@ -119,6 +125,7 @@ function AppContent() {
             <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'distributor']}><AdminLayout /></ProtectedRoute>}>
               <Route index element={<DashboardOverview />} />
               <Route path="products" element={<ProductsManager />} />
+              <Route path="categories" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><CategoriesManager /></ProtectedRoute>} />
               <Route path="upload" element={<ProductUploadPage />} />
               <Route path="orders" element={<OrdersManager />} />
               <Route path="branches" element={<BranchesManager />} />
@@ -127,6 +134,9 @@ function AppContent() {
               <Route path="coupons" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><CouponsManager /></ProtectedRoute>} />
               <Route path="magazine" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><MagazineManager /></ProtectedRoute>} />
               <Route path="hot-deals" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><HotDealsManager /></ProtectedRoute>} />
+              <Route path="stories" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><StoriesManager /></ProtectedRoute>} />
+              <Route path="facebook-reels" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><FacebookReelsManager /></ProtectedRoute>} />
+              <Route path="brand-offers" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><BrandOffersAdminPage /></ProtectedRoute>} />
               <Route path="employees" element={<ProtectedRoute requireAdmin><EmployeesManager /></ProtectedRoute>} />
               <Route path="chat" element={<ProtectedRoute requireAdmin><LiveChatDashboard /></ProtectedRoute>} />
               <Route path="settings" element={<ProtectedRoute requireAdmin><AdminSettingsPage /></ProtectedRoute>} />
@@ -137,12 +147,9 @@ function AppContent() {
         </div>
       </main>
       {!isAdminRoute && (
-        <>
-          <Footer />
-          <div className="md:hidden">
-            <BottomNav />
-          </div>
-        </>
+        <div className="md:hidden">
+          <BottomNav />
+        </div>
       )}
       {/* Debug panel is always available */}
       <DebugPanel />

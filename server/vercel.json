@@ -12,11 +12,8 @@
       "dest": "/api/index.js"
     },
     {
-      "src": "/",
+      "src": "/(.*)",
       "dest": "/api/index.js"
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  ]
 }

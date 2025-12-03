@@ -17,6 +17,7 @@ export interface Product {
   stock_quantity?: number; // عدد القطع المتوفرة
   expiry_date?: string; // تاريخ الصلاحية
   branch_id?: number; // الفرع
+  shelf_location?: string; // موقع الرف (مثل: صف 3 - رف A)
 }
 
 export interface NavItem {
