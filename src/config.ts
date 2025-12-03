@@ -3,8 +3,32 @@
  * Environment variables and constants
  */
 
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-export const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:3001';
+// Determine API URL dynamically - for local network access
+const getApiUrl = () => {
+    // If explicitly set in env, use that
+    if (import.meta.env.VITE_API_URL) {
+        return import.meta.env.VITE_API_URL;
+    }
+    // For local development, use the same hostname as the frontend
+    // This allows mobile devices on the same network to connect
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+        return `http://${window.location.hostname}:3001/api`;
+    }
+    return 'http://localhost:3001/api';
+};
+
+const getSocketUrl = () => {
+    if (import.meta.env.VITE_SOCKET_URL) {
+        return import.meta.env.VITE_SOCKET_URL;
+    }
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
+        return `http://${window.location.hostname}:3001`;
+    }
+    return 'http://localhost:3001';
+};
+
+export const API_URL = getApiUrl();
+export const SOCKET_URL = getSocketUrl();
 export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 // App Constants

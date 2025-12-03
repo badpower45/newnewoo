@@ -40,6 +40,8 @@ const allowedOrigins = [
     'http://localhost:5173',
     'http://localhost:5174',
     'http://localhost:5175',
+    'http://192.168.1.112:5173',
+    'http://192.168.1.112:5174',
     'https://newnewoo.vercel.app',
     'https://newnewoo-git-main-bode-ahmeds-projects.vercel.app',
     'https://newnewoo-ag9qdglgo-bode-ahmeds-projects.vercel.app',

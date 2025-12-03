@@ -30,11 +30,24 @@ export const DebugProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     error: console.error,
   });
 
+  // Generate UUID that works on all browsers including mobile
+  const generateUUID = () => {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+      return crypto.randomUUID();
+    }
+    // Fallback for browsers that don't support crypto.randomUUID
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  };
+
   const addEntry = (level: DebugLogLevel, args: any[], err?: any) => {
     const time = new Date().toLocaleTimeString();
     const message = args.map((a: any) => typeof a === 'string' ? a : JSON.stringify(a)).join(' ');
     const stack = err?.stack || (args.find((a: any) => a instanceof Error)?.stack);
-    setEntries(prev => [{ id: crypto.randomUUID(), time, level, message, data: args, stack }, ...prev].slice(0, 500));
+    setEntries(prev => [{ id: generateUUID(), time, level, message, data: args, stack }, ...prev].slice(0, 500));
   };
 
   useEffect(() => {

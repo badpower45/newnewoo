@@ -195,7 +195,7 @@ const ProductDetailsPage = () => {
 
             {/* Main Content Container */}
             <div className="flex-1 bg-white rounded-t-[32px] -mt-8 relative shadow-[0_-4px_24px_rgba(0,0,0,0.1)]">
-                <div className="px-6 pt-6 pb-40 overflow-y-auto max-h-[calc(100vh-42vh+32px)]">
+                <div className="px-6 pt-6 pb-52 md:pb-44 overflow-y-auto max-h-[calc(100vh-42vh+32px)]">
                     {/* Product Title & Stock Status */}
                     <div className="mb-4">
                         <div className="flex items-start justify-between mb-2">
@@ -447,7 +447,7 @@ const ProductDetailsPage = () => {
             </div>
 
             {/* Bottom Sticky Bar */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#E5E7EB] shadow-[0_-4px_16px_rgba(0,0,0,0.1)] z-50">
+            <div className="fixed bottom-16 md:bottom-0 left-0 right-0 bg-white border-t border-[#E5E7EB] shadow-[0_-4px_16px_rgba(0,0,0,0.1)] z-40">
                 <div className="p-4 max-w-md mx-auto">
                     {/* Quantity & Price Row */}
                     <div className="flex items-center gap-3 mb-3">
@@ -494,7 +494,6 @@ const ProductDetailsPage = () => {
                     </button>
                 </div>
             </div>
-            <Footer />
         </div>
     );
 };
