@@ -1,10 +1,14 @@
 import express from 'express';
 import { query } from '../database.js'; // Use the exported query helper
 import { verifyToken, isAdmin } from '../middleware/auth.js';
-import multer from 'multer';
+import { createExcelUploader, verifyFileContent, handleUploadError } from '../middleware/fileUpload.js';
+import { validate, productSchema, searchSchema } from '../middleware/validation.js';
 import * as xlsx from 'xlsx';
 
 const router = express.Router();
+
+// ✅ Security: Use secure file upload middleware
+const secureExcelUpload = createExcelUploader();
 
 // Dev-only: Seed sample products + branch inventory for quick testing
 router.post('/dev/seed-sample', async (req, res) => {
@@ -389,10 +393,9 @@ router.delete('/:id', [verifyToken, isAdmin], async (req, res) => {
     }
 });
 
-const upload = multer({ storage: multer.memoryStorage() });
-
-// Upload Excel
-router.post('/upload', [verifyToken, isAdmin, upload.single('file')], async (req, res) => {
+// ✅ Security: Use secure Excel upload with file validation
+// Upload Excel - with secure file handling
+router.post('/upload', [verifyToken, isAdmin, secureExcelUpload.single('file'), verifyFileContent(['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.ms-excel'])], async (req, res) => {
     if (!req.file) {
         return res.status(400).json({ error: "No file uploaded" });
     }
@@ -402,6 +405,11 @@ router.post('/upload', [verifyToken, isAdmin, upload.single('file')], async (req
         const sheetName = workbook.SheetNames[0];
         const sheet = workbook.Sheets[sheetName];
         const products = xlsx.utils.sheet_to_json(sheet);
+        
+        // ✅ Security: Limit number of products in single upload
+        if (products.length > 5000) {
+            return res.status(400).json({ error: "Maximum 5000 products per upload" });
+        }
 
         let successCount = 0;
         let errorCount = 0;
@@ -493,5 +501,8 @@ router.post('/upload', [verifyToken, isAdmin, upload.single('file')], async (req
         res.status(500).json({ error: "Failed to process Excel file" });
     }
 });
+
+// Error handler for file upload errors
+router.use(handleUploadError);
 
 export default router;

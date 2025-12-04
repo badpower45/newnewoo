@@ -144,10 +144,10 @@ const ProductDetailsPage = () => {
     return (
         <div className="min-h-screen bg-[#FAFAFA] flex flex-col">
             {/* Top Navigation - Floating */}
-            <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4">
+            <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-3">
                 <button
                     onClick={() => navigate(-1)}
-                    className="w-11 h-11 rounded-full bg-white/95 backdrop-blur-md shadow-lg flex items-center justify-center hover:bg-white transition-all"
+                    className="w-10 h-10 rounded-full bg-white/95 backdrop-blur-md shadow-md flex items-center justify-center hover:bg-white transition-all"
                 >
                     <ArrowRight className="w-5 h-5 text-[#23110C]" />
                 </button>
@@ -155,7 +155,7 @@ const ProductDetailsPage = () => {
                 <div className="flex gap-2">
                     <button
                         onClick={() => toggleFavorite(product)}
-                        className="w-11 h-11 rounded-full bg-white/95 backdrop-blur-md shadow-lg flex items-center justify-center hover:bg-white transition-all"
+                        className="w-10 h-10 rounded-full bg-white/95 backdrop-blur-md shadow-md flex items-center justify-center hover:bg-white transition-all"
                     >
                         <Heart
                             className={`w-5 h-5 transition-all ${isFavorite(product.id) ? 'fill-[#F97316] text-[#F97316] scale-110' : 'text-[#23110C]'}`}
@@ -163,7 +163,7 @@ const ProductDetailsPage = () => {
                     </button>
                     <button 
                         onClick={handleShare}
-                        className="w-11 h-11 rounded-full bg-white/95 backdrop-blur-md shadow-lg flex items-center justify-center hover:bg-white transition-all"
+                        className="w-10 h-10 rounded-full bg-white/95 backdrop-blur-md shadow-md flex items-center justify-center hover:bg-white transition-all"
                     >
                         <Share2 className="w-5 h-5 text-[#23110C]" />
                     </button>
@@ -171,15 +171,15 @@ const ProductDetailsPage = () => {
             </div>
 
             {/* Image Area with Gradient */}
-            <div className="h-[42vh] bg-gradient-to-br from-[#FFF7ED] to-[#F3F4F6] flex items-center justify-center relative overflow-hidden">
+            <div className="h-[32vh] min-h-[200px] max-h-[280px] bg-gradient-to-br from-[#FFF7ED] to-[#F3F4F6] flex items-center justify-center relative overflow-hidden pt-14">
                 {/* Decorative circles */}
-                <div className="absolute top-10 right-10 w-32 h-32 bg-[#F97316]/5 rounded-full blur-2xl" />
-                <div className="absolute bottom-10 left-10 w-40 h-40 bg-[#F97316]/5 rounded-full blur-3xl" />
+                <div className="absolute top-10 right-10 w-24 h-24 bg-[#F97316]/5 rounded-full blur-2xl" />
+                <div className="absolute bottom-10 left-10 w-28 h-28 bg-[#F97316]/5 rounded-full blur-3xl" />
                 
                 <img
                     src={product.image}
                     alt={product.name}
-                    className="w-72 h-72 object-contain relative z-10 drop-shadow-2xl"
+                    className="w-44 h-44 sm:w-52 sm:h-52 object-contain relative z-10 drop-shadow-xl"
                     onError={(e) => {
                         (e.target as HTMLImageElement).src = 'https://placehold.co/400x400?text=Product';
                     }}
@@ -187,53 +187,53 @@ const ProductDetailsPage = () => {
 
                 {/* Discount Badge */}
                 {discountPercentage > 0 && (
-                    <div className="absolute top-20 left-4 bg-gradient-to-br from-[#EF4444] to-[#dc2626] text-white px-4 py-2 rounded-full shadow-xl transform -rotate-12">
+                    <div className="absolute top-16 left-4 bg-gradient-to-br from-[#EF4444] to-[#dc2626] text-white px-3 py-1.5 rounded-full shadow-xl transform -rotate-12 text-sm">
                         <span className="font-bold">وفر {discountPercentage}%</span>
                     </div>
                 )}
             </div>
 
             {/* Main Content Container */}
-            <div className="flex-1 bg-white rounded-t-[32px] -mt-8 relative shadow-[0_-4px_24px_rgba(0,0,0,0.1)]">
-                <div className="px-6 pt-6 pb-52 md:pb-44 overflow-y-auto max-h-[calc(100vh-42vh+32px)]">
+            <div className="flex-1 bg-white rounded-t-[28px] -mt-6 relative shadow-[0_-4px_24px_rgba(0,0,0,0.08)]">
+                <div className="px-5 pt-5 pb-48 md:pb-40 overflow-y-auto">
                     {/* Product Title & Stock Status */}
-                    <div className="mb-4">
-                        <div className="flex items-start justify-between mb-2">
-                            <h1 className="flex-1 text-xl font-bold text-[#23110C] leading-tight">{product.name}</h1>
+                    <div className="mb-3">
+                        <div className="flex items-start justify-between mb-1">
+                            <h1 className="flex-1 text-lg font-bold text-[#23110C] leading-tight">{product.name}</h1>
                             {available && (
-                                <div className="flex items-center gap-1 bg-[#10B981]/10 px-3 py-1 rounded-full">
-                                    <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
-                                    <span className="text-[#10B981] text-sm font-semibold">متوفر</span>
+                                <div className="flex items-center gap-1 bg-[#10B981]/10 px-2 py-0.5 rounded-full">
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" />
+                                    <span className="text-[#10B981] text-xs font-semibold">متوفر</span>
                                 </div>
                             )}
                         </div>
-                        <p className="text-[#9CA3AF] text-sm">{product.name_en || product.category}</p>
+                        <p className="text-[#9CA3AF] text-xs">{product.name_en || product.category}</p>
                     </div>
 
                     {/* Price Section */}
-                    <div className="bg-gradient-to-br from-[#FFF7ED] to-[#FEE2E2] rounded-2xl p-4 mb-6">
-                        <div className="flex items-end justify-between">
+                    <div className="bg-gradient-to-br from-[#FFF7ED] to-[#FEE2E2] rounded-xl p-3 mb-4">
+                        <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-[#6B7280] text-sm mb-1">السعر</p>
-                                <div className="flex items-center gap-3">
-                                    <span className="text-[40px] text-[#F97316] leading-none font-bold">
+                                <p className="text-[#6B7280] text-xs mb-0.5">السعر</p>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-3xl text-[#F97316] leading-none font-bold">
                                         {displayPrice.toFixed(0)}
                                     </span>
                                     <div className="flex flex-col">
                                         {oldPrice > displayPrice && (
-                                            <span className="text-[#9CA3AF] line-through text-lg">
+                                            <span className="text-[#9CA3AF] line-through text-sm">
                                                 {oldPrice.toFixed(0)}
                                             </span>
                                         )}
-                                        <span className="text-[#23110C]">جنيه</span>
+                                        <span className="text-[#23110C] text-sm">جنيه</span>
                                     </div>
                                 </div>
                             </div>
                             {savings > 0 && (
                                 <div className="text-left">
-                                    <div className="bg-white rounded-xl px-3 py-2 shadow-sm">
-                                        <p className="text-[#10B981] text-sm font-semibold">توفر</p>
-                                        <p className="text-[#10B981] text-xl font-bold">
+                                    <div className="bg-white rounded-lg px-2.5 py-1.5 shadow-sm">
+                                        <p className="text-[#10B981] text-xs font-semibold">توفر</p>
+                                        <p className="text-[#10B981] text-base font-bold">
                                             {savings.toFixed(0)} جنيه
                                         </p>
                                     </div>
@@ -244,11 +244,11 @@ const ProductDetailsPage = () => {
 
                     {/* Size Selection (if weight exists) */}
                     {product.weight && (
-                        <div className="mb-6">
-                            <h4 className="font-bold text-[#23110C] mb-3">الحجم</h4>
+                        <div className="mb-4">
+                            <h4 className="font-bold text-[#23110C] text-sm mb-2">الحجم</h4>
                             <div className="flex gap-2">
                                 <button
-                                    className="flex-1 py-3 px-4 rounded-xl border-2 transition-all border-[#F97316] bg-[#FFF7ED] text-[#F97316] font-semibold"
+                                    className="py-2 px-4 rounded-lg border-2 transition-all border-[#F97316] bg-[#FFF7ED] text-[#F97316] font-semibold text-sm"
                                 >
                                     {product.weight}
                                 </button>
@@ -257,7 +257,7 @@ const ProductDetailsPage = () => {
                     )}
 
                     {/* Tags */}
-                    <div className="flex gap-2 mb-6 flex-wrap">
+                    <div className="flex gap-2 mb-4 flex-wrap">
                         {tags.map((tag, index) => (
                             <span
                                 key={index}
@@ -447,33 +447,33 @@ const ProductDetailsPage = () => {
             </div>
 
             {/* Bottom Sticky Bar */}
-            <div className="fixed bottom-16 md:bottom-0 left-0 right-0 bg-white border-t border-[#E5E7EB] shadow-[0_-4px_16px_rgba(0,0,0,0.1)] z-40">
-                <div className="p-4 max-w-md mx-auto">
+            <div className="fixed bottom-16 md:bottom-0 left-0 right-0 bg-white border-t border-[#E5E7EB] shadow-[0_-2px_10px_rgba(0,0,0,0.08)] z-40">
+                <div className="px-4 py-3 max-w-md mx-auto">
                     {/* Quantity & Price Row */}
-                    <div className="flex items-center gap-3 mb-3">
+                    <div className="flex items-center gap-2 mb-2">
                         {/* Quantity Selector */}
-                        <div className="flex items-center gap-2 bg-[#F3F4F6] rounded-full px-3 py-2 border border-[#E5E7EB]">
+                        <div className="flex items-center bg-[#F3F4F6] rounded-full px-2 py-1.5 border border-[#E5E7EB]">
                             <button
                                 onClick={handleDecrement}
-                                className="w-8 h-8 flex items-center justify-center text-[#23110C] hover:bg-white rounded-full transition-all"
+                                className="w-7 h-7 flex items-center justify-center text-[#23110C] hover:bg-white rounded-full transition-all"
                             >
                                 <Minus className="w-4 h-4" />
                             </button>
-                            <span className="w-10 text-center font-bold">
+                            <span className="w-8 text-center font-bold text-sm">
                                 {quantity}
                             </span>
                             <button
                                 onClick={handleIncrement}
-                                className="w-8 h-8 flex items-center justify-center text-[#23110C] hover:bg-white rounded-full transition-all"
+                                className="w-7 h-7 flex items-center justify-center text-[#23110C] hover:bg-white rounded-full transition-all"
                             >
                                 <Plus className="w-4 h-4" />
                             </button>
                         </div>
 
                         {/* Total Price Display */}
-                        <div className="flex-1 bg-gradient-to-br from-[#FFF7ED] to-[#FEF3C7] rounded-2xl px-4 py-2 border border-[#F97316]/20">
-                            <p className="text-[#6B7280] text-xs">الإجمالي</p>
-                            <p className="text-[#F97316] text-xl font-bold">
+                        <div className="flex-1 bg-gradient-to-br from-[#FFF7ED] to-[#FEF3C7] rounded-xl px-3 py-1.5 border border-[#F97316]/20">
+                            <p className="text-[#6B7280] text-[10px]">الإجمالي</p>
+                            <p className="text-[#F97316] text-lg font-bold">
                                 {(displayPrice * quantity).toFixed(0)} جنيه
                             </p>
                         </div>
@@ -483,14 +483,14 @@ const ProductDetailsPage = () => {
                     <button 
                         onClick={handleAddToCart}
                         disabled={!available}
-                        className={`w-full py-4 px-6 rounded-2xl flex items-center justify-center gap-3 shadow-xl transition-all ${
+                        className={`w-full py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all ${
                             available 
-                                ? 'bg-gradient-to-r from-[#F97316] to-[#ea580c] text-white hover:shadow-2xl hover:scale-[1.02] active:scale-[0.98]' 
+                                ? 'bg-gradient-to-r from-[#F97316] to-[#ea580c] text-white hover:shadow-xl active:scale-[0.98]' 
                                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                         }`}
                     >
-                        <ShoppingCart className="w-6 h-6" />
-                        <span className="text-lg font-bold">{available ? 'أضف للسلة' : 'غير متوفر'}</span>
+                        <ShoppingCart className="w-5 h-5" />
+                        <span className="text-base font-bold">{available ? 'أضف للسلة' : 'غير متوفر'}</span>
                     </button>
                 </div>
             </div>

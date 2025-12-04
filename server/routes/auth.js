@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import { query } from '../database.js';
+import { validate, registerSchema, loginSchema } from '../middleware/validation.js';
 
 const router = express.Router();
 
@@ -12,10 +13,12 @@ if (!process.env.JWT_SECRET) {
 }
 const SECRET_KEY = process.env.JWT_SECRET;
 
-// Register
-router.post('/register', async (req, res) => {
+// Register - with validation
+router.post('/register', validate(registerSchema), async (req, res) => {
     const { name, email, password } = req.body;
-    const hashedPassword = bcrypt.hashSync(password, 8);
+    
+    // ✅ Security: Use stronger hashing (12 rounds)
+    const hashedPassword = bcrypt.hashSync(password, 12);
 
     try {
         const sql = `
@@ -36,14 +39,14 @@ router.post('/register', async (req, res) => {
     } catch (err) {
         console.error("Register error:", err);
         if (err.code === '23505') { // Unique violation for email
-            return res.status(500).send({ error: 'Email already exists.' });
+            return res.status(409).send({ error: 'Email already exists.' });
         }
         return res.status(500).send({ error: 'Server error during registration.' });
     }
 });
 
-// Login
-router.post('/login', async (req, res) => {
+// Login - with validation
+router.post('/login', validate(loginSchema), async (req, res) => {
     const { email, password } = req.body;
 
     try {

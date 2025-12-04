@@ -1,6 +1,7 @@
 import express from 'express';
 import { query } from '../database.js';
 import { verifyToken } from '../middleware/auth.js';
+import { validate, cartItemSchema, cartUpdateSchema } from '../middleware/validation.js';
 
 const router = express.Router();
 
@@ -51,12 +52,17 @@ router.get('/', [verifyToken], async (req, res) => {
     }
 });
 
-// Add to cart
-router.post('/add', [verifyToken], async (req, res) => {
+// Add to cart - with validation
+router.post('/add', [verifyToken, validate(cartItemSchema)], async (req, res) => {
     const userId = req.userId; // من التوكن فقط
     const { productId, quantity, substitutionPreference } = req.body;
 
     try {
+        // ✅ Security: Validate quantity is reasonable
+        if (quantity > 100) {
+            return res.status(400).json({ error: 'Maximum quantity is 100' });
+        }
+        
         // Check if item exists
         const checkSql = "SELECT * FROM cart WHERE user_id = $1 AND product_id = $2";
         const { rows } = await query(checkSql, [userId, productId]);
@@ -65,6 +71,12 @@ router.post('/add', [verifyToken], async (req, res) => {
         if (existing) {
             // Update quantity and substitution preference
             const newQuantity = existing.quantity + (quantity || 1);
+            
+            // ✅ Security: Prevent quantity overflow
+            if (newQuantity > 100) {
+                return res.status(400).json({ error: 'Maximum quantity is 100' });
+            }
+            
             const updateSql = "UPDATE cart SET quantity = $1, substitution_preference = $2 WHERE id = $3";
             await query(updateSql, [newQuantity, substitutionPreference || 'none', existing.id]);
             res.json({ message: "updated", data: { ...existing, quantity: newQuantity, substitution_preference: substitutionPreference || 'none' } });

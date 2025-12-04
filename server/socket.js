@@ -1,4 +1,5 @@
 import { query } from './database.js';
+import { socketAuthMiddleware, requireSocketAuth, requireSocketAdmin } from './middleware/socketAuth.js';
 
 let io;
 
@@ -14,20 +15,35 @@ const orderTrackers = new Map();
 export const initializeSocket = (socketServer) => {
     io = socketServer;
 
+    // ✅ Security: Apply authentication middleware
+    io.use(socketAuthMiddleware);
+
     io.on('connection', (socket) => {
-        console.log('🔌 User connected:', socket.id);
+        const authStatus = socket.isAuthenticated ? `User ${socket.userId} (${socket.userRole})` : 'Guest';
+        console.log(`🔌 Connection: ${socket.id} - ${authStatus}`);
 
         // =============================================
-        // أحداث السائق (Delivery Driver)
+        // أحداث السائق (Delivery Driver) - تتطلب مصادقة
         // =============================================
 
         // السائق يسجل دخوله
         socket.on('driver:join', async ({ driverId, userId }) => {
+            // ✅ Security: Verify driver is authenticated
+            if (!socket.isAuthenticated) {
+                return socket.emit('error', { message: 'Authentication required for driver events' });
+            }
+            
+            // ✅ Security: Verify user matches driver ID or is admin
+            const adminRoles = ['admin', 'owner', 'manager', 'delivery'];
+            if (socket.userId !== userId && !adminRoles.includes(socket.userRole)) {
+                return socket.emit('error', { message: 'Unauthorized driver access' });
+            }
+            
             socket.join(`driver_${driverId}`);
             socket.driverId = driverId;
             socket.userId = userId;
             connectedDrivers.set(driverId, socket.id);
-            console.log(`🚗 Driver ${driverId} connected`);
+            console.log(`🚗 Driver ${driverId} connected (auth verified)`);
 
             // تحديث حالة السائق في قاعدة البيانات
             try {
@@ -42,6 +58,17 @@ export const initializeSocket = (socketServer) => {
 
         // تحديث موقع السائق GPS
         socket.on('driver:location', async ({ driverId, lat, lng, orderId }) => {
+            // ✅ Security: Verify driver is the one sending location
+            if (!socket.isAuthenticated || socket.driverId !== driverId) {
+                return socket.emit('error', { message: 'Unauthorized location update' });
+            }
+            
+            // ✅ Security: Validate coordinates
+            if (typeof lat !== 'number' || typeof lng !== 'number' ||
+                lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                return socket.emit('error', { message: 'Invalid coordinates' });
+            }
+            
             const locationData = {
                 driverId,
                 lat,

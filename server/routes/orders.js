@@ -1,6 +1,7 @@
 import express from 'express';
 import { query } from '../database.js';
 import { verifyToken, isAdmin, optionalAuth } from '../middleware/auth.js';
+import { validate, orderSchema } from '../middleware/validation.js';
 
 const router = express.Router();
 
@@ -14,8 +15,8 @@ function generateOrderCode() {
     return code;
 }
 
-// Create Order
-router.post('/', async (req, res) => {
+// Create Order - with validation
+router.post('/', validate(orderSchema), async (req, res) => {
     console.log('📦 Creating new order...');
     console.log('📦 Request body:', JSON.stringify(req.body, null, 2));
     
