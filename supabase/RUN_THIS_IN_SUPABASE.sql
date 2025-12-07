@@ -147,13 +147,13 @@ $$;
 create or replace view public.branch_products_view as
 select bp.branch_id,
        bp.product_id,
-        coalesce(bp.price, p.price) as price,
+    coalesce(bp.price, 0) as price,
        bp.stock_quantity,
        bp.is_available,
        p.name,
        p.category,
        p.subcategory,
-       p.image_url
+    coalesce(p.image_url, p.image) as image
 from branch_products bp
 join products p on p.id = bp.product_id;
 
