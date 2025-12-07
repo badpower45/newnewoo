@@ -153,7 +153,8 @@ select bp.branch_id,
        p.name,
        p.category,
        p.subcategory,
-    coalesce(p.image_url, p.image) as image
+    -- Prefer image column; older dumps may not have image_url
+    p.image as image
 from branch_products bp
 join products p on p.id = bp.product_id;
 
