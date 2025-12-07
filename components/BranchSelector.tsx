@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useBranch } from '../context/BranchContext';
 import Modal from './Modal';
 import LoadingSpinner from './LoadingSpinner';
 import ErrorMessage from './ErrorMessage';
+import { Navigation, MapPin } from 'lucide-react';
 
 interface BranchSelectorProps {
   isOpen: boolean;
@@ -10,7 +11,9 @@ interface BranchSelectorProps {
 }
 
 const BranchSelector: React.FC<BranchSelectorProps> = ({ isOpen, onClose }) => {
-  const { branches, selectedBranch, loading, error, selectBranch, fetchBranches } = useBranch();
+  const { branches, selectedBranch, loading, error, selectBranch, fetchBranches, autoSelectByLocation } = useBranch();
+  const [locating, setLocating] = useState(false);
+  const [locError, setLocError] = useState('');
 
   useEffect(() => {
     if (isOpen && branches.length === 0) {
@@ -23,6 +26,31 @@ const BranchSelector: React.FC<BranchSelectorProps> = ({ isOpen, onClose }) => {
     onClose();
   };
 
+  const handleUseMyLocation = () => {
+    setLocError('');
+    if (!navigator.geolocation) {
+      setLocError('المتصفح لا يدعم تحديد الموقع');
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const picked = await autoSelectByLocation(pos.coords.latitude, pos.coords.longitude);
+        if (!picked) {
+          setLocError('لم يتم العثور على فرع مناسب لموقعك');
+        } else {
+          onClose();
+        }
+        setLocating(false);
+      },
+      (err) => {
+        setLocError(err.message || 'تعذر تحديد الموقع');
+        setLocating(false);
+      },
+      { enableHighAccuracy: true }
+    );
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="اختر الفرع" size="medium">
       {loading ? (
@@ -31,6 +59,23 @@ const BranchSelector: React.FC<BranchSelectorProps> = ({ isOpen, onClose }) => {
         <ErrorMessage message={error} onRetry={fetchBranches} />
       ) : (
         <div className="space-y-3">
+          <div className="flex items-center gap-2 p-3 rounded-lg bg-blue-50 border border-blue-100">
+            <div className="w-9 h-9 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+              <Navigation size={18} />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-blue-900">اختر أقرب فرع تلقائياً</p>
+              <p className="text-xs text-blue-700">نستخدم موقعك لاختيار الفرع الأنسب</p>
+            </div>
+            <button
+              onClick={handleUseMyLocation}
+              disabled={locating}
+              className="px-3 py-2 text-sm font-semibold bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60"
+            >
+              {locating ? '...جاري التحديد' : 'استخدم موقعي'}
+            </button>
+          </div>
+          {locError && <p className="text-xs text-red-600">{locError}</p>}
           {branches.length === 0 ? (
             <p className="text-center text-gray-500 py-4">لا توجد فروع متاحة حالياً</p>
           ) : (

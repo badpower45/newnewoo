@@ -4,13 +4,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { NAV_ITEMS } from '../constants';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useBranch } from '../context/BranchContext';
+import BranchSelector from './BranchSelector';
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeMegaMenu, setActiveMegaMenu] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isBranchSelectorOpen, setIsBranchSelectorOpen] = useState(false);
   const { totalItems, totalPrice } = useCart();
+  const { selectedBranch } = useBranch();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,14 +33,17 @@ export default function Header() {
             <Clock size={14} className="ml-1 text-brand-orange" />
             <span className="font-bold text-brand-brown">مفتوح 24 ساعة</span>
           </span>
-          <span className="flex items-center hover:text-brand-orange cursor-pointer transition-colors">
+          <span 
+            onClick={() => setIsBranchSelectorOpen(true)}
+            className="flex items-center hover:text-brand-orange cursor-pointer transition-colors"
+          >
             <MapPin size={14} className="ml-1" />
-            التوصيل إلى: <span className="font-semibold mr-1 text-slate-700">وسط البلد، القاهرة</span>
+            التوصيل إلى: <span className="font-semibold mr-1 text-slate-700">{selectedBranch?.address || 'اختر الفرع'}</span>
           </span>
         </div>
         <div className="flex items-center space-x-4 space-x-reverse">
           <span className="hover:text-brand-orange cursor-pointer transition-colors">الخط الساخن: 19999</span>
-          <span className="hover:text-brand-orange cursor-pointer transition-colors">مكافآت علوش</span>
+          <Link to="/profile?tab=rewards" className="hover:text-brand-orange cursor-pointer transition-colors">مكافآت علوش</Link>
         </div>
       </div>
 
@@ -195,6 +202,12 @@ export default function Header() {
           ))}
         </div>
       )}
+
+      {/* Branch Selector Modal */}
+      <BranchSelector 
+        isOpen={isBranchSelectorOpen} 
+        onClose={() => setIsBranchSelectorOpen(false)} 
+      />
     </header>
   );
 }

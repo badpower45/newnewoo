@@ -271,7 +271,22 @@ const MyOrdersPage = () => {
 
             {/* Orders List */}
             <div className="max-w-4xl mx-auto px-4 py-6">
-                {loading ? (
+                {/* Show login prompt for guests */}
+                {(!user || user.isGuest) ? (
+                    <div className="text-center py-16">
+                        <Package size={64} className="mx-auto text-gray-300 mb-4" />
+                        <h3 className="text-lg font-medium text-gray-800 mb-2">سجل دخولك لعرض طلباتك</h3>
+                        <p className="text-gray-500 mb-4">
+                            لمتابعة طلباتك وتتبعها، يرجى تسجيل الدخول أولاً
+                        </p>
+                        <Link 
+                            to="/login"
+                            className="inline-flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-full font-medium hover:bg-primary-dark transition"
+                        >
+                            تسجيل الدخول
+                        </Link>
+                    </div>
+                ) : loading ? (
                     <div className="space-y-4">
                         {[...Array(3)].map((_, i) => (
                             <div key={i} className="bg-white rounded-2xl p-4 animate-pulse">

@@ -115,7 +115,10 @@ const FacebookReelsSection: React.FC<FacebookReelsSectionProps> = ({
     const reelsData = reelsFromApi.length > 0 ? reelsFromApi : (customReels || defaultReels);
 
     const openReel = (reel: Reel) => {
-        setSelectedReel(reel);
+        // فتح الفيديو مباشرة على فيسبوك بدلاً من المودال
+        // لأن المتصفحات الحديثة تمنع تحميل Facebook iframe بسبب Tracking Prevention
+        const fbUrl = reel.facebook_url || `${facebookPageUrl}/videos`;
+        window.open(fbUrl, '_blank', 'noopener,noreferrer');
     };
 
     const closeReel = () => {

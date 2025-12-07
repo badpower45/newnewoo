@@ -1,6 +1,5 @@
 import { io, Socket } from 'socket.io-client';
-
-const SOCKET_URL = `http://${window.location.hostname}:3001`;
+import { SOCKET_URL } from '../src/config';
 
 class SocketService {
     private socket: Socket | null = null;
@@ -13,10 +12,15 @@ class SocketService {
     connect() {
         if (this.socket) return;
 
+        // ✅ Get auth token for authenticated socket connections
+        const token = localStorage.getItem('token');
+
         this.socket = io(SOCKET_URL, {
             reconnection: true,
             reconnectionDelay: 1000,
-            reconnectionAttempts: 5
+            reconnectionAttempts: 5,
+            // ✅ Send auth token with connection
+            auth: token ? { token } : undefined
         });
 
         this.socket.on('connect', () => {

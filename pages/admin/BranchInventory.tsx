@@ -143,8 +143,8 @@ const BranchInventory: React.FC = () => {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {toShow.map((bp) => (
-              <tr key={bp.product_id} className="hover:bg-gray-50">
+            {toShow.map((bp, index) => (
+              <tr key={`${bp.branch_id}-${bp.product_id}-${index}`} className="hover:bg-gray-50">
                 <td className="px-6 py-3 font-medium text-gray-900">{bp.product_name || `#${bp.product_id}`}</td>
                 <td className="px-6 py-3">
                   <div className="flex items-center gap-2">

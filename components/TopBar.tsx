@@ -2,17 +2,20 @@ import React, { useState } from 'react';
 import { MapPin, ChevronDown, Search, ScanLine, ShoppingCart, User, Heart, Clock, Phone, Bell } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import BarcodeScanner from './BarcodeScanner';
+import BranchSelector from './BranchSelector';
 import { api } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-
+import { useBranch } from '../context/BranchContext';
 import { useFavorites } from '../context/FavoritesContext';
 
 const TopBar = () => {
     const { user, isAuthenticated } = useAuth();
     const { favorites } = useFavorites();
     const { totalItems, totalPrice } = useCart();
+    const { selectedBranch } = useBranch();
     const [showScanner, setShowScanner] = useState(false);
+    const [showBranchSelector, setShowBranchSelector] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const navigate = useNavigate();
 
@@ -55,8 +58,8 @@ const TopBar = () => {
                     </span>
                 </div>
                 <div className="flex items-center gap-4">
-                    <span className="hover:text-primary cursor-pointer">تتبع طلبك</span>
-                    <span className="hover:text-primary cursor-pointer">مكافآت علوش</span>
+                    <Link to="/track-order" className="hover:text-primary cursor-pointer transition-colors">تتبع طلبك</Link>
+                    <Link to="/profile?tab=rewards" className="hover:text-primary cursor-pointer transition-colors">مكافآت علوش</Link>
                 </div>
             </div>
 
@@ -108,7 +111,10 @@ const TopBar = () => {
                     </div>
 
                     {/* Location Badge (Mobile) */}
-                    <div className="flex md:hidden items-center gap-2 bg-gray-50 rounded-xl p-2.5">
+                    <div 
+                        onClick={() => setShowBranchSelector(true)}
+                        className="flex md:hidden items-center gap-2 bg-gray-50 rounded-xl p-2.5 cursor-pointer hover:bg-gray-100 transition-colors"
+                    >
                         <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
                             <MapPin className="text-primary w-4 h-4" />
                         </div>
@@ -117,7 +123,7 @@ const TopBar = () => {
                                 <span className="text-gray-500 text-xs">التوصيل إلى:</span>
                                 <ChevronDown className="w-3 h-3 text-primary" />
                             </div>
-                            <span className="text-xs text-gray-900 font-medium">وسط البلد، القاهرة</span>
+                            <span className="text-xs text-gray-900 font-medium">{selectedBranch?.address || 'اختر الفرع'}</span>
                         </div>
                         <div className="text-right">
                             <span className="text-[10px] text-gray-500 block">التوصيل خلال</span>
@@ -126,7 +132,10 @@ const TopBar = () => {
                     </div>
 
                     {/* Desktop: Location */}
-                    <div className="hidden md:flex items-center gap-3">
+                    <div 
+                        onClick={() => setShowBranchSelector(true)}
+                        className="hidden md:flex items-center gap-3 cursor-pointer hover:bg-gray-50 rounded-xl p-2 transition-colors"
+                    >
                         <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
                             <MapPin className="text-primary w-5 h-5" />
                         </div>
@@ -135,7 +144,7 @@ const TopBar = () => {
                                 <span className="text-gray-500 text-sm">التوصيل إلى:</span>
                                 <ChevronDown className="w-4 h-4 text-primary" />
                             </div>
-                            <span className="text-sm text-gray-900 font-medium">وسط البلد، القاهرة</span>
+                            <span className="text-sm text-gray-900 font-medium">{selectedBranch?.address || 'اختر الفرع'}</span>
                             <span className="text-xs text-green-600 font-medium block">التوصيل خلال 45-75 دقيقة</span>
                         </div>
                     </div>
@@ -212,6 +221,12 @@ const TopBar = () => {
                     onClose={() => setShowScanner(false)}
                 />
             )}
+
+            {/* Branch Selector Modal */}
+            <BranchSelector 
+                isOpen={showBranchSelector} 
+                onClose={() => setShowBranchSelector(false)} 
+            />
         </div>
     );
 };

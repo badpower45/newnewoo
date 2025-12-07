@@ -4,6 +4,47 @@ import { verifyToken, isAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
+// Get all delivery slots (default to all branches)
+router.get('/', async (req, res) => {
+    const { branchId, date, available } = req.query;
+
+    try {
+        let sql = `
+            SELECT * FROM delivery_slots
+            WHERE is_active = TRUE
+        `;
+        const params = [];
+        let paramIndex = 1;
+
+        if (branchId) {
+            sql += ` AND branch_id = $${paramIndex}`;
+            params.push(branchId);
+            paramIndex++;
+        }
+
+        if (date) {
+            sql += ` AND date = $${paramIndex}`;
+            params.push(date);
+            paramIndex++;
+        } else {
+            // Default: show slots for next 7 days
+            sql += ` AND date >= CURRENT_DATE AND date <= CURRENT_DATE + INTERVAL '7 days'`;
+        }
+
+        if (available === 'true') {
+            sql += ` AND current_orders < max_orders`;
+        }
+
+        sql += ' ORDER BY date, start_time';
+
+        const { rows } = await query(sql, params);
+        res.json({ message: 'success', data: rows });
+    } catch (err) {
+        console.error("Error fetching delivery slots:", err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Get available delivery slots for a branch
 router.get('/:branchId', async (req, res) => {
     const { branchId } = req.params;

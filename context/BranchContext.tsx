@@ -1,14 +1,18 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../services/supabaseClient';
 
 interface Branch {
   id: number;
   name: string;
   address: string;
   phone: string;
-  latitude: number;
-  longitude: number;
-  delivery_radius: number;
-  is_active: boolean;
+  latitude?: number;
+  longitude?: number;
+  coverage_radius_km?: number;
+  governorate?: string;
+  city?: string;
+  pickup_enabled?: boolean;
+  is_active?: boolean;
 }
 
 interface BranchContextType {
@@ -19,6 +23,7 @@ interface BranchContextType {
   selectBranch: (branch: Branch) => void;
   fetchBranches: () => Promise<void>;
   findNearbyBranches: (lat: number, lng: number, radius?: number) => Promise<Branch[]>;
+  autoSelectByLocation: (lat: number, lng: number) => Promise<Branch | null>;
 }
 
 const BranchContext = createContext<BranchContextType | undefined>(undefined);
@@ -81,6 +86,36 @@ export const BranchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
+  // Auto select branch using Supabase function (polygon/radius smart pick)
+  const autoSelectByLocation = async (lat: number, lng: number): Promise<Branch | null> => {
+    try {
+      const { data, error } = await supabase.rpc('select_branch_for_location', { lat, lng });
+      if (error) throw error;
+      const match = Array.isArray(data) ? data[0] : null;
+      if (!match) return null;
+
+      // ensure we have full branch info
+      if (branches.length === 0) {
+        await fetchBranches();
+      }
+      const full = [...branches, selectedBranch].find((b) => b && b.id === match.branch_id) as Branch | undefined;
+      const picked: Branch = full || {
+        id: match.branch_id,
+        name: match.name,
+        address: match.city || match.governorate || 'فرع قريب',
+        phone: '',
+        city: match.city,
+        governorate: match.governorate
+      };
+
+      selectBranch(picked);
+      return picked;
+    } catch (err) {
+      console.error('autoSelectByLocation error', err);
+      return null;
+    }
+  };
+
   // Select a branch
   const selectBranch = (branch: Branch) => {
     setSelectedBranch(branch);
@@ -101,7 +136,8 @@ export const BranchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         error,
         selectBranch,
         fetchBranches,
-        findNearbyBranches
+        findNearbyBranches,
+        autoSelectByLocation
       }}
     >
       {children}

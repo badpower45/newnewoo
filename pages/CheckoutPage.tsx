@@ -17,6 +17,7 @@ export default function CheckoutPage() {
     const navigate = useNavigate();
     const { showToast, ToastContainer } = useToast();
     const [paymentMethod, setPaymentMethod] = useState('cod');
+    const isPickup = paymentMethod === 'branch_pickup';
 
     // State for Location
     const [locationCoords, setLocationCoords] = useState<{lat: number, lng: number} | null>(null);
@@ -60,10 +61,17 @@ export default function CheckoutPage() {
         }
     }, [user]);
 
-    // Calculate delivery fee when branch or total changes
+    // Calculate delivery fee when branch or total changes (skip for branch pickup)
     useEffect(() => {
         const calculateDeliveryFee = async () => {
             if (!selectedBranch) return;
+            if (isPickup) {
+                setDeliveryFee(0);
+                setFreeDelivery(true);
+                setDeliveryMessage('سيتم التحضير في الفرع والاستلام بدون توصيل');
+                setCanDeliver(true);
+                return;
+            }
 
             try {
                 const result = await api.deliveryFees.calculate(
@@ -88,7 +96,7 @@ export default function CheckoutPage() {
         };
 
         calculateDeliveryFee();
-    }, [selectedBranch, totalPrice, locationCoords]);
+    }, [selectedBranch, totalPrice, locationCoords, isPickup]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -185,7 +193,7 @@ export default function CheckoutPage() {
             return;
         }
 
-        if (!canDeliver) {
+        if (!isPickup && !canDeliver) {
             showToast(deliveryMessage || 'لا يمكن التوصيل لهذا الطلب', 'error');
             return;
         }
@@ -225,18 +233,21 @@ export default function CheckoutPage() {
                 branchId: selectedBranch.id,
                 total: totalPrice + deliveryFee - couponDiscount, // Subtotal + delivery - coupon discount
                 paymentMethod: paymentMethod,
-                deliveryAddress: `${formData.firstName} ${formData.lastName}, ${formData.phone}, ${formData.building}, ${formData.street}, ${formData.address}`,
+                deliveryAddress: isPickup
+                    ? 'استلام من الفرع'
+                    : `${formData.firstName} ${formData.lastName}, ${formData.phone}, ${formData.building}, ${formData.street}, ${formData.address}`,
                 shippingDetails: {
                     firstName: formData.firstName,
                     lastName: formData.lastName,
                     phone: formData.phone,
-                    building: formData.building,
-                    street: formData.street,
-                    floor: formData.floor,
-                    apartment: formData.apartment,
-                    address: formData.address,
+                    building: isPickup ? '' : formData.building,
+                    street: isPickup ? '' : formData.street,
+                    floor: isPickup ? '' : formData.floor,
+                    apartment: isPickup ? '' : formData.apartment,
+                    address: isPickup ? '' : formData.address,
                     notes: formData.notes,
-                    coordinates: locationCoords
+                    coordinates: isPickup ? null : locationCoords,
+                    fulfillmentType: isPickup ? 'pickup' : 'delivery'
                 },
                 // إضافة معلومات الكوبون
                 couponCode: appliedCoupon ? appliedCoupon.code : null,
@@ -295,7 +306,10 @@ export default function CheckoutPage() {
                 <div className="flex-1 space-y-6">
                     {/* Delivery Details */}
                     <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
-                        <h3 className="text-xl font-bold text-slate-800 mb-6">تفاصيل التوصيل</h3>
+                        <h3 className="text-xl font-bold text-slate-800 mb-2">{isPickup ? 'تفاصيل الاستلام من الفرع' : 'تفاصيل التوصيل'}</h3>
+                        {isPickup && (
+                            <p className="text-sm text-green-700 mb-4">لا نحتاج عنوان؛ فقط الاسم ورقم الهاتف، وسيتم تجهيز الطلب في الفرع المحدد.</p>
+                        )}
                         <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
@@ -388,14 +402,14 @@ export default function CheckoutPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700 flex justify-between items-center">
+                                <label className="text-sm font-bold text-slate-700 flex justify-between items-center">
                                 <span>تفاصيل العنوان الإضافية</span>
                                 {/* Location Button */}
                                 <button
                                     type="button"
                                     onClick={handleGetLocation}
                                     className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full flex items-center hover:bg-blue-100 transition-colors"
-                                    disabled={isLoadingLocation}
+                                        disabled={isLoadingLocation || isPickup}
                                 >
                                     {isLoadingLocation ? <Loader size={12} className="animate-spin ml-1" /> : <MapPin size={12} className="ml-1" />}
                                     {locationCoords ? 'تم تحديد الموقع ✓' : 'تحديد موقعي الحالي'}
@@ -409,8 +423,9 @@ export default function CheckoutPage() {
                                 name="address"
                                 value={formData.address}
                                 onChange={handleInputChange}
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
-                                placeholder="علامة مميزة أو تفاصيل إضافية للعنوان..."
+                                className={`w-full px-4 py-3 rounded-xl border ${isPickup ? 'border-dashed border-slate-200 bg-slate-50 text-slate-500' : 'border-slate-200'} focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all`}
+                                placeholder={isPickup ? 'العنوان غير مطلوب للاستلام من الفرع' : 'علامة مميزة أو تفاصيل إضافية للعنوان...'}
+                                disabled={isPickup}
                             ></textarea>
                             
                             {locationCoords && (
@@ -429,7 +444,7 @@ export default function CheckoutPage() {
                                 value={formData.notes}
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
-                                placeholder="مثال: من فضلك اتصل قبل الوصول..."
+                                placeholder={isPickup ? 'مثال: موعد تقريبي لوصولك للفرع' : 'مثال: من فضلك اتصل قبل الوصول...'}
                             ></textarea>
                         </div>
                         </form>
@@ -449,6 +464,17 @@ export default function CheckoutPage() {
                                     className="w-5 h-5 text-green-600"
                                 />
                                 <span className="mr-3 font-medium">{PAYMENT_METHOD_LABELS.cod}</span>
+                            </label>
+                            <label className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition ${isPickup ? 'border-green-600 bg-green-50' : 'hover:border-green-600'}`}>
+                                <input
+                                    type="radio"
+                                    name="payment"
+                                    value="branch_pickup"
+                                    checked={paymentMethod === 'branch_pickup'}
+                                    onChange={(e) => setPaymentMethod(e.target.value)}
+                                    className="w-5 h-5 text-green-600"
+                                />
+                                <span className="mr-3 font-medium">{PAYMENT_METHOD_LABELS.branch_pickup}</span>
                             </label>
                             <label className="flex items-center p-4 border-2 rounded-xl cursor-pointer hover:border-green-600 transition opacity-50">
                                 <input
@@ -494,14 +520,16 @@ export default function CheckoutPage() {
 
                     <button
                         onClick={handleSubmit}
-                        disabled={!canDeliver}
+                        disabled={!isPickup && !canDeliver}
                         className={`w-full font-bold py-4 rounded-xl transition-colors shadow-lg ${
-                            canDeliver
+                            isPickup || canDeliver
                                 ? 'bg-green-600 text-white hover:bg-green-700'
                                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                         }`}
                     >
-                        {canDeliver ? `تأكيد الطلب (${(totalPrice + deliveryFee - couponDiscount).toFixed(2)} جنيه)` : 'لا يمكن إتمام الطلب'}
+                        {isPickup || canDeliver
+                            ? `تأكيد الطلب (${(totalPrice + deliveryFee - couponDiscount).toFixed(2)} جنيه)`
+                            : 'لا يمكن إتمام الطلب'}
                     </button>
                 </div>
 
@@ -579,7 +607,7 @@ export default function CheckoutPage() {
                                 <span>{totalPrice.toFixed(2)} EGP</span>
                             </div>
                             <div className="flex justify-between items-center text-sm text-gray-600">
-                                <span>Delivery</span>
+                                <span>{isPickup ? 'Pickup' : 'Delivery'}</span>
                                 <span className={freeDelivery ? 'text-green-600 font-bold' : ''}>
                                     {freeDelivery ? 'FREE!' : `${deliveryFee.toFixed(2)} EGP`}
                                 </span>

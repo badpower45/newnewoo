@@ -1,7 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import Footer from './components/Footer';
-import Chatbot from './components/Chatbot';
+import Header from './components/Header';
 import HomePage from './pages/HomePage';
 import ProductsPage from './pages/ProductsPage';
 import ProductDetailsPage from './pages/ProductDetailsPage';
@@ -41,6 +40,7 @@ import TrackOrderPage from './pages/TrackOrderPage';
 import DeliveryPolicyPage from './pages/DeliveryPolicyPage';
 import ReturnPolicyPage from './pages/ReturnPolicyPage';
 import FAQPage from './pages/FAQPage';
+import AuthCallbackPage from './pages/AuthCallbackPage';
 
 import AdminLayout from './pages/admin/AdminLayout';
 import DashboardOverview from './pages/admin/DashboardOverview';
@@ -84,7 +84,8 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans text-slate-900 relative flex flex-col">
-      <main className={`flex-grow ${!isAdminRoute ? 'pb-16 md:pb-0' : ''}`}>
+      {!isAdminRoute && <Header />}
+      <main className={`flex-grow ${!isAdminRoute ? 'pt-24 md:pt-32 pb-16 md:pb-0' : ''}`}>
         <div className={!isAdminRoute ? "max-w-7xl mx-auto w-full" : "w-full"}>
           <Routes>
             <Route path="/" element={<HomePage />} />
@@ -103,6 +104,7 @@ function AppContent() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
+            <Route path="/auth/callback" element={<AuthCallbackPage />} />
             <Route path="/track-order" element={<TrackOrderPage />} />
             <Route path="/delivery-policy" element={<DeliveryPolicyPage />} />
             <Route path="/return-policy" element={<ReturnPolicyPage />} />

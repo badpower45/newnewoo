@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { api } from '../services/api';
+import { supabaseAuth } from '../services/supabaseAuth';
+import { supabase } from '../services/supabaseClient';
 
 interface User {
     id: string;
@@ -8,13 +10,15 @@ interface User {
     role?: string;
     isGuest?: boolean;
     loyaltyPoints?: number;
+    avatar?: string;
 }
 
 interface AuthContextType {
     user: User | null;
-    login: (credentials: any) => Promise<void>;
-    register: (data: any) => Promise<void>;
-    loginAsGuest: () => void;
+    loading: boolean;
+    login: (credentials: any) => Promise<User>;
+    register: (data: any) => Promise<User>;
+    loginAsGuest: () => User;
     logout: () => void;
     isAuthenticated: boolean;
 }
@@ -23,49 +27,92 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+
+    const mapSupabaseSessionToUser = (session: any): User => {
+        const sUser = session?.user;
+        return {
+            id: sUser?.id || 'supabase-user',
+            email: sUser?.email || '',
+            name: sUser?.user_metadata?.full_name || sUser?.email?.split('@')[0] || 'Supabase User',
+            avatar: sUser?.user_metadata?.avatar_url,
+            role: 'customer',
+            isGuest: false
+        };
+    };
 
     useEffect(() => {
-        const token = localStorage.getItem('token');
-        const savedUser = localStorage.getItem('user');
-        if (token && savedUser) {
-            setUser(JSON.parse(savedUser));
-        } else if (savedUser) {
-            // Check for guest user persistence
-            const parsedUser = JSON.parse(savedUser);
-            if (parsedUser.isGuest) {
-                setUser(parsedUser);
+        let cancelled = false;
+        const hydrate = async () => {
+            const token = localStorage.getItem('token');
+            const savedUser = localStorage.getItem('user');
+            if (token && savedUser) {
+                if (!cancelled) setUser(JSON.parse(savedUser));
+                if (!cancelled) setLoading(false);
+                return;
             }
-        }
+
+            if (savedUser) {
+                const parsedUser = JSON.parse(savedUser);
+                if (parsedUser.isGuest && !cancelled) {
+                    setUser(parsedUser);
+                    setLoading(false);
+                    return;
+                }
+            }
+
+            try {
+                const session = await supabaseAuth.getSession();
+                if (session?.user) {
+                    const mapped = mapSupabaseSessionToUser(session);
+                    if (!cancelled) {
+                        localStorage.setItem('token', session.access_token || 'supabase-session');
+                        localStorage.setItem('user', JSON.stringify(mapped));
+                        setUser(mapped);
+                    }
+                }
+            } catch (e) {
+                // ignore hydrate errors
+            }
+            if (!cancelled) setLoading(false);
+        };
+        hydrate();
+        return () => {
+            cancelled = true;
+        };
     }, []);
 
-    const login = async (credentials: any) => {
-        const data = await api.auth.login(credentials);
-        if (data.auth) {
+    const login = async (credentials: any): Promise<User> => {
+        setLoading(true);
+        try {
+            const data = await api.auth.login(credentials);
+            if (!data?.auth || !data?.user) {
+                throw new Error(data?.message || data?.error || 'Login failed');
+            }
             localStorage.setItem('token', data.token);
             const userWithGuestStatus = { ...data.user, isGuest: false };
             localStorage.setItem('user', JSON.stringify(userWithGuestStatus));
             setUser(userWithGuestStatus);
             return userWithGuestStatus; // Return user data for role-based navigation
-        } else {
-            throw new Error('Login failed');
+        } finally {
+            setLoading(false);
         }
     };
 
-    const register = async (registerData: any) => {
-        const data = await api.auth.register(registerData);
-        if (data.auth) {
+    const register = async (registerData: any): Promise<User> => {
+        setLoading(true);
+        try {
+            const data = await api.auth.register(registerData);
+            if (!data?.auth || !data?.user) {
+                throw new Error(data?.message || data?.error || 'Registration failed');
+            }
             localStorage.setItem('token', data.token);
             const userWithGuestStatus = { ...data.user, isGuest: false };
             localStorage.setItem('user', JSON.stringify(userWithGuestStatus));
             setUser(userWithGuestStatus);
-
-            return (
-                <AuthContext.Provider value={{ user, login, register, loginAsGuest, logout, isAuthenticated: !!user }}>
-                    {children}
-                </AuthContext.Provider>
-            );
-        } else {
-            throw new Error('Registration failed');
+            return userWithGuestStatus;
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -81,14 +128,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return guestUser;
     };
 
-    const logout = () => {
+    const logout = async () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
         setUser(null);
+        setLoading(false);
+        try {
+            await supabase.auth.signOut();
+        } catch (e) {
+            // ignore sign-out errors
+        }
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, register, loginAsGuest, logout, isAuthenticated: !!user }}>
+        <AuthContext.Provider value={{ user, loading, login, register, loginAsGuest, logout, isAuthenticated: !!user }}>
             {children}
         </AuthContext.Provider>
     );

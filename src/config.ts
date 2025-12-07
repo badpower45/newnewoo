@@ -29,6 +29,7 @@ const getSocketUrl = () => {
 
 export const API_URL = getApiUrl();
 export const SOCKET_URL = getSocketUrl();
+export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
 export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 // App Constants
@@ -57,6 +58,7 @@ export const ORDER_STATUS = {
   CONFIRMED: 'confirmed',
   PREPARING: 'preparing',
   OUT_FOR_DELIVERY: 'out_for_delivery',
+  READY: 'ready',
   DELIVERED: 'delivered',
   CANCELLED: 'cancelled'
 } as const;
@@ -65,6 +67,7 @@ export const ORDER_STATUS_LABELS: Record<string, string> = {
   pending: 'بانتظار التأكيد',
   confirmed: 'تم التأكيد',
   preparing: 'جاري التحضير',
+  ready: 'تم التحضير بانتظار العميل',
   out_for_delivery: 'في الطريق',
   delivered: 'تم التوصيل',
   cancelled: 'ملغي'
@@ -74,11 +77,13 @@ export const ORDER_STATUS_LABELS: Record<string, string> = {
 export const PAYMENT_METHODS = {
   COD: 'cod',
   FAWRY: 'fawry',
-  CARD: 'card'
+  CARD: 'card',
+  BRANCH_PICKUP: 'branch_pickup'
 } as const;
 
 export const PAYMENT_METHOD_LABELS: Record<string, string> = {
   cod: 'الدفع عند الاستلام',
   fawry: 'Fawry',
-  card: 'بطاقة ائتمان'
+  card: 'بطاقة ائتمان',
+  branch_pickup: 'تحضير في الفرع (استلام ذاتي)'
 };

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeft, Search, Loader2, Grid3X3, LayoutList } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import CategoryCard from '../components/CategoryCard';
-import Footer from '../components/Footer';
 import { api } from '../services/api';
 
 interface Category {
@@ -30,8 +29,9 @@ const CategoriesPage = () => {
         setLoading(true);
         try {
             const res = await api.categories.getAll();
-            if (res.success && res.data) {
-                setCategories(res.data);
+            const list = res.data || res || [];
+            if (Array.isArray(list)) {
+                setCategories(list);
             }
         } catch (err) {
             console.error('Failed to load categories:', err);
@@ -48,7 +48,7 @@ const CategoriesPage = () => {
     return (
         <div className="bg-gray-50 min-h-screen pb-24 md:pb-8">
             {/* Header */}
-            <div className="bg-white p-4 sticky top-0 z-40 shadow-sm flex items-center justify-between md:hidden">
+            <div className="bg-white p-4 sticky top-20 z-40 shadow-sm flex items-center justify-between md:hidden">
                 <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-gray-700">
                     <ChevronLeft size={28} />
                 </button>
@@ -156,7 +156,6 @@ const CategoriesPage = () => {
                     </div>
                 )}
             </div>
-            <Footer />
         </div>
     );
 };

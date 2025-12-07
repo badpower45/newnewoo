@@ -14,7 +14,7 @@ router.get('/', [verifyToken], async (req, res) => {
 
     try {
         const sql = `
-            SELECT c.id as cart_id, c.quantity, 
+            SELECT c.id as cart_id, c.quantity, c.substitution_preference,
                    p.id, p.name, p.image, p.category, p.description, p.weight, p.barcode,
                    COALESCE(bp.price, 0) as price,
                    bp.discount_price as discount_price,
@@ -34,7 +34,7 @@ router.get('/', [verifyToken], async (req, res) => {
             price: Number(row.price) || 0,
             discountPrice: row.discount_price ? Number(row.discount_price) : null,
             quantity: row.quantity,
-            substitutionPreference: 'none',
+            substitutionPreference: row.substitution_preference || 'none',
             category: row.category,
             description: row.description,
             weight: row.weight,

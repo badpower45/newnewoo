@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Loader2 } from 'lucide-react';
+import { supabaseAuth } from '../services/supabaseAuth';
 
 const RegisterPage = () => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [socialLoading, setSocialLoading] = useState<string | null>(null);
     const { register } = useAuth();
     const navigate = useNavigate();
 
@@ -19,6 +21,18 @@ const RegisterPage = () => {
             navigate('/');
         } catch (err) {
             setError('Registration failed. Please try again.');
+        }
+    };
+
+    const handleGoogleSignup = async () => {
+        setSocialLoading('google');
+        setError('');
+        try {
+            await supabaseAuth.signInWithGoogle();
+            setSocialLoading(null);
+        } catch (err: any) {
+            setError(err.message || 'تعذر استخدام جوجل للتسجيل');
+            setSocialLoading(null);
         }
     };
 
@@ -86,6 +100,21 @@ const RegisterPage = () => {
                         Create Account
                     </button>
                 </form>
+
+                <div className="my-6 flex items-center">
+                    <div className="flex-1 border-t border-gray-200"></div>
+                    <span className="px-4 text-sm text-gray-500">أو تابع باستخدام</span>
+                    <div className="flex-1 border-t border-gray-200"></div>
+                </div>
+
+                <button
+                    onClick={handleGoogleSignup}
+                    disabled={!!socialLoading}
+                    className="w-full flex items-center justify-center gap-2 py-3 border border-gray-200 rounded-xl hover:bg-red-50 hover:border-red-300 transition-colors disabled:opacity-60 text-gray-900 font-semibold"
+                >
+                    {socialLoading ? <Loader2 className="animate-spin" size={18} /> : null}
+                    <span>Google</span>
+                </button>
 
                 <p className="mt-8 text-center text-gray-600">
                     Already have an account?{' '}

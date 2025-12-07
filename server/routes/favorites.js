@@ -1,9 +1,65 @@
 import express from 'express';
-import pool from '../database.js';
+import pool, { query } from '../database.js';
+import { verifyToken } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Get user's favorites
+// Get current user's favorites (authenticated)
+router.get('/', verifyToken, async (req, res) => {
+    try {
+        const userId = req.userId;
+        
+        const result = await query(`
+            SELECT 
+                f.id,
+                f.user_id,
+                f.product_id,
+                f.created_at,
+                p.name,
+                p.description,
+                p.category,
+                p.subcategory,
+                p.rating,
+                p.reviews,
+                p.image,
+                p.weight,
+                p.barcode,
+                COALESCE(bp.price, 0) as price,
+                bp.discount_price as original_price,
+                bp.stock_quantity,
+                bp.is_available
+            FROM favorites f
+            JOIN products p ON f.product_id::text = p.id::text
+            LEFT JOIN branch_products bp ON p.id::text = bp.product_id::text AND bp.branch_id = 1
+            WHERE f.user_id = $1
+            ORDER BY f.created_at DESC
+        `, [userId]);
+        
+        const favorites = result.rows.map(row => ({
+            id: row.product_id,
+            name: row.name,
+            description: row.description,
+            category: row.category,
+            subcategory: row.subcategory,
+            rating: parseFloat(row.rating) || 0,
+            reviews: row.reviews || 0,
+            image: row.image,
+            weight: row.weight,
+            barcode: row.barcode,
+            price: parseFloat(row.price) || 0,
+            originalPrice: row.original_price ? parseFloat(row.original_price) : null,
+            stockQuantity: row.stock_quantity,
+            isAvailable: row.is_available
+        }));
+        
+        res.json({ message: 'success', data: favorites });
+    } catch (err) {
+        console.error('Error getting favorites:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get user's favorites by userId (legacy)
 router.get('/:userId', async (req, res) => {
     try {
         const { userId } = req.params;

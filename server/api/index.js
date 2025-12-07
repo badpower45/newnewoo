@@ -4,6 +4,11 @@ const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
+// ✅ Security: Ensure JWT_SECRET is set
+if (!process.env.JWT_SECRET) {
+    throw new Error('FATAL ERROR: JWT_SECRET is not defined in environment variables!');
+}
+
 // Initialize Express
 const app = express();
 
@@ -21,7 +26,7 @@ app.use(cors({
         'https://newnewoo.vercel.app',
         'https://allosh-eg.com',
         'https://www.allosh-eg.com',
-        process.env.FRONTEND_URL
+        ...(process.env.FRONTEND_URL ? process.env.FRONTEND_URL.split(',').map(u => u.trim()) : [])
     ].filter(Boolean),
     credentials: true
 }));

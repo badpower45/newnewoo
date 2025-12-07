@@ -211,6 +211,75 @@ router.get('/track/:orderCode', async (req, res) => {
     }
 });
 
+// Get My Orders (shortcut for authenticated user)
+router.get('/my', [verifyToken], async (req, res) => {
+    const requesterId = req.userId;
+
+    if (!requesterId) {
+        return res.status(400).json({ error: 'User ID not found in token' });
+    }
+
+    try {
+        const { rows } = await query(
+            "SELECT * FROM orders WHERE user_id = $1 ORDER BY date DESC",
+            [requesterId]
+        );
+
+        const orders = rows.map(o => ({
+            ...o,
+            items: typeof o.items === 'string' ? JSON.parse(o.items) : o.items,
+            userId: o.user_id,
+            branchId: o.branch_id
+        }));
+
+        res.json({
+            message: "success",
+            data: orders
+        });
+    } catch (err) {
+        console.error('Error fetching my orders:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get ALL Orders (Admin - no auth for development, should be protected in production)
+router.get('/admin/all', async (req, res) => {
+    const { status, branchId } = req.query;
+    
+    try {
+        let sql = "SELECT * FROM orders WHERE 1=1";
+        const params = [];
+        let paramIndex = 1;
+        
+        if (status) {
+            sql += ` AND status = $${paramIndex}`;
+            params.push(status);
+            paramIndex++;
+        }
+        
+        if (branchId) {
+            sql += ` AND branch_id = $${paramIndex}`;
+            params.push(branchId);
+            paramIndex++;
+        }
+        
+        sql += " ORDER BY date DESC";
+        
+        const { rows } = await query(sql, params);
+        const orders = rows.map(o => ({
+            ...o,
+            items: typeof o.items === 'string' ? JSON.parse(o.items) : o.items,
+            shipping_info: typeof o.shipping_info === 'string' ? JSON.parse(o.shipping_info) : o.shipping_info
+        }));
+        
+        console.log(`📦 Admin fetched ${orders.length} orders (status: ${status || 'all'})`);
+        res.json({ message: 'success', data: orders });
+    } catch (err) {
+        console.error('Error fetching all orders:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 // Get Orders (User or Admin)
 router.get('/', [verifyToken], async (req, res) => {
     const userId = req.query.userId;

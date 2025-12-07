@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, ArrowRight, Loader, CheckCircle, AlertCircle } from 'lucide-react';
 import { api } from '../services/api';
+import { supabaseAuth } from '../services/supabaseAuth';
 
 const ForgotPasswordPage = () => {
     const [email, setEmail] = useState('');
@@ -15,10 +16,16 @@ const ForgotPasswordPage = () => {
         setError('');
 
         try {
-            await api.auth.forgotPassword(email);
+            await api.auth.forgotPassword(email.trim());
             setSuccess(true);
         } catch (err: any) {
-            setError(err.message || 'حدث خطأ. حاول مرة أخرى.');
+            // Fallback to Supabase password reset
+            try {
+                await supabaseAuth.sendResetEmail(email.trim());
+                setSuccess(true);
+            } catch (supabaseError: any) {
+                setError(supabaseError.message || err?.message || 'حدث خطأ. حاول مرة أخرى.');
+            }
         } finally {
             setLoading(false);
         }

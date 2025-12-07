@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ChevronLeft, Facebook, Mail, Loader2 } from 'lucide-react';
-import api from '../services/api';
+import { ChevronLeft, Facebook, Mail, Loader2, Phone, X, KeyRound } from 'lucide-react';
+import { api } from '../services/api';
+import { supabaseAuth } from '../services/supabaseAuth';
 
 // Declare Google types
 declare global {
@@ -29,14 +30,23 @@ const LoginPage = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [socialLoading, setSocialLoading] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [pendingSocial, setPendingSocial] = useState<null | { provider: 'google' | 'facebook'; profile: any }>(null);
+    const [completionData, setCompletionData] = useState({ name: '', email: '', phone: '' });
+    const [showCompletion, setShowCompletion] = useState(false);
+    const [otpEmail, setOtpEmail] = useState('');
+    const [otpToken, setOtpToken] = useState('');
+    const [otpStatus, setOtpStatus] = useState<'idle' | 'sending' | 'sent' | 'verifying' | 'done'>('idle');
+    const [otpError, setOtpError] = useState('');
     const { login, loginAsGuest } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setIsSubmitting(true);
         try {
-            const userData = await login({ email, password });
+            const userData = await login({ email: email.trim(), password });
             
             // توجيه بناءً على الـ role
             if (userData?.role === 'delivery') {
@@ -49,8 +59,10 @@ const LoginPage = () => {
                 navigate('/');
             }
         } catch (err) {
-            setError('Invalid email or password');
+            const message = err instanceof Error ? err.message : 'Invalid email or password';
+            setError(message);
         }
+        setIsSubmitting(false);
     };
 
     const handleGuestLogin = () => {
@@ -58,27 +70,38 @@ const LoginPage = () => {
         navigate('/');
     };
 
+    const finalizeSocialLogin = async (provider: 'google' | 'facebook', profile: any) => {
+        const response = provider === 'google' 
+            ? await api.auth.googleLogin(profile)
+            : await api.auth.facebookLogin(profile);
+        if (response.token && response.user) {
+            localStorage.setItem('token', response.token);
+            localStorage.setItem('user', JSON.stringify({ ...response.user, isGuest: false }));
+            window.location.href = '/';
+        } else {
+            throw new Error('فشل تسجيل الدخول الاجتماعي');
+        }
+    };
+
+    const promptCompletion = (provider: 'google' | 'facebook', profile: any) => {
+        setPendingSocial({ provider, profile });
+        setCompletionData({
+            name: profile?.name || '',
+            email: profile?.email || '',
+            phone: ''
+        });
+        setShowCompletion(true);
+    };
+
     const handleGoogleLogin = async () => {
         setSocialLoading('google');
         setError('');
         
         try {
-            // For demo purposes, simulate Google login
-            // In production, you would use Google Sign-In SDK
-            const mockGoogleData = {
-                googleId: 'demo_google_' + Date.now(),
-                email: 'demo.google@example.com',
-                name: 'Google User',
-                picture: 'https://ui-avatars.com/api/?name=Google+User&background=4285F4&color=fff'
-            };
-            
-            const response = await api.auth.googleLogin(mockGoogleData);
-            
-            if (response.token && response.user) {
-                localStorage.setItem('token', response.token);
-                localStorage.setItem('user', JSON.stringify(response.user));
-                window.location.href = '/';
-            }
+            // حاليًا نستعمل OAuth من Supabase (يعيد التوجيه للكولباك)
+            await supabaseAuth.signInWithGoogle();
+            // سيحدث إعادة توجيه؛ في حال لم يتم التحويل لأي سبب
+            setSocialLoading(null);
         } catch (err: any) {
             setError(err.message || 'فشل تسجيل الدخول بجوجل');
         } finally {
@@ -100,17 +123,81 @@ const LoginPage = () => {
                 picture: 'https://ui-avatars.com/api/?name=Facebook+User&background=1877F2&color=fff'
             };
             
-            const response = await api.auth.facebookLogin(mockFacebookData);
-            
-            if (response.token && response.user) {
-                localStorage.setItem('token', response.token);
-                localStorage.setItem('user', JSON.stringify(response.user));
-                window.location.href = '/';
+            if (!mockFacebookData.email || !mockFacebookData.name) {
+                promptCompletion('facebook', mockFacebookData);
+            } else {
+                await finalizeSocialLogin('facebook', mockFacebookData);
             }
         } catch (err: any) {
             setError(err.message || 'فشل تسجيل الدخول بفيسبوك');
         } finally {
             setSocialLoading(null);
+        }
+    };
+
+    const handleCompleteProfile = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!pendingSocial) return;
+
+        try {
+            setSocialLoading(pendingSocial.provider);
+            const mergedProfile = {
+                ...pendingSocial.profile,
+                ...completionData,
+                phone: completionData.phone
+            };
+            await finalizeSocialLogin(pendingSocial.provider, mergedProfile);
+            setShowCompletion(false);
+            setPendingSocial(null);
+        } catch (err: any) {
+            setError(err.message || 'برجاء إعادة المحاولة');
+        } finally {
+            setSocialLoading(null);
+        }
+    };
+
+    const handleSendOtp = async () => {
+        if (!otpEmail) {
+            setOtpError('أدخل البريد الإلكتروني أولاً');
+            return;
+        }
+        setOtpError('');
+        setOtpStatus('sending');
+        try {
+            await supabaseAuth.sendEmailOtp(otpEmail.trim());
+            setOtpStatus('sent');
+        } catch (err: any) {
+            setOtpError(err.message || 'تعذر إرسال الرمز');
+            setOtpStatus('idle');
+        }
+    };
+
+    const handleVerifyOtp = async () => {
+        if (!otpEmail || !otpToken) {
+            setOtpError('أدخل البريد والرمز');
+            return;
+        }
+        setOtpError('');
+        setOtpStatus('verifying');
+        try {
+            const result = await supabaseAuth.verifyEmailOtp(otpEmail.trim(), otpToken.trim());
+            const session = result.session || (await supabaseAuth.getSession());
+            const supaUser = result.user || session?.user;
+            const token = session?.access_token || 'supabase-session';
+
+            localStorage.setItem('token', token);
+            localStorage.setItem('user', JSON.stringify({
+                id: supaUser?.id || 'supabase-user',
+                email: supaUser?.email || otpEmail.trim(),
+                name: supaUser?.email?.split('@')[0] || 'Supabase User',
+                role: 'customer',
+                isGuest: false
+            }));
+            setOtpStatus('done');
+            window.location.href = '/';
+        } catch (err: any) {
+            setOtpError(err.message || 'فشل التحقق من الرمز');
+            setOtpStatus('sent');
         }
     };
 
@@ -168,9 +255,14 @@ const LoginPage = () => {
 
                     <button
                         type="submit"
-                        className="w-full bg-primary text-white font-bold py-3.5 rounded-xl hover:bg-primary/90 transition-colors shadow-lg shadow-primary/30"
+                        disabled={isSubmitting}
+                        className="w-full bg-primary text-white font-bold py-3.5 rounded-xl hover:bg-primary/90 transition-colors shadow-lg shadow-primary/30 disabled:opacity-70 disabled:cursor-not-allowed"
                     >
-                        Log In
+                        {isSubmitting ? (
+                            <span className="flex items-center justify-center gap-2"><Loader2 className="animate-spin" size={18} /> Signing In...</span>
+                        ) : (
+                            'Log In'
+                        )}
                     </button>
                 </form>
 
@@ -184,7 +276,7 @@ const LoginPage = () => {
                     <button
                         onClick={handleFacebookLogin}
                         disabled={socialLoading !== null}
-                        className="flex items-center justify-center space-x-2 py-3 border border-gray-200 rounded-xl hover:bg-blue-50 hover:border-blue-300 transition-colors disabled:opacity-50"
+                        className="flex items-center justify-center space-x-2 py-3 border border-gray-200 rounded-xl hover:bg-blue-50 hover:border-blue-300 transition-colors disabled:opacity-50 text-gray-900 font-semibold"
                     >
                         {socialLoading === 'facebook' ? (
                             <Loader2 size={20} className="animate-spin text-blue-600" />
@@ -196,7 +288,7 @@ const LoginPage = () => {
                     <button
                         onClick={handleGoogleLogin}
                         disabled={socialLoading !== null}
-                        className="flex items-center justify-center space-x-2 py-3 border border-gray-200 rounded-xl hover:bg-red-50 hover:border-red-300 transition-colors disabled:opacity-50"
+                        className="flex items-center justify-center space-x-2 py-3 border border-gray-200 rounded-xl hover:bg-red-50 hover:border-red-300 transition-colors disabled:opacity-50 text-gray-900 font-semibold"
                     >
                         {socialLoading === 'google' ? (
                             <Loader2 size={20} className="animate-spin text-red-500" />
@@ -224,6 +316,61 @@ const LoginPage = () => {
                     </button>
                 </div>
 
+                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3 mb-6">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-semibold text-gray-800">تسجيل برمز OTP (Supabase)</p>
+                            <p className="text-xs text-gray-500">أرسل رمز إلى بريدك ثم أدخله للتسجيل السريع.</p>
+                        </div>
+                        <KeyRound size={18} className="text-primary" />
+                    </div>
+
+                    {otpError && (
+                        <div className="text-xs text-red-600 bg-red-50 border border-red-100 px-3 py-2 rounded-lg">{otpError}</div>
+                    )}
+
+                    <div className="space-y-2">
+                        <input
+                            type="email"
+                            value={otpEmail}
+                            onChange={(e) => setOtpEmail(e.target.value)}
+                            placeholder="you@example.com"
+                            className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary text-sm"
+                        />
+                        {otpStatus !== 'idle' && (
+                            <input
+                                type="text"
+                                value={otpToken}
+                                onChange={(e) => setOtpToken(e.target.value)}
+                                placeholder="أدخل رمز التحقق"
+                                className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary text-sm"
+                            />
+                        )}
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-2">
+                        <button
+                            type="button"
+                            onClick={handleSendOtp}
+                            disabled={otpStatus === 'sending' || otpStatus === 'sent' || otpStatus === 'verifying'}
+                            className="flex-1 px-3 py-2 rounded-lg border border-primary text-primary font-semibold hover:bg-primary/5 disabled:opacity-60"
+                        >
+                            {otpStatus === 'sending' ? 'جارٍ الإرسال...' : otpStatus === 'sent' ? 'تم الإرسال' : 'إرسال الرمز'}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleVerifyOtp}
+                            disabled={otpStatus === 'verifying' || otpStatus === 'idle'}
+                            className="flex-1 px-3 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90 disabled:opacity-60"
+                        >
+                            {otpStatus === 'verifying' ? 'جارٍ التحقق...' : 'تأكيد الرمز وتسجيل الدخول'}
+                        </button>
+                    </div>
+                    {otpStatus === 'done' && (
+                        <p className="text-xs text-green-700 bg-green-50 border border-green-100 px-3 py-2 rounded-lg">تم التحقق! سيتم تحويلك الآن.</p>
+                    )}
+                </div>
+
                 <button
                     onClick={handleGuestLogin}
                     className="w-full py-3.5 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 font-medium hover:border-gray-400 hover:bg-gray-50 transition-all"
@@ -238,6 +385,65 @@ const LoginPage = () => {
                     </Link>
                 </p>
             </div>
+
+            {showCompletion && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 relative">
+                        <button
+                            onClick={() => setShowCompletion(false)}
+                            className="absolute top-3 right-3 p-2 rounded-full hover:bg-gray-100"
+                            aria-label="إغلاق"
+                        >
+                            <X size={18} />
+                        </button>
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">أكمل بياناتك</h3>
+                        <p className="text-sm text-gray-500 mb-4">بعض البيانات غير موجودة من مزود الدخول. يرجى استكمالها.</p>
+                        <form onSubmit={handleCompleteProfile} className="space-y-3">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">الاسم الكامل</label>
+                                <input
+                                    type="text"
+                                    value={completionData.name}
+                                    onChange={(e) => setCompletionData({ ...completionData, name: e.target.value })}
+                                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary text-sm"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">البريد الإلكتروني</label>
+                                <input
+                                    type="email"
+                                    value={completionData.email}
+                                    onChange={(e) => setCompletionData({ ...completionData, email: e.target.value })}
+                                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary text-sm"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">رقم الموبايل</label>
+                                <div className="relative">
+                                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                                    <input
+                                        type="tel"
+                                        value={completionData.phone}
+                                        onChange={(e) => setCompletionData({ ...completionData, phone: e.target.value })}
+                                        className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary text-sm"
+                                        placeholder="01XXXXXXXXX"
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={!!socialLoading}
+                                className="w-full bg-primary text-white font-semibold py-3 rounded-lg hover:bg-primary/90 disabled:opacity-70"
+                            >
+                                {socialLoading ? 'جارٍ الحفظ...' : 'حفظ وإكمال التسجيل'}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

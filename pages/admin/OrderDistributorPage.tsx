@@ -71,14 +71,38 @@ const OrderDistributorPage = () => {
     const loadOrders = async () => {
         setLoading(true);
         try {
-            const statusMap = {
+            const statusMap: { [key: string]: string } = {
                 pending: 'pending',
                 preparing: 'preparing',
                 ready: 'ready',
                 tracking: 'out_for_delivery'
             };
-            const res = await api.distribution.getOrdersToPrepare(selectedBranch?.id, statusMap[activeTab]);
-            setOrders(res.data || []);
+            console.log('📦 Loading orders for tab:', activeTab, 'status:', statusMap[activeTab], 'branch:', selectedBranch?.id);
+            
+            let ordersData: any[] = [];
+            
+            // Use admin API that doesn't require auth
+            try {
+                const res = await api.orders.getAllAdmin(statusMap[activeTab], selectedBranch?.id);
+                console.log('📦 Admin Orders API response:', res);
+                ordersData = res.data || [];
+                console.log('📦 Loaded', ordersData.length, 'orders for status:', statusMap[activeTab]);
+            } catch (err) {
+                console.error('❌ Admin Orders API failed:', err);
+                // Fallback to regular orders API
+                try {
+                    const res = await api.orders.getAll();
+                    const allOrders = res.data || res || [];
+                    ordersData = allOrders.filter((o: any) => o.status === statusMap[activeTab]);
+                    if (selectedBranch?.id) {
+                        ordersData = ordersData.filter((o: any) => o.branch_id === selectedBranch.id || !o.branch_id);
+                    }
+                } catch (fallbackErr) {
+                    console.error('❌ Fallback also failed:', fallbackErr);
+                }
+            }
+            
+            setOrders(ordersData);
         } catch (err) {
             console.error('Failed to load orders:', err);
         }
