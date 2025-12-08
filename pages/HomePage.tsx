@@ -101,28 +101,8 @@ const HomePage = () => {
     }, [selectedBranch]);
 
     useEffect(() => {
-        const loadBranch = async () => {
-            if (!selectedBranch) { setBranchMap({}); return; }
-            try {
-                const res = await api.branchProducts.getByBranch(selectedBranch.id);
-                const list = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
-                const map: Record<string | number, { price?: number; stockQuantity?: number; reservedQuantity?: number }> = {};
-                for (const bp of list) {
-                    const pid = bp.product_id ?? bp.productId ?? bp.id;
-                    if (pid == null) continue;
-                    map[pid] = {
-                        price: bp.branch_price ?? bp.branchPrice ?? bp.price,
-                        stockQuantity: bp.available_quantity ?? bp.stock_quantity ?? bp.stockQuantity,
-                        reservedQuantity: bp.reserved_quantity ?? bp.reservedQuantity
-                    };
-                }
-                setBranchMap(map);
-            } catch (e) {
-                console.error('Failed to load branch products', e);
-                setBranchMap({});
-            }
-        };
-        loadBranch();
+        // Skip branch-products API (404 on current backend)
+        setBranchMap({});
     }, [selectedBranch]);
 
     return (
@@ -230,14 +210,7 @@ const HomePage = () => {
                 {/* Featured Brands Carousel */}
                 <BrandsCarousel title="براندات مميزة" />
 
-                {/* Brand Offers Section - عروض البراندات */}
-                <BrandOffersSection />
-
-                {/* Facebook Reels Section */}
-                <FacebookReelsGrid 
-                    pageUsername="Alloshchocolates"
-                    pageName="Allosh Chocolates"
-                />
+                {/* Brand offers & reels disabled: backend endpoints 404 */}
 
                 {/* Sponsored Ads - Grid Layout (Scattered) */}
                 <SponsoredAds ads={SPONSORED_ADS.slice(0, 2)} layout="grid" />

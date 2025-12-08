@@ -76,6 +76,16 @@ export const api = {
         },
         getAllByBranch: async (branchId: number) => {
             const res = await fetch(`${API_URL}/products?branchId=${branchId}`, { headers: getHeaders() });
+            if (!res.ok && res.status === 404) {
+                // backend missing branch filter; fallback to all products
+                const all = await fetch(`${API_URL}/products`, { headers: getHeaders() });
+                const jsonAll = await all.json();
+                const normalize = (p: any) => ({ ...p, price: Number(p?.price) || 0 });
+                return {
+                    ...jsonAll,
+                    data: Array.isArray(jsonAll.data) ? jsonAll.data.map(normalize) : jsonAll.data
+                };
+            }
             const json = await res.json();
             const normalize = (p: any) => ({ ...p, price: Number(p?.price) || 0 });
             return {
