@@ -68,8 +68,20 @@ const HomePage = () => {
         setError(null);
         try {
             const branchId = selectedBranch?.id || DEFAULT_BRANCH_ID;
-            const data = await api.products.getAllByBranch(branchId);
-            const list = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
+            // 1) حاول بيانات الفرع
+            let data = await api.products.getAllByBranch(branchId);
+            let list = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
+
+            // 2) لو فاضي/404 جرّب كل المنتجات بدون فرع
+            if (!list.length) {
+                try {
+                    const all = await api.products.getAll();
+                    list = Array.isArray(all?.data) ? all.data : (Array.isArray(all) ? all : []);
+                } catch (fallbackErr) {
+                    console.error('Fallback getAll failed', fallbackErr);
+                }
+            }
+
             setProducts(list);
             if (list.length === 0) {
                 setError('لا توجد منتجات متاحة حالياً لهذا الفرع');

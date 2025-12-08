@@ -33,6 +33,8 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
 
     const facebookPageUrl = `https://www.facebook.com/${pageUsername}`;
     const facebookReelsUrl = `https://www.facebook.com/${pageUsername}/reels`;
+    // Backend endpoint currently 404s; stay on local fallback to avoid noisy network errors
+    const USE_REMOTE = false;
 
     // Default reels (fallback) - with sample MP4 videos
     const defaultReels: Reel[] = [
@@ -81,6 +83,11 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
 
     // Fetch reels from API
     useEffect(() => {
+        if (!USE_REMOTE) {
+            setReels(defaultReels);
+            setLoading(false);
+            return;
+        }
         const fetchReels = async () => {
             try {
                 const response = await api.facebookReels.getAll();
