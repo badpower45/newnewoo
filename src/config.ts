@@ -9,22 +9,25 @@ const getApiUrl = () => {
     if (import.meta.env.VITE_API_URL) {
         return import.meta.env.VITE_API_URL;
     }
-    // For local development, use the same hostname as the frontend
-    // This allows mobile devices on the same network to connect
-    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
-        return `http://${window.location.hostname}:3001/api`;
-    }
-    return 'http://localhost:3001/api';
+  // For local development, allow localhost/127.0.0.1 to hit local backend; otherwise fall back to production
+  const host = typeof window !== 'undefined' ? window.location.hostname : '';
+  const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '::1';
+  if (!isLocal && host) {
+    return `http://${host}:3001/api`;
+  }
+  return 'https://bkaa.vercel.app/api';
 };
 
 const getSocketUrl = () => {
     if (import.meta.env.VITE_SOCKET_URL) {
         return import.meta.env.VITE_SOCKET_URL;
     }
-    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') {
-        return `http://${window.location.hostname}:3001`;
-    }
-    return 'http://localhost:3001';
+  const host = typeof window !== 'undefined' ? window.location.hostname : '';
+  const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '::1';
+  if (!isLocal && host) {
+    return `http://${host}:3001`;
+  }
+  return 'https://bkaa.vercel.app';
 };
 
 export const API_URL = getApiUrl();
