@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 
 interface CategoryCardProps {
-    name: string;
+    name?: string;
     nameEn?: string;
     image?: string;
     icon?: string;
@@ -22,9 +22,12 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
     variant = 'default'
 }) => {
     const navigate = useNavigate();
+    const displayName = name || nameEn || 'بدون اسم';
+    const initial = displayName.charAt(0).toUpperCase();
 
     const handleClick = () => {
         const categoryName = nameEn || name;
+        if (!categoryName) return;
         navigate(`/products?category=${encodeURIComponent(categoryName)}`);
     };
 
@@ -37,15 +40,15 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
             >
                 <div className={`w-20 h-20 ${bgColor} rounded-2xl flex items-center justify-center overflow-hidden flex-shrink-0`}>
                     {image ? (
-                        <img src={image} alt={name} className="w-full h-full object-cover" />
+                        <img src={image} alt={displayName} className="w-full h-full object-cover" />
                     ) : icon ? (
                         <span className="text-4xl">{icon}</span>
                     ) : (
-                        <span className="text-3xl font-bold text-orange-500">{name.charAt(0)}</span>
+                        <span className="text-3xl font-bold text-orange-500">{initial}</span>
                     )}
                 </div>
                 <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-gray-900 text-lg truncate">{name}</h3>
+                    <h3 className="font-bold text-gray-900 text-lg truncate">{displayName}</h3>
                     {productsCount !== undefined && (
                         <p className="text-sm text-gray-500">{productsCount} منتج</p>
                     )}
@@ -67,7 +70,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
                     <>
                         <img 
                             src={image} 
-                            alt={name} 
+                            alt={displayName} 
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -78,7 +81,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
                     </div>
                 ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-orange-400 to-orange-600">
-                        <span className="text-4xl font-bold text-white">{name.charAt(0)}</span>
+                        <span className="text-4xl font-bold text-white">{initial}</span>
                     </div>
                 )}
                 
@@ -91,7 +94,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
             
             {/* Name */}
             <p className="mt-2 text-sm font-semibold text-gray-800 text-center line-clamp-2 group-hover:text-orange-600 transition-colors">
-                {name}
+                {displayName}
             </p>
         </div>
     );

@@ -9,11 +9,11 @@ const getApiUrl = () => {
     if (import.meta.env.VITE_API_URL) {
         return import.meta.env.VITE_API_URL;
     }
-  // For local development, allow localhost/127.0.0.1 to hit local backend; otherwise fall back to production
+  // For local development, use local backend; otherwise use hosted API
   const host = typeof window !== 'undefined' ? window.location.hostname : '';
   const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '::1';
-  if (!isLocal && host) {
-    return `http://${host}:3001/api`;
+  if (isLocal) {
+    return 'http://localhost:3001/api';
   }
   return 'https://bkaa.vercel.app/api';
 };
@@ -24,8 +24,8 @@ const getSocketUrl = () => {
     }
   const host = typeof window !== 'undefined' ? window.location.hostname : '';
   const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '::1';
-  if (!isLocal && host) {
-    return `http://${host}:3001`;
+  if (isLocal) {
+    return 'http://localhost:3001';
   }
   return 'https://bkaa.vercel.app';
 };
