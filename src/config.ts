@@ -9,16 +9,13 @@ const getApiUrl = () => {
     if (import.meta.env.VITE_API_URL) {
         return import.meta.env.VITE_API_URL;
     }
-  // Default: local dev -> localhost; hosted -> same origin /api
+  // Default fallback to provided backend URL
   const host = typeof window !== 'undefined' ? window.location.hostname : '';
   const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '::1';
   if (isLocal) {
     return 'http://localhost:3001/api';
   }
-  if (host && typeof window !== 'undefined') {
-    return `${window.location.origin}/api`;
-  }
-  return 'https://newnewoo.vercel.app/api';
+  return 'https://bkaa.vercel.app/api';
 };
 
 const getSocketUrl = () => {
@@ -30,10 +27,7 @@ const getSocketUrl = () => {
   if (isLocal) {
     return 'http://localhost:3001';
   }
-  if (host && typeof window !== 'undefined') {
-    return window.location.origin;
-  }
-  return 'https://newnewoo.vercel.app';
+  return 'https://bkaa.vercel.app';
 };
 
 export const API_URL = getApiUrl();
