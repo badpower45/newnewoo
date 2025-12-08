@@ -7,6 +7,22 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;700;800;900&family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <script>
+      // Prevent duplicate custom element definitions (e.g., mce-autosize-textarea from extensions)
+      (function() {
+        try {
+          var ce = window.customElements;
+          if (ce && !ce.__patchedDefine) {
+            var orig = ce.define.bind(ce);
+            ce.define = function(name, ctor, options) {
+              if (ce.get(name)) return;
+              return orig(name, ctor, options);
+            };
+            ce.__patchedDefine = true;
+          }
+        } catch (e) {}
+      })();
+    </script>
     <style>
       body {
         font-family: 'Tajawal', sans-serif;

@@ -15,10 +15,10 @@ const getApiUrl = () => {
   if (isLocal) {
     return 'http://localhost:3001/api';
   }
-  if (host) {
+  if (host && typeof window !== 'undefined') {
     return `${window.location.origin}/api`;
   }
-  return 'https://bkaa.vercel.app/api';
+  return 'https://newnewoo.vercel.app/api';
 };
 
 const getSocketUrl = () => {
@@ -30,10 +30,10 @@ const getSocketUrl = () => {
   if (isLocal) {
     return 'http://localhost:3001';
   }
-  if (host) {
+  if (host && typeof window !== 'undefined') {
     return window.location.origin;
   }
-  return 'https://bkaa.vercel.app';
+  return 'https://newnewoo.vercel.app';
 };
 
 export const API_URL = getApiUrl();
