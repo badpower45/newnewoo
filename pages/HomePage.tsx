@@ -15,7 +15,7 @@ import StoriesSection from '../components/StoriesSection';
 import FacebookReelsGrid from '../components/FacebookReelsGrid';
 import HeroCarousel from '../components/HeroCarousel';
 import { ChevronRight, Flame, BookOpen } from 'lucide-react';
-import { CATEGORIES, SPONSORED_ADS, FLYER_PAGES, PRODUCTS as FALLBACK_PRODUCTS, ALL_CATEGORIES } from '../data/mockData';
+import { CATEGORIES, SPONSORED_ADS, FLYER_PAGES } from '../data/mockData';
 import { api } from '../services/api';
 import { Product } from '../types';
 import { useAuth } from '../context/AuthContext';
@@ -50,15 +50,14 @@ const HomePage = () => {
         try {
             const res = await api.categories.getAll();
             const data = res?.data ?? res;
-            if (Array.isArray(data) && data.length) {
+            if (Array.isArray(data)) {
                 setCategories(data);
-                return;
+            } else {
+                setCategories([]);
             }
-            // Fallback to static categories so UI never goes empty
-            setCategories(ALL_CATEGORIES.map((name, idx) => ({ id: idx + 1, name, name_ar: name })));
         } catch (err) {
             console.error('Failed to fetch categories:', err);
-            setCategories(ALL_CATEGORIES.map((name, idx) => ({ id: idx + 1, name, name_ar: name })));
+            setCategories([]);
         } finally {
             setCategoriesLoading(false);
         }
@@ -71,15 +70,14 @@ const HomePage = () => {
             const branchId = selectedBranch?.id || DEFAULT_BRANCH_ID;
             const data = await api.products.getAllByBranch(branchId);
             const list = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
-            if (list.length > 0) {
-                setProducts(list);
-                return;
+            setProducts(list);
+            if (list.length === 0) {
+                setError('لا توجد منتجات متاحة حالياً لهذا الفرع');
             }
-            setProducts(FALLBACK_PRODUCTS);
         } catch (err) {
             console.error('Failed to fetch products', err);
-            setProducts(FALLBACK_PRODUCTS);
-            setError(null);
+            setProducts([]);
+            setError('فشل تحميل المنتجات من الخادم');
         } finally {
             setLoading(false);
         }
