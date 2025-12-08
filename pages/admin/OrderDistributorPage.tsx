@@ -85,14 +85,15 @@ const OrderDistributorPage = () => {
             try {
                 const res = await api.orders.getAllAdmin(statusMap[activeTab], selectedBranch?.id);
                 console.log('📦 Admin Orders API response:', res);
-                ordersData = res.data || [];
+                const data = res?.data ?? res;
+                ordersData = Array.isArray(data) ? data : [];
                 console.log('📦 Loaded', ordersData.length, 'orders for status:', statusMap[activeTab]);
             } catch (err) {
                 console.error('❌ Admin Orders API failed:', err);
                 // Fallback to regular orders API
                 try {
                     const res = await api.orders.getAll();
-                    const allOrders = res.data || res || [];
+                    const allOrders = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
                     ordersData = allOrders.filter((o: any) => o.status === statusMap[activeTab]);
                     if (selectedBranch?.id) {
                         ordersData = ordersData.filter((o: any) => o.branch_id === selectedBranch.id || !o.branch_id);

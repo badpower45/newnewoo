@@ -3,6 +3,7 @@ import { ChevronLeft, Search, Loader2, Grid3X3, LayoutList } from 'lucide-react'
 import { useNavigate } from 'react-router-dom';
 import CategoryCard from '../components/CategoryCard';
 import { api } from '../services/api';
+import { ALL_CATEGORIES } from '../data/mockData';
 
 interface Category {
     id?: number;
@@ -30,20 +31,25 @@ const CategoriesPage = () => {
         try {
             const res = await api.categories.getAll();
             const list = res.data || res || [];
-            if (Array.isArray(list)) {
+            if (Array.isArray(list) && list.length) {
                 setCategories(list);
+            } else {
+                setCategories(ALL_CATEGORIES.map((name, idx) => ({ id: idx + 1, name, name_ar: name })));
             }
         } catch (err) {
             console.error('Failed to load categories:', err);
+            setCategories(ALL_CATEGORIES.map((name, idx) => ({ id: idx + 1, name, name_ar: name })));
         } finally {
             setLoading(false);
         }
     };
 
-    const filteredCategories = categories.filter(cat => 
-        cat.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        cat.name_ar?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredCategories = categories.filter(cat => {
+        const nameAr = cat.name_ar || '';
+        const nameEn = cat.name || '';
+        const term = searchTerm.toLowerCase();
+        return nameEn.toLowerCase().includes(term) || nameAr.toLowerCase().includes(term);
+    });
 
     return (
         <div className="bg-gray-50 min-h-screen pb-24 md:pb-8">
