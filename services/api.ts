@@ -95,8 +95,10 @@ export const api = {
                 : `${API_URL}/products/${id}`;
             const res = await fetch(url, { headers: getHeaders() });
             const json = await res.json();
-            if (json && json.data && typeof json.data === 'object') {
-                return { ...json, data: { ...json.data, price: Number(json.data.price) || 0 } };
+            // Backend returns product directly, not wrapped
+            const product = json.data || json;
+            if (product && typeof product === 'object') {
+                return { ...product, price: Number(product.price) || 0 };
             }
             return json;
         },
@@ -108,10 +110,9 @@ export const api = {
             const res = await fetch(url, { headers: getHeaders() });
             const json = await res.json();
             const normalize = (p: any) => ({ ...p, price: Number(p?.price) || 0 });
-            return {
-                ...json,
-                data: Array.isArray(json.data) ? json.data.map(normalize) : json.data
-            };
+            // Backend returns array directly
+            const data = Array.isArray(json) ? json : (json.data || []);
+            return data.map(normalize);
         },
         search: async (query: string) => {
             const res = await fetch(`${API_URL}/products/search?q=${encodeURIComponent(query)}`, { headers: getHeaders() });

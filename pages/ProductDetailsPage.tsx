@@ -42,7 +42,10 @@ const ProductDetailsPage = () => {
             try {
                 const branchId = selectedBranch?.id;
                 const data = await api.products.getOne(id, branchId);
-                let loadedProduct = data.data || data;
+                // API returns the product directly, not wrapped in {data: ...}
+                let loadedProduct = data;
+                
+                console.log('Loaded product:', loadedProduct); // Debug log
                 
                 if (!loadedProduct || !loadedProduct.id) {
                     loadedProduct = {
@@ -75,12 +78,13 @@ const ProductDetailsPage = () => {
                 // Load similar products
                 if (loadedProduct.category) {
                     try {
-                        const similarRes = await api.products.getByCategory(loadedProduct.category, branchId);
-                        const similarList = similarRes.data || similarRes || [];
-                        const filtered = similarList
-                            .filter((p: Product) => String(p.id) !== String(id))
-                            .slice(0, 4);
+                        const similarList = await api.products.getByCategory(loadedProduct.category, branchId);
+                        // API now returns array directly
+                        const filtered = Array.isArray(similarList) 
+                            ? similarList.filter((p: Product) => String(p.id) !== String(id)).slice(0, 4)
+                            : [];
                         setSimilarProducts(filtered);
+                        console.log('Similar products:', filtered); // Debug log
                     } catch (e) {
                         console.error('Failed to load similar products', e);
                     }
