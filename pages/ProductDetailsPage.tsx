@@ -14,6 +14,7 @@ const ProductDetailsPage = () => {
     const { id } = useParams();
     const [product, setProduct] = useState<Product | null>(null);
     const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
+    const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
     const { addToCart } = useCart();
     const { isFavorite, toggleFavorite } = useFavorites();
     const [quantity, setQuantity] = useState(1);
@@ -88,6 +89,20 @@ const ProductDetailsPage = () => {
                     } catch (e) {
                         console.error('Failed to load similar products', e);
                     }
+                }
+                
+                // Load recommended products (random from branch)
+                try {
+                    const allProducts = await api.products.getAllByBranch(branchId || 1);
+                    const filtered = Array.isArray(allProducts)
+                        ? allProducts
+                            .filter((p: Product) => String(p.id) !== String(id))
+                            .sort(() => Math.random() - 0.5)
+                            .slice(0, 6)
+                        : [];
+                    setRecommendedProducts(filtered);
+                } catch (e) {
+                    console.error('Failed to load recommended products', e);
                 }
                 
             } catch (e) {
@@ -560,7 +575,16 @@ const ProductDetailsPage = () => {
                     {/* Related Products */}
                     {similarProducts.length > 0 && (
                         <div className="mb-6">
-                            <h4 className="font-bold text-[#23110C] mb-4">منتجات مشابهة</h4>
+                            <div className="flex items-center justify-between mb-4">
+                                <h4 className="font-bold text-[#23110C]">منتجات مشابهة</h4>
+                                <button 
+                                    onClick={() => navigate(`/products?category=${product?.category}`)}
+                                    className="text-[#F97316] text-sm font-medium hover:text-[#ea580c] flex items-center gap-1"
+                                >
+                                    عرض الكل
+                                    <ArrowRight size={14} />
+                                </button>
+                            </div>
                             <div className="grid grid-cols-2 gap-3">
                                 {similarProducts.map((item) => {
                                     const itemOldPrice = item.discount_price || item.originalPrice || (item.price * 1.15);
@@ -615,6 +639,102 @@ const ProductDetailsPage = () => {
                                                             addToCart(item, 1);
                                                         }}
                                                         className="w-8 h-8 bg-[#F97316] rounded-full flex items-center justify-center shadow-md hover:bg-[#ea580c] transition-all"
+                                                    >
+                                                        <Plus className="w-4 h-4 text-white" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* You May Also Like - Recommended Products */}
+                    {recommendedProducts.length > 0 && (
+                        <div className="mb-6">
+                            <div className="flex items-center justify-between mb-4">
+                                <h4 className="font-bold text-[#23110C]">قد يعجبك أيضاً</h4>
+                                <button 
+                                    onClick={() => navigate('/products')}
+                                    className="text-[#F97316] text-sm font-medium hover:text-[#ea580c] flex items-center gap-1"
+                                >
+                                    عرض المزيد
+                                    <ArrowRight size={14} />
+                                </button>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                                {recommendedProducts.map((item) => {
+                                    const itemOldPrice = item.discount_price || item.originalPrice || (item.price * 1.15);
+                                    const itemDiscount = itemOldPrice > item.price ? Math.round(((itemOldPrice - item.price) / itemOldPrice) * 100) : 0;
+                                    
+                                    return (
+                                        <Link
+                                            key={item.id}
+                                            to={`/product/${item.id}`}
+                                            className="bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden hover:shadow-lg transition-all cursor-pointer relative group"
+                                        >
+                                            {/* Discount Badge */}
+                                            {itemDiscount > 0 && (
+                                                <div className="absolute top-2 right-2 z-10">
+                                                    <div className="bg-gradient-to-r from-[#EF4444] to-[#DC2626] text-white px-2 py-1 rounded-full text-xs shadow-lg font-bold">
+                                                        -{itemDiscount}%
+                                                    </div>
+                                                </div>
+                                            )}
+                                            
+                                            {/* New Badge if available */}
+                                            {item.is_new && (
+                                                <div className="absolute top-2 left-2 z-10">
+                                                    <div className="bg-gradient-to-r from-[#10B981] to-[#059669] text-white px-2 py-1 rounded-full text-xs shadow-lg font-bold">
+                                                        جديد
+                                                    </div>
+                                                </div>
+                                            )}
+                                            
+                                            <div className="bg-gradient-to-br from-[#F9FAFB] to-[#F3F4F6] p-4">
+                                                <img
+                                                    src={item.image}
+                                                    alt={item.name}
+                                                    className="w-full h-28 object-contain group-hover:scale-110 transition-transform duration-300"
+                                                    onError={(e) => {
+                                                        (e.target as HTMLImageElement).src = 'https://placehold.co/200x200?text=Product';
+                                                    }}
+                                                />
+                                            </div>
+                                            
+                                            <div className="p-3">
+                                                <p className="text-[#23110C] text-sm mb-2 line-clamp-2 min-h-[2.5rem] font-semibold">
+                                                    {item.name}
+                                                </p>
+                                                
+                                                {/* Rating if available */}
+                                                {item.rating && (
+                                                    <div className="flex items-center gap-1 mb-2">
+                                                        <Star size={12} className="fill-[#FCD34D] text-[#FCD34D]" />
+                                                        <span className="text-xs text-[#6B7280]">{Number(item.rating).toFixed(1)}</span>
+                                                    </div>
+                                                )}
+                                                
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <p className="text-[#F97316] text-lg font-bold">
+                                                            {(item.price || 0).toFixed(0)} جنيه
+                                                        </p>
+                                                        {itemOldPrice > item.price && (
+                                                            <p className="text-[#9CA3AF] line-through text-xs">
+                                                                {itemOldPrice.toFixed(0)} جنيه
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                    
+                                                    <button 
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            addToCart(item, 1);
+                                                        }}
+                                                        className="w-8 h-8 bg-gradient-to-r from-[#F97316] to-[#ea580c] rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all group-hover:scale-110"
                                                     >
                                                         <Plus className="w-4 h-4 text-white" />
                                                     </button>
