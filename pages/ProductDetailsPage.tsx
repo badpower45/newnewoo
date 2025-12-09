@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, Heart, Share2, Star, Minus, Plus, ShoppingCart, CheckCircle2, Clock, Truck, Shield } from 'lucide-react';
+import { ArrowRight, Heart, Share2, Star, Minus, Plus, ShoppingCart, CheckCircle2, Clock, Truck, Shield, Package, Award, ThumbsUp, Zap, Info } from 'lucide-react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { Product } from '../types';
@@ -22,12 +22,15 @@ const ProductDetailsPage = () => {
     const [loading, setLoading] = useState(true);
     const [branchPrice, setBranchPrice] = useState<number | null>(null);
     const [selectedSize, setSelectedSize] = useState<string>('');
+    const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
+    const [activeTab, setActiveTab] = useState<'description' | 'reviews' | 'info'>('description');
 
     // Mock reviews - في المستقبل هنجيبهم من API
     const reviews = [
-        { id: 1, name: 'أحمد محمد', rating: 5, comment: 'منتج ممتاز وطعمه رائع', date: 'منذ يومين' },
-        { id: 2, name: 'فاطمة علي', rating: 4, comment: 'جودة عالية لكن السعر مرتفع قليلاً', date: 'منذ أسبوع' },
-        { id: 3, name: 'محمود حسن', rating: 5, comment: 'المنتج المفضل لعائلتي', date: 'منذ أسبوعين' }
+        { id: 1, name: 'أحمد محمد', rating: 5, comment: 'منتج ممتاز وطعمه رائع! التوصيل كان سريع والمنتج طازج جداً. أنصح بشرائه.', date: 'منذ يومين', verified: true },
+        { id: 2, name: 'فاطمة علي', rating: 4, comment: 'جودة عالية لكن السعر مرتفع قليلاً. بشكل عام راضية عن المنتج.', date: 'منذ أسبوع', verified: true },
+        { id: 3, name: 'محمود حسن', rating: 5, comment: 'المنتج المفضل لعائلتي، نشتريه دائماً. جودة ممتازة.', date: 'منذ أسبوعين', verified: false },
+        { id: 4, name: 'سارة أحمد', rating: 5, comment: 'ممتاز! التغليف رائع والمنتج وصل بحالة ممتازة.', date: 'منذ 3 أسابيع', verified: true }
     ];
 
     // Load product and branch price together
@@ -123,6 +126,10 @@ const ProductDetailsPage = () => {
         if (!available) return;
         const productWithPrice = { ...product, price: displayPrice };
         addToCart(productWithPrice, quantity);
+        
+        // Show success animation
+        setShowSuccessAnimation(true);
+        setTimeout(() => setShowSuccessAnimation(false), 2000);
     };
 
     const handleShare = async () => {
@@ -142,12 +149,24 @@ const ProductDetailsPage = () => {
     const tags = [product.weight, product.category, available ? 'متوفر' : 'غير متوفر'].filter(Boolean);
 
     return (
-        <div className="min-h-screen bg-[#FAFAFA] flex flex-col">
-            {/* Top Navigation - Floating */}
-            <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-3">
+        <div className="min-h-screen bg-gradient-to-b from-[#FAFAFA] to-white flex flex-col">
+            {/* Success Animation Overlay */}
+            {showSuccessAnimation && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm animate-fade-in">
+                    <div className="bg-white rounded-2xl p-6 shadow-2xl animate-scale-up">
+                        <div className="w-16 h-16 bg-gradient-to-br from-[#10B981] to-[#059669] rounded-full flex items-center justify-center mx-auto mb-3 animate-bounce">
+                            <CheckCircle2 className="w-10 h-10 text-white" />
+                        </div>
+                        <p className="text-[#23110C] font-bold text-center">تمت الإضافة للسلة!</p>
+                    </div>
+                </div>
+            )}
+
+            {/* Top Navigation - Floating with Glassmorphism */}
+            <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between p-4">
                 <button
                     onClick={() => navigate(-1)}
-                    className="w-10 h-10 rounded-full bg-white/95 backdrop-blur-md shadow-md flex items-center justify-center hover:bg-white transition-all"
+                    className="w-11 h-11 rounded-2xl bg-white/90 backdrop-blur-xl shadow-lg flex items-center justify-center hover:bg-white hover:scale-105 transition-all active:scale-95 border border-white/50"
                 >
                     <ArrowRight className="w-5 h-5 text-[#23110C]" />
                 </button>
@@ -155,87 +174,127 @@ const ProductDetailsPage = () => {
                 <div className="flex gap-2">
                     <button
                         onClick={() => toggleFavorite(product)}
-                        className="w-10 h-10 rounded-full bg-white/95 backdrop-blur-md shadow-md flex items-center justify-center hover:bg-white transition-all"
+                        className="w-11 h-11 rounded-2xl bg-white/90 backdrop-blur-xl shadow-lg flex items-center justify-center hover:bg-white hover:scale-105 transition-all active:scale-95 border border-white/50"
                     >
                         <Heart
-                            className={`w-5 h-5 transition-all ${isFavorite(product.id) ? 'fill-[#F97316] text-[#F97316] scale-110' : 'text-[#23110C]'}`}
+                            className={`w-5 h-5 transition-all ${
+                                isFavorite(product.id) 
+                                    ? 'fill-[#F97316] text-[#F97316] animate-pulse' 
+                                    : 'text-[#23110C]'
+                            }`}
                         />
                     </button>
                     <button 
                         onClick={handleShare}
-                        className="w-10 h-10 rounded-full bg-white/95 backdrop-blur-md shadow-md flex items-center justify-center hover:bg-white transition-all"
+                        className="w-11 h-11 rounded-2xl bg-white/90 backdrop-blur-xl shadow-lg flex items-center justify-center hover:bg-white hover:scale-105 transition-all active:scale-95 border border-white/50"
                     >
                         <Share2 className="w-5 h-5 text-[#23110C]" />
                     </button>
                 </div>
             </div>
 
-            {/* Image Area with Gradient */}
-            <div className="h-[32vh] min-h-[200px] max-h-[280px] bg-gradient-to-br from-[#FFF7ED] to-[#F3F4F6] flex items-center justify-center relative overflow-hidden pt-14">
-                {/* Decorative circles */}
-                <div className="absolute top-10 right-10 w-24 h-24 bg-[#F97316]/5 rounded-full blur-2xl" />
-                <div className="absolute bottom-10 left-10 w-28 h-28 bg-[#F97316]/5 rounded-full blur-3xl" />
+            {/* Image Area with Enhanced Gradient & Animations */}
+            <div className="h-[36vh] min-h-[240px] max-h-[320px] bg-gradient-to-br from-[#FFF7ED] via-[#FEF3C7] to-[#F3F4F6] flex items-center justify-center relative overflow-hidden pt-14">
+                {/* Animated Background Elements */}
+                <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-[#F97316]/10 to-transparent rounded-full blur-3xl animate-float" />
+                <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-[#EA580C]/10 to-transparent rounded-full blur-3xl animate-float-delayed" />
+                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-radial from-[#F97316]/5 to-transparent rounded-full blur-2xl" />
                 
+                {/* Product Image with Hover Effect */}
                 <img
                     src={product.image}
                     alt={product.name}
-                    className="w-44 h-44 sm:w-52 sm:h-52 object-contain relative z-10 drop-shadow-xl"
+                    className="w-48 h-48 sm:w-56 sm:h-56 object-contain relative z-10 drop-shadow-2xl transform transition-transform duration-300 hover:scale-110"
                     onError={(e) => {
                         (e.target as HTMLImageElement).src = 'https://placehold.co/400x400?text=Product';
                     }}
                 />
 
-                {/* Discount Badge */}
+                {/* Enhanced Discount Badge */}
                 {discountPercentage > 0 && (
-                    <div className="absolute top-16 left-4 bg-gradient-to-br from-[#EF4444] to-[#dc2626] text-white px-3 py-1.5 rounded-full shadow-xl transform -rotate-12 text-sm">
-                        <span className="font-bold">وفر {discountPercentage}%</span>
+                    <div className="absolute top-20 left-4 z-20">
+                        <div className="bg-gradient-to-br from-[#EF4444] via-[#DC2626] to-[#B91C1C] text-white px-4 py-2 rounded-2xl shadow-xl transform -rotate-12 animate-wiggle">
+                            <p className="text-xs font-semibold">خصم</p>
+                            <p className="text-2xl font-black leading-none">{discountPercentage}%</p>
+                        </div>
+                    </div>
+                )}
+
+                {/* New Badge */}
+                {product.is_new && (
+                    <div className="absolute top-20 right-4 z-20">
+                        <div className="bg-gradient-to-br from-[#10B981] to-[#059669] text-white px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1 animate-pulse">
+                            <Zap className="w-4 h-4" />
+                            <span className="text-xs font-bold">جديد</span>
+                        </div>
                     </div>
                 )}
             </div>
 
-            {/* Main Content Container */}
-            <div className="flex-1 bg-white rounded-t-[28px] -mt-6 relative shadow-[0_-4px_24px_rgba(0,0,0,0.08)]">
-                <div className="px-5 pt-5 pb-48 md:pb-40 overflow-y-auto">
-                    {/* Product Title & Stock Status */}
-                    <div className="mb-3">
-                        <div className="flex items-start justify-between mb-1">
-                            <h1 className="flex-1 text-lg font-bold text-[#23110C] leading-tight">{product.name}</h1>
-                            {available && (
-                                <div className="flex items-center gap-1 bg-[#10B981]/10 px-2 py-0.5 rounded-full">
-                                    <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" />
-                                    <span className="text-[#10B981] text-xs font-semibold">متوفر</span>
+            {/* Main Content Container with Enhanced Shadow */}
+            <div className="flex-1 bg-white rounded-t-[32px] -mt-8 relative shadow-[0_-8px_40px_rgba(0,0,0,0.12)]">
+                {/* Decorative Top Bar */}
+                <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mt-3 mb-4"></div>
+                
+                <div className="px-5 pt-2 pb-48 md:pb-40 overflow-y-auto">
+                    {/* Product Title & Stock Status with Animation */}
+                    <div className="mb-4 animate-slide-up">
+                        <div className="flex items-start justify-between gap-3 mb-2">
+                            <h1 className="flex-1 text-xl font-black text-[#23110C] leading-tight">{product.name}</h1>
+                            {available ? (
+                                <div className="flex items-center gap-1.5 bg-gradient-to-r from-[#10B981]/10 to-[#059669]/10 px-3 py-1.5 rounded-full border border-[#10B981]/20 animate-pulse-subtle">
+                                    <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
+                                    <span className="text-[#10B981] text-sm font-bold">متوفر</span>
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-1.5 bg-red-50 px-3 py-1.5 rounded-full border border-red-200">
+                                    <Clock className="w-4 h-4 text-red-500" />
+                                    <span className="text-red-500 text-sm font-bold">غير متوفر</span>
                                 </div>
                             )}
                         </div>
-                        <p className="text-[#9CA3AF] text-xs">{product.name_en || product.category}</p>
+                        <div className="flex items-center gap-2">
+                            <p className="text-[#9CA3AF] text-sm">{product.category}</p>
+                            {product.barcode && (
+                                <>
+                                    <span className="text-[#E5E7EB]">•</span>
+                                    <p className="text-[#9CA3AF] text-xs">#{product.barcode}</p>
+                                </>
+                            )}
+                        </div>
                     </div>
 
-                    {/* Price Section */}
-                    <div className="bg-gradient-to-br from-[#FFF7ED] to-[#FEE2E2] rounded-xl p-3 mb-4">
+                    {/* Enhanced Price Section with Gradient */}
+                    <div className="bg-gradient-to-br from-[#FFF7ED] via-[#FEF3C7] to-[#FED7AA] rounded-2xl p-4 mb-5 border-2 border-[#F97316]/20 shadow-lg animate-slide-up" style={{animationDelay: '0.1s'}}>
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-[#6B7280] text-xs mb-0.5">السعر</p>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-3xl text-[#F97316] leading-none font-bold">
+                                <p className="text-[#6B7280] text-xs mb-1 font-semibold uppercase tracking-wide">السعر الحالي</p>
+                                <div className="flex items-baseline gap-2">
+                                    <span className="text-4xl text-[#F97316] leading-none font-black">
                                         {displayPrice.toFixed(0)}
                                     </span>
-                                    <div className="flex flex-col">
-                                        {oldPrice > displayPrice && (
-                                            <span className="text-[#9CA3AF] line-through text-sm">
-                                                {oldPrice.toFixed(0)}
-                                            </span>
-                                        )}
-                                        <span className="text-[#23110C] text-sm">جنيه</span>
-                                    </div>
+                                    <span className="text-[#23110C] text-base font-semibold">جنيه</span>
                                 </div>
+                                {oldPrice > displayPrice && (
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <span className="text-[#9CA3AF] line-through text-base font-semibold">
+                                            {oldPrice.toFixed(0)} جنيه
+                                        </span>
+                                        <span className="bg-[#EF4444] text-white text-xs px-2 py-0.5 rounded-full font-bold">
+                                            -{discountPercentage}%
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                             {savings > 0 && (
-                                <div className="text-left">
-                                    <div className="bg-white rounded-lg px-2.5 py-1.5 shadow-sm">
-                                        <p className="text-[#10B981] text-xs font-semibold">توفر</p>
-                                        <p className="text-[#10B981] text-base font-bold">
-                                            {savings.toFixed(0)} جنيه
+                                <div className="text-center">
+                                    <div className="bg-white rounded-xl px-4 py-2 shadow-md border border-[#10B981]/20">
+                                        <ThumbsUp className="w-5 h-5 text-[#10B981] mx-auto mb-1" />
+                                        <p className="text-[#10B981] text-xs font-semibold whitespace-nowrap">توفير</p>
+                                        <p className="text-[#10B981] text-lg font-black">
+                                            {savings.toFixed(0)}
                                         </p>
+                                        <p className="text-[#10B981] text-xs">جنيه</p>
                                     </div>
                                 </div>
                             )}
@@ -268,110 +327,230 @@ const ProductDetailsPage = () => {
                         ))}
                     </div>
 
-                    {/* Rating & Reviews */}
-                    <div className="bg-[#F9FAFB] rounded-2xl p-4 mb-6">
-                        <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2">
-                                <div className="flex items-center gap-1">
-                                    {[1, 2, 3, 4, 5].map((star) => (
-                                        <Star
-                                            key={star}
-                                            className={`w-5 h-5 ${
-                                                star <= Math.floor(productRating)
-                                                    ? 'fill-[#FFC107] text-[#FFC107]'
-                                                    : 'fill-[#E5E7EB] text-[#E5E7EB]'
-                                            }`}
-                                        />
-                                    ))}
+                    {/* Enhanced Rating Card */}
+                    <div className="bg-gradient-to-br from-white to-[#F9FAFB] rounded-2xl p-5 mb-5 border border-[#E5E7EB] shadow-md animate-slide-up" style={{animationDelay: '0.2s'}}>
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-gradient-to-br from-[#FFC107] to-[#FF9800] w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg">
+                                    <span className="text-white text-2xl font-black">{productRating.toFixed(1)}</span>
                                 </div>
-                                <span className="text-[#23110C] text-xl font-bold">
-                                    {productRating.toFixed(1)}
-                                </span>
+                                <div>
+                                    <div className="flex items-center gap-1 mb-1">
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                            <Star
+                                                key={star}
+                                                className={`w-4 h-4 ${
+                                                    star <= Math.floor(productRating)
+                                                        ? 'fill-[#FFC107] text-[#FFC107]'
+                                                        : 'fill-[#E5E7EB] text-[#E5E7EB]'
+                                                }`}
+                                            />
+                                        ))}
+                                    </div>
+                                    <p className="text-[#6B7280] text-sm font-semibold">
+                                        {productReviews} تقييم من العملاء
+                                    </p>
+                                </div>
                             </div>
-                            <span className="text-[#6B7280]">
-                                ({productReviews} تقييم)
-                            </span>
+                            <Award className="w-8 h-8 text-[#FFC107]" />
                         </div>
                         <div className="space-y-2">
                             {[5, 4, 3, 2, 1].map((stars) => {
                                 const percentage = stars === 5 ? 75 : stars === 4 ? 20 : stars === 3 ? 3 : stars === 2 ? 1 : 1;
                                 return (
-                                    <div key={stars} className="flex items-center gap-2">
-                                        <span className="text-[#6B7280] text-sm w-3">{stars}</span>
-                                        <Star className="w-3 h-3 fill-[#FFC107] text-[#FFC107]" />
-                                        <div className="flex-1 bg-[#E5E7EB] rounded-full h-2 overflow-hidden">
+                                    <div key={stars} className="flex items-center gap-3">
+                                        <span className="text-[#6B7280] text-sm font-semibold w-3">{stars}</span>
+                                        <Star className="w-3.5 h-3.5 fill-[#FFC107] text-[#FFC107]" />
+                                        <div className="flex-1 bg-[#E5E7EB] rounded-full h-2.5 overflow-hidden">
                                             <div
-                                                className="bg-[#FFC107] h-full rounded-full transition-all"
+                                                className="bg-gradient-to-r from-[#FFC107] to-[#FF9800] h-full rounded-full transition-all duration-1000 ease-out"
                                                 style={{ width: `${percentage}%` }}
                                             />
                                         </div>
-                                        <span className="text-[#6B7280] text-sm w-8 text-left">{percentage}%</span>
+                                        <span className="text-[#6B7280] text-sm font-bold w-12 text-left">{percentage}%</span>
                                     </div>
                                 );
                             })}
                         </div>
                     </div>
 
-                    {/* Delivery Info */}
-                    <div className="grid grid-cols-3 gap-3 mb-6">
-                        <div className="bg-gradient-to-br from-[#10B981]/10 to-[#10B981]/5 rounded-xl p-3 text-center">
-                            <Truck className="w-6 h-6 text-[#10B981] mx-auto mb-2" />
-                            <p className="text-[#23110C] text-xs font-semibold">توصيل سريع</p>
+                    {/* Enhanced Features Grid */}
+                    <div className="grid grid-cols-3 gap-3 mb-6 animate-slide-up" style={{animationDelay: '0.3s'}}>
+                        <div className="bg-gradient-to-br from-[#10B981]/10 via-[#10B981]/5 to-transparent rounded-2xl p-4 text-center border border-[#10B981]/20 hover:shadow-lg transition-all group">
+                            <div className="w-12 h-12 bg-gradient-to-br from-[#10B981] to-[#059669] rounded-xl flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform shadow-lg">
+                                <Truck className="w-6 h-6 text-white" />
+                            </div>
+                            <p className="text-[#23110C] text-xs font-bold mb-0.5">توصيل سريع</p>
                             <p className="text-[#6B7280] text-xs">خلال ساعة</p>
                         </div>
-                        <div className="bg-gradient-to-br from-[#3B82F6]/10 to-[#3B82F6]/5 rounded-xl p-3 text-center">
-                            <Shield className="w-6 h-6 text-[#3B82F6] mx-auto mb-2" />
-                            <p className="text-[#23110C] text-xs font-semibold">ضمان الجودة</p>
-                            <p className="text-[#6B7280] text-xs">منتج أصلي</p>
+                        <div className="bg-gradient-to-br from-[#3B82F6]/10 via-[#3B82F6]/5 to-transparent rounded-2xl p-4 text-center border border-[#3B82F6]/20 hover:shadow-lg transition-all group">
+                            <div className="w-12 h-12 bg-gradient-to-br from-[#3B82F6] to-[#2563EB] rounded-xl flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform shadow-lg">
+                                <Shield className="w-6 h-6 text-white" />
+                            </div>
+                            <p className="text-[#23110C] text-xs font-bold mb-0.5">ضمان الجودة</p>
+                            <p className="text-[#6B7280] text-xs">منتج أصلي 100%</p>
                         </div>
-                        <div className="bg-gradient-to-br from-[#F97316]/10 to-[#F97316]/5 rounded-xl p-3 text-center">
-                            <Clock className="w-6 h-6 text-[#F97316] mx-auto mb-2" />
-                            <p className="text-[#23110C] text-xs font-semibold">طازج دائماً</p>
+                        <div className="bg-gradient-to-br from-[#F97316]/10 via-[#F97316]/5 to-transparent rounded-2xl p-4 text-center border border-[#F97316]/20 hover:shadow-lg transition-all group">
+                            <div className="w-12 h-12 bg-gradient-to-br from-[#F97316] to-[#EA580C] rounded-xl flex items-center justify-center mx-auto mb-2 group-hover:scale-110 transition-transform shadow-lg">
+                                <Package className="w-6 h-6 text-white" />
+                            </div>
+                            <p className="text-[#23110C] text-xs font-bold mb-0.5">طازج دائماً</p>
                             <p className="text-[#6B7280] text-xs">يومياً</p>
                         </div>
                     </div>
 
-                    {/* Description */}
-                    <div className="mb-6">
-                        <h4 className="font-bold text-[#23110C] mb-3">وصف المنتج</h4>
-                        <p className="text-[#6B7280] leading-relaxed">
-                            {product.description || `${product.name} - منتج عالي الجودة من أفضل الموردين. طازج ومضمون الجودة. مناسب للاستخدام اليومي ويوفر لك القيمة الأفضل مقابل المال.`}
-                        </p>
+                    {/* Tabs Navigation */}
+                    <div className="flex gap-2 mb-5 overflow-x-auto pb-2 animate-slide-up" style={{animationDelay: '0.4s'}}>
+                        <button
+                            onClick={() => setActiveTab('description')}
+                            className={`px-5 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition-all ${
+                                activeTab === 'description'
+                                    ? 'bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white shadow-lg scale-105'
+                                    : 'bg-[#F3F4F6] text-[#6B7280] hover:bg-[#E5E7EB]'
+                            }`}
+                        >
+                            <div className="flex items-center gap-2">
+                                <Info className="w-4 h-4" />
+                                <span>وصف المنتج</span>
+                            </div>
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('reviews')}
+                            className={`px-5 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition-all ${
+                                activeTab === 'reviews'
+                                    ? 'bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white shadow-lg scale-105'
+                                    : 'bg-[#F3F4F6] text-[#6B7280] hover:bg-[#E5E7EB]'
+                            }`}
+                        >
+                            <div className="flex items-center gap-2">
+                                <Star className="w-4 h-4" />
+                                <span>التقييمات ({reviews.length})</span>
+                            </div>
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('info')}
+                            className={`px-5 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition-all ${
+                                activeTab === 'info'
+                                    ? 'bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white shadow-lg scale-105'
+                                    : 'bg-[#F3F4F6] text-[#6B7280] hover:bg-[#E5E7EB]'
+                            }`}
+                        >
+                            <div className="flex items-center gap-2">
+                                <Package className="w-4 h-4" />
+                                <span>معلومات إضافية</span>
+                            </div>
+                        </button>
                     </div>
 
-                    {/* Customer Reviews */}
-                    <div className="mb-6">
-                        <div className="flex items-center justify-between mb-3">
-                            <h4 className="font-bold text-[#23110C]">آراء العملاء</h4>
-                            <button className="text-[#F97316] text-sm font-semibold">
-                                عرض الكل
-                            </button>
-                        </div>
-                        <div className="space-y-3">
-                            {reviews.map((review) => (
-                                <div key={review.id} className="bg-white border border-[#E5E7EB] rounded-xl p-4">
-                                    <div className="flex items-start justify-between mb-2">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#F97316] to-[#ea580c] flex items-center justify-center text-white font-bold">
-                                                {review.name.charAt(0)}
-                                            </div>
-                                            <div>
-                                                <p className="text-[#23110C] font-semibold">
-                                                    {review.name}
-                                                </p>
-                                                <p className="text-[#9CA3AF] text-xs">{review.date}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-1">
-                                            {[...Array(review.rating)].map((_, i) => (
-                                                <Star key={i} className="w-4 h-4 fill-[#FFC107] text-[#FFC107]" />
-                                            ))}
+                    {/* Tab Content */}
+                    <div className="mb-6 animate-fade-in">
+                        {/* Description Tab */}
+                        {activeTab === 'description' && (
+                            <div className="bg-gradient-to-br from-[#F9FAFB] to-white rounded-2xl p-5 border border-[#E5E7EB]">
+                                <h4 className="font-black text-[#23110C] mb-3 text-lg">عن المنتج</h4>
+                                <p className="text-[#6B7280] leading-relaxed text-sm">
+                                    {product.description || `${product.name} - منتج عالي الجودة من أفضل الموردين المعتمدين. نضمن لك الطزاجة والجودة العالية. مناسب للاستخدام اليومي ويوفر لك القيمة الأفضل مقابل المال. تم فحص المنتج والتأكد من مطابقته لأعلى معايير الجودة.`}
+                                </p>
+                                {product.weight && (
+                                    <div className="mt-4 pt-4 border-t border-[#E5E7EB]">
+                                        <div className="flex items-center gap-2 text-sm">
+                                            <Package className="w-4 h-4 text-[#F97316]" />
+                                            <span className="text-[#6B7280]">الوزن/الحجم:</span>
+                                            <span className="text-[#23110C] font-bold">{product.weight}</span>
                                         </div>
                                     </div>
-                                    <p className="text-[#6B7280] text-sm">{review.comment}</p>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Reviews Tab */}
+                        {activeTab === 'reviews' && (
+                            <div className="space-y-3">
+                                {reviews.map((review, index) => (
+                                    <div 
+                                        key={review.id} 
+                                        className="bg-white border border-[#E5E7EB] rounded-2xl p-4 hover:shadow-lg transition-all animate-slide-up"
+                                        style={{animationDelay: `${index * 0.1}s`}}
+                                    >
+                                        <div className="flex items-start justify-between mb-3">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#F97316] to-[#EA580C] flex items-center justify-center text-white font-black text-lg shadow-lg">
+                                                    {review.name.charAt(0)}
+                                                </div>
+                                                <div>
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="text-[#23110C] font-bold">
+                                                            {review.name}
+                                                        </p>
+                                                        {review.verified && (
+                                                            <div className="bg-[#10B981]/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                                                <CheckCircle2 className="w-3 h-3 text-[#10B981]" />
+                                                                <span className="text-[#10B981] text-xs font-bold">موثق</span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-[#9CA3AF] text-xs">{review.date}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-1 bg-[#FFF7ED] px-2 py-1 rounded-lg">
+                                                <Star className="w-4 h-4 fill-[#FFC107] text-[#FFC107]" />
+                                                <span className="text-[#23110C] font-bold text-sm">{review.rating}</span>
+                                            </div>
+                                        </div>
+                                        <p className="text-[#6B7280] leading-relaxed text-sm">{review.comment}</p>
+                                    </div>
+                                ))}
+                                <button className="w-full py-3 px-4 rounded-xl bg-[#F3F4F6] text-[#6B7280] font-bold hover:bg-[#E5E7EB] transition-all">
+                                    عرض جميع التقييمات
+                                </button>
+                            </div>
+                        )}
+
+                        {/* Info Tab */}
+                        {activeTab === 'info' && (
+                            <div className="bg-gradient-to-br from-[#F9FAFB] to-white rounded-2xl p-5 border border-[#E5E7EB] space-y-3">
+                                <div className="flex items-center justify-between py-3 border-b border-[#E5E7EB]">
+                                    <span className="text-[#6B7280] font-semibold">الفئة</span>
+                                    <span className="text-[#23110C] font-bold">{product.category}</span>
                                 </div>
-                            ))}
-                        </div>
+                                {product.weight && (
+                                    <div className="flex items-center justify-between py-3 border-b border-[#E5E7EB]">
+                                        <span className="text-[#6B7280] font-semibold">الوزن/الحجم</span>
+                                        <span className="text-[#23110C] font-bold">{product.weight}</span>
+                                    </div>
+                                )}
+                                <div className="flex items-center justify-between py-3 border-b border-[#E5E7EB]">
+                                    <span className="text-[#6B7280] font-semibold">الحالة</span>
+                                    <span className={`font-bold ${available ? 'text-[#10B981]' : 'text-red-500'}`}>
+                                        {available ? 'متوفر' : 'غير متوفر'}
+                                    </span>
+                                </div>
+                                {product.barcode && (
+                                    <div className="flex items-center justify-between py-3 border-b border-[#E5E7EB]">
+                                        <span className="text-[#6B7280] font-semibold">الباركود</span>
+                                        <span className="text-[#23110C] font-mono text-sm">{product.barcode}</span>
+                                    </div>
+                                )}
+                                <div className="flex items-center justify-between py-3">
+                                    <span className="text-[#6B7280] font-semibold">التقييم</span>
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-0.5">
+                                            {[1, 2, 3, 4, 5].map((star) => (
+                                                <Star
+                                                    key={star}
+                                                    className={`w-4 h-4 ${
+                                                        star <= Math.floor(productRating)
+                                                            ? 'fill-[#FFC107] text-[#FFC107]'
+                                                            : 'fill-[#E5E7EB] text-[#E5E7EB]'
+                                                    }`}
+                                                />
+                                            ))}
+                                        </div>
+                                        <span className="text-[#23110C] font-bold">{productRating.toFixed(1)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Related Products */}
