@@ -76,14 +76,18 @@ import ChatWidget from './components/ChatWidget';
 import ProtectedRoute from './components/ProtectedRoute';
 import { DebugProvider } from './context/DebugLogContext';
 import DebugPanel from './components/DebugPanel';
+import LottieLoader from './components/LottieLoader';
 
 function AppContent() {
+  const [showLoader, setShowLoader] = React.useState(true);
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-slate-900 relative flex flex-col">
-      <main className={`flex-grow ${!isAdminRoute ? 'pb-16 md:pb-0' : ''}`}>
+    <>
+      {showLoader && <LottieLoader onComplete={() => setShowLoader(false)} duration={2500} />}
+      <div className="min-h-screen bg-gray-50 font-sans text-slate-900 relative flex flex-col">
+        <main className={`flex-grow ${!isAdminRoute ? 'pb-16 md:pb-0' : ''}`}>
         <div className={!isAdminRoute ? "max-w-7xl mx-auto w-full" : "w-full"}>
           <Routes>
             <Route path="/" element={<HomePage />} />
@@ -151,9 +155,10 @@ function AppContent() {
           <BottomNav />
         </div>
       )}
-      {/* Debug panel is always available */}
-      <DebugPanel />
-    </div>
+        {/* Debug panel is always available */}
+        <DebugPanel />
+      </div>
+    </>
   );
 }
 

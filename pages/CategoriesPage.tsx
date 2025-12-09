@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, Search, Loader2, Grid3X3, LayoutList } from 'lucide-react';
+import { ChevronLeft, Search, Loader2, Grid3X3, LayoutList, Mic } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import CategoryCard from '../components/CategoryCard';
 import { api } from '../services/api';
@@ -20,6 +20,7 @@ const CategoriesPage = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+    const [isListening, setIsListening] = useState(false);
 
     useEffect(() => {
         loadCategories();
@@ -40,6 +41,42 @@ const CategoriesPage = () => {
         }
     };
 
+    const handleVoiceSearch = () => {
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+            alert('متصفحك لا يدعم البحث الصوتي');
+            return;
+        }
+
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        
+        recognition.lang = 'ar-SA';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onstart = () => {
+            setIsListening(true);
+        };
+
+        recognition.onresult = (event: any) => {
+            const transcript = event.results[0][0].transcript;
+            setSearchTerm(transcript);
+            setIsListening(false);
+        };
+
+        recognition.onerror = (event: any) => {
+            console.error('Speech recognition error:', event.error);
+            setIsListening(false);
+            alert('حدث خطأ في البحث الصوتي');
+        };
+
+        recognition.onend = () => {
+            setIsListening(false);
+        };
+
+        recognition.start();
+    };
+
     const filteredCategories = categories.filter(cat => {
         const nameAr = cat.name_ar || '';
         const nameEn = cat.name || '';
@@ -49,8 +86,8 @@ const CategoriesPage = () => {
 
     return (
         <div className="bg-gray-50 min-h-screen pb-24 md:pb-8">
-            {/* Header */}
-            <div className="bg-white p-4 sticky top-20 z-40 shadow-sm flex items-center justify-between md:hidden">
+            {/* Fixed Mobile Header - Removed sticky */}
+            <div className="bg-white p-4 shadow-sm flex items-center justify-between md:hidden">
                 <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-gray-700">
                     <ChevronLeft size={28} />
                 </button>
@@ -66,9 +103,9 @@ const CategoriesPage = () => {
                 </div>
             </div>
 
-            {/* Search & View Toggle */}
-            <div className="p-4 max-w-7xl mx-auto">
-                <div className="flex gap-3 mb-6">
+            {/* Search & View Toggle - Sticky on scroll */}
+            <div className="p-4 max-w-7xl mx-auto sticky top-0 bg-gray-50 z-30 pb-2">
+                <div className="flex gap-3 mb-4">
                     <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
                         <input
@@ -76,9 +113,21 @@ const CategoriesPage = () => {
                             placeholder="ابحث عن تصنيف..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 shadow-sm"
+                            className="w-full pl-10 pr-12 py-3 bg-white border border-gray-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 shadow-sm"
                             dir="rtl"
                         />
+                        {/* Voice Search Button */}
+                        <button
+                            onClick={handleVoiceSearch}
+                            className={`absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-full transition-all ${
+                                isListening 
+                                    ? 'bg-red-500 text-white animate-pulse' 
+                                    : 'text-gray-400 hover:text-orange-500 hover:bg-orange-50'
+                            }`}
+                            title="البحث الصوتي"
+                        >
+                            <Mic size={18} />
+                        </button>
                     </div>
                     {/* View Toggle */}
                     <div className="flex bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">

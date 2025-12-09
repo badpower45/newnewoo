@@ -5,16 +5,38 @@ export const Skeleton: React.FC<{ className?: string }> = ({ className = '' }) =
   <div className={`animate-pulse bg-gray-200 rounded ${className}`} />
 );
 
-// Product Card Skeleton
+// Product Card Skeleton - matches actual product card with image, title, price, and button
 export const ProductCardSkeleton: React.FC = () => (
-  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-    <Skeleton className="w-full h-48" />
+  <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden animate-pulse">
+    {/* Image skeleton with overlay elements */}
+    <div className="relative">
+      <Skeleton className="w-full h-48 bg-gradient-to-br from-gray-200 to-gray-300" />
+      {/* Favorite heart */}
+      <div className="absolute top-3 right-3">
+        <Skeleton className="w-8 h-8 rounded-full" />
+      </div>
+      {/* Discount badge */}
+      <div className="absolute top-3 left-3">
+        <Skeleton className="w-12 h-6 rounded-full" />
+      </div>
+    </div>
     <div className="p-4 space-y-3">
+      {/* Brand name */}
+      <Skeleton className="h-3 w-1/3" />
+      {/* Product title */}
+      <Skeleton className="h-4 w-4/5" />
       <Skeleton className="h-4 w-3/4" />
-      <Skeleton className="h-3 w-1/2" />
+      {/* Rating */}
+      <div className="flex items-center gap-1">
+        <Skeleton className="h-4 w-16" />
+      </div>
+      {/* Price and button */}
       <div className="flex justify-between items-center pt-2">
-        <Skeleton className="h-6 w-20" />
-        <Skeleton className="h-10 w-10 rounded-full" />
+        <div className="space-y-1">
+          <Skeleton className="h-5 w-20" />
+          <Skeleton className="h-3 w-16" />
+        </div>
+        <Skeleton className="h-10 w-10 rounded-xl" />
       </div>
     </div>
   </div>
@@ -29,17 +51,20 @@ export const ProductGridSkeleton: React.FC<{ count?: number }> = ({ count = 8 })
   </div>
 );
 
-// Category Card Skeleton
+// Category Card Skeleton - matches actual category card design
 export const CategoryCardSkeleton: React.FC = () => (
-  <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex flex-col items-center">
-    <Skeleton className="w-16 h-16 rounded-full mb-3" />
-    <Skeleton className="h-4 w-20" />
+  <div className="relative overflow-hidden rounded-2xl shadow-sm h-32 bg-gradient-to-br from-gray-100 to-gray-200 animate-pulse">
+    <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
+      <Skeleton className="w-12 h-12 rounded-full mb-2" />
+      <Skeleton className="h-4 w-20 mb-1" />
+      <Skeleton className="h-3 w-16" />
+    </div>
   </div>
 );
 
 // Categories Grid Skeleton
-export const CategoriesGridSkeleton: React.FC<{ count?: number }> = ({ count = 8 }) => (
-  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+export const CategoriesGridSkeleton: React.FC<{ count?: number }> = ({ count = 6 }) => (
+  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
     {Array.from({ length: count }).map((_, i) => (
       <CategoryCardSkeleton key={i} />
     ))}

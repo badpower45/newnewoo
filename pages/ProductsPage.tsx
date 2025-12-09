@@ -227,6 +227,30 @@ export default function ProductsPage() {
                 </div>
             </div>
 
+            {/* Category Banner - shown when category is selected */}
+            {selectedCategory && selectedCategory !== '' && (
+                <div className="max-w-7xl mx-auto px-4 pt-6">
+                    <div className={`relative overflow-hidden rounded-3xl shadow-xl bg-gradient-to-r ${CATEGORIES.find(c => c.id === selectedCategory)?.color || 'from-orange-400 to-orange-600'}`}>
+                        <div className="relative z-10 p-8 md:p-12">
+                            <div className="flex items-center gap-4 mb-3">
+                                <span className="text-5xl">{CATEGORIES.find(c => c.id === selectedCategory)?.icon}</span>
+                                <div>
+                                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">
+                                        {CATEGORIES.find(c => c.id === selectedCategory)?.name}
+                                    </h2>
+                                    <p className="text-white/90 text-lg">
+                                        اكتشف أفضل المنتجات في هذا القسم
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        {/* Decorative shapes */}
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+                        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2"></div>
+                    </div>
+                </div>
+            )}
+
             <div className="max-w-7xl mx-auto px-4 py-6">
                 {/* Toolbar */}
                 <div className="flex flex-wrap items-center justify-between gap-4 mb-6">

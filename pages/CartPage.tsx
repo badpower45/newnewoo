@@ -52,14 +52,17 @@ const CartPage = () => {
                 </div>
 
                 {/* Empty State */}
-                <div className="flex-grow flex flex-col items-center justify-center p-8 text-center max-w-lg mx-auto w-full">
+                <div className="flex-grow flex flex-col items-center justify-center p-8 text-center max-w-lg mx-auto w-full relative">
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty!</h2>
                     <p className="text-gray-500 mb-8">Ready to shop? Your cart is waiting.</p>
 
                     <div className="w-64 h-64 bg-gray-50 rounded-full flex items-center justify-center mb-8 relative">
                         <ShoppingCart size={80} className="text-gray-300" />
                     </div>
+                </div>
 
+                {/* Fixed Bottom Button - Full Width, Above Taskbar */}
+                <div className="fixed bottom-20 left-0 right-0 px-4 pb-2 z-20 md:relative md:bottom-0 md:max-w-lg md:mx-auto md:mb-8">
                     <button
                         onClick={() => navigate('/categories')}
                         className="w-full bg-primary text-gray-900 font-bold py-4 rounded-xl shadow-lg hover:bg-primary-dark transition-colors"
