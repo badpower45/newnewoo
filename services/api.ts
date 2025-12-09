@@ -69,10 +69,9 @@ export const api = {
             const res = await fetch(`${API_URL}/products`, { headers: getHeaders() });
             const json = await res.json();
             const normalize = (p: any) => ({ ...p, price: Number(p?.price) || 0 });
-            return {
-                ...json,
-                data: Array.isArray(json.data) ? json.data.map(normalize) : json.data
-            };
+            // Backend returns array directly, not wrapped in {data: [...]}
+            const data = Array.isArray(json) ? json : (json.data || []);
+            return data.map(normalize);
         },
         getAllByBranch: async (branchId: number) => {
             const res = await fetch(`${API_URL}/products?branchId=${branchId}`, { headers: getHeaders() });
@@ -81,17 +80,14 @@ export const api = {
                 const all = await fetch(`${API_URL}/products`, { headers: getHeaders() });
                 const jsonAll = await all.json();
                 const normalize = (p: any) => ({ ...p, price: Number(p?.price) || 0 });
-                return {
-                    ...jsonAll,
-                    data: Array.isArray(jsonAll.data) ? jsonAll.data.map(normalize) : jsonAll.data
-                };
+                const data = Array.isArray(jsonAll) ? jsonAll : (jsonAll.data || []);
+                return data.map(normalize);
             }
             const json = await res.json();
             const normalize = (p: any) => ({ ...p, price: Number(p?.price) || 0 });
-            return {
-                ...json,
-                data: Array.isArray(json.data) ? json.data.map(normalize) : json.data
-            };
+            // Backend returns array directly, not wrapped in {data: [...]}
+            const data = Array.isArray(json) ? json : (json.data || []);
+            return data.map(normalize);
         },
         getOne: async (id: string, branchId?: number) => {
             const url = branchId 
