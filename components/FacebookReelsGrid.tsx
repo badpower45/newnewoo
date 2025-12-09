@@ -33,7 +33,7 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
 
     const facebookPageUrl = `https://www.facebook.com/${pageUsername}`;
     const facebookReelsUrl = `https://www.facebook.com/${pageUsername}/reels`;
-    // Backend endpoint currently 404s; stay on local fallback to avoid noisy network errors
+    // Backend endpoint currently 404s; use local fallback
     const USE_REMOTE = false;
 
     // Default reels (fallback) - with sample MP4 videos

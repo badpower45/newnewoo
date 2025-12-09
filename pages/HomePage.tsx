@@ -50,8 +50,25 @@ const HomePage = () => {
         try {
             const res = await api.categories.getAll();
             const data = res?.data ?? res;
+            
+            // Transform data based on response type
             if (Array.isArray(data)) {
-                setCategories(data);
+                // If backend returns array of strings, transform to objects
+                if (data.length > 0 && typeof data[0] === 'string') {
+                    const transformedCategories = data.map((name: string, index: number) => ({
+                        id: index + 1,
+                        name: name,
+                        name_ar: translateCategoryName(name),
+                        image: getCategoryImage(name),
+                        icon: '📦',
+                        bg_color: getCategoryColor(index),
+                        products_count: 0
+                    }));
+                    setCategories(transformedCategories);
+                } else {
+                    // If already objects, use as is
+                    setCategories(data);
+                }
             } else {
                 setCategories([]);
             }
@@ -61,6 +78,59 @@ const HomePage = () => {
         } finally {
             setCategoriesLoading(false);
         }
+    };
+
+    // Helper function to translate category names
+    const translateCategoryName = (name: string): string => {
+        const translations: Record<string, string> = {
+            'Bakery': 'المخبوزات',
+            'Beverages': 'المشروبات',
+            'Dairy': 'منتجات الألبان',
+            'Grains': 'الحبوب',
+            'Snacks': 'الوجبات الخفيفة',
+            'Vegetables': 'الخضروات',
+            'Fruits': 'الفواكه',
+            'Meat': 'اللحوم',
+            'Seafood': 'المأكولات البحرية',
+            'Frozen': 'المجمدات',
+            'Cleaning': 'منتجات التنظيف',
+            'Personal Care': 'العناية الشخصية'
+        };
+        return translations[name] || name;
+    };
+
+    // Helper function to get category image
+    const getCategoryImage = (name: string): string => {
+        const images: Record<string, string> = {
+            'Bakery': 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400',
+            'Beverages': 'https://images.unsplash.com/photo-1437418747212-8d9709afab22?w=400',
+            'Dairy': 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400',
+            'Grains': 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400',
+            'Snacks': 'https://images.unsplash.com/photo-1621939514649-280e2ee25f60?w=400',
+            'Vegetables': 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400',
+            'Fruits': 'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=400',
+            'Meat': 'https://images.unsplash.com/photo-1603048588665-791ca8aea617?w=400',
+            'Seafood': 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=400',
+            'Frozen': 'https://images.unsplash.com/photo-1476887334197-56adbf254e1a?w=400',
+            'Cleaning': 'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400',
+            'Personal Care': 'https://images.unsplash.com/photo-1556228578-dd339359d39f?w=400'
+        };
+        return images[name] || 'https://images.unsplash.com/photo-1543168256-418811576931?w=400';
+    };
+
+    // Helper function to get category color
+    const getCategoryColor = (index: number): string => {
+        const colors = [
+            'bg-gradient-to-br from-orange-50 to-orange-100',
+            'bg-gradient-to-br from-blue-50 to-blue-100',
+            'bg-gradient-to-br from-green-50 to-green-100',
+            'bg-gradient-to-br from-purple-50 to-purple-100',
+            'bg-gradient-to-br from-pink-50 to-pink-100',
+            'bg-gradient-to-br from-yellow-50 to-yellow-100',
+            'bg-gradient-to-br from-red-50 to-red-100',
+            'bg-gradient-to-br from-indigo-50 to-indigo-100'
+        ];
+        return colors[index % colors.length];
     };
 
     const fetchProducts = async () => {
@@ -210,7 +280,8 @@ const HomePage = () => {
                 {/* Featured Brands Carousel */}
                 <BrandsCarousel title="براندات مميزة" />
 
-                {/* Brand offers & reels disabled: backend endpoints 404 */}
+                {/* Facebook Reels Section */}
+                <FacebookReelsGrid pageUsername="Alloshchocolates" pageName="Allosh Chocolates" />
 
                 {/* Sponsored Ads - Grid Layout (Scattered) */}
                 <SponsoredAds ads={SPONSORED_ADS.slice(0, 2)} layout="grid" />
