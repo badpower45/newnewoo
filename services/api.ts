@@ -209,12 +209,12 @@ export const api = {
             const res = await fetch(url, { headers: getHeaders() });
             return res.json();
         },
-        // Admin: Get all orders without auth requirement
+        // Admin: Get all orders with auth token
         getAllAdmin: async (status?: string, branchId?: number) => {
             let url = `${API_URL}/orders/admin/all?`;
             if (status) url += `status=${status}&`;
             if (branchId) url += `branchId=${branchId}`;
-            const res = await fetch(url, { headers: { 'Content-Type': 'application/json' } });
+            const res = await fetch(url, { headers: getHeaders() });
             return res.json();
         },
         getOne: async (id: string) => {

@@ -38,7 +38,11 @@ export default defineConfig(({ mode }) => {
           }
         }
       },
-      chunkSizeWarningLimit: 1000
+      chunkSizeWarningLimit: 1000,
+      sourcemap: false
+    },
+    optimizeDeps: {
+      exclude: ['lucide-react']
     }
   };
 });
