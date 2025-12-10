@@ -227,36 +227,80 @@ export default function ProductsPage() {
                 </div>
             </div>
 
-            {/* Category Banner - shown when category is selected */}
+            {/* Category Banner - Modern Design */}
             {selectedCategory && selectedCategory !== '' && (
                 <div className="max-w-7xl mx-auto px-4 pt-6">
-                    <div className={`relative overflow-hidden rounded-2xl h-32 md:h-40 shadow-lg bg-gradient-to-r ${CATEGORIES.find(c => c.id === selectedCategory)?.color || 'from-orange-400 to-orange-600'}`}>
-                        {/* Background Pattern */}
-                        <div className="absolute inset-0 opacity-10">
-                            <div className="absolute inset-0" style={{
-                                backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255,255,255,.5) 35px, rgba(255,255,255,.5) 70px)',
+                    <div className={`relative overflow-hidden rounded-3xl shadow-2xl bg-gradient-to-br ${CATEGORIES.find(c => c.id === selectedCategory)?.color || 'from-orange-500 to-orange-700'}`}>
+                        {/* Animated Background Pattern */}
+                        <div className="absolute inset-0 overflow-hidden">
+                            {/* Floating Circles */}
+                            <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
+                            <div className="absolute -bottom-32 -left-20 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+                            <div className="absolute top-1/2 right-1/3 w-40 h-40 bg-white/5 rounded-full blur-2xl animate-pulse" style={{animationDelay: '2s'}}></div>
+                            
+                            {/* Grid Pattern */}
+                            <div className="absolute inset-0 opacity-[0.03]" style={{
+                                backgroundImage: 'linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)',
+                                backgroundSize: '50px 50px'
                             }}></div>
                         </div>
                         
-                        {/* Content */}
-                        <div className="relative z-10 h-full flex items-center justify-between px-6 md:px-10">
-                            <div className="flex items-center gap-4">
-                                <div className="w-16 h-16 md:w-20 md:h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-                                    <span className="text-4xl md:text-5xl">{CATEGORIES.find(c => c.id === selectedCategory)?.icon}</span>
+                        {/* Content Container */}
+                        <div className="relative z-10 px-6 py-8 md:px-10 md:py-10">
+                            <div className="flex items-center justify-between">
+                                {/* Left Content */}
+                                <div className="flex items-center gap-5">
+                                    {/* Icon Container with Glow Effect */}
+                                    <div className="relative group">
+                                        <div className="absolute inset-0 bg-white/40 rounded-2xl blur-xl group-hover:blur-2xl transition-all"></div>
+                                        <div className="relative w-20 h-20 md:w-24 md:h-24 bg-white/90 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-xl transform group-hover:scale-110 transition-transform duration-300">
+                                            <span className="text-5xl md:text-6xl drop-shadow-lg">{CATEGORIES.find(c => c.id === selectedCategory)?.icon}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Text Content */}
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-3">
+                                            <h2 className="text-3xl md:text-4xl font-black text-white drop-shadow-lg">
+                                                {CATEGORIES.find(c => c.id === selectedCategory)?.name}
+                                            </h2>
+                                            <div className="hidden md:flex items-center gap-1 px-3 py-1 bg-white/20 backdrop-blur-md rounded-full">
+                                                <Sparkles size={16} className="text-white" />
+                                                <span className="text-white text-sm font-bold">جديد</span>
+                                            </div>
+                                        </div>
+                                        <p className="text-white/95 text-base md:text-lg font-medium drop-shadow-md flex items-center gap-2">
+                                            <Tag size={18} className="text-white/80" />
+                                            اكتشف منتجاتنا الطازجة - أكثر من 10 منتج متاح للتوصيل
+                                        </p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h2 className="text-2xl md:text-3xl font-bold text-white mb-1">
-                                        {CATEGORIES.find(c => c.id === selectedCategory)?.name}
-                                    </h2>
-                                    <p className="text-white/90 text-sm md:text-base">
-                                        أفضل العروض والمنتجات
-                                    </p>
+                                
+                                {/* Right Decorative Element - Large Floating Icon */}
+                                <div className="hidden lg:flex items-center justify-center">
+                                    <div className="relative">
+                                        <div className="absolute inset-0 bg-white/20 rounded-full blur-2xl"></div>
+                                        <div className="relative text-[120px] opacity-20 transform hover:scale-110 transition-transform duration-500">
+                                            {CATEGORIES.find(c => c.id === selectedCategory)?.icon}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             
-                            {/* Decorative Icon */}
-                            <div className="hidden md:block text-white/20 text-8xl font-bold">
-                                {CATEGORIES.find(c => c.id === selectedCategory)?.icon}
+                            {/* Bottom Stats Bar */}
+                            <div className="mt-6 flex items-center gap-4 md:gap-6">
+                                <div className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-md rounded-xl">
+                                    <TrendingUp size={18} className="text-white" />
+                                    <span className="text-white font-bold text-sm">الأكثر مبيعاً</span>
+                                </div>
+                                <div className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-md rounded-xl">
+                                    <Tag size={18} className="text-white" />
+                                    <span className="text-white font-bold text-sm">عروض حصرية</span>
+                                </div>
+                                <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-md rounded-xl">
+                                    <Sparkles size={18} className="text-white" />
+                                    <span className="text-white font-bold text-sm">توصيل سريع</span>
+                                </div>
                             </div>
                         </div>
                     </div>
