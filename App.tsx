@@ -53,6 +53,7 @@ import BranchInventory from './pages/admin/BranchInventory';
 import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 import OrderDistributorPage from './pages/admin/OrderDistributorPage';
 import DeliveryStaffManager from './pages/admin/DeliveryStaffManager';
+import DeliverySlotsManager from './pages/admin/DeliverySlotsManager';
 import CouponsManager from './pages/admin/CouponsManager';
 import MagazineManager from './pages/admin/MagazineManager';
 import HotDealsManager from './pages/admin/HotDealsManager';
@@ -135,6 +136,7 @@ function AppContent() {
               <Route path="orders" element={<OrdersManager />} />
               <Route path="branches" element={<BranchesManager />} />
               <Route path="inventory" element={<BranchInventory />} />
+              <Route path="slots" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><DeliverySlotsManager /></ProtectedRoute>} />
               <Route path="coupons" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><CouponsManager /></ProtectedRoute>} />
               <Route path="magazine" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><MagazineManager /></ProtectedRoute>} />
               <Route path="hot-deals" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><HotDealsManager /></ProtectedRoute>} />
