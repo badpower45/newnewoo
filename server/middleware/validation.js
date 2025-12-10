@@ -184,23 +184,23 @@ export const orderSchema = Joi.object({
         .valid('cod', 'card', 'wallet', 'installment')
         .default('cod'),
     shippingDetails: Joi.object({
-        firstName: Joi.string().max(50).allow(''),
-        lastName: Joi.string().max(50).allow(''),
-        phone: Joi.string().pattern(/^[0-9+]{10,15}$/).allow(''),
-        address: Joi.string().max(500).allow(''),
-        city: Joi.string().max(100).allow(''),
-        area: Joi.string().max(100).allow(''),
-        notes: Joi.string().max(500).allow(null, ''),
-        building: Joi.string().max(100).allow(''),
-        street: Joi.string().max(100).allow(''),
-        floor: Joi.string().max(50).allow(''),
-        apartment: Joi.string().max(50).allow(''),
+        firstName: Joi.string().max(50).optional().allow('', null),
+        lastName: Joi.string().max(50).optional().allow('', null),
+        phone: Joi.string().pattern(/^[0-9+]{10,15}$/).optional().allow('', null),
+        address: Joi.string().max(500).optional().allow('', null),
+        city: Joi.string().max(100).optional().allow('', null),
+        area: Joi.string().max(100).optional().allow('', null),
+        notes: Joi.string().max(500).optional().allow('', null),
+        building: Joi.string().max(100).optional().allow('', null),
+        street: Joi.string().max(100).optional().allow('', null),
+        floor: Joi.string().max(50).optional().allow('', null),
+        apartment: Joi.string().max(50).optional().allow('', null),
         coordinates: Joi.object({
             lat: Joi.number(),
             lng: Joi.number()
-        }).allow(null),
-        fulfillmentType: Joi.string().valid('delivery', 'pickup').allow('')
-    }).allow(null),
+        }).optional().allow(null),
+        fulfillmentType: Joi.string().valid('delivery', 'pickup').optional().allow('', null)
+    }).optional().allow(null),
     deliveryAddress: Joi.string().max(500).allow(null, ''),
     couponId: Joi.number().integer().positive().allow(null),
     couponCode: Joi.string().max(50).allow(null, ''),
