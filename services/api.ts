@@ -17,7 +17,11 @@ export const api = {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(credentials)
             });
-            return res.json();
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.error || data.message || 'Login failed');
+            }
+            return data;
         },
         register: async (data: any) => {
             const res = await fetch(`${API_URL}/auth/register`, {
