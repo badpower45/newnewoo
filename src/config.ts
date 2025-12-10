@@ -1,55 +1,48 @@
 /**
  * Application Configuration
- * Environment variables and constants
- * Version: 2.0 (Force Cache Bust)
+ * ⚠️ CRITICAL: These URLs are HARDCODED on purpose!
+ * 
+ * DO NOT use environment variables from Vercel Dashboard
+ * because they contain old URLs (bkaa.vercel.app, newnewoo-backend.vercel.app)
+ * 
+ * Version: 2.1 - Force Hardcoded URLs
  */
 
-// HARDCODED URLs - NO MORE DYNAMIC DETECTION
+// 🔒 HARDCODED URLs - NEVER USE ENV VARS IN PRODUCTION
 const PRODUCTION_API_URL = 'https://newnewoo-server.vercel.app/api';
 const PRODUCTION_SOCKET_URL = 'https://newnewoo-server.vercel.app';
 const LOCAL_API_URL = 'http://localhost:3001/api';
 const LOCAL_SOCKET_URL = 'http://localhost:3001';
 
-// Determine API URL - SIMPLIFIED
+// Determine API URL - FORCE HARDCODED (ignore env vars from Vercel Dashboard)
 const getApiUrl = () => {
-    // 1. Check env variable first
-    if (import.meta.env.VITE_API_URL) {
-        console.log('🔧 Using VITE_API_URL:', import.meta.env.VITE_API_URL);
-        return import.meta.env.VITE_API_URL;
-    }
-    
-    // 2. Check if localhost
+    // Check if localhost ONLY
     const host = typeof window !== 'undefined' ? window.location.hostname : '';
     const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '::1';
     
     if (isLocal) {
-        console.log('🏠 Using LOCAL API:', LOCAL_API_URL);
+        console.log('🏠 LOCAL MODE - Using:', LOCAL_API_URL);
         return LOCAL_API_URL;
     }
     
-    // 3. Production - HARDCODED
-    console.log('🌐 Using PRODUCTION API:', PRODUCTION_API_URL);
+    // PRODUCTION - ALWAYS use hardcoded URL (ignore env vars)
+    console.log('🌐 PRODUCTION MODE - Using:', PRODUCTION_API_URL);
+    console.log('⚠️ IGNORING environment variables - using hardcoded URLs only');
     return PRODUCTION_API_URL;
 };
 
 const getSocketUrl = () => {
-    // 1. Check env variable first
-    if (import.meta.env.VITE_SOCKET_URL) {
-        console.log('🔧 Using VITE_SOCKET_URL:', import.meta.env.VITE_SOCKET_URL);
-        return import.meta.env.VITE_SOCKET_URL;
-    }
-    
-    // 2. Check if localhost
+    // Check if localhost ONLY
     const host = typeof window !== 'undefined' ? window.location.hostname : '';
     const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '::1';
     
     if (isLocal) {
-        console.log('🏠 Using LOCAL Socket:', LOCAL_SOCKET_URL);
+        console.log('🏠 LOCAL MODE - Using:', LOCAL_SOCKET_URL);
         return LOCAL_SOCKET_URL;
     }
     
-    // 3. Production - HARDCODED
-    console.log('🌐 Using PRODUCTION Socket:', PRODUCTION_SOCKET_URL);
+    // PRODUCTION - ALWAYS use hardcoded URL (ignore env vars)
+    console.log('🌐 PRODUCTION MODE - Using:', PRODUCTION_SOCKET_URL);
     return PRODUCTION_SOCKET_URL;
 };
 
