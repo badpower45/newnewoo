@@ -5,8 +5,10 @@ import { api } from '../../services/api';
 interface Branch {
   id: number;
   name: string;
+  name_ar?: string;
   address: string;
   phone: string;
+  google_maps_link?: string;
   latitude?: number;
   longitude?: number;
   delivery_radius?: number;
@@ -15,10 +17,12 @@ interface Branch {
 
 const emptyBranch: Omit<Branch, 'id'> = {
   name: '',
+  name_ar: '',
   address: '',
   phone: '',
-  latitude: 0,
-  longitude: 0,
+  google_maps_link: '',
+  latitude: undefined,
+  longitude: undefined,
   delivery_radius: 10,
   is_active: true
 };
@@ -52,13 +56,16 @@ const BranchesManager: React.FC = () => {
     setEditing(b);
     setForm({
       name: b.name,
+      name_ar: b.name_ar || '',
       address: b.address,
       phone: b.phone,
-      latitude: b.latitude || 0,
-      longitude: b.longitude || 0,
+      google_maps_link: b.google_maps_link || '',
+      latitude: b.latitude,
+      longitude: b.longitude,
       delivery_radius: b.delivery_radius || 10,
       is_active: b.is_active ?? true
     });
+    setLocationInput(b.google_maps_link || '');
     setShowModal(true);
   };
 
@@ -218,85 +225,115 @@ const BranchesManager: React.FC = () => {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-2xl w-full max-w-lg">
             <h2 className="text-xl font-bold mb-4">{editing ? 'Edit Branch' : 'New Branch'}</h2>
-            <form onSubmit={save} className="space-y-4">
-              <div>
-                <label className="block text-sm text-gray-700 mb-1">Name</label>
-                <input required value={form.name} onChange={e=>setForm({...form, name:e.target.value})} className="w-full border rounded-lg px-3 py-2" />
+            <form onSubmit={save} className="space-y-4 max-h-[80vh] overflow-y-auto">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    الاسم بالعربي <span className="text-red-500">*</span>
+                  </label>
+                  <input 
+                    required 
+                    value={form.name_ar} 
+                    onChange={e=>setForm({...form, name_ar:e.target.value})} 
+                    className="w-full border rounded-lg px-3 py-2"
+                    placeholder="فرع المنصورة"
+                    dir="rtl"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Name (English) <span className="text-red-500">*</span>
+                  </label>
+                  <input 
+                    required 
+                    value={form.name} 
+                    onChange={e=>setForm({...form, name:e.target.value})} 
+                    className="w-full border rounded-lg px-3 py-2"
+                    placeholder="Mansoura Branch"
+                  />
+                </div>
               </div>
+              
               <div>
-                <label className="block text-sm text-gray-700 mb-1">Address</label>
-                <input required value={form.address} onChange={e=>setForm({...form, address:e.target.value})} className="w-full border rounded-lg px-3 py-2" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  العنوان <span className="text-red-500">*</span>
+                </label>
+                <textarea 
+                  required 
+                  value={form.address} 
+                  onChange={e=>setForm({...form, address:e.target.value})} 
+                  className="w-full border rounded-lg px-3 py-2"
+                  rows={2}
+                  placeholder="شارع الجمهورية، المنصورة، الدقهلية"
+                  dir="rtl"
+                />
               </div>
+              
               <div>
-                <label className="block text-sm text-gray-700 mb-1">Phone</label>
-                <input required value={form.phone} onChange={e=>setForm({...form, phone:e.target.value})} className="w-full border rounded-lg px-3 py-2" />
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  رقم الهاتف <span className="text-red-500">*</span>
+                </label>
+                <input 
+                  required 
+                  type="tel"
+                  value={form.phone} 
+                  onChange={e=>setForm({...form, phone:e.target.value})} 
+                  className="w-full border rounded-lg px-3 py-2"
+                  placeholder="+20 123 456 7890"
+                  dir="ltr"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  رابط Google Maps <span className="text-red-500">*</span>
+                </label>
+                <input 
+                  required
+                  type="url"
+                  value={form.google_maps_link} 
+                  onChange={e=>setForm({...form, google_maps_link:e.target.value})} 
+                  className="w-full border rounded-lg px-3 py-2 text-sm"
+                  placeholder="https://maps.google.com/?q=31.0409,31.3785"
+                  dir="ltr"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  📍 هذا الرابط سيستخدم لفتح الموقع في Google Maps
+                </p>
               </div>
 
-              {/* Location Input Section */}
+              {/* Location Input Section - Optional */}
               <div className="border-t border-gray-200 pt-4">
                 <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                  <MapPin size={16} className="text-primary" />
-                  الموقع (Location)
+                  <MapPin size={16} className="text-gray-400" />
+                  الإحداثيات (اختياري - للمستقبل)
                 </label>
-
-                {/* Quick Location Input */}
-                <div className="space-y-3">
-                  <div className="flex gap-2">
-                    <div className="flex-1">
-                      <input
-                        type="text"
-                        value={locationInput}
-                        onChange={(e) => setLocationInput(e.target.value)}
-                        onBlur={() => parseLocation(locationInput)}
-                        placeholder="الصق رابط Google Maps أو الإحداثيات (31.259, 32.293)"
-                        className="w-full border rounded-lg px-3 py-2 text-sm"
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={getMyLocation}
-                      className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 whitespace-nowrap"
-                      title="جلب موقعي الحالي"
-                    >
-                      <Navigation size={16} />
-                      موقعي
-                    </button>
-                  </div>
-
-                  <p className="text-xs text-gray-500 flex items-start gap-1">
-                    <Link2 size={12} className="mt-0.5" />
-                    يمكنك لصق رابط Google Maps أو كتابة الإحداثيات مباشرة
-                  </p>
-                </div>
+                <p className="text-xs text-gray-500 mb-3 bg-gray-50 p-2 rounded">
+                  ℹ️ هذه الحقول اختيارية ويمكن استخدامها في المستقبل لتحديد موقع الفرع تلقائياً
+                </p>
 
                 {/* Manual Coordinate Inputs */}
-                <div className="grid grid-cols-3 gap-3 mt-4">
+                <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-xs text-gray-600 mb-1">Latitude</label>
+                    <label className="block text-xs text-gray-600 mb-1">Latitude (اختياري)</label>
                     <input
                       type="number"
                       step="0.000001"
-                      value={form.latitude}
-                      onChange={e => {
-                        const lat = Number(e.target.value);
-                        setForm({...form, latitude: lat});
-                        setLocationInput(`${lat}, ${form.longitude}`);
-                      }}
+                      value={form.latitude || ''}
+                      onChange={e => setForm({...form, latitude: e.target.value ? Number(e.target.value) : undefined})}
                       className="w-full border rounded-lg px-3 py-2 text-sm"
+                      placeholder="31.0409"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-600 mb-1">Longitude</label>
+                    <label className="block text-xs text-gray-600 mb-1">Longitude (اختياري)</label>
                     <input
                       type="number"
                       step="0.000001"
-                      value={form.longitude}
-                      onChange={e => {
-                        const lng = Number(e.target.value);
-                        setForm({...form, longitude: lng});
-                        setLocationInput(`${form.latitude}, ${lng}`);
-                      }}
+                      value={form.longitude || ''}
+                      onChange={e => setForm({...form, longitude: e.target.value ? Number(e.target.value) : undefined})}
                       className="w-full border rounded-lg px-3 py-2 text-sm"
+                      placeholder="31.3785"
                     />
                   </div>
                   <div>
@@ -310,20 +347,14 @@ const BranchesManager: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Show Google Maps Link */}
-                {form.latitude !== 0 && form.longitude !== 0 && (
-                  <div className="mt-3">
-                    <a
-                      href={`https://www.google.com/maps?q=${form.latitude},${form.longitude}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-blue-600 hover:underline flex items-center gap-1"
-                    >
-                      <MapPin size={12} />
-                      عرض على Google Maps
-                    </a>
-                  </div>
-                )}
+                <button
+                  type="button"
+                  onClick={getMyLocation}
+                  className="mt-3 flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm"
+                >
+                  <Navigation size={14} />
+                  جلب موقعي الحالي
+                </button>
               </div>
               <div className="flex items-center gap-2">
                 <input id="active" type="checkbox" checked={!!form.is_active} onChange={e=>setForm({...form, is_active: e.target.checked})} />

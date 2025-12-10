@@ -230,23 +230,35 @@ export default function ProductsPage() {
             {/* Category Banner - shown when category is selected */}
             {selectedCategory && selectedCategory !== '' && (
                 <div className="max-w-7xl mx-auto px-4 pt-6">
-                    <div className={`relative overflow-hidden rounded-3xl shadow-xl bg-gradient-to-r ${CATEGORIES.find(c => c.id === selectedCategory)?.color || 'from-orange-400 to-orange-600'}`}>
-                        <div className="relative z-10 p-8 md:p-12">
-                            <div className="flex items-center gap-4 mb-3">
-                                <span className="text-5xl">{CATEGORIES.find(c => c.id === selectedCategory)?.icon}</span>
+                    <div className={`relative overflow-hidden rounded-2xl h-32 md:h-40 shadow-lg bg-gradient-to-r ${CATEGORIES.find(c => c.id === selectedCategory)?.color || 'from-orange-400 to-orange-600'}`}>
+                        {/* Background Pattern */}
+                        <div className="absolute inset-0 opacity-10">
+                            <div className="absolute inset-0" style={{
+                                backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255,255,255,.5) 35px, rgba(255,255,255,.5) 70px)',
+                            }}></div>
+                        </div>
+                        
+                        {/* Content */}
+                        <div className="relative z-10 h-full flex items-center justify-between px-6 md:px-10">
+                            <div className="flex items-center gap-4">
+                                <div className="w-16 h-16 md:w-20 md:h-20 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
+                                    <span className="text-4xl md:text-5xl">{CATEGORIES.find(c => c.id === selectedCategory)?.icon}</span>
+                                </div>
                                 <div>
-                                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">
+                                    <h2 className="text-2xl md:text-3xl font-bold text-white mb-1">
                                         {CATEGORIES.find(c => c.id === selectedCategory)?.name}
                                     </h2>
-                                    <p className="text-white/90 text-lg">
-                                        اكتشف أفضل المنتجات في هذا القسم
+                                    <p className="text-white/90 text-sm md:text-base">
+                                        أفضل العروض والمنتجات
                                     </p>
                                 </div>
                             </div>
+                            
+                            {/* Decorative Icon */}
+                            <div className="hidden md:block text-white/20 text-8xl font-bold">
+                                {CATEGORIES.find(c => c.id === selectedCategory)?.icon}
+                            </div>
                         </div>
-                        {/* Decorative shapes */}
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
-                        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2"></div>
                     </div>
                 </div>
             )}

@@ -19,8 +19,16 @@ const OrdersManager = () => {
     const loadOrders = async () => {
         setLoading(true);
         try {
-            const data = await api.orders.getAll();
-            if (data.data) setOrders(data.data);
+            // Use getAllAdmin to get all orders for admin
+            const data = await api.orders.getAllAdmin();
+            console.log('Orders loaded:', data);
+            if (data.data) {
+                setOrders(data.data);
+            } else if (Array.isArray(data)) {
+                setOrders(data);
+            }
+        } catch (error) {
+            console.error('Failed to load orders:', error);
         } finally {
             setLoading(false);
         }

@@ -15,7 +15,8 @@ const getApiUrl = () => {
   if (isLocal) {
     return 'http://localhost:3001/api';
   }
-  return 'https://bkaa.vercel.app/api';
+  // Use the correct backend URL
+  return 'https://newnewoo-server.vercel.app/api';
 };
 
 const getSocketUrl = () => {
@@ -27,7 +28,7 @@ const getSocketUrl = () => {
   if (isLocal) {
     return 'http://localhost:3001';
   }
-  return 'https://bkaa.vercel.app';
+  return 'https://newnewoo-server.vercel.app';
 };
 
 export const API_URL = getApiUrl();
