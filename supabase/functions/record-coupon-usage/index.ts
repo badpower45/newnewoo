@@ -30,10 +30,10 @@ serve(async (req) => {
 
     const { couponId, userId, orderId, discountAmount }: CouponUsageRequest = await req.json()
 
-    if (!couponId || !userId || !orderId) {
+    if (!couponId || !userId) {
       return new Response(
         JSON.stringify({ 
-          error: 'معرف الكوبون والمستخدم والطلب مطلوبة',
+          error: 'معرف الكوبون والمستخدم مطلوبان',
           success: false 
         }),
         { 
@@ -50,7 +50,7 @@ serve(async (req) => {
       .insert({
         coupon_id: couponId,
         user_id: userId,
-        order_id: orderId,
+        order_id: orderId || null,
         discount_amount: discountAmount,
         used_at: new Date().toISOString()
       })
@@ -60,6 +60,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           error: 'فشل تسجيل استخدام الكوبون',
+          details: usageError.message || usageError,
           success: false 
         }),
         { 
@@ -70,14 +71,26 @@ serve(async (req) => {
     }
 
     // 2. Increment used_count in coupons table
-    const { error: updateError } = await supabase.rpc('increment_coupon_usage', {
-      coupon_id_param: couponId
-    })
+    // First get current count
+    const { data: couponData } = await supabase
+      .from('coupons')
+      .select('used_count')
+      .eq('id', couponId)
+      .single()
 
-    if (updateError) {
-      console.error('Error incrementing coupon counter:', updateError)
-      // Don't fail the request if counter update fails
-      // The usage record is already created
+    if (couponData) {
+      const newCount = (couponData.used_count || 0) + 1
+      const { error: updateError } = await supabase
+        .from('coupons')
+        .update({ 
+          used_count: newCount,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', couponId)
+
+      if (updateError) {
+        console.error('Error incrementing coupon counter:', updateError)
+      }
     }
 
     return new Response(
