@@ -290,14 +290,14 @@ const ProductDetailsPage = () => {
                                 <p className="text-[#6B7280] text-xs mb-1 font-semibold uppercase tracking-wide">السعر الحالي</p>
                                 <div className="flex items-baseline gap-2">
                                     <span className="text-4xl text-[#F97316] leading-none font-black">
-                                        {displayPrice.toFixed(0)}
+                                        {(displayPrice || 0).toFixed(0)}
                                     </span>
                                     <span className="text-[#23110C] text-base font-semibold">جنيه</span>
                                 </div>
                                 {oldPrice > displayPrice && (
                                     <div className="flex items-center gap-2 mt-1">
                                         <span className="text-[#9CA3AF] line-through text-base font-semibold">
-                                            {oldPrice.toFixed(0)} جنيه
+                                            {(oldPrice || 0).toFixed(0)} جنيه
                                         </span>
                                         <span className="bg-[#EF4444] text-white text-xs px-2 py-0.5 rounded-full font-bold">
                                             -{discountPercentage}%
@@ -311,7 +311,7 @@ const ProductDetailsPage = () => {
                                         <ThumbsUp className="w-5 h-5 text-[#10B981] mx-auto mb-1" />
                                         <p className="text-[#10B981] text-xs font-semibold whitespace-nowrap">توفير</p>
                                         <p className="text-[#10B981] text-lg font-black">
-                                            {savings.toFixed(0)}
+                                            {(savings || 0).toFixed(0)}
                                         </p>
                                         <p className="text-[#10B981] text-xs">جنيه</p>
                                     </div>
@@ -351,7 +351,7 @@ const ProductDetailsPage = () => {
                         <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-3">
                                 <div className="bg-gradient-to-br from-[#FFC107] to-[#FF9800] w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg">
-                                    <span className="text-white text-2xl font-black">{productRating.toFixed(1)}</span>
+                                    <span className="text-white text-2xl font-black">{(productRating || 0).toFixed(1)}</span>
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-1 mb-1">
@@ -626,9 +626,9 @@ const ProductDetailsPage = () => {
                                                         <p className="text-[#F97316] text-lg font-bold">
                                                             {(item.price || 0).toFixed(0)}
                                                         </p>
-                                                        {itemOldPrice > item.price && (
+                                                        {itemOldPrice > (item.price || 0) && (
                                                             <p className="text-[#9CA3AF] line-through text-xs">
-                                                                {itemOldPrice.toFixed(0)} جنيه
+                                                                {(itemOldPrice || 0).toFixed(0)} جنيه
                                                             </p>
                                                         )}
                                                     </div>
@@ -722,9 +722,9 @@ const ProductDetailsPage = () => {
                                                         <p className="text-[#F97316] text-lg font-bold">
                                                             {(item.price || 0).toFixed(0)} جنيه
                                                         </p>
-                                                        {itemOldPrice > item.price && (
+                                                        {itemOldPrice > (item.price || 0) && (
                                                             <p className="text-[#9CA3AF] line-through text-xs">
-                                                                {itemOldPrice.toFixed(0)} جنيه
+                                                                {(itemOldPrice || 0).toFixed(0)} جنيه
                                                             </p>
                                                         )}
                                                     </div>
@@ -777,7 +777,7 @@ const ProductDetailsPage = () => {
                         <div className="flex-1 bg-gradient-to-br from-[#FFF7ED] to-[#FEF3C7] rounded-xl px-3 py-1.5 border border-[#F97316]/20">
                             <p className="text-[#6B7280] text-[10px]">الإجمالي</p>
                             <p className="text-[#F97316] text-lg font-bold">
-                                {(displayPrice * quantity).toFixed(0)} جنيه
+                                {((displayPrice || 0) * quantity).toFixed(0)} جنيه
                             </p>
                         </div>
                     </div>
