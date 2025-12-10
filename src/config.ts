@@ -9,8 +9,8 @@
  */
 
 // 🔒 HARDCODED URLs - NEVER USE ENV VARS IN PRODUCTION
-const PRODUCTION_API_URL = 'https://newnewoo-server.vercel.app/api';
-const PRODUCTION_SOCKET_URL = 'https://newnewoo-server.vercel.app';
+const PRODUCTION_API_URL = 'https://bkaa.vercel.app/api';
+const PRODUCTION_SOCKET_URL = 'https://bkaa.vercel.app';
 const LOCAL_API_URL = 'http://localhost:3001/api';
 const LOCAL_SOCKET_URL = 'http://localhost:3001';
 
