@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import TopBar from '../components/TopBar';
 import Banner from '../components/Banner';
 import CategoryCard from '../components/CategoryCard';
@@ -14,7 +14,7 @@ import BrandOffersSection from '../components/BrandOffersSection';
 import StoriesSection from '../components/StoriesSection';
 import FacebookReelsGrid from '../components/FacebookReelsGrid';
 import HeroCarousel from '../components/HeroCarousel';
-import { ChevronRight, Flame, BookOpen, Search } from 'lucide-react';
+import { ChevronRight, Flame, BookOpen } from 'lucide-react';
 import { CATEGORIES, SPONSORED_ADS, FLYER_PAGES } from '../data/mockData';
 import { api } from '../services/api';
 import { Product } from '../types';
@@ -40,11 +40,9 @@ const HomePage = () => {
     const [loading, setLoading] = useState(true);
     const [categoriesLoading, setCategoriesLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [searchQuery, setSearchQuery] = useState('');
     const filterCategories = ['All', 'Food', 'Vouchers', 'Beverages', 'Snacks', 'Dairy', 'Cleaning'];
     const { isAuthenticated } = useAuth();
     const { selectedBranch } = useBranch();
-    const navigate = useNavigate();
 
     // Fetch categories from API
     const fetchCategories = async () => {
@@ -176,43 +174,9 @@ const HomePage = () => {
         setBranchMap({});
     }, [selectedBranch]);
 
-    const handleSearch = () => {
-        if (searchQuery.trim()) {
-            navigate(`/products?search=${encodeURIComponent(searchQuery)}`);
-        }
-    };
-
-    const handleSearchKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter') {
-            handleSearch();
-        }
-    };
-
     return (
         <div className="bg-[#FAFAFA] min-h-screen pb-24 md:pb-8">
             <TopBar />
-
-            {/* Search Bar - Prominent Display */}
-            <div className="bg-white border-b border-gray-200 sticky top-0 z-30 shadow-sm">
-                <div className="max-w-7xl mx-auto px-4 py-3">
-                    <div className="relative">
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            onKeyDown={handleSearchKeyDown}
-                            placeholder="ابحث عن المنتجات... Search products..."
-                            className="w-full h-12 pr-12 pl-4 rounded-xl border-2 border-gray-200 focus:border-[#FF6B35] focus:outline-none text-base transition-colors"
-                        />
-                        <button
-                            onClick={handleSearch}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-gradient-to-r from-[#FF6B35] to-[#FF8C42] text-white rounded-lg hover:shadow-lg transition-all active:scale-95"
-                        >
-                            <Search className="h-5 w-5" />
-                        </button>
-                    </div>
-                </div>
-            </div>
 
             <div className="px-4 py-3 space-y-5 max-w-7xl mx-auto">
                 {/* Stories Section */}

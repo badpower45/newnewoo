@@ -43,21 +43,29 @@ const TopBar = () => {
 
     return (
         <div className="bg-white sticky top-0 z-40 shadow-sm">
-            {/* Top Utility Bar - Desktop */}
-            <div className="hidden md:flex justify-between items-center max-w-7xl mx-auto px-4 text-xs text-gray-500 py-2 border-b border-gray-100">
-                <div className="flex items-center gap-4">
+            {/* Top Utility Bar - Always Visible */}
+            <div className="flex justify-between items-center max-w-7xl mx-auto px-4 text-xs text-gray-500 py-2 border-b border-gray-100">
+                <div className="flex items-center gap-2 md:gap-4">
                     <span className="flex items-center gap-1 text-green-600 font-medium">
                         <Clock size={12} />
-                        مفتوح 24 ساعة
+                        <span className="hidden sm:inline">مفتوح 24 ساعة</span>
+                        <span className="sm:hidden">24h</span>
                     </span>
                     <span className="flex items-center gap-1">
                         <Phone size={12} />
-                        الخط الساخن: 19999
+                        <span className="hidden sm:inline">الخط الساخن:</span>
+                        19999
                     </span>
                 </div>
-                <div className="flex items-center gap-4">
-                    <Link to="/track-order" className="hover:text-primary cursor-pointer transition-colors">تتبع طلبك</Link>
-                    <Link to="/profile?tab=rewards" className="hover:text-primary cursor-pointer transition-colors">مكافآت علوش</Link>
+                <div className="flex items-center gap-2 md:gap-4">
+                    <Link to="/track-order" className="hover:text-primary cursor-pointer transition-colors">
+                        <span className="hidden sm:inline">تتبع طلبك</span>
+                        <span className="sm:hidden">تتبع</span>
+                    </Link>
+                    <Link to="/profile?tab=rewards" className="hover:text-primary cursor-pointer transition-colors">
+                        <span className="hidden sm:inline">مكافآت علوش</span>
+                        <span className="sm:hidden">مكافآت</span>
+                    </Link>
                 </div>
             </div>
 
