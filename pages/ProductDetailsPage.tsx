@@ -41,7 +41,7 @@ const ProductDetailsPage = () => {
             setLoading(true);
             
             try {
-                const branchId = selectedBranch?.id;
+                const branchId = selectedBranch?.id || 1; // Default to branch 1 if no branch selected
                 const data = await api.products.getOne(id, branchId);
                 // API returns the product directly, not wrapped in {data: ...}
                 let loadedProduct = data;
@@ -79,7 +79,7 @@ const ProductDetailsPage = () => {
                 // Load similar products
                 if (loadedProduct.category) {
                     try {
-                        const similarList = await api.products.getByCategory(loadedProduct.category, branchId);
+                        const similarList = await api.products.getByCategory(loadedProduct.category, branchId || 1);
                         // API now returns array directly
                         const filtered = Array.isArray(similarList) 
                             ? similarList.filter((p: Product) => String(p.id) !== String(id)).slice(0, 4)
