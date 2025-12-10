@@ -209,7 +209,7 @@ router.get('/orders-to-prepare', verifyToken, async (req, res) => {
 // بدء تحضير طلب
 router.post('/start-preparation/:orderId', verifyToken, async (req, res) => {
     const { orderId } = req.params;
-    const distributorId = req.user.id;
+    const distributorId = req.userId;  // Fixed: use req.userId from middleware
     
     try {
         await query('BEGIN');
@@ -289,7 +289,7 @@ router.get('/preparation-items/:orderId', verifyToken, async (req, res) => {
 router.put('/preparation-items/:itemId', verifyToken, async (req, res) => {
     const { itemId } = req.params;
     const { isPrepared, notes } = req.body;
-    const preparedBy = req.user.id;
+    const preparedBy = req.userId;  // Fixed: use req.userId
     
     try {
         const { rows } = await query(`
@@ -373,17 +373,21 @@ router.get('/available-delivery/:branchId', verifyToken, async (req, res) => {
     }
 });
 
-// تعيين ديليفري للطلب (مع مهلة 5 دقائق للقبول)
+// تعيين ديليفري للطلب (مع مهلة قابلة للتخصيص للقبول)
 router.post('/assign-delivery/:orderId', verifyToken, async (req, res) => {
     const { orderId } = req.params;
-    const { deliveryStaffId, expectedDeliveryTime } = req.body;
+    const { deliveryStaffId, acceptTimeoutMinutes, expectedDeliveryMinutes } = req.body;
     
     try {
         await query('BEGIN');
         
-        // حساب الموعد النهائي للقبول (5 دقائق)
-        const acceptDeadline = new Date(Date.now() + 5 * 60 * 1000);
-        const deliveryTime = expectedDeliveryTime || DEFAULT_EXPECTED_DELIVERY_TIME;
+        // حساب الموعد النهائي للقبول (قابل للتخصيص - افتراضي 5 دقائق)
+        const acceptTimeout = acceptTimeoutMinutes || 5;
+        const acceptDeadline = new Date(Date.now() + acceptTimeout * 60 * 1000);
+        const deliveryTime = expectedDeliveryMinutes || DEFAULT_EXPECTED_DELIVERY_TIME;
+        
+        console.log(`📦 Assigning order ${orderId} to delivery staff ${deliveryStaffId}`);
+        console.log(`⏱️ Accept timeout: ${acceptTimeout} minutes, Expected delivery: ${deliveryTime} minutes`);
         
         // تحديث سجل التعيين
         await query(`
@@ -746,7 +750,7 @@ router.get('/my-delivery-orders', verifyToken, async (req, res) => {
     try {
         const { rows: staffRows } = await query(
             'SELECT id FROM delivery_staff WHERE user_id = $1',
-            [req.user.id]
+            [req.userId]  // Fixed: use req.userId
         );
         
         if (staffRows.length === 0) {
@@ -766,7 +770,11 @@ router.get('/my-delivery-orders', verifyToken, async (req, res) => {
             LEFT JOIN users u ON o.user_id = u.id
             LEFT JOIN branches b ON o.branch_id = b.id
             WHERE oa.delivery_staff_id = $1 
-              AND oa.status IN ('assigned', 'accepted', 'picked_up', 'arriving')
+              AND (
+                oa.status IN ('assigned', 'accepted', 'picked_up', 'arriving')
+                OR o.status IN ('confirmed', 'ready', 'preparing')
+              )
+              AND o.status NOT IN ('delivered', 'cancelled')
             ORDER BY oa.assigned_at DESC
         `, [staffId]);
         
@@ -805,7 +813,7 @@ router.post('/rate-delivery/:orderId', verifyToken, async (req, res) => {
             return res.status(404).json({ error: 'الطلب غير موجود' });
         }
         
-        if (orderRows[0].user_id !== req.user.id) {
+        if (orderRows[0].user_id !== req.userId) {
             await query('ROLLBACK');
             return res.status(403).json({ error: 'غير مصرح' });
         }
@@ -865,7 +873,7 @@ router.get('/pending-ratings', verifyToken, async (req, res) => {
               AND oa.delivered_at < NOW() - INTERVAL '15 minutes'
             ORDER BY oa.delivered_at DESC
             LIMIT 3
-        `, [req.user.id]);
+        `, [req.userId]);  // Fixed: use req.userId
         
         res.json({ message: 'success', data: rows });
     } catch (err) {
@@ -879,7 +887,7 @@ router.get('/delivery-stats', verifyToken, async (req, res) => {
     try {
         const { rows: staffRows } = await query(
             'SELECT * FROM delivery_staff WHERE user_id = $1',
-            [req.user.id]
+            [req.userId]  // Fixed: use req.userId
         );
         
         if (staffRows.length === 0) {

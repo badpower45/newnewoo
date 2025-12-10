@@ -587,8 +587,9 @@ const ProductDetailsPage = () => {
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                                 {similarProducts.map((item) => {
-                                    const itemOldPrice = item.discount_price || item.originalPrice || (item.price * 1.15);
-                                    const itemDiscount = itemOldPrice > item.price ? Math.round(((itemOldPrice - item.price) / itemOldPrice) * 100) : 0;
+                                    const itemPrice = Number(item.price) || 0;
+                                    const itemOldPrice = Number(item.discount_price) || Number(item.originalPrice) || (itemPrice * 1.15);
+                                    const itemDiscount = itemOldPrice > itemPrice ? Math.round(((itemOldPrice - itemPrice) / itemOldPrice) * 100) : 0;
                                     
                                     return (
                                         <Link
@@ -624,11 +625,11 @@ const ProductDetailsPage = () => {
                                                 <div className="flex items-center justify-between mb-2">
                                                     <div>
                                                         <p className="text-[#F97316] text-lg font-bold">
-                                                            {(item.price || 0).toFixed(0)}
+                                                            {itemPrice.toFixed(0)}
                                                         </p>
-                                                        {itemOldPrice > (item.price || 0) && (
+                                                        {itemOldPrice > itemPrice && (
                                                             <p className="text-[#9CA3AF] line-through text-xs">
-                                                                {(itemOldPrice || 0).toFixed(0)} جنيه
+                                                                {itemOldPrice.toFixed(0)} جنيه
                                                             </p>
                                                         )}
                                                     </div>
@@ -666,8 +667,9 @@ const ProductDetailsPage = () => {
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                                 {recommendedProducts.map((item) => {
-                                    const itemOldPrice = item.discount_price || item.originalPrice || (item.price * 1.15);
-                                    const itemDiscount = itemOldPrice > item.price ? Math.round(((itemOldPrice - item.price) / itemOldPrice) * 100) : 0;
+                                    const itemPrice = Number(item.price) || 0;
+                                    const itemOldPrice = Number(item.discount_price) || Number(item.originalPrice) || (itemPrice * 1.15);
+                                    const itemDiscount = itemOldPrice > itemPrice ? Math.round(((itemOldPrice - itemPrice) / itemOldPrice) * 100) : 0;
                                     
                                     return (
                                         <Link
@@ -720,11 +722,11 @@ const ProductDetailsPage = () => {
                                                 <div className="flex items-center justify-between">
                                                     <div>
                                                         <p className="text-[#F97316] text-lg font-bold">
-                                                            {(item.price || 0).toFixed(0)} جنيه
+                                                            {itemPrice.toFixed(0)} جنيه
                                                         </p>
-                                                        {itemOldPrice > (item.price || 0) && (
+                                                        {itemOldPrice > itemPrice && (
                                                             <p className="text-[#9CA3AF] line-through text-xs">
-                                                                {(itemOldPrice || 0).toFixed(0)} جنيه
+                                                                {itemOldPrice.toFixed(0)} جنيه
                                                             </p>
                                                         )}
                                                     </div>
