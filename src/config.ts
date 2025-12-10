@@ -1,40 +1,69 @@
 /**
  * Application Configuration
  * Environment variables and constants
+ * Version: 2.0 (Force Cache Bust)
  */
 
-// Determine API URL dynamically - for local network access
+// HARDCODED URLs - NO MORE DYNAMIC DETECTION
+const PRODUCTION_API_URL = 'https://newnewoo-server.vercel.app/api';
+const PRODUCTION_SOCKET_URL = 'https://newnewoo-server.vercel.app';
+const LOCAL_API_URL = 'http://localhost:3001/api';
+const LOCAL_SOCKET_URL = 'http://localhost:3001';
+
+// Determine API URL - SIMPLIFIED
 const getApiUrl = () => {
-    // If explicitly set in env, use that
+    // 1. Check env variable first
     if (import.meta.env.VITE_API_URL) {
+        console.log('🔧 Using VITE_API_URL:', import.meta.env.VITE_API_URL);
         return import.meta.env.VITE_API_URL;
     }
-  // Default fallback to provided backend URL
-  const host = typeof window !== 'undefined' ? window.location.hostname : '';
-  const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '::1';
-  if (isLocal) {
-    return 'http://localhost:3001/api';
-  }
-  // Use the correct backend URL
-  return 'https://newnewoo-server.vercel.app/api';
+    
+    // 2. Check if localhost
+    const host = typeof window !== 'undefined' ? window.location.hostname : '';
+    const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '::1';
+    
+    if (isLocal) {
+        console.log('🏠 Using LOCAL API:', LOCAL_API_URL);
+        return LOCAL_API_URL;
+    }
+    
+    // 3. Production - HARDCODED
+    console.log('🌐 Using PRODUCTION API:', PRODUCTION_API_URL);
+    return PRODUCTION_API_URL;
 };
 
 const getSocketUrl = () => {
+    // 1. Check env variable first
     if (import.meta.env.VITE_SOCKET_URL) {
+        console.log('🔧 Using VITE_SOCKET_URL:', import.meta.env.VITE_SOCKET_URL);
         return import.meta.env.VITE_SOCKET_URL;
     }
-  const host = typeof window !== 'undefined' ? window.location.hostname : '';
-  const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '::1';
-  if (isLocal) {
-    return 'http://localhost:3001';
-  }
-  return 'https://newnewoo-server.vercel.app';
+    
+    // 2. Check if localhost
+    const host = typeof window !== 'undefined' ? window.location.hostname : '';
+    const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '::1';
+    
+    if (isLocal) {
+        console.log('🏠 Using LOCAL Socket:', LOCAL_SOCKET_URL);
+        return LOCAL_SOCKET_URL;
+    }
+    
+    // 3. Production - HARDCODED
+    console.log('🌐 Using PRODUCTION Socket:', PRODUCTION_SOCKET_URL);
+    return PRODUCTION_SOCKET_URL;
 };
 
 export const API_URL = getApiUrl();
 export const SOCKET_URL = getSocketUrl();
 export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || '';
 export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+
+// Log config on load for debugging
+console.log('📋 Config Loaded:', {
+    API_URL,
+    SOCKET_URL,
+    timestamp: new Date().toISOString()
+});
 
 // App Constants
 export const APP_NAME = 'Lumina Fresh Market';
