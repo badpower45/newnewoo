@@ -151,6 +151,12 @@ export default function CheckoutPage() {
             return;
         }
 
+        if (!user) {
+            setCouponError('يجب تسجيل الدخول أولاً لاستخدام الكوبونات');
+            showToast('يرجى تسجيل الدخول أولاً', 'warning');
+            return;
+        }
+
         setIsValidatingCoupon(true);
         setCouponError('');
 
@@ -188,7 +194,9 @@ export default function CheckoutPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!selectedBranch) {
+        // Use selected branch or default to branch 1
+        const branchId = selectedBranch?.id || 1;
+        if (!branchId) {
             showToast('يرجى اختيار فرع أولاً', 'warning');
             return;
         }
@@ -209,7 +217,7 @@ export default function CheckoutPage() {
         try {
             // Verify availability for each cart item at selected branch
             try {
-                const res = await api.branchProducts.getByBranch(selectedBranch.id);
+                const res = await api.branchProducts.getByBranch(branchId);
                 const list = res.data || res || [];
                 for (const item of items) {
                     const bp = list.find((x: any) => String(x.product_id ?? x.productId ?? x.id) === String(item.id));
@@ -230,7 +238,7 @@ export default function CheckoutPage() {
             }
             const orderData = {
                 userId: currentUserId,
-                branchId: selectedBranch.id,
+                branchId: branchId,
                 total: totalPrice + deliveryFee - couponDiscount, // Subtotal + delivery - coupon discount
                 paymentMethod: paymentMethod,
                 deliveryAddress: isPickup
