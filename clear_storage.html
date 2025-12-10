@@ -1,0 +1,41 @@
+<!-- Fix Login & Cart Issues -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Storage & Fix Login</title>
+</head>
+<body>
+    <h1>🔧 Clear Storage & Test Login</h1>
+    
+    <button onclick="clearStorage()" style="padding: 10px 20px; font-size: 16px; background: red; color: white; border: none; cursor: pointer;">
+        🗑️ Clear All Storage
+    </button>
+    
+    <br><br>
+    
+    <div id="status"></div>
+    
+    <script>
+        function clearStorage() {
+            localStorage.clear();
+            sessionStorage.clear();
+            document.getElementById('status').innerHTML = '✅ Storage cleared! Now refresh and try login again.';
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        }
+        
+        // Auto-display current storage
+        window.onload = () => {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            
+            document.getElementById('status').innerHTML = `
+                <h3>Current Storage:</h3>
+                <p><strong>Token:</strong> ${token ? token.substring(0, 30) + '...' : '❌ None'}</p>
+                <p><strong>User:</strong> ${user || '❌ None'}</p>
+            `;
+        };
+    </script>
+</body>
+</html>

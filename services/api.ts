@@ -29,7 +29,11 @@ export const api = {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
-            return res.json();
+            const responseData = await res.json();
+            if (!res.ok) {
+                throw new Error(responseData.error || responseData.message || 'Registration failed');
+            }
+            return responseData;
         },
         forgotPassword: async (email: string) => {
             const res = await fetch(`${API_URL}/auth/forgot-password`, {

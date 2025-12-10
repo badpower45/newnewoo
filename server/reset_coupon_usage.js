@@ -2,19 +2,18 @@ import { query } from './database.js';
 
 async function resetCouponUsage() {
     try {
-        console.log('🧹 Cleaning up test coupon usage records...\n');
+        console.log('🧹 Cleaning up ALL coupon usage records...\n');
         
-        // Delete test usage records (where order_id is null)
+        // Delete ALL usage records
         const deleteResult = await query(
-            'DELETE FROM coupon_usage WHERE order_id IS NULL RETURNING *'
+            'DELETE FROM coupon_usage RETURNING *'
         );
         
-        console.log(`✅ Deleted ${deleteResult.rows.length} test records:`);
-        console.table(deleteResult.rows);
+        console.log(`✅ Deleted ${deleteResult.rows.length} records`);
         
         // Reset used_count for all coupons
-        await query('UPDATE coupons SET used_count = 0 WHERE used_count > 0');
-        console.log('\n✅ Reset used_count to 0 for all coupons');
+        await query('UPDATE coupons SET used_count = 0');
+        console.log('✅ Reset used_count to 0 for all coupons');
         
         // Show current coupon status
         const coupons = await query('SELECT code, used_count, usage_limit, per_user_limit FROM coupons');
