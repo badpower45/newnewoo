@@ -35,7 +35,8 @@ const MorePage = () => {
         try {
             const response = await api.branches.getAll();
             console.log('Branches loaded:', response);
-            setBranches(response.data || []);
+            // API returns array directly, not wrapped in .data
+            setBranches(Array.isArray(response) ? response : []);
         } catch (error) {
             console.error('Failed to fetch branches:', error);
         } finally {
