@@ -42,6 +42,12 @@ const OrderDistributorPage = () => {
     const [deliveryStaffList, setDeliveryStaffList] = useState<any[]>([]);
     const [selectedDeliveryStaff, setSelectedDeliveryStaff] = useState<any>(null);
     const [countdowns, setCountdowns] = useState<{ [key: number]: number }>({});
+    
+    // Assignment modal state
+    const [showAssignModal, setShowAssignModal] = useState(false);
+    const [selectedStaff, setSelectedStaff] = useState<any>(null);
+    const [acceptTimeout, setAcceptTimeout] = useState(5); // دقائق
+    const [expectedDeliveryTime, setExpectedDeliveryTime] = useState(30); // دقائق
 
     useEffect(() => {
         if (activeTab === 'tracking') {
@@ -224,11 +230,24 @@ const OrderDistributorPage = () => {
         }
     };
 
-    const handleAssignDelivery = async (orderId: number, deliveryStaffId: number) => {
+    const openAssignModal = (staff: any) => {
+        setSelectedStaff(staff);
+        setShowAssignModal(true);
+    };
+
+    const handleAssignDelivery = async () => {
+        if (!selectedOrder || !selectedStaff) return;
+        
         try {
-            await api.distribution.assignDelivery(orderId, deliveryStaffId);
+            await api.distribution.assignDelivery(
+                selectedOrder.id, 
+                selectedStaff.id,
+                acceptTimeout,
+                expectedDeliveryTime
+            );
             await loadOrders();
             setSelectedOrder(null);
+            setShowAssignModal(false);
             alert('تم تعيين الديليفري بنجاح!');
         } catch (err) {
             console.error('Failed to assign delivery:', err);
@@ -759,7 +778,7 @@ const OrderDistributorPage = () => {
                                                         </p>
                                                     </div>
                                                     <button
-                                                        onClick={() => handleAssignDelivery(selectedOrder.id, staff.id)}
+                                                        onClick={() => openAssignModal(staff)}
                                                         className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
                                                     >
                                                         تعيين
@@ -799,6 +818,131 @@ const OrderDistributorPage = () => {
                     )}
                 </div>
             </div>
+            )}
+            
+            {/* Assignment Time Modal */}
+            {showAssignModal && selectedStaff && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-xl font-bold">تعيين موظف توصيل</h3>
+                            <button
+                                onClick={() => setShowAssignModal(false)}
+                                className="text-gray-400 hover:text-gray-600"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        
+                        {/* Staff Info */}
+                        <div className="bg-indigo-50 rounded-xl p-4 mb-6">
+                            <div className="flex items-center gap-3 mb-2">
+                                <User className="text-indigo-600" size={20} />
+                                <span className="font-bold text-lg">{selectedStaff.name}</span>
+                            </div>
+                            <div className="flex items-center gap-3 text-sm text-gray-600">
+                                <Phone size={16} />
+                                <span>{selectedStaff.phone}</span>
+                            </div>
+                            <div className="mt-2 text-sm text-gray-600">
+                                الطلبات الحالية: {selectedStaff.current_orders}/{selectedStaff.max_orders}
+                            </div>
+                        </div>
+
+                        {/* Accept Timeout */}
+                        <div className="mb-6">
+                            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
+                                <Timer size={18} className="text-orange-600" />
+                                مهلة قبول الطلب (دقائق)
+                            </label>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => setAcceptTimeout(Math.max(1, acceptTimeout - 1))}
+                                    className="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 font-bold"
+                                >
+                                    −
+                                </button>
+                                <div className="flex-1 text-center">
+                                    <div className="text-3xl font-bold text-orange-600">{acceptTimeout}</div>
+                                    <div className="text-xs text-gray-500">دقيقة</div>
+                                </div>
+                                <button
+                                    onClick={() => setAcceptTimeout(Math.min(30, acceptTimeout + 1))}
+                                    className="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 font-bold"
+                                >
+                                    +
+                                </button>
+                            </div>
+                            <div className="mt-2 text-xs text-gray-500 text-center">
+                                الموظف لديه {acceptTimeout} دقائق لقبول الطلب
+                            </div>
+                        </div>
+
+                        {/* Expected Delivery Time */}
+                        <div className="mb-6">
+                            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
+                                <Truck size={18} className="text-green-600" />
+                                الوقت المتوقع للتوصيل (دقائق)
+                            </label>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => setExpectedDeliveryTime(Math.max(10, expectedDeliveryTime - 5))}
+                                    className="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 font-bold"
+                                >
+                                    −
+                                </button>
+                                <div className="flex-1 text-center">
+                                    <div className="text-3xl font-bold text-green-600">{expectedDeliveryTime}</div>
+                                    <div className="text-xs text-gray-500">دقيقة</div>
+                                </div>
+                                <button
+                                    onClick={() => setExpectedDeliveryTime(Math.min(120, expectedDeliveryTime + 5))}
+                                    className="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 font-bold"
+                                >
+                                    +
+                                </button>
+                            </div>
+                            <div className="mt-2 text-xs text-gray-500 text-center">
+                                الوقت المتوقع لوصول الطلب للعميل
+                            </div>
+                        </div>
+
+                        {/* Summary */}
+                        <div className="bg-blue-50 rounded-xl p-4 mb-6">
+                            <div className="text-sm space-y-2">
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">مهلة القبول:</span>
+                                    <span className="font-bold">{acceptTimeout} دقائق</span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">وقت التوصيل:</span>
+                                    <span className="font-bold">{expectedDeliveryTime} دقيقة</span>
+                                </div>
+                                <div className="flex justify-between border-t pt-2">
+                                    <span className="text-gray-600">الوقت الإجمالي:</span>
+                                    <span className="font-bold text-blue-600">{acceptTimeout + expectedDeliveryTime} دقيقة</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowAssignModal(false)}
+                                className="flex-1 px-6 py-3 border border-gray-300 rounded-xl font-medium hover:bg-gray-50 transition"
+                            >
+                                إلغاء
+                            </button>
+                            <button
+                                onClick={handleAssignDelivery}
+                                className="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition flex items-center justify-center gap-2"
+                            >
+                                <CheckCircle size={20} />
+                                تأكيد التعيين
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

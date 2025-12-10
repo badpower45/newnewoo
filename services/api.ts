@@ -570,11 +570,15 @@ export const api = {
         },
         
         // تعيين ديليفري للطلب
-        assignDelivery: async (orderId: number, deliveryStaffId: number) => {
+        assignDelivery: async (orderId: number, deliveryStaffId: number, acceptTimeoutMinutes?: number, expectedDeliveryMinutes?: number) => {
             const res = await fetch(`${API_URL}/distribution/assign-delivery/${orderId}`, {
                 method: 'POST',
                 headers: getHeaders(),
-                body: JSON.stringify({ deliveryStaffId })
+                body: JSON.stringify({ 
+                    deliveryStaffId,
+                    acceptTimeoutMinutes: acceptTimeoutMinutes || 5,
+                    expectedDeliveryMinutes: expectedDeliveryMinutes || 30
+                })
             });
             return res.json();
         },
