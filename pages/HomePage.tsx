@@ -182,8 +182,8 @@ const HomePage = () => {
                 {/* Hero Offers Carousel - Main Banner */}
                 <HeroCarousel />
 
-                {/* Facebook Reels Section */}
-                <FacebookReelsGrid pageUsername="Alloshchocolates" pageName="Allosh Chocolates" />
+                {/* Featured Brands Carousel */}
+                <BrandsCarousel title="براندات مميزة" />
 
                 {/* Desktop Grid for Banners */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -447,8 +447,8 @@ const HomePage = () => {
                     </div>
                 </section>
 
-                {/* Featured Brands Carousel */}
-                <BrandsCarousel title="براندات مميزة" />
+                {/* Facebook Reels Section */}
+                <FacebookReelsGrid pageUsername="Alloshchocolates" pageName="Allosh Chocolates" />
             </div>
         </div>
     );
