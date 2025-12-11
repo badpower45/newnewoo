@@ -51,27 +51,27 @@ const BrandsCarousel: React.FC<BrandsCarouselProps> = ({ title = "Featured Brand
                 </Link>
             </div>
 
-            {/* Brands Grid - Horizontal Scroll on Mobile */}
-            <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar -mx-4 px-4 md:grid md:grid-cols-4 lg:grid-cols-6 md:mx-0 md:px-0">
+            {/* Brands Grid - 3 Columns Grid */}
+            <div className="grid grid-cols-3 gap-2 md:gap-3">
                 {BRANDS.map((brand) => (
                     <Link
                         key={brand.id}
                         to={`/brand/${brand.id}`}
-                        className="flex-shrink-0 w-40 md:w-auto group"
+                        className="group"
                     >
-                        <div className="relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-100 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 shadow-sm hover:shadow-md transition-all">
                             <img 
                                 src={brand.image}
                                 alt={brand.name}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                                 onError={(e) => {
                                     (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1606312619070-d48b4c652a52?w=400';
                                 }}
                             />
                             {/* Overlay with brand name */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                            <div className="absolute bottom-0 left-0 right-0 p-3">
-                                <p className="text-white text-sm font-bold">{brand.name}</p>
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                            <div className="absolute bottom-0 left-0 right-0 p-2">
+                                <p className="text-white text-xs md:text-sm font-bold line-clamp-1">{brand.name}</p>
                             </div>
                         </div>
                     </Link>

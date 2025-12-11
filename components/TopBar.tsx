@@ -171,28 +171,7 @@ const TopBar = () => {
                         </div>
                     </div>
 
-                    {/* Location Badge (Mobile) */}
-                    <div
-                        onClick={() => setShowBranchSelector(true)}
-                        className="flex md:hidden items-center gap-2 bg-gray-50 rounded-xl p-2.5 cursor-pointer hover:bg-gray-100 transition-colors w-full"
-                    >
-                        <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                            <MapPin className="text-primary w-4 h-4" />
-                        </div>
-                        <div className="flex-1">
-                            <div className="flex items-center gap-1">
-                                <span className="text-gray-500 text-xs">التوصيل إلى:</span>
-                                <ChevronDown className="w-3 h-3 text-primary" />
-                            </div>
-                            <span className="text-xs text-gray-900 font-medium">{selectedBranch?.address || 'اختر الفرع'}</span>
-                        </div>
-                        <div className="text-right">
-                            <span className="text-[10px] text-gray-500 block">التوصيل خلال</span>
-                            <span className="text-xs text-green-600 font-bold">45-75 دقيقة</span>
-                        </div>
-                    </div>
-
-                    {/* Mobile Search Bar */}
+                    {/* Mobile Search Bar */
                     <form onSubmit={handleSearch} className="flex md:hidden items-center gap-2 w-full">
                         <div className="flex items-center gap-2 bg-gray-50 px-3 py-2.5 rounded-xl flex-1 border border-gray-100 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
                             <Search size={16} className="text-gray-400" />
@@ -220,22 +199,6 @@ const TopBar = () => {
 
                     {/* Desktop: Location + Search + Actions */}
                     <div className="hidden md:flex items-center gap-4 w-full">
-                        <div
-                            onClick={() => setShowBranchSelector(true)}
-                            className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 rounded-xl p-3 transition-colors"
-                        >
-                            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                                <MapPin className="text-primary w-5 h-5" />
-                            </div>
-                            <div>
-                                <div className="flex items-center gap-1">
-                                    <span className="text-gray-500 text-sm">{t('delivery_to')}:</span>
-                                    <ChevronDown className="w-4 h-4 text-primary" />
-                                </div>
-                                <span className="text-sm text-gray-900 font-medium">{selectedBranch?.address || t('select_branch')}</span>
-                            </div>
-                        </div>
-
                         {/* Search Bar */}
                         <form onSubmit={handleSearch} className="flex-1 flex items-center gap-3">
                             <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-xl w-full border border-gray-100 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">

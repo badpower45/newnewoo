@@ -31,7 +31,7 @@ const ChatWidget = () => {
             {!isOpen && (
                 <button
                     onClick={handleOpen}
-                    className="fixed bottom-6 right-6 z-50 bg-brand-orange hover:bg-orange-600 text-white rounded-full p-4 shadow-2xl transition-all duration-300 hover:scale-110 group"
+                    className="fixed bottom-20 right-6 md:bottom-6 z-50 bg-brand-orange hover:bg-orange-600 text-white rounded-full p-4 shadow-2xl transition-all duration-300 hover:scale-110 group"
                     aria-label="Open chat"
                 >
                     <MessageCircle size={28} className="group-hover:animate-pulse" />

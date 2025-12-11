@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import ProductCard from '../components/ProductCard';
 import BarcodeScanner from '../components/BarcodeScanner';
 import { ProductGridSkeleton } from '../components/Skeleton';
-import TopBar from '../components/TopBar';
+import ProductsTopBar from '../components/ProductsTopBar';
 import { 
     Filter, Scan, Search, X, Grid3X3, LayoutList, 
     SlidersHorizontal, ChevronDown, ChevronUp, Sparkles,
@@ -184,27 +184,7 @@ export default function ProductsPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-orange-50/30 to-white">
-            <TopBar />
-            
-            {/* Hero Section */}
-            <div className="bg-gradient-to-r from-brand-brown via-brand-brown/90 to-brand-orange pt-6 pb-8 px-4 relative overflow-hidden">
-                {/* Background Pattern */}
-                <div className="absolute inset-0 opacity-10">
-                    <div className="absolute top-5 left-10 text-5xl">🥬</div>
-                    <div className="absolute top-10 right-20 text-4xl">🍎</div>
-                    <div className="absolute bottom-5 left-1/4 text-3xl">🥛</div>
-                    <div className="absolute bottom-3 right-1/3 text-4xl">🧀</div>
-                </div>
-                
-                <div className="max-w-4xl mx-auto relative z-10 text-center">
-                    <h1 className="text-2xl md:text-3xl font-bold text-white mb-1">
-                        اكتشف منتجاتنا الطازجة 🛒
-                    </h1>
-                    <p className="text-orange-100 text-sm">
-                        أكثر من {allProducts.length} منتج متاح للتوصيل
-                    </p>
-                </div>
-            </div>
+            <ProductsTopBar onScan={() => setShowScanner(true)} />
 
             {/* Categories Slider */}
             <div className="bg-white shadow-sm sticky top-0 z-40">
