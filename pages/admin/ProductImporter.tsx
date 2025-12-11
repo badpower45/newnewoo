@@ -341,11 +341,11 @@ const ProductImporter: React.FC = () => {
                 <div className="space-y-3 text-gray-700">
                     <p className="flex items-start gap-2">
                         <span className="text-orange-600 font-bold">1.</span>
-                        <span>حمّل قالب Excel من الأعلى للحصول على الصيغة الصحيحة</span>
+                        <span>حمّل قالب Excel من الأعلى للحصول على الصيغة الصحيحة (10 أعمدة)</span>
                     </p>
                     <p className="flex items-start gap-2">
                         <span className="text-orange-600 font-bold">2.</span>
-                        <span>املأ البيانات في القالب - الأعمدة الإلزامية: الاسم، السعر، الصورة، القسم</span>
+                        <span>املأ جميع الأعمدة العشرة: اسم المنتج، الباركود، السعر قبل، السعر بعد، التصنيف الاساسي، التصنيف الثانوي، الفرع، الكميه، الصورة، تاريخ الصلاحيه</span>
                     </p>
                     <p className="flex items-start gap-2">
                         <span className="text-orange-600 font-bold">3.</span>
