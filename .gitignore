@@ -34,3 +34,7 @@ server/.env.local
 # Ignore accidental Windows reserved files
 /nul
 
+# Excel temp files
+~$*.xlsx
+~$*.xls
+
