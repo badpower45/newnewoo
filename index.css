@@ -53,6 +53,25 @@
   scrollbar-width: none;
 }
 
+/* Smooth horizontal scroll with snap */
+.snap-x {
+  scroll-snap-type: x mandatory;
+}
+.snap-center {
+  scroll-snap-align: center;
+}
+.scroll-smooth {
+  scroll-behavior: smooth;
+}
+
+/* RTL Scroll Support */
+[dir="rtl"] .overflow-x-auto {
+  direction: rtl;
+}
+[dir="ltr"] .overflow-x-auto {
+  direction: ltr;
+}
+
 /* Product Details Page Animations */
 @keyframes fade-in {
   from {
