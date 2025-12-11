@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, ChevronDown, Search, ShoppingCart, User, Heart, Clock, Phone, Mic, MicOff } from 'lucide-react';
+import { MapPin, ChevronDown, Search, ShoppingCart, User, Heart, Clock, Phone, Mic, MicOff, Scan } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import BranchSelector from './BranchSelector';
+import BarcodeScanner from './BarcodeScanner';
 import { api } from '../services/api';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -16,6 +17,7 @@ const TopBar = () => {
     const { selectedBranch } = useBranch();
     const { t, language } = useLanguage();
     const [showBranchSelector, setShowBranchSelector] = useState(false);
+    const [showScanner, setShowScanner] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [isListening, setIsListening] = useState(false);
     const [recognition, setRecognition] = useState<any>(null);
@@ -197,6 +199,14 @@ const TopBar = () => {
                                     {isListening ? <MicOff size={16} /> : <Mic size={16} />}
                                 </button>
                                 <button
+                                    type="button"
+                                    onClick={() => setShowScanner(true)}
+                                    className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
+                                    title="مسح الباركود"
+                                >
+                                    <Scan size={16} />
+                                </button>
+                                <button
                                     type="submit"
                                     className="text-sm text-primary font-semibold hover:text-primary/80 transition-colors"
                                 >
@@ -240,6 +250,17 @@ const TopBar = () => {
             {/* Modals */}
             {showBranchSelector && (
                 <BranchSelector isOpen={showBranchSelector} onClose={() => setShowBranchSelector(false)} />
+            )}
+            
+            {/* Barcode Scanner */}
+            {showScanner && (
+                <BarcodeScanner
+                    onScan={(barcode) => {
+                        setShowScanner(false);
+                        navigate(`/products?barcode=${encodeURIComponent(barcode)}`);
+                    }}
+                    onClose={() => setShowScanner(false)}
+                />
             )}
         </div>
     );
