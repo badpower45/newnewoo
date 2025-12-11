@@ -4,6 +4,7 @@ import { api } from '../../services/api';
 import { Product } from '../../types';
 import { useNavigate } from 'react-router-dom';
 import { TableSkeleton } from '../../components/Skeleton';
+import { API_URL } from '../../src/config';
 
 const emptyProduct = {
     barcode: '',
@@ -191,27 +192,53 @@ const ProductsManager = () => {
 
     const seedBranches = async () => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://bkaa.vercel.app/api'}/branches/dev/seed`, { method: 'POST' });
+            console.log('🚀 Seeding branches to:', `${API_URL}/branches/dev/seed`);
+            const res = await fetch(`${API_URL}/branches/dev/seed`, { 
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!res.ok) {
+                const text = await res.text();
+                console.error('❌ Response not OK:', res.status, text);
+                throw new Error(`HTTP ${res.status}: ${text}`);
+            }
+            
             const json = await res.json();
             console.log('✅ Branches seeded:', json);
             alert('تم إضافة الفروع بنجاح');
             loadBranches();
         } catch (e) {
             console.error('❌ Branch seed failed:', e);
-            alert('فشل إضافة الفروع');
+            alert('فشل إضافة الفروع: ' + (e instanceof Error ? e.message : 'خطأ غير معروف'));
         }
     };
 
     const seedCategories = async () => {
         try {
-            const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://bkaa.vercel.app/api'}/categories/dev/seed`, { method: 'POST' });
+            console.log('🚀 Seeding categories to:', `${API_URL}/categories/dev/seed`);
+            const res = await fetch(`${API_URL}/categories/dev/seed`, { 
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!res.ok) {
+                const text = await res.text();
+                console.error('❌ Response not OK:', res.status, text);
+                throw new Error(`HTTP ${res.status}: ${text}`);
+            }
+            
             const json = await res.json();
             console.log('✅ Categories seeded:', json);
             alert('تم إضافة التصنيفات بنجاح');
             loadCategories();
         } catch (e) {
             console.error('❌ Category seed failed:', e);
-            alert('فشل إضافة التصنيفات');
+            alert('فشل إضافة التصنيفات: ' + (e instanceof Error ? e.message : 'خطأ غير معروف'));
         }
     };
 
