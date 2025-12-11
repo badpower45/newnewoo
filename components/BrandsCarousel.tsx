@@ -1,37 +1,44 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 // براندات مميزة - بسيط وواضح
 const BRANDS = [
     {
         id: 'pepsi',
         name: 'Pepsi Offers',
+        name_ar: 'عروض بيبسي',
         image: 'https://images.unsplash.com/photo-1629203851122-3726ecdf080e?w=400',
     },
     {
         id: 'lays',
         name: 'Lays Chips',
+        name_ar: 'شيبسي ليز',
         image: 'https://images.unsplash.com/photo-1613919085533-0a05360b1cbe?w=400',
     },
     {
         id: 'galaxy',
         name: 'Galaxy Chocolate',
+        name_ar: 'شوكولاتة جالاكسي',
         image: 'https://images.unsplash.com/photo-1606312619070-d48b4c652a52?w=400',
     },
     {
         id: 'cadbury',
         name: 'Cadbury Dairy Milk',
+        name_ar: 'كادبوري ديري ميلك',
         image: 'https://images.unsplash.com/photo-1548907040-4baa42d10919?w=400',
     },
     {
         id: 'nescafe',
         name: 'Nescafe Gold',
+        name_ar: 'نسكافيه جولد',
         image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=400',
     },
     {
         id: 'juhayna',
         name: 'Juhayna Fresh',
+        name_ar: 'جهينة فريش',
         image: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400',
     }
 ];
@@ -41,13 +48,15 @@ interface BrandsCarouselProps {
 }
 
 const BrandsCarousel: React.FC<BrandsCarouselProps> = ({ title = "Featured Brands" }) => {
+    const { language, t } = useLanguage();
+    
     return (
         <section>
             {/* Header */}
             <div className="flex items-center justify-between mb-3">
                 <h3 className="text-base font-bold text-gray-900">{title}</h3>
                 <Link to="/brands" className="text-sm text-orange-500 font-medium hover:underline flex items-center gap-1">
-                    عرض الكل <ChevronLeft size={16} className="rotate-180" />
+                    {t('view_all')} <ChevronLeft size={16} className="rotate-180" />
                 </Link>
             </div>
 
@@ -71,7 +80,9 @@ const BrandsCarousel: React.FC<BrandsCarouselProps> = ({ title = "Featured Brand
                             {/* Overlay with brand name */}
                             <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                             <div className="absolute bottom-0 left-0 right-0 p-3">
-                                <p className="text-white text-sm font-bold">{brand.name}</p>
+                                <p className="text-white text-sm font-bold">
+                                    {language === 'ar' ? brand.name_ar : brand.name}
+                                </p>
                             </div>
                         </div>
                     </Link>

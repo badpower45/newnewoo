@@ -20,6 +20,7 @@ import { api } from '../services/api';
 import { Product } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useBranch } from '../context/BranchContext';
+import { useLanguage } from '../context/LanguageContext';
 import { DEFAULT_BRANCH_ID } from '../src/config';
 
 interface Category {
@@ -277,7 +278,7 @@ const HomePage = () => {
                 </div>
 
                 {/* Featured Brands Carousel */}
-                <BrandsCarousel title="براندات مميزة" />
+                <BrandsCarousel title={language === 'ar' ? 'براندات مميزة' : 'Featured Brands'} />
 
                 {/* Facebook Reels Section */}
                 <FacebookReelsGrid pageUsername="Alloshchocolates" pageName="Allosh Chocolates" />
