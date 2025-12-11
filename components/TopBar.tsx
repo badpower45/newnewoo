@@ -147,31 +147,41 @@ const TopBar = () => {
                         </div>
                     </div>
 
-                    {/* Mobile Search Bar */
-                    <form onSubmit={handleSearch} className="flex md:hidden items-center gap-2 w-full">
-                        <div className="flex items-center gap-2 bg-gray-50 px-3 py-2.5 rounded-xl flex-1 border border-gray-100 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
-                            <Search size={16} className="text-gray-400" />
-                            <input
-                                type="text"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                placeholder={isListening ? t('listening') : t('search_placeholder')}
-                                className="w-full bg-transparent outline-none text-sm text-gray-900"
-                            />
-                            <button
-                                type="button"
-                                onClick={handleVoiceSearch}
-                                className={`p-1.5 rounded-lg transition-all ${
-                                    isListening 
-                                        ? 'bg-red-500 text-white animate-pulse' 
-                                        : 'text-gray-400 hover:text-primary hover:bg-primary/10'
-                                }`}
-                                title="البحث الصوتي"
-                            >
-                                {isListening ? <MicOff size={14} /> : <Mic size={14} />}
-                            </button>
-                        </div>
-                    </form>
+                    {/* Mobile Search Bar */}
+                    <div className="flex md:hidden items-center gap-2 w-full">
+                        <form onSubmit={handleSearch} className="flex items-center gap-2 flex-1">
+                            <div className="flex items-center gap-2 bg-gray-50 px-3 py-2.5 rounded-xl flex-1 border border-gray-100 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+                                <Search size={16} className="text-gray-400" />
+                                <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    placeholder={isListening ? t('listening') : t('search_placeholder')}
+                                    className="w-full bg-transparent outline-none text-sm text-gray-900"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={handleVoiceSearch}
+                                    className={`p-1.5 rounded-lg transition-all ${
+                                        isListening 
+                                            ? 'bg-red-500 text-white animate-pulse' 
+                                            : 'text-gray-400 hover:text-primary hover:bg-primary/10'
+                                    }`}
+                                    title="البحث الصوتي"
+                                >
+                                    {isListening ? <MicOff size={14} /> : <Mic size={14} />}
+                                </button>
+                            </div>
+                        </form>
+                        <button
+                            type="button"
+                            onClick={() => setShowScanner(true)}
+                            className="p-2.5 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all flex-shrink-0"
+                            title="مسح الباركود"
+                        >
+                            <Scan size={18} />
+                        </button>
+                    </div>
 
                     {/* Desktop: Location + Search + Actions */}
                     <div className="hidden md:flex items-center gap-4 w-full">
