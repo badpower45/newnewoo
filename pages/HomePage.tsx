@@ -4,7 +4,6 @@ import TopBar from '../components/TopBar';
 import Banner from '../components/Banner';
 import CategoryCard from '../components/CategoryCard';
 import ProductCard from '../components/ProductCard';
-import CategoryFilter from '../components/CategoryFilter';
 import SponsoredAds from '../components/SponsoredAds';
 import FlyerCarousel from '../components/FlyerCarousel';
 import ErrorMessage from '../components/ErrorMessage';
@@ -33,14 +32,12 @@ interface Category {
 }
 
 const HomePage = () => {
-    const [activeCategory, setActiveCategory] = useState('All');
     const [products, setProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [branchMap, setBranchMap] = useState<Record<string | number, { price?: number; stockQuantity?: number; reservedQuantity?: number }>>({});
     const [loading, setLoading] = useState(true);
     const [categoriesLoading, setCategoriesLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const filterCategories = ['All', 'Food', 'Vouchers', 'Beverages', 'Snacks', 'Dairy', 'Cleaning'];
     const { isAuthenticated } = useAuth();
     const { selectedBranch } = useBranch();
 
@@ -182,15 +179,11 @@ const HomePage = () => {
                 {/* Stories Section */}
                 <StoriesSection />
 
-                {/* Category Filter (Task Bar) */}
-                <CategoryFilter
-                    categories={filterCategories}
-                    activeCategory={activeCategory}
-                    onSelect={setActiveCategory}
-                />
-
                 {/* Hero Offers Carousel - Main Banner */}
                 <HeroCarousel />
+
+                {/* Facebook Reels Section */}
+                <FacebookReelsGrid pageUsername="Alloshchocolates" pageName="Allosh Chocolates" />
 
                 {/* Desktop Grid for Banners */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -269,9 +262,6 @@ const HomePage = () => {
                         </div>
                     </Link>
                 </div>
-
-                {/* Featured Brands Carousel */}
-                <BrandsCarousel title="براندات مميزة" />
 
                 {/* قسم الحلويات */}
                 <section className="space-y-4">
@@ -456,6 +446,9 @@ const HomePage = () => {
                         ))}
                     </div>
                 </section>
+
+                {/* Featured Brands Carousel */}
+                <BrandsCarousel title="براندات مميزة" />
             </div>
         </div>
     );
