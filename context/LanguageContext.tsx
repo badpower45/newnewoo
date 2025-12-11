@@ -46,6 +46,8 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
         // Add language class to body for CSS targeting
         document.body.classList.remove('lang-ar', 'lang-en');
         document.body.classList.add(`lang-${lang}`);
+        
+        console.log(`🌍 Language changed to: ${lang}, dir: ${document.documentElement.dir}`);
     };
 
     const setLanguage = (lang: Language) => {

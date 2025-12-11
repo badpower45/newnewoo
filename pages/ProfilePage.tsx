@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import { useNavigate } from 'react-router-dom';
 import { User, Mail, LogOut, Package, ChevronLeft, Edit2, Award, Clock, MessageCircle, Headphones, LayoutDashboard, Truck, ClipboardList } from 'lucide-react';
 import { api } from '../services/api';
@@ -10,6 +11,7 @@ import { ORDER_STATUS_LABELS } from '../src/config';
 
 const ProfilePage = () => {
     const { user, logout } = useAuth();
+    const { t, language } = useLanguage();
     const navigate = useNavigate();
     const [orders, setOrders] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -87,7 +89,7 @@ const ProfilePage = () => {
                     <button onClick={() => navigate('/')} className="p-2 hover:bg-gray-100 rounded-full mr-2">
                         <ChevronLeft size={24} className="text-gray-700" />
                     </button>
-                    <h1 className="text-xl font-bold text-gray-900">My Profile</h1>
+                    <h1 className="text-xl font-bold text-gray-900">{t('my_profile')}</h1>
                 </div>
             </div>
 
@@ -110,7 +112,7 @@ const ProfilePage = () => {
                 {/* Loyalty Points Card */}
                 <div className="bg-gradient-to-r from-brand-orange to-orange-400 rounded-2xl p-6 shadow-sm text-white relative overflow-hidden">
                     <div className="relative z-10">
-                        <h3 className="text-lg font-bold mb-1">نقاط الولاء</h3>
+                        <h3 className="text-lg font-bold mb-1">{t('loyalty_points')}</h3>
                         <div className="text-4xl font-extrabold mb-2">{user.loyaltyPoints || 0}</div>
                         <p className="text-sm opacity-90">نقطة مكتسبة من مشترياتك</p>
                     </div>
@@ -225,7 +227,7 @@ const ProfilePage = () => {
                                 <Package size={20} />
                             </div>
                             <div className="text-right">
-                                <span className="font-medium text-gray-900 block">طلباتي</span>
+                                <span className="font-medium text-gray-900 block">{t('my_orders')}</span>
                                 <span className="text-xs text-gray-500">تتبع طلباتك وحالتها</span>
                             </div>
                         </div>

@@ -8,6 +8,26 @@
   body {
     @apply bg-light text-dark font-sans antialiased;
   }
+  
+  /* RTL Support */
+  [dir="rtl"] {
+    direction: rtl;
+    text-align: right;
+  }
+  
+  [dir="ltr"] {
+    direction: ltr;
+    text-align: left;
+  }
+  
+  /* Force RTL/LTR for specific elements */
+  html[dir="rtl"] body {
+    direction: rtl;
+  }
+  
+  html[dir="ltr"] body {
+    direction: ltr;
+  }
 }
 
 @layer components {
