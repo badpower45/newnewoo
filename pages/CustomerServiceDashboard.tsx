@@ -285,90 +285,98 @@ const CustomerServiceDashboard = () => {
     const totalUnread = conversations.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0);
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-            {/* Header */}
-            <div className="bg-white shadow-sm sticky top-0 z-10">
-                <div className="px-4 py-3 flex items-center justify-between">
-                    <div className="flex items-center">
+        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex flex-col">
+            {/* Simplified Header */}
+            <div className="bg-white shadow-md sticky top-0 z-10 border-b-2 border-primary/10">
+                <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
                         <button
                             onClick={() => navigate('/profile')}
-                            className="p-2 hover:bg-gray-100 rounded-full ml-2 transition-colors"
+                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                         >
-                            <ChevronLeft size={24} className="text-gray-700" />
+                            <ChevronLeft size={20} className="text-gray-600" />
                         </button>
-                        <div className="flex items-center">
-                            <div className="bg-primary/10 p-2 rounded-full ml-3">
-                                <Users size={24} className="text-primary" />
+                        <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-gradient-to-br from-primary to-orange-500 rounded-xl flex items-center justify-center shadow-md">
+                                <MessageCircle size={24} className="text-white" />
                             </div>
                             <div>
-                                <h1 className="text-lg font-bold text-gray-900">لوحة خدمة العملاء</h1>
-                                <p className="text-xs text-gray-500">
-                                    {conversations.length} محادثة {totalUnread > 0 && `• ${totalUnread} غير مقروءة`}
+                                <h1 className="text-xl font-bold text-gray-900">خدمة العملاء</h1>
+                                <p className="text-sm text-gray-500">
+                                    {totalUnread > 0 ? `${totalUnread} رسالة جديدة` : 'لا توجد رسائل جديدة'}
                                 </p>
                             </div>
                         </div>
                     </div>
                     <button
                         onClick={() => setSoundEnabled(!soundEnabled)}
-                        className={`p-2 rounded-full transition-colors ${
-                            soundEnabled ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-gray-400'
+                        className={`p-3 rounded-xl transition-all ${
+                            soundEnabled 
+                                ? 'bg-primary text-white shadow-md' 
+                                : 'bg-gray-200 text-gray-500'
                         }`}
                         title={soundEnabled ? 'تعطيل الصوت' : 'تفعيل الصوت'}
                     >
-                        <Volume2 size={20} />
+                        <Volume2 size={18} />
                     </button>
                 </div>
             </div>
 
-            <div className="flex-1 flex overflow-hidden">
-                {/* Conversations List */}
-                <div className="w-full md:w-80 bg-white border-l border-gray-200 flex flex-col">
-                    {/* Search */}
-                    <div className="p-3 border-b border-gray-200">
+            <div className="flex-1 flex overflow-hidden max-w-7xl mx-auto w-full">
+                {/* Simplified Conversations List */}
+                <div className="w-full md:w-80 bg-white border-l border-gray-200 flex flex-col shadow-lg">
+                    {/* Simpler Search */}
+                    <div className="p-4 bg-gray-50 border-b border-gray-200">
                         <div className="relative">
-                            <Search size={18} className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                            <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" />
                             <input
                                 type="text"
-                                placeholder="بحث عن محادثة..."
+                                placeholder="بحث..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+                                className="w-full pr-9 pl-3 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
                             />
                         </div>
                     </div>
 
-                    {/* Conversations */}
+                    {/* Simplified Conversations List */}
                     <div className="flex-1 overflow-y-auto">
                         {isLoading ? (
                             <div className="flex items-center justify-center h-32">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                                <div className="animate-spin rounded-full h-10 w-10 border-3 border-primary border-t-transparent"></div>
                             </div>
                         ) : filteredConversations.length === 0 ? (
-                            <div className="text-center py-12 px-4">
-                                <MessageCircle size={48} className="mx-auto text-gray-300 mb-3" />
-                                <p className="text-gray-500">لا توجد محادثات</p>
+                            <div className="text-center py-16 px-4">
+                                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                    <MessageCircle size={32} className="text-gray-300" />
+                                </div>
+                                <p className="text-gray-400 text-sm">لا توجد محادثات</p>
                             </div>
                         ) : (
                             filteredConversations.map((conv) => (
                                 <button
                                     key={conv.id}
                                     onClick={() => handleSelectConversation(conv)}
-                                    className={`w-full p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors text-right ${
-                                        selectedConversation?.id === conv.id ? 'bg-primary/5' : ''
+                                    className={`w-full p-4 border-b border-gray-100 hover:bg-blue-50/50 transition-all text-right ${
+                                        selectedConversation?.id === conv.id 
+                                            ? 'bg-gradient-to-l from-primary/10 to-blue-50 border-r-4 border-primary' 
+                                            : ''
                                     }`}
                                 >
-                                    <div className="flex items-start justify-between mb-1">
-                                        <div className="flex items-center">
-                                            <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold ml-3">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div className="flex items-center gap-3 flex-1">
+                                            <div className={`w-11 h-11 rounded-full flex items-center justify-center font-bold text-white text-sm shadow-md ${
+                                                (conv.unreadCount || 0) > 0 
+                                                    ? 'bg-gradient-to-br from-primary to-orange-500' 
+                                                    : 'bg-gradient-to-br from-gray-400 to-gray-500'
+                                            }`}>
                                                 {conv.customerName.charAt(0).toUpperCase()}
                                             </div>
-                                            <div className="text-right">
-                                                <h3 className="font-semibold text-gray-900">{conv.customerName}</h3>
-                                                <p className="text-xs text-gray-500 flex items-center">
-                                                    <Clock size={12} className="ml-1" />
-                                                    {new Date(conv.lastMessageAt).toLocaleDateString('ar-EG', {
-                                                        month: 'short',
-                                                        day: 'numeric',
+                                            <div className="text-right flex-1 min-w-0">
+                                                <h3 className="font-bold text-gray-900 text-sm truncate">{conv.customerName}</h3>
+                                                <p className="text-xs text-gray-500 flex items-center gap-1">
+                                                    <Clock size={11} />
+                                                    {new Date(conv.lastMessageAt).toLocaleTimeString('ar-EG', {
                                                         hour: '2-digit',
                                                         minute: '2-digit'
                                                     })}
@@ -376,9 +384,9 @@ const CustomerServiceDashboard = () => {
                                             </div>
                                         </div>
                                         {(conv.unreadCount || 0) > 0 && (
-                                            <span className="bg-primary text-white text-xs font-bold px-2 py-1 rounded-full min-w-[20px] text-center">
+                                            <div className="bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-md">
                                                 {conv.unreadCount}
-                                            </span>
+                                            </div>
                                         )}
                                     </div>
                                 </button>
@@ -387,30 +395,40 @@ const CustomerServiceDashboard = () => {
                     </div>
                 </div>
 
-                {/* Chat Area */}
-                <div className="flex-1 flex flex-col bg-gray-50">
+                {/* Simplified Chat Area */}
+                <div className="flex-1 flex flex-col bg-gradient-to-br from-white to-blue-50/30">
                     {selectedConversation ? (
                         <>
-                            {/* Chat Header */}
-                            <div className="bg-white border-b border-gray-200 p-4">
-                                <div className="flex items-center">
-                                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold ml-3">
+                            {/* Cleaner Chat Header */}
+                            <div className="bg-white border-b border-gray-200 p-4 shadow-sm">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 bg-gradient-to-br from-primary to-orange-500 rounded-xl flex items-center justify-center text-white font-bold shadow-md">
                                         {selectedConversation.customerName.charAt(0).toUpperCase()}
                                     </div>
                                     <div>
-                                        <h2 className="font-bold text-gray-900">{selectedConversation.customerName}</h2>
-                                        <p className="text-xs text-gray-500">
-                                            {selectedConversation.status === 'active' ? 'نشط' : 'مغلق'}
-                                        </p>
+                                        <h2 className="font-bold text-gray-900 text-lg">{selectedConversation.customerName}</h2>
+                                        <div className="flex items-center gap-2 text-xs">
+                                            <span className={`w-2 h-2 rounded-full ${
+                                                selectedConversation.status === 'active' ? 'bg-green-500' : 'bg-gray-400'
+                                            }`}></span>
+                                            <span className="text-gray-500">
+                                                {selectedConversation.status === 'active' ? 'نشط الآن' : 'غير متصل'}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Messages */}
-                            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                            {/* Simplified Messages */}
+                            <div className="flex-1 overflow-y-auto p-6 space-y-3">
                                 {messages.length === 0 ? (
                                     <div className="flex items-center justify-center h-full">
-                                        <p className="text-gray-500">لا توجد رسائل بعد</p>
+                                        <div className="text-center">
+                                            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                                                <MessageCircle size={28} className="text-gray-300" />
+                                            </div>
+                                            <p className="text-gray-400 text-sm">ابدأ المحادثة</p>
+                                        </div>
                                     </div>
                                 ) : (
                                     <>
@@ -420,17 +438,17 @@ const CustomerServiceDashboard = () => {
                                                 className={`flex ${msg.senderType === 'agent' ? 'justify-end' : 'justify-start'}`}
                                             >
                                                 <div
-                                                    className={`max-w-[70%] rounded-2xl px-4 py-3 ${
+                                                    className={`max-w-[75%] rounded-2xl px-5 py-3 shadow-sm ${
                                                         msg.senderType === 'agent'
-                                                            ? 'bg-primary text-white rounded-br-sm'
-                                                            : 'bg-white text-gray-900 shadow-sm rounded-bl-sm'
+                                                            ? 'bg-gradient-to-br from-primary to-orange-500 text-white rounded-br-md'
+                                                            : 'bg-white text-gray-900 rounded-bl-md border border-gray-100'
                                                     }`}
                                                 >
                                                     <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.message}</p>
-                                                    <div className="flex items-center justify-between mt-1">
+                                                    <div className="flex items-center justify-between gap-2 mt-2">
                                                         <p
-                                                            className={`text-xs ${
-                                                                msg.senderType === 'agent' ? 'text-white/70' : 'text-gray-400'
+                                                            className={`text-xs font-medium ${
+                                                                msg.senderType === 'agent' ? 'text-white/80' : 'text-gray-400'
                                                             }`}
                                                         >
                                                             {new Date(msg.timestamp).toLocaleTimeString('ar-EG', {
@@ -439,30 +457,21 @@ const CustomerServiceDashboard = () => {
                                                             })}
                                                         </p>
                                                         {msg.senderType === 'agent' && msg.isRead && (
-                                                            <CheckCheck size={14} className="text-white/70" />
+                                                            <CheckCheck size={14} className="text-white/80" />
                                                         )}
                                                     </div>
                                                 </div>
                                             </div>
                                         ))}
 
-                                        {/* Typing Indicator */}
+                                        {/* Simple Typing Indicator */}
                                         {isTyping && (
                                             <div className="flex justify-start">
-                                                <div className="bg-white rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
-                                                    <div className="flex items-center space-x-1">
-                                                        <div
-                                                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                                                            style={{ animationDelay: '0ms' }}
-                                                        ></div>
-                                                        <div
-                                                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                                                            style={{ animationDelay: '150ms' }}
-                                                        ></div>
-                                                        <div
-                                                            className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                                                            style={{ animationDelay: '300ms' }}
-                                                        ></div>
+                                                <div className="bg-white rounded-2xl rounded-bl-md px-5 py-3 shadow-sm border border-gray-100">
+                                                    <div className="flex items-center gap-1">
+                                                        <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                                                        <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                                                        <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -472,32 +481,30 @@ const CustomerServiceDashboard = () => {
                                 <div ref={messagesEndRef} />
                             </div>
 
-                            {/* Input Area */}
-                            <div className="bg-white border-t border-gray-200 p-4">
-                                <div className="flex items-end gap-2" dir="rtl">
-                                    <div className="flex-1">
-                                        <textarea
-                                            value={message}
-                                            onChange={(e) => {
-                                                setMessage(e.target.value);
-                                                handleTyping();
-                                            }}
-                                            onKeyDown={handleKeyDown}
-                                            placeholder="اكتب ردك..."
-                                            rows={1}
-                                            dir="rtl"
-                                            className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary resize-none text-right"
-                                            style={{
-                                                minHeight: '48px',
-                                                maxHeight: '120px',
-                                                overflowY: 'auto'
-                                            }}
-                                        />
-                                    </div>
+                            {/* Simplified Input Area */}
+                            <div className="bg-white border-t border-gray-200 p-5 shadow-lg">
+                                <div className="flex items-center gap-3" dir="rtl">
+                                    <textarea
+                                        value={message}
+                                        onChange={(e) => {
+                                            setMessage(e.target.value);
+                                            handleTyping();
+                                        }}
+                                        onKeyDown={handleKeyDown}
+                                        placeholder="اكتب رسالتك هنا..."
+                                        rows={1}
+                                        dir="rtl"
+                                        className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary focus:bg-white resize-none text-right text-sm transition-all"
+                                        style={{
+                                            minHeight: '44px',
+                                            maxHeight: '120px',
+                                            overflowY: 'auto'
+                                        }}
+                                    />
                                     <button
                                         onClick={handleSendMessage}
                                         disabled={!message.trim()}
-                                        className="bg-primary text-white p-3 rounded-full hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+                                        className="bg-gradient-to-br from-primary to-orange-500 text-white p-3.5 rounded-xl hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all transform hover:scale-105 active:scale-95 flex-shrink-0"
                                         title="إرسال"
                                     >
                                         <Send size={20} />
@@ -507,12 +514,12 @@ const CustomerServiceDashboard = () => {
                         </>
                     ) : (
                         <div className="flex items-center justify-center h-full">
-                            <div className="text-center">
-                                <div className="bg-primary/10 p-6 rounded-full w-24 h-24 mx-auto mb-4 flex items-center justify-center">
-                                    <MessageCircle size={48} className="text-primary" />
+                            <div className="text-center px-8">
+                                <div className="w-32 h-32 bg-gradient-to-br from-primary/10 to-blue-100 rounded-3xl mx-auto mb-6 flex items-center justify-center shadow-lg">
+                                    <MessageCircle size={60} className="text-primary" />
                                 </div>
-                                <h2 className="text-xl font-bold text-gray-900 mb-2">اختر محادثة</h2>
-                                <p className="text-gray-500">اختر محادثة من القائمة للبدء</p>
+                                <h2 className="text-2xl font-bold text-gray-900 mb-3">مرحباً بك</h2>
+                                <p className="text-gray-500 text-base">اختر محادثة من القائمة للبدء في الرد على العملاء</p>
                             </div>
                         </div>
                     )}

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, ChevronDown, Search, ScanLine, ShoppingCart, User, Heart, Clock, Phone, Mic, MicOff } from 'lucide-react';
+import { MapPin, ChevronDown, Search, ShoppingCart, User, Heart, Clock, Phone, Mic, MicOff } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import BarcodeScanner from './BarcodeScanner';
 import BranchSelector from './BranchSelector';
 import { api } from '../services/api';
 import { useCart } from '../context/CartContext';
@@ -16,7 +15,6 @@ const TopBar = () => {
     const { totalItems } = useCart();
     const { selectedBranch } = useBranch();
     const { t, language } = useLanguage();
-    const [showScanner, setShowScanner] = useState(false);
     const [showBranchSelector, setShowBranchSelector] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [isListening, setIsListening] = useState(false);
@@ -73,21 +71,6 @@ const TopBar = () => {
             setRecognition(recognitionInstance);
         }
     }, [navigate, language]);
-
-    const handleBarcodeScanned = async (barcode: string) => {
-        setShowScanner(false);
-        try {
-            const response = await api.products.getByBarcode(barcode);
-            if (response.data) {
-                navigate(`/product/${response.data.id}`);
-            } else {
-                alert('المنتج غير موجود');
-            }
-        } catch (error) {
-            console.error('Error fetching product:', error);
-            alert('حدث خطأ في البحث عن المنتج');
-        }
-    };
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -233,14 +216,6 @@ const TopBar = () => {
                                 {isListening ? <MicOff size={14} /> : <Mic size={14} />}
                             </button>
                         </div>
-                        <button
-                            type="button"
-                            onClick={() => setShowScanner(true)}
-                            className="p-2.5 rounded-xl border border-gray-200 text-gray-700 hover:border-primary hover:text-primary transition-colors"
-                            title={t('scan_barcode')}
-                        >
-                            <ScanLine size={16} />
-                        </button>
                     </form>
 
                     {/* Desktop: Location + Search + Actions */}
@@ -291,14 +266,6 @@ const TopBar = () => {
                                     بحث
                                 </button>
                             </div>
-                            <button
-                                type="button"
-                                onClick={() => setShowScanner(true)}
-                                className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-700 hover:border-primary hover:text-primary transition-colors"
-                            >
-                                <ScanLine size={18} />
-                                {t('scan_barcode')}
-                            </button>
                         </form>
 
                         {/* Desktop Actions */}
@@ -334,9 +301,6 @@ const TopBar = () => {
             </div>
 
             {/* Modals */}
-            {showScanner && (
-                <BarcodeScanner onScan={handleBarcodeScanned} onClose={() => setShowScanner(false)} />
-            )}
             {showBranchSelector && (
                 <BranchSelector isOpen={showBranchSelector} onClose={() => setShowBranchSelector(false)} />
             )}

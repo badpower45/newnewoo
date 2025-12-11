@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, BookOpen, Sparkles } from 'lucide-react';
+import { ChevronLeft, ChevronRight, BookOpen, Sparkles, Star, TrendingUp, ShoppingBag } from 'lucide-react';
 
 interface FlyerPage {
     id: number;
@@ -35,65 +35,63 @@ const FlyerCarousel: React.FC<FlyerCarouselProps> = ({ pages }) => {
     };
 
     return (
-        <div className="relative -mx-4 md:mx-0">
-            {/* Gradient Header - Magazine Style */}
-            <div className="relative overflow-hidden bg-gradient-to-l from-[#F97316] via-[#FB923C] to-[#FDBA74] pt-4 pb-16 px-4 md:rounded-t-2xl">
-                {/* Confetti Decorations */}
-                <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    <div className="absolute top-4 right-4 w-3 h-3 bg-yellow-300 rounded-full opacity-80 animate-bounce" style={{ animationDelay: '0s' }} />
-                    <div className="absolute top-8 right-16 w-2 h-2 bg-white rounded-full opacity-60 animate-bounce" style={{ animationDelay: '0.2s' }} />
-                    <div className="absolute top-6 left-8 w-2.5 h-2.5 bg-pink-300 rounded-full opacity-70 animate-bounce" style={{ animationDelay: '0.4s' }} />
-                    <div className="absolute top-12 left-20 w-2 h-2 bg-yellow-200 rounded-full opacity-50 animate-bounce" style={{ animationDelay: '0.6s' }} />
-                    <div className="absolute bottom-8 right-12 w-4 h-4 bg-white/30 rounded-full" />
-                    <div className="absolute bottom-12 left-12 w-3 h-3 bg-purple-300/50 rounded-full" />
-                    {/* Decorative shapes */}
-                    <div className="absolute top-2 left-1/4 text-white/30 text-2xl">✦</div>
-                    <div className="absolute top-10 right-1/4 text-yellow-200/40 text-xl">★</div>
-                    <div className="absolute bottom-4 right-1/3 text-white/20 text-lg">◆</div>
+        <div className="relative -mx-4 md:mx-0 my-8">
+            {/* Modern Clean Header */}
+            <div className="relative overflow-hidden bg-gradient-to-br from-brand-brown via-amber-700 to-brand-orange pt-6 pb-20 px-4 md:rounded-t-3xl shadow-xl">
+                {/* Subtle Pattern Overlay */}
+                <div className="absolute inset-0 opacity-10">
+                    <div className="absolute inset-0" style={{
+                        backgroundImage: 'radial-gradient(circle at 20px 20px, white 2px, transparent 0)',
+                        backgroundSize: '40px 40px'
+                    }} />
                 </div>
 
-                <div className="flex items-center justify-between relative z-10">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                            <BookOpen className="w-5 h-5 text-white" />
+                <div className="relative z-10 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 bg-white/90 backdrop-blur rounded-2xl flex items-center justify-center shadow-lg">
+                            <ShoppingBag className="w-7 h-7 text-brand-orange" />
                         </div>
                         <div>
-                            <h3 className="text-white text-lg font-bold flex items-center gap-2">
-                                مجلة العروض الأسبوعية
-                                <Sparkles className="w-4 h-4 text-yellow-200" />
-                            </h3>
-                            <p className="text-white/80 text-xs">عروض حصرية {getDateRange()}</p>
+                            <div className="flex items-center gap-2 mb-1">
+                                <h3 className="text-white text-2xl font-extrabold">مجلة العروض</h3>
+                                <Sparkles className="w-5 h-5 text-yellow-300 animate-pulse" />
+                            </div>
+                            <p className="text-white/90 text-sm font-medium flex items-center gap-2">
+                                <TrendingUp className="w-4 h-4" />
+                                عروض حصرية • {getDateRange()}
+                            </p>
                         </div>
                     </div>
                     <Link 
                         to="/magazine" 
-                        className="px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-full text-sm font-medium hover:bg-white/30 transition-colors"
+                        className="hidden md:flex items-center gap-2 px-5 py-2.5 bg-white text-brand-orange rounded-full text-sm font-bold hover:bg-yellow-50 hover:shadow-lg transition-all transform hover:scale-105"
                     >
                         عرض الكل
+                        <ChevronLeft className="w-4 h-4" />
                     </Link>
                 </div>
             </div>
 
-            {/* Carousel Container */}
-            <div className="bg-[#FFF7ED] -mt-10 pb-4 px-4 md:rounded-b-2xl relative">
-                {/* Navigation Buttons */}
+            {/* Modern Carousel Container */}
+            <div className="bg-gradient-to-br from-orange-50 via-amber-50 to-yellow-50 -mt-14 pt-16 pb-6 px-4 md:rounded-b-3xl relative shadow-xl">
+                {/* Navigation Buttons - Redesigned */}
                 <button
                     onClick={() => scroll('right')}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-white shadow-lg rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors md:right-0 md:-mr-4"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-gradient-to-br from-brand-orange to-orange-600 text-white shadow-xl rounded-xl flex items-center justify-center hover:scale-110 transition-transform md:right-0 md:-mr-5"
                 >
-                    <ChevronRight className="w-4 h-4 text-gray-600" />
+                    <ChevronRight className="w-5 h-5" />
                 </button>
                 <button
                     onClick={() => scroll('left')}
-                    className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-white shadow-lg rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors md:left-0 md:-ml-4"
+                    className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-gradient-to-br from-brand-orange to-orange-600 text-white shadow-xl rounded-xl flex items-center justify-center hover:scale-110 transition-transform md:left-0 md:-ml-5"
                 >
-                    <ChevronLeft className="w-4 h-4 text-gray-600" />
+                    <ChevronLeft className="w-5 h-5" />
                 </button>
 
-                {/* Pages Carousel */}
+                {/* Pages Carousel - Modern Cards */}
                 <div 
                     ref={scrollRef}
-                    className="flex gap-4 overflow-x-auto pb-2 pt-2 no-scrollbar snap-x scroll-smooth"
+                    className="flex gap-5 overflow-x-auto pb-3 pt-1 no-scrollbar snap-x scroll-smooth px-1"
                 >
                     {pages.map((page, index) => (
                         <Link 
@@ -101,44 +99,60 @@ const FlyerCarousel: React.FC<FlyerCarouselProps> = ({ pages }) => {
                             to="/magazine"
                             className="snap-center flex-shrink-0 group"
                         >
-                            <div className="relative w-40 md:w-52">
-                                {/* Page Number Badge */}
-                                <div className="absolute -top-2 -right-2 z-10 w-8 h-8 bg-[#F97316] text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg">
-                                    {index + 1}
+                            <div className="relative w-44 md:w-60">
+                                {/* Star Badge with Page Number */}
+                                <div className="absolute -top-3 -right-3 z-10 w-12 h-12 bg-gradient-to-br from-yellow-400 via-yellow-500 to-amber-500 text-white rounded-2xl flex items-center justify-center shadow-lg transform rotate-3 group-hover:rotate-6 transition-transform">
+                                    <div className="flex flex-col items-center">
+                                        <Star className="w-4 h-4 fill-white" />
+                                        <span className="text-xs font-bold">{index + 1}</span>
+                                    </div>
                                 </div>
 
-                                {/* Magazine Page */}
-                                <div className="relative rounded-xl overflow-hidden shadow-lg border-4 border-white transform group-hover:-rotate-2 group-hover:scale-105 transition-all duration-300 cursor-pointer">
+                                {/* Magazine Card - Clean Modern Design */}
+                                <div className="relative rounded-2xl overflow-hidden shadow-2xl bg-white transform group-hover:scale-105 group-hover:-rotate-1 transition-all duration-300 cursor-pointer border-2 border-orange-100">
                                     <img
                                         src={page.image}
                                         alt={page.title}
-                                        className="w-full h-52 md:h-64 object-cover"
+                                        className="w-full h-56 md:h-72 object-cover"
                                     />
-                                    {/* Gradient Overlay */}
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                                     
-                                    {/* Title */}
-                                    <div className="absolute bottom-2 right-2 left-2">
-                                        <p className="text-white text-sm font-medium truncate">{page.title}</p>
+                                    {/* Gradient Overlay - Softer */}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                                    
+                                    {/* Content Overlay */}
+                                    <div className="absolute bottom-0 left-0 right-0 p-4">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                                                <Sparkles className="w-4 h-4 text-white" />
+                                            </div>
+                                            <span className="text-white/90 text-xs font-medium px-2 py-1 bg-white/10 backdrop-blur-sm rounded-full">
+                                                عرض خاص
+                                            </span>
+                                        </div>
+                                        <p className="text-white text-base font-bold line-clamp-2">{page.title}</p>
                                     </div>
 
-                                    {/* Hover Effect */}
-                                    <div className="absolute inset-0 bg-[#F97316]/0 group-hover:bg-[#F97316]/10 transition-colors" />
+                                    {/* Hover Shine Effect */}
+                                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/0 to-white/0 group-hover:via-white/10 transition-all duration-500" />
                                 </div>
 
-                                {/* Shadow/Depth Effect */}
-                                <div className="absolute -bottom-2 left-2 right-2 h-4 bg-black/10 blur-md rounded-full" />
+                                {/* Floating Shadow */}
+                                <div className="absolute -bottom-2 left-4 right-4 h-6 bg-gradient-to-b from-black/20 to-transparent blur-xl rounded-full" />
                             </div>
                         </Link>
                     ))}
 
-                    {/* View All Card */}
+                    {/* View All Card - Redesigned */}
                     <Link to="/magazine" className="snap-center flex-shrink-0">
-                        <div className="w-40 md:w-52 h-52 md:h-64 rounded-xl border-4 border-dashed border-[#F97316]/40 flex flex-col items-center justify-center gap-3 hover:border-[#F97316] hover:bg-[#F97316]/5 transition-colors cursor-pointer">
-                            <div className="w-12 h-12 bg-[#F97316]/10 rounded-full flex items-center justify-center">
-                                <BookOpen className="w-6 h-6 text-[#F97316]" />
+                        <div className="w-44 md:w-60 h-56 md:h-72 rounded-2xl bg-gradient-to-br from-orange-100 via-amber-50 to-yellow-100 border-2 border-dashed border-brand-orange/40 flex flex-col items-center justify-center gap-4 hover:border-brand-orange hover:shadow-xl transition-all cursor-pointer group">
+                            <div className="w-16 h-16 bg-gradient-to-br from-brand-orange to-orange-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                <BookOpen className="w-8 h-8 text-white" />
                             </div>
-                            <span className="text-[#F97316] font-bold">تصفح المجلة</span>
+                            <div className="text-center px-4">
+                                <p className="text-brand-orange font-bold text-lg mb-1">تصفح المجلة</p>
+                                <p className="text-gray-600 text-sm">شاهد جميع العروض</p>
+                            </div>
+                            <ChevronLeft className="w-5 h-5 text-brand-orange group-hover:translate-x-1 transition-transform" />
                         </div>
                     </Link>
                 </div>

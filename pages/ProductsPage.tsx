@@ -80,14 +80,18 @@ export default function ProductsPage() {
         }
     };
 
+    const [scannedProduct, setScannedProduct] = useState<Product | null>(null);
+    const [showProductModal, setShowProductModal] = useState(false);
+
     const handleBarcodeScanned = async (barcode: string) => {
         setShowScanner(false);
         try {
             const response = await api.products.getByBarcode(barcode);
             if (response.data) {
-                navigate(`/product/${response.data.id}`);
+                setScannedProduct(response.data);
+                setShowProductModal(true);
             } else {
-                alert('المنتج غير موجود');
+                alert('❌ المنتج غير موجود في قاعدة البيانات');
             }
         } catch (error) {
             alert('حدث خطأ في البحث عن المنتج');
@@ -597,6 +601,119 @@ export default function ProductsPage() {
                     onScan={handleBarcodeScanned}
                     onClose={() => setShowScanner(false)}
                 />
+            )}
+
+            {/* Scanned Product Modal */}
+            {showProductModal && scannedProduct && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+                        {/* Header */}
+                        <div className="sticky top-0 bg-gradient-to-r from-green-500 to-emerald-600 p-6 text-white rounded-t-2xl">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                                        <Check className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-xl font-bold">✅ تم العثور على المنتج!</h2>
+                                        <p className="text-white/90 text-sm">مسح باركود ناجح</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => {
+                                        setShowProductModal(false);
+                                        setScannedProduct(null);
+                                    }}
+                                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
+                                >
+                                    <X size={24} />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Product Details */}
+                        <div className="p-6">
+                            {/* Product Image */}
+                            <div className="relative mb-6">
+                                <img
+                                    src={scannedProduct.image_url || 'https://via.placeholder.com/400x300?text=No+Image'}
+                                    alt={scannedProduct.name_ar}
+                                    className="w-full h-64 object-contain rounded-xl bg-gray-50"
+                                />
+                                {scannedProduct.discount_percentage > 0 && (
+                                    <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                                        خصم {scannedProduct.discount_percentage}%
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Product Info */}
+                            <div className="space-y-4">
+                                <div>
+                                    <h3 className="text-2xl font-bold text-gray-900 mb-2">{scannedProduct.name_ar}</h3>
+                                    <p className="text-gray-600">{scannedProduct.name_en}</p>
+                                </div>
+
+                                {scannedProduct.description_ar && (
+                                    <p className="text-gray-600 text-sm">{scannedProduct.description_ar}</p>
+                                )}
+
+                                {/* Price */}
+                                <div className="flex items-center gap-3">
+                                    <span className="text-3xl font-bold text-brand-orange">
+                                        {scannedProduct.discount_percentage > 0
+                                            ? (scannedProduct.price * (1 - scannedProduct.discount_percentage / 100)).toFixed(2)
+                                            : scannedProduct.price.toFixed(2)} ج.م
+                                    </span>
+                                    {scannedProduct.discount_percentage > 0 && (
+                                        <span className="text-xl text-gray-400 line-through">
+                                            {scannedProduct.price.toFixed(2)} ج.م
+                                        </span>
+                                    )}
+                                </div>
+
+                                {/* Stock */}
+                                <div className="flex items-center gap-2">
+                                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                        scannedProduct.stock > 10
+                                            ? 'bg-green-100 text-green-700'
+                                            : scannedProduct.stock > 0
+                                            ? 'bg-yellow-100 text-yellow-700'
+                                            : 'bg-red-100 text-red-700'
+                                    }`}>
+                                        {scannedProduct.stock > 10
+                                            ? '✓ متوفر'
+                                            : scannedProduct.stock > 0
+                                            ? `متبقي ${scannedProduct.stock}`
+                                            : 'غير متوفر'}
+                                    </span>
+                                </div>
+
+                                {/* Actions */}
+                                <div className="flex gap-3 pt-4">
+                                    <button
+                                        onClick={() => {
+                                            navigate(`/product/${scannedProduct.id}`);
+                                            setShowProductModal(false);
+                                        }}
+                                        className="flex-1 bg-gradient-to-r from-brand-orange to-orange-600 text-white py-3 rounded-xl font-bold hover:shadow-lg transition-all"
+                                    >
+                                        عرض التفاصيل
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setShowProductModal(false);
+                                            setScannedProduct(null);
+                                        }}
+                                        className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors"
+                                    >
+                                        إغلاق
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
