@@ -1,10 +1,14 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface CategoryCardProps {
     name?: string;
     nameEn?: string;
+    nameAr?: string;
+    name_ar?: string;
+    name_en?: string;
     image?: string;
     icon?: string;
     bgColor?: string;
@@ -15,6 +19,9 @@ interface CategoryCardProps {
 const CategoryCard: React.FC<CategoryCardProps> = ({ 
     name, 
     nameEn,
+    nameAr,
+    name_ar,
+    name_en,
     image, 
     icon,
     bgColor = 'bg-gradient-to-br from-orange-50 to-orange-100',
@@ -22,7 +29,16 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
     variant = 'default'
 }) => {
     const navigate = useNavigate();
-    const displayName = name || nameEn || 'بدون اسم';
+    const { autoTranslate, language } = useLanguage();
+    
+    // Get display name based on language
+    const arabicName = nameAr || name_ar || name;
+    const englishName = nameEn || name_en || name;
+    
+    const displayName = language === 'ar' 
+        ? (arabicName || autoTranslate(englishName || 'بدون اسم'))
+        : (englishName || arabicName || 'No Name');
+    
     const initial = displayName.charAt(0).toUpperCase();
 
     const handleClick = () => {

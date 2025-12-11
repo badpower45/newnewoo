@@ -3,6 +3,7 @@ import { Plus, Heart, Check, Minus, ShoppingCart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
+import { useLanguage } from '../context/LanguageContext';
 
 import { Product } from '../types';
 
@@ -17,7 +18,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
   const navigate = useNavigate();
   const { addToCart, items, updateQuantity, removeFromCart } = useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
+  const { autoTranslate, language } = useLanguage();
   const [isAdding, setIsAdding] = useState(false);
+  
+  // Get display name based on language
+  const displayName = language === 'ar' 
+    ? (product.name_ar || autoTranslate(title)) 
+    : (product.name_en || title);
 
   // Get quantity in cart - safely handle undefined items
   const cartItem = items?.find(item => item.id === id);
@@ -136,7 +143,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
         <div className="w-full h-full p-4 flex items-center justify-center">
           <img 
             src={image || "https://placehold.co/150x150?text=Product"} 
-            alt={title} 
+            alt={displayName} 
             className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" 
           />
         </div>
@@ -177,7 +184,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
 
       {/* Product Info */}
       <div className="px-1">
-        <h4 className="text-sm font-medium text-gray-800 line-clamp-2 mb-1 leading-tight">{title}</h4>
+        <h4 className="text-sm font-medium text-gray-800 line-clamp-2 mb-1 leading-tight">{displayName}</h4>
         {weight && <p className="text-xs text-gray-400 mb-0.5">{weight}</p>}
         {product.shelf_location && (
           <p className="text-[10px] text-orange-500 mb-1">
