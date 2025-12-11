@@ -99,32 +99,6 @@ const TopBar = () => {
 
     return (
         <div className="bg-white sticky top-0 z-40 shadow-sm">
-            {/* Top Utility Bar - Always Visible */}
-            <div className="flex justify-between items-center max-w-7xl mx-auto px-4 text-xs text-gray-500 py-2 border-b border-gray-100">
-                <div className="flex items-center gap-2 md:gap-4">
-                    <span className="flex items-center gap-1 text-green-600 font-medium">
-                        <Clock size={12} />
-                        <span className="hidden sm:inline">{t('open_24_hours')}</span>
-                        <span className="sm:hidden">24h</span>
-                    </span>
-                    <span className="flex items-center gap-1">
-                        <Phone size={12} />
-                        <span className="hidden sm:inline">{t('hotline')}:</span>
-                        19999
-                    </span>
-                </div>
-                <div className="flex items-center gap-2 md:gap-4">
-                    <Link to="/track-order" className="hover:text-primary cursor-pointer transition-colors">
-                        <span className="hidden sm:inline">{t('track_order')}</span>
-                        <span className="sm:hidden">{language === 'ar' ? 'تتبع' : 'Track'}</span>
-                    </Link>
-                    <Link to="/profile?tab=rewards" className="hover:text-primary cursor-pointer transition-colors">
-                        <span className="hidden sm:inline">{t('rewards')}</span>
-                        <span className="sm:hidden">{language === 'ar' ? 'مكافآت' : 'Rewards'}</span>
-                    </Link>
-                </div>
-            </div>
-
             {/* Main Header */}
             <div className="p-4 max-w-7xl mx-auto">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

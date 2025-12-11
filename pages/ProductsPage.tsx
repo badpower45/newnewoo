@@ -184,8 +184,6 @@ export default function ProductsPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-orange-50/30 to-white">
-            <ProductsTopBar onScan={() => setShowScanner(true)} />
-
             {/* Categories Slider */}
             <div className="bg-white shadow-sm sticky top-0 z-40">
                 <div className="max-w-7xl mx-auto">
@@ -210,86 +208,6 @@ export default function ProductsPage() {
                     </div>
                 </div>
             </div>
-
-            {/* Category Banner - Modern Design */}
-            {selectedCategory && selectedCategory !== '' && (
-                <div className="max-w-7xl mx-auto px-3 md:px-4 pt-4 md:pt-6">
-                    <div className={`relative overflow-hidden rounded-2xl md:rounded-3xl shadow-2xl bg-gradient-to-br ${CATEGORIES.find(c => c.id === selectedCategory)?.color || 'from-orange-500 to-orange-700'}`}>
-                        {/* Animated Background Pattern */}
-                        <div className="absolute inset-0 overflow-hidden">
-                            {/* Floating Circles */}
-                            <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-                            <div className="absolute -bottom-32 -left-20 w-96 h-96 bg-white/10 rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
-                            <div className="absolute top-1/2 right-1/3 w-40 h-40 bg-white/5 rounded-full blur-2xl animate-pulse" style={{animationDelay: '2s'}}></div>
-                            
-                            {/* Grid Pattern */}
-                            <div className="absolute inset-0 opacity-[0.03]" style={{
-                                backgroundImage: 'linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)',
-                                backgroundSize: '50px 50px'
-                            }}></div>
-                        </div>
-                        
-                        {/* Content Container */}
-                        <div className="relative z-10 px-3 py-4 md:px-10 md:py-10">
-                            <div className="flex items-center justify-between">
-                                {/* Left Content */}
-                                <div className="flex items-center gap-2 md:gap-5">
-                                    {/* Icon Container with Glow Effect */}
-                                    <div className="relative group">
-                                        <div className="absolute inset-0 bg-white/40 rounded-xl md:rounded-2xl blur-xl group-hover:blur-2xl transition-all"></div>
-                                        <div className="relative w-12 h-12 md:w-24 md:h-24 bg-white/90 backdrop-blur-md rounded-xl md:rounded-2xl flex items-center justify-center shadow-xl transform group-hover:scale-110 transition-transform duration-300">
-                                            <span className="text-2xl md:text-6xl drop-shadow-lg">{CATEGORIES.find(c => c.id === selectedCategory)?.icon}</span>
-                                        </div>
-                                    </div>
-                                    
-                                    {/* Text Content */}
-                                    <div className="space-y-1 md:space-y-2">
-                                        <div className="flex items-center gap-1.5 md:gap-3">
-                                            <h2 className="text-lg md:text-4xl font-black text-white drop-shadow-lg">
-                                                {CATEGORIES.find(c => c.id === selectedCategory)?.name}
-                                            </h2>
-                                            <div className="hidden md:flex items-center gap-1 px-3 py-1 bg-white/20 backdrop-blur-md rounded-full">
-                                                <Sparkles size={16} className="text-white" />
-                                                <span className="text-white text-sm font-bold">جديد</span>
-                                            </div>
-                                        </div>
-                                        <p className="text-white/95 text-xs md:text-lg font-medium drop-shadow-md flex items-center gap-1 md:gap-2">
-                                            <Tag size={14} className="text-white/80 md:w-[18px] md:h-[18px]" />
-                                            <span className="line-clamp-1">اكتشف منتجاتنا الطازجة</span>
-                                        </p>
-                                    </div>
-                                </div>
-                                
-                                {/* Right Decorative Element - Large Floating Icon */}
-                                <div className="hidden lg:flex items-center justify-center">
-                                    <div className="relative">
-                                        <div className="absolute inset-0 bg-white/20 rounded-full blur-2xl"></div>
-                                        <div className="relative text-[120px] opacity-20 transform hover:scale-110 transition-transform duration-500">
-                                            {CATEGORIES.find(c => c.id === selectedCategory)?.icon}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            {/* Bottom Stats Bar */}
-                            <div className="mt-3 md:mt-6 flex items-center gap-2 md:gap-6 overflow-x-auto scrollbar-hide">
-                                <div className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1 md:py-2 bg-white/20 backdrop-blur-md rounded-lg md:rounded-xl whitespace-nowrap">
-                                    <TrendingUp size={14} className="text-white md:w-[18px] md:h-[18px]" />
-                                    <span className="text-white font-bold text-xs md:text-sm">الأكثر مبيعاً</span>
-                                </div>
-                                <div className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1 md:py-2 bg-white/20 backdrop-blur-md rounded-lg md:rounded-xl whitespace-nowrap">
-                                    <Tag size={14} className="text-white md:w-[18px] md:h-[18px]" />
-                                    <span className="text-white font-bold text-xs md:text-sm">عروض حصرية</span>
-                                </div>
-                                <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-md rounded-xl">
-                                    <Sparkles size={18} className="text-white" />
-                                    <span className="text-white font-bold text-sm">توصيل سريع</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             <div className="max-w-7xl mx-auto px-4 py-6">
                 {/* Toolbar */}
