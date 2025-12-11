@@ -272,20 +272,31 @@ export default function CheckoutPage() {
                 }))
             };
 
+            console.log('📦 Creating order with data:', orderData);
+            
             const created = await api.orders.create(orderData);
+            console.log('✅ Order API Response:', created);
+            
             const createdOrder = (created && (created.data || created)) || {};
             const newOrderId = createdOrder.id || createdOrder.orderId;
+            
+            console.log('📋 Extracted Order ID:', newOrderId);
 
-            clearCart();
             if (newOrderId) {
+                clearCart();
+                showToast('تم إنشاء الطلب بنجاح! 🎉', 'success');
                 navigate(`/order-confirmation/${newOrderId}`);
             } else {
-                // Fallback: go to profile orders if ID missing
+                console.error('❌ No order ID returned:', created);
+                showToast('تم إنشاء الطلب لكن لم نتمكن من الحصول على رقم الطلب', 'warning');
+                clearCart();
                 navigate('/profile');
             }
         } catch (err: any) {
-            console.error("Failed to create order", err);
-            showToast(err.response?.data?.error || 'فشل إنشاء الطلب. يرجى المحاولة مرة أخرى.', 'error');
+            console.error("❌ Failed to create order:", err);
+            console.error("Error details:", err.response?.data);
+            const errorMessage = err.response?.data?.error || err.message || 'فشل إنشاء الطلب. يرجى المحاولة مرة أخرى.';
+            showToast(errorMessage, 'error');
         }
     };
 

@@ -1,17 +1,19 @@
 import React from 'react';
 import { Home, Grid, ShoppingCart, Tag, MoreHorizontal } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useLanguage } from '../context/LanguageContext';
 
 const BottomNav = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const { t } = useLanguage();
 
     const navItems = [
-        { icon: Home, label: 'Home', path: '/' },
-        { icon: Grid, label: 'Categories', path: '/categories' },
-        { icon: ShoppingCart, label: 'Cart', path: '/cart' },
-        { icon: Tag, label: 'Deals', path: '/deals' },
-        { icon: MoreHorizontal, label: 'More', path: '/more' },
+        { icon: Home, label: t('home'), path: '/' },
+        { icon: Grid, label: t('categories'), path: '/categories' },
+        { icon: ShoppingCart, label: t('cart'), path: '/cart' },
+        { icon: Tag, label: t('hot_deals'), path: '/deals' },
+        { icon: MoreHorizontal, label: t('more'), path: '/more' },
     ];
 
     return (

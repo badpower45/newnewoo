@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { MapPin, ChevronDown, Search, ScanLine, ShoppingCart, User, Heart, Clock, Phone } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { MapPin, ChevronDown, Search, ScanLine, ShoppingCart, User, Heart, Clock, Phone, Mic, MicOff } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import BarcodeScanner from './BarcodeScanner';
 import BranchSelector from './BranchSelector';
@@ -8,16 +8,71 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useBranch } from '../context/BranchContext';
 import { useFavorites } from '../context/FavoritesContext';
+import { useLanguage } from '../context/LanguageContext';
 
 const TopBar = () => {
     const { user, isAuthenticated } = useAuth();
     const { favorites } = useFavorites();
     const { totalItems } = useCart();
     const { selectedBranch } = useBranch();
+    const { t, language } = useLanguage();
     const [showScanner, setShowScanner] = useState(false);
     const [showBranchSelector, setShowBranchSelector] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [isListening, setIsListening] = useState(false);
+    const [recognition, setRecognition] = useState<any>(null);
     const navigate = useNavigate();
+
+    // Initialize Speech Recognition
+    useEffect(() => {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
+            const recognitionInstance = new SpeechRecognition();
+            
+            recognitionInstance.continuous = false;
+            recognitionInstance.interimResults = true; // Show interim results
+            recognitionInstance.lang = language === 'ar' ? 'ar-EG' : 'en-US';
+            recognitionInstance.maxAlternatives = 1;
+            
+            recognitionInstance.onstart = () => {
+                setIsListening(true);
+                console.log('🎤 Voice recognition started');
+            };
+            
+            recognitionInstance.onresult = (event: any) => {
+                const transcript = event.results[0][0].transcript;
+                console.log('🎤 Voice input:', transcript);
+                setSearchQuery(transcript);
+                
+                // Auto-search after voice input ends (final result)
+                if (event.results[0].isFinal && transcript.trim()) {
+                    setIsListening(false);
+                    navigate(`/products?search=${encodeURIComponent(transcript.trim())}`);
+                }
+            };
+            
+            recognitionInstance.onerror = (event: any) => {
+                console.error('🎤 Speech recognition error:', event.error);
+                setIsListening(false);
+                
+                // User-friendly error messages
+                if (event.error === 'no-speech') {
+                    alert(t('no_speech_detected'));
+                } else if (event.error === 'not-allowed') {
+                    alert(t('microphone_permission_required'));
+                } else if (event.error === 'network') {
+                    alert(t('network_error'));
+                }
+            };
+            
+            recognitionInstance.onend = () => {
+                setIsListening(false);
+                console.log('🎤 Voice recognition ended');
+            };
+            
+            setRecognition(recognitionInstance);
+        }
+    }, [navigate, language]);
 
     const handleBarcodeScanned = async (barcode: string) => {
         setShowScanner(false);
@@ -41,6 +96,24 @@ const TopBar = () => {
         }
     };
 
+    const handleVoiceSearch = () => {
+        if (!recognition) {
+            alert(t('voice_search_not_supported'));
+            return;
+        }
+        
+        if (isListening) {
+            recognition.stop();
+        } else {
+            try {
+                recognition.start();
+            } catch (error) {
+                console.error('Error starting voice recognition:', error);
+                setIsListening(false);
+            }
+        }
+    };
+
     return (
         <div className="bg-white sticky top-0 z-40 shadow-sm">
             {/* Top Utility Bar - Always Visible */}
@@ -48,23 +121,23 @@ const TopBar = () => {
                 <div className="flex items-center gap-2 md:gap-4">
                     <span className="flex items-center gap-1 text-green-600 font-medium">
                         <Clock size={12} />
-                        <span className="hidden sm:inline">مفتوح 24 ساعة</span>
+                        <span className="hidden sm:inline">{t('open_24_hours')}</span>
                         <span className="sm:hidden">24h</span>
                     </span>
                     <span className="flex items-center gap-1">
                         <Phone size={12} />
-                        <span className="hidden sm:inline">الخط الساخن:</span>
+                        <span className="hidden sm:inline">{t('hotline')}:</span>
                         19999
                     </span>
                 </div>
                 <div className="flex items-center gap-2 md:gap-4">
                     <Link to="/track-order" className="hover:text-primary cursor-pointer transition-colors">
-                        <span className="hidden sm:inline">تتبع طلبك</span>
-                        <span className="sm:hidden">تتبع</span>
+                        <span className="hidden sm:inline">{t('track_order')}</span>
+                        <span className="sm:hidden">{language === 'ar' ? 'تتبع' : 'Track'}</span>
                     </Link>
                     <Link to="/profile?tab=rewards" className="hover:text-primary cursor-pointer transition-colors">
-                        <span className="hidden sm:inline">مكافآت علوش</span>
-                        <span className="sm:hidden">مكافآت</span>
+                        <span className="hidden sm:inline">{t('rewards')}</span>
+                        <span className="sm:hidden">{language === 'ar' ? 'مكافآت' : 'Rewards'}</span>
                     </Link>
                 </div>
             </div>
@@ -136,6 +209,40 @@ const TopBar = () => {
                         </div>
                     </div>
 
+                    {/* Mobile Search Bar */}
+                    <form onSubmit={handleSearch} className="flex md:hidden items-center gap-2 w-full">
+                        <div className="flex items-center gap-2 bg-gray-50 px-3 py-2.5 rounded-xl flex-1 border border-gray-100 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
+                            <Search size={16} className="text-gray-400" />
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder={isListening ? t('listening') : t('search_placeholder')}
+                                className="w-full bg-transparent outline-none text-sm text-gray-900"
+                            />
+                            <button
+                                type="button"
+                                onClick={handleVoiceSearch}
+                                className={`p-1.5 rounded-lg transition-all ${
+                                    isListening 
+                                        ? 'bg-red-500 text-white animate-pulse' 
+                                        : 'text-gray-400 hover:text-primary hover:bg-primary/10'
+                                }`}
+                                title="البحث الصوتي"
+                            >
+                                {isListening ? <MicOff size={14} /> : <Mic size={14} />}
+                            </button>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setShowScanner(true)}
+                            className="p-2.5 rounded-xl border border-gray-200 text-gray-700 hover:border-primary hover:text-primary transition-colors"
+                            title={t('scan_barcode')}
+                        >
+                            <ScanLine size={16} />
+                        </button>
+                    </form>
+
                     {/* Desktop: Location + Search + Actions */}
                     <div className="hidden md:flex items-center gap-4 w-full">
                         <div
@@ -147,10 +254,10 @@ const TopBar = () => {
                             </div>
                             <div>
                                 <div className="flex items-center gap-1">
-                                    <span className="text-gray-500 text-sm">التوصيل إلى:</span>
+                                    <span className="text-gray-500 text-sm">{t('delivery_to')}:</span>
                                     <ChevronDown className="w-4 h-4 text-primary" />
                                 </div>
-                                <span className="text-sm text-gray-900 font-medium">{selectedBranch?.address || 'اختر الفرع'}</span>
+                                <span className="text-sm text-gray-900 font-medium">{selectedBranch?.address || t('select_branch')}</span>
                             </div>
                         </div>
 
@@ -162,9 +269,21 @@ const TopBar = () => {
                                     type="text"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    placeholder="ابحث عن منتج أو فئة"
+                                    placeholder={isListening ? t('listening') : t('search_placeholder')}
                                     className="w-full bg-transparent outline-none text-sm text-gray-900"
                                 />
+                                <button
+                                    type="button"
+                                    onClick={handleVoiceSearch}
+                                    className={`p-1.5 rounded-lg transition-all ${
+                                        isListening 
+                                            ? 'bg-red-500 text-white animate-pulse' 
+                                            : 'text-gray-400 hover:text-primary hover:bg-primary/10'
+                                    }`}
+                                    title={t('voice_search')}
+                                >
+                                    {isListening ? <MicOff size={16} /> : <Mic size={16} />}
+                                </button>
                                 <button
                                     type="submit"
                                     className="text-sm text-primary font-semibold hover:text-primary/80 transition-colors"
@@ -178,7 +297,7 @@ const TopBar = () => {
                                 className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-700 hover:border-primary hover:text-primary transition-colors"
                             >
                                 <ScanLine size={18} />
-                                مسح باركود
+                                {t('scan_barcode')}
                             </button>
                         </form>
 

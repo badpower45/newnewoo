@@ -73,6 +73,7 @@ import NescafeBrandPage from './pages/brands/NescafeBrandPage';
 import JuhaynaBrandPage from './pages/brands/JuhaynaBrandPage';
 
 import { FavoritesProvider } from './context/FavoritesContext';
+import { LanguageProvider } from './context/LanguageContext';
 import ChatWidget from './components/ChatWidget';
 import ProtectedRoute from './components/ProtectedRoute';
 import { DebugProvider } from './context/DebugLogContext';
@@ -166,20 +167,22 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
-      <BranchProvider>
-        <FavoritesProvider>
-          <CartProvider>
-            <DebugProvider>
-              <Router>
-                <ScrollToTop />
-                <AppContent />
-              </Router>
-            </DebugProvider>
-          </CartProvider>
-        </FavoritesProvider>
-      </BranchProvider>
-    </AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <BranchProvider>
+          <FavoritesProvider>
+            <CartProvider>
+              <DebugProvider>
+                <Router>
+                  <ScrollToTop />
+                  <AppContent />
+                </Router>
+              </DebugProvider>
+            </CartProvider>
+          </FavoritesProvider>
+        </BranchProvider>
+      </AuthProvider>
+    </LanguageProvider>
   );
 }
 

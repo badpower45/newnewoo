@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User, LogOut, ChevronRight, UserPlus, Globe, MessageCircle, MapPinned, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 import Footer from '../components/Footer';
 import { api } from '../services/api';
 
@@ -17,17 +18,11 @@ interface Branch {
 const MorePage = () => {
     const navigate = useNavigate();
     const { user, logout } = useAuth();
-    const [currentLang, setCurrentLang] = useState<'ar' | 'en'>('ar');
+    const { language, setLanguage, t } = useLanguage();
     const [branches, setBranches] = useState<Branch[]>([]);
     const [loadingBranches, setLoadingBranches] = useState(true);
 
     useEffect(() => {
-        const savedLang = localStorage.getItem('language') as 'ar' | 'en';
-        if (savedLang) {
-            setCurrentLang(savedLang);
-            document.documentElement.dir = savedLang === 'ar' ? 'rtl' : 'ltr';
-            document.documentElement.lang = savedLang;
-        }
         fetchBranches();
     }, []);
 
@@ -45,7 +40,7 @@ const MorePage = () => {
     };
 
     const handleInviteFriend = () => {
-        const shareText = currentLang === 'ar' 
+        const shareText = language === 'ar' 
             ? 'تسوق معنا في Shop Allosh واحصل على أفضل العروض! 🛒'
             : 'Shop with us at Shop Allosh and get the best offers! 🛒';
         const shareUrl = window.location.origin;
@@ -58,23 +53,13 @@ const MorePage = () => {
             }).catch(err => console.log('Error sharing:', err));
         } else {
             navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
-            alert(currentLang === 'ar' ? 'تم نسخ رابط الدعوة!' : 'Invitation link copied!');
+            alert(language === 'ar' ? 'تم نسخ رابط الدعوة!' : 'Invitation link copied!');
         }
     };
 
     const handleLanguageSwitch = () => {
-        const newLang = currentLang === 'ar' ? 'en' : 'ar';
-        setCurrentLang(newLang);
-        localStorage.setItem('language', newLang);
-        document.documentElement.dir = newLang === 'ar' ? 'rtl' : 'ltr';
-        document.documentElement.lang = newLang;
-        
-        // Show message before reload
-        alert(newLang === 'ar' 
-            ? 'سيتم إعادة تحميل الصفحة لتطبيق اللغة الجديدة...'
-            : 'The page will reload to apply the new language...');
-        
-        setTimeout(() => window.location.reload(), 500);
+        const newLang = language === 'ar' ? 'en' : 'ar';
+        setLanguage(newLang);
     };
 
     const handleWhatsAppSupport = () => {
@@ -86,16 +71,14 @@ const MorePage = () => {
         if (branch.google_maps_link) {
             window.open(branch.google_maps_link, '_blank');
         } else {
-            alert(currentLang === 'ar' 
+            alert(language === 'ar' 
                 ? 'رابط الخريطة غير متوفر لهذا الفرع'
                 : 'Map link not available for this branch');
         }
     };
 
     const handleLogout = () => {
-        if (confirm(currentLang === 'ar' 
-            ? 'هل أنت متأكد من تسجيل الخروج?'
-            : 'Are you sure you want to logout?')) {
+        if (confirm(t('confirm_logout'))) {
             logout();
             navigate('/');
         }
@@ -104,27 +87,27 @@ const MorePage = () => {
     const menuItems = [
         { 
             icon: User, 
-            label: currentLang === 'ar' ? 'حسابي' : 'My Profile', 
+            label: t('my_profile'), 
             action: () => navigate('/profile'),
             show: true
         },
         { 
             icon: UserPlus, 
-            label: currentLang === 'ar' ? 'دعوة صديق' : 'Invite a Friend', 
+            label: t('invite_friend'), 
             action: handleInviteFriend, 
             highlighted: true,
             show: true
         },
         { 
             icon: Globe, 
-            label: currentLang === 'ar' ? 'اللغة (English)' : 'Language (عربي)', 
+            label: language === 'ar' ? 'اللغة (English)' : 'Language (عربي)', 
             action: handleLanguageSwitch, 
             highlighted: true,
             show: true
         },
         { 
             icon: MessageCircle, 
-            label: currentLang === 'ar' ? 'المساعدة والدعم' : 'Help & Support', 
+            label: t('customer_support'), 
             action: () => navigate('/chat'),
             show: true
         },
@@ -141,15 +124,15 @@ const MorePage = () => {
                 <div className="relative z-10">
                     <h1 className="text-3xl font-bold mb-2">
                         {user ? (
-                            currentLang === 'ar' 
+                            language === 'ar' 
                                 ? `مرحباً، ${user.name || 'ضيف'}!` 
                                 : `Hello, ${user.name || 'Guest'}!`
                         ) : (
-                            currentLang === 'ar' ? 'مرحباً، ضيف!' : 'Hello, Guest!'
+                            language === 'ar' ? 'مرحباً، ضيف!' : 'Hello, Guest!'
                         )}
                     </h1>
                     <p className="text-white/90">
-                        {currentLang === 'ar' 
+                        {language === 'ar' 
                             ? user ? 'إليك كل ما تحتاجه في مكان واحد' : 'سجل دخولك لعرض طلباتك ونقاطك' 
                             : user ? 'Everything you need in one place' : 'Log in to view your orders and points'}
                     </p>
@@ -186,7 +169,7 @@ const MorePage = () => {
                                     <LogOut size={20} />
                                 </div>
                                 <span className="font-medium">
-                                    {currentLang === 'ar' ? 'تسجيل الخروج' : 'Log Out'}
+                                    {t('logout')}
                                 </span>
                             </div>
                         </button>
@@ -198,14 +181,14 @@ const MorePage = () => {
                     <div className="flex items-center gap-2 mb-4">
                         <MapPinned className="text-orange-500" size={24} />
                         <h2 className="text-lg font-bold text-gray-900">
-                            {currentLang === 'ar' ? 'جميع فروعنا' : 'All Our Branches'}
+                            {t('branches')}
                         </h2>
                     </div>
                     
                     {loadingBranches ? (
                         <div className="text-center py-8 text-gray-500">
                             <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-orange-500 mx-auto mb-2"></div>
-                            {currentLang === 'ar' ? 'جاري التحميل...' : 'Loading...'}
+                            {t('loading')}
                         </div>
                     ) : branches.length > 0 ? (
                         <div className="space-y-3">
@@ -218,7 +201,7 @@ const MorePage = () => {
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="flex-1">
                                             <h3 className="font-bold text-gray-900 mb-1 text-lg">
-                                                {currentLang === 'ar' ? branch.name_ar || branch.name : branch.name}
+                                                {language === 'ar' ? branch.name_ar || branch.name : branch.name}
                                             </h3>
                                             <p className="text-sm text-gray-600 mb-2 leading-relaxed">
                                                 📍 {branch.address}
@@ -242,7 +225,7 @@ const MorePage = () => {
                         <div className="text-center py-8">
                             <MapPinned size={48} className="text-gray-300 mx-auto mb-2" />
                             <p className="text-gray-500">
-                                {currentLang === 'ar' ? 'لا توجد فروع متاحة حالياً' : 'No branches available'}
+                                {language === 'ar' ? 'لا توجد فروع متاحة حالياً' : 'No branches available'}
                             </p>
                         </div>
                     )}
@@ -255,13 +238,13 @@ const MorePage = () => {
                 >
                     <MessageCircle size={24} />
                     <span className="text-lg">
-                        {currentLang === 'ar' ? 'تواصل معنا عبر واتساب' : 'Contact us via WhatsApp'}
+                        {t('whatsapp_support')}
                     </span>
                 </button>
 
                 {/* Info Text */}
                 <p className="text-center text-gray-500 text-sm px-4">
-                    {currentLang === 'ar' 
+                    {language === 'ar' 
                         ? 'نحن هنا لخدمتك دائماً 🛒'
                         : 'We are always here to serve you 🛒'}
                 </p>

@@ -210,7 +210,11 @@ export const api = {
                 headers: getHeaders(),
                 body: JSON.stringify(data)
             });
-            return res.json();
+            const json = await res.json();
+            if (!res.ok) {
+                throw { response: { data: json } };
+            }
+            return json;
         },
         getAll: async (userId?: string) => {
             const url = userId ? `${API_URL}/orders?userId=${userId}` : `${API_URL}/orders`;
