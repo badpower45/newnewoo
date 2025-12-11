@@ -351,8 +351,11 @@ export const api = {
     branches: {
         getAll: async () => {
             const res = await fetch(`${API_URL}/branches`, { headers: getHeaders() });
+            if (!res.ok) {
+                throw new Error('Failed to fetch branches');
+            }
             const json = await res.json();
-            // API returns {message: 'success', data: [...]}
+            // API returns {message: 'success', data: [...]} or {success: true, data: [...]}
             return json.data || json;
         },
         getOne: async (id: number) => {
@@ -1037,7 +1040,12 @@ export const api = {
             const res = await fetch(`${API_URL}/categories`, {
                 headers: getHeaders()
             });
-            return res.json();
+            if (!res.ok) {
+                throw new Error('Failed to fetch categories');
+            }
+            const json = await res.json();
+            // API returns {success: true, data: [...]}
+            return json.data || json;
         },
 
         // Get single category

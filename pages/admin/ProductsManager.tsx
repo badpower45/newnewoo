@@ -22,23 +22,8 @@ const emptyProduct = {
     shelfLocation: ''
 };
 
-const categories = ['بقالة', 'ألبان', 'مشروبات', 'سناكس', 'زيوت', 'منظفات', 'عناية شخصية', 'مخبوزات', 'مجمدات', 'خضروات', 'فواكه', 'لحوم', 'أخرى'];
-
-const subcategories: { [key: string]: string[] } = {
-    'بقالة': ['أرز', 'مكرونة', 'سكر', 'دقيق', 'بقوليات', 'توابل', 'معلبات', 'أخرى'],
-    'ألبان': ['حليب', 'زبادي', 'جبن', 'زبدة', 'قشطة', 'أخرى'],
-    'مشروبات': ['مياه', 'عصائر', 'مشروبات غازية', 'شاي', 'قهوة', 'أخرى'],
-    'سناكس': ['شيبسي', 'بسكويت', 'شوكولاتة', 'مكسرات', 'أخرى'],
-    'زيوت': ['زيت ذرة', 'زيت عباد الشمس', 'زيت زيتون', 'سمن', 'أخرى'],
-    'منظفات': ['غسيل', 'أطباق', 'أرضيات', 'حمامات', 'أخرى'],
-    'عناية شخصية': ['شامبو', 'صابون', 'معجون أسنان', 'مزيل عرق', 'أخرى'],
-    'مخبوزات': ['خبز', 'كيك', 'كرواسون', 'أخرى'],
-    'مجمدات': ['خضار مجمد', 'لحوم مجمدة', 'آيس كريم', 'أخرى'],
-    'خضروات': ['طماطم', 'بطاطس', 'خيار', 'بصل', 'أخرى'],
-    'فواكه': ['تفاح', 'موز', 'برتقال', 'عنب', 'أخرى'],
-    'لحوم': ['دجاج', 'لحم بقري', 'لحم ضأن', 'أسماك', 'أخرى'],
-    'أخرى': ['أخرى']
-};
+// Will be loaded from API
+const defaultCategories = ['بقالة', 'ألبان', 'مشروبات', 'سناكس', 'زيوت', 'منظفات', 'عناية شخصية', 'مخبوزات', 'مجمدات', 'خضروات', 'فواكه', 'لحوم', 'أخرى'];
 
 const sampleProducts: Product[] = [
     { id: 'p1001', name: 'لبن كامل الدسم 1 لتر', category: 'ألبان', price: 65, rating: 4.7, reviews: 120, image: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?q=80&w=600&auto=format&fit=crop', weight: '1 لتر' },
@@ -53,9 +38,16 @@ const ProductsManager = () => {
     const [showModal, setShowModal] = useState(false);
     const [editing, setEditing] = useState<Product | null>(null);
     const [form, setForm] = useState(emptyProduct);
+    
+    // Dynamic data from API
+    const [branches, setBranches] = useState<any[]>([]);
+    const [categories, setCategories] = useState<any[]>([]);
+    const [subcategories, setSubcategories] = useState<{ [key: string]: any[] }>({});
 
     useEffect(() => {
         loadProducts();
+        loadBranches();
+        loadCategories();
     }, []);
 
     const loadProducts = async () => {
@@ -70,6 +62,55 @@ const ProductsManager = () => {
             setProducts(sampleProducts);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const loadBranches = async () => {
+        try {
+            const data = await api.branches.getAll();
+            console.log('📍 Branches loaded:', data);
+            if (Array.isArray(data)) {
+                setBranches(data);
+            }
+        } catch (error) {
+            console.error('❌ Failed to load branches:', error);
+            // Fallback to default branches
+            setBranches([
+                { id: 1, name: 'الفرع الرئيسي' },
+                { id: 2, name: 'فرع 2' },
+                { id: 3, name: 'فرع 3' }
+            ]);
+        }
+    };
+
+    const loadCategories = async () => {
+        try {
+            const data = await api.categories.getAll();
+            console.log('🗂️ Categories loaded:', data);
+            if (Array.isArray(data)) {
+                setCategories(data);
+                
+                // Build subcategories map
+                const subMap: { [key: string]: any[] } = {};
+                data.forEach((cat: any) => {
+                    if (cat.parent_id === null) {
+                        // Main category - find its children
+                        const children = data.filter((c: any) => c.parent_id === cat.id);
+                        subMap[cat.name] = children;
+                        if (cat.name_ar) {
+                            subMap[cat.name_ar] = children;
+                        }
+                    }
+                });
+                setSubcategories(subMap);
+            } else {
+                // Fallback to default
+                setCategories(defaultCategories.map((name, idx) => ({ id: idx + 1, name, name_ar: name })));
+            }
+        } catch (error) {
+            console.error('❌ Failed to load categories:', error);
+            // Fallback to default
+            setCategories(defaultCategories.map((name, idx) => ({ id: idx + 1, name, name_ar: name })));
         }
     };
 
@@ -148,11 +189,51 @@ const ProductsManager = () => {
         p.category.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const seedBranches = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://bkaa.vercel.app/api'}/branches/dev/seed`, { method: 'POST' });
+            const json = await res.json();
+            console.log('✅ Branches seeded:', json);
+            alert('تم إضافة الفروع بنجاح');
+            loadBranches();
+        } catch (e) {
+            console.error('❌ Branch seed failed:', e);
+            alert('فشل إضافة الفروع');
+        }
+    };
+
+    const seedCategories = async () => {
+        try {
+            const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://bkaa.vercel.app/api'}/categories/dev/seed`, { method: 'POST' });
+            const json = await res.json();
+            console.log('✅ Categories seeded:', json);
+            alert('تم إضافة التصنيفات بنجاح');
+            loadCategories();
+        } catch (e) {
+            console.error('❌ Category seed failed:', e);
+            alert('فشل إضافة التصنيفات');
+        }
+    };
+
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold text-gray-900">Products Management</h1>
-                <div className="flex space-x-3">
+                <div className="flex flex-wrap gap-2">
+                    <button
+                        onClick={seedBranches}
+                        className="flex items-center space-x-2 px-3 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-colors"
+                    >
+                        <Plus size={16} />
+                        <span>إضافة فروع</span>
+                    </button>
+                    <button
+                        onClick={seedCategories}
+                        className="flex items-center space-x-2 px-3 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition-colors"
+                    >
+                        <Plus size={16} />
+                        <span>إضافة تصنيفات</span>
+                    </button>
                     <button
                         onClick={async ()=>{
                             try {
@@ -164,16 +245,16 @@ const ProductsManager = () => {
                                 console.error('Seed failed', e);
                             }
                         }}
-                        className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        className="flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
                     >
-                        <Upload size={18} />
-                        <span>Seed Sample</span>
+                        <Upload size={16} />
+                        <span>Seed Products</span>
                     </button>
                     <button
                         onClick={() => navigate('/admin/upload')}
-                        className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                        className="flex items-center space-x-2 px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
                     >
-                        <Upload size={18} />
+                        <Upload size={16} />
                         <span>Import Excel</span>
                     </button>
                     <button
@@ -343,8 +424,11 @@ const ProductsManager = () => {
                                         className="w-full px-3 py-2 border rounded-md"
                                         required
                                     >
-                                        {categories.map(cat => (
-                                            <option key={cat} value={cat}>{cat}</option>
+                                        <option value="">اختر تصنيف</option>
+                                        {categories.filter(cat => !cat.parent_id).map(cat => (
+                                            <option key={cat.id || cat.name} value={cat.name_ar || cat.name}>
+                                                {cat.name_ar || cat.name}
+                                            </option>
                                         ))}
                                     </select>
                                 </div>
@@ -357,7 +441,9 @@ const ProductsManager = () => {
                                     >
                                         <option value="">اختر تصنيف فرعي</option>
                                         {(subcategories[form.category] || []).map(sub => (
-                                            <option key={sub} value={sub}>{sub}</option>
+                                            <option key={sub.id} value={sub.name_ar || sub.name}>
+                                                {sub.name_ar || sub.name}
+                                            </option>
                                         ))}
                                     </select>
                                 </div>
@@ -375,15 +461,19 @@ const ProductsManager = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">الفرع</label>
+                                    <label className="block text-sm font-medium mb-1">الفرع *</label>
                                     <select
                                         value={form.branchId}
                                         onChange={e => setForm({ ...form, branchId: parseInt(e.target.value) })}
                                         className="w-full px-3 py-2 border rounded-md"
+                                        required
                                     >
-                                        <option value={1}>الفرع الرئيسي</option>
-                                        <option value={2}>فرع 2</option>
-                                        <option value={3}>فرع 3</option>
+                                        <option value="">اختر فرع</option>
+                                        {branches.map(branch => (
+                                            <option key={branch.id} value={branch.id}>
+                                                {branch.name || branch.name_ar || `فرع ${branch.id}`}
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
                             </div>
