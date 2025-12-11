@@ -1,0 +1,1114 @@
+TimeUTC,timestampInMs,requestPath,requestMethod,requestQueryString,responseStatusCode,requestId,requestUserAgent,level,environment,branch,vercelCache,type,function,host,deploymentDomain,deploymentId,durationMs,region,maxMemoryUsed,memorySize,message,projectId,traceId,sessionId,invocationId,instanceId,concurrency
+2025-12-11 18:44:56,1765478696603,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/favicon.png,GET,,,vf6z2-1765478696175-1a1554a6fe11,vercel-favicon/1.0,error,production,main,,serverless,,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:44:54,1765478694063,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/favicon.png,GET,,,5n9pb-1765478693576-678200425765,vercel-favicon/1.0,error,production,main,,serverless,,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:44:53,1765478693576,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/favicon.png,GET,,,5n9pb-1765478693576-678200425765,vercel-favicon/1.0,,production,main,,serverless,/index.js,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,390,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BNYRPEXVV50AHC2AG91XF,,-1
+2025-12-11 18:44:52,1765478692444,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/favicon.png,GET,,,zlggh-1765478692003-9572c4b94b8e,vercel-favicon/1.0,error,production,main,,serverless,,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:44:52,1765478692003,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/favicon.png,GET,,,zlggh-1765478692003-9572c4b94b8e,vercel-favicon/1.0,,production,main,,serverless,/index.js,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,370,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BNX6N85QCYCHSTF2JAA2Z,,-1
+2025-12-11 18:44:51,1765478691964,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/favicon.ico,GET,,500,nwb8d-1765478691531-c367e01c5159,vercel-favicon/1.0,error,production,main,MISS,serverless,/favicon.ico,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:44:51,1765478691531,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/favicon.ico,GET,,500,nwb8d-1765478691531-c367e01c5159,vercel-favicon/1.0,,production,main,MISS,serverless,/index.js,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,374,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BNWQMEHSYJRRRJMYBAX6K,,-1
+2025-12-11 18:44:49,1765478689484,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/favicon.ico,GET,,500,8sd9h-1765478689048-3bc63a4ef666,vercel-favicon/1.0,error,production,main,MISS,serverless,/favicon.ico,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:44:49,1765478689048,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/favicon.ico,GET,,500,8sd9h-1765478689048-3bc63a4ef666,vercel-favicon/1.0,,production,main,MISS,serverless,/index.js,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,373,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BNTA5HT2CHRX1TTJ8MZ4P,,-1
+2025-12-11 18:44:48,1765478688339,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/favicon.png,GET,,500,jvg2s-1765478687912-278d128a1502,vercel-favicon/1.0,error,production,main,MISS,serverless,/favicon.png,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:44:47,1765478687912,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/favicon.png,GET,,500,jvg2s-1765478687912-278d128a1502,vercel-favicon/1.0,,production,main,MISS,serverless,/index.js,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,371,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BNS6JTYC4RYT8HG6RZGWN,,-1
+2025-12-11 18:44:47,1765478687998,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/favicon.ico,GET,,,tth2c-1765478687567-87648abf4501,vercel-favicon/1.0,error,production,main,,serverless,,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:44:47,1765478687567,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/favicon.ico,GET,,,tth2c-1765478687567-87648abf4501,vercel-favicon/1.0,,production,main,,serverless,/index.js,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,374,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BNRVP8VP8GS1QF31Z3G79,,-1
+2025-12-11 18:44:47,1765478687449,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/,GET,,500,lvpb7-1765478687013-dfe9a169ec85,vercel-favicon/1.0,error,production,main,MISS,serverless,/,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:44:47,1765478687013,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/,GET,,500,lvpb7-1765478687013-dfe9a169ec85,vercel-favicon/1.0,,production,main,MISS,serverless,/index.js,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,375,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BNRAF7WDG0K00EWEWB5XT,,-1
+2025-12-11 18:44:45,1765478685875,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/,GET,,500,m8dnh-1765478685428-22a617a887ca,vercel-favicon/1.0,error,production,main,MISS,serverless,/,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:44:45,1765478685428,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/,GET,,500,m8dnh-1765478685428-22a617a887ca,vercel-favicon/1.0,,production,main,MISS,serverless,/index.js,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,382,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BNPRXPXW5WDP3JRZNE4XS,,-1
+2025-12-11 18:44:45,1765478685837,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/favicon.png,GET,,500,nzb5v-1765478685392-421abbc3cfc8,vercel-favicon/1.0,error,production,main,MISS,serverless,/favicon.png,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:44:45,1765478685392,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/favicon.png,GET,,500,nzb5v-1765478685392-421abbc3cfc8,vercel-favicon/1.0,,production,main,MISS,serverless,/index.js,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,381,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BNPQSQS5H65XADVE3BNTJ,,-1
+2025-12-11 18:44:44,1765478684261,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/favicon.png,GET,,500,42p66-1765478683831-c305106e39f6,vercel-favicon/1.0,error,production,main,MISS,serverless,/favicon.png,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:44:43,1765478683831,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/favicon.png,GET,,500,42p66-1765478683831-c305106e39f6,vercel-favicon/1.0,,production,main,MISS,serverless,/index.js,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,375,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BNN6Z03SVVSNRTX19VWJD,,-1
+2025-12-11 18:44:43,1765478683791,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/favicon.ico,GET,,500,nx86s-1765478683306-087eba1d4d5e,vercel-favicon/1.0,error,production,main,MISS,serverless,/favicon.ico,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:44:43,1765478683306,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/favicon.ico,GET,,500,nx86s-1765478683306-087eba1d4d5e,vercel-favicon/1.0,,production,main,MISS,serverless,/index.js,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,416,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BNMPZV7VFEVX5QB391CDM,,-1
+2025-12-11 18:44:41,1765478681201,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/favicon.ico,GET,,500,9gkjl-1765478680772-62339718584f,vercel-favicon/1.0,error,production,main,MISS,serverless,/favicon.ico,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:44:40,1765478680772,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/favicon.ico,GET,,500,9gkjl-1765478680772-62339718584f,vercel-favicon/1.0,,production,main,MISS,serverless,/index.js,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,367,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BNJ7CYXMGK9V6EGEGHGYR,,-1
+2025-12-11 18:44:39,1765478679660,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/favicon.ico,GET,,500,4t55m-1765478679232-d4c509dc8a67,vercel-favicon/1.0,error,production,main,MISS,serverless,/favicon.ico,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:44:39,1765478679232,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/favicon.ico,GET,,500,4t55m-1765478679232-d4c509dc8a67,vercel-favicon/1.0,,production,main,MISS,serverless,/index.js,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,369,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BNGQA9M4QS4J0F73THQPM,,-1
+2025-12-11 18:44:39,1765478679106,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/,GET,,500,c2lxn-1765478678676-1d63834ba233,vercel-favicon/1.0,error,production,main,MISS,serverless,/,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:44:38,1765478678676,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/,GET,,500,c2lxn-1765478678676-1d63834ba233,vercel-favicon/1.0,,production,main,MISS,serverless,/index.js,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,366,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BNG5XENTSGH762MZY5CRW,,-1
+2025-12-11 18:44:37,1765478677541,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/,GET,,500,qkh4p-1765478677099-388eec307275,vercel-favicon/1.0,error,production,main,MISS,serverless,/,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:44:37,1765478677099,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/,GET,,500,qkh4p-1765478677099-388eec307275,vercel-favicon/1.0,,production,main,MISS,serverless,/index.js,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,368,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BNEMXYS3QEWY4MV1K3ZTP,,-1
+2025-12-11 18:43:41,1765478621965,bkaa.vercel.app/api/favorites/1,OPTIONS,,500,qntlr-1765478621000-3ecb1a3588c8,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",error,production,main,MISS,serverless,/api/favorites/1,bkaa.vercel.app,bkaa.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:43:41,1765478621000,bkaa.vercel.app/api/favorites/1,OPTIONS,,500,qntlr-1765478621000-3ecb1a3588c8,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,370,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BKRC4N15N4HVT1H7R31SQ,,-1
+2025-12-11 18:43:41,1765478621956,bkaa.vercel.app/api/products,OPTIONS,branchId=1,500,n46qs-1765478620999-abbdeddcdbf6,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",error,production,main,MISS,serverless,/api/products,bkaa.vercel.app,bkaa.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:43:40,1765478620999,bkaa.vercel.app/api/products,OPTIONS,branchId=1,500,n46qs-1765478620999-abbdeddcdbf6,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,369,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BKRC4N15N4HVT1M4VZVSF,,-1
+2025-12-11 18:43:41,1765478621979,bkaa.vercel.app/api/cart,OPTIONS,userId=1&branchId=1,500,jwjf9-1765478620999-4d7e32ce2208,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",error,production,main,MISS,serverless,/api/cart,bkaa.vercel.app,bkaa.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:43:40,1765478620999,bkaa.vercel.app/api/cart,OPTIONS,userId=1&branchId=1,500,jwjf9-1765478620999-4d7e32ce2208,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,392,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BKRC5PTW19FZTDSSMNKB2,,-1
+2025-12-11 18:43:41,1765478621961,bkaa.vercel.app/api/categories,OPTIONS,,500,cn8kv-1765478620998-e61c633674da,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",error,production,main,MISS,serverless,/api/categories,bkaa.vercel.app,bkaa.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:43:40,1765478620998,bkaa.vercel.app/api/categories,OPTIONS,,500,cn8kv-1765478620998-e61c633674da,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,373,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BKRC4N15N4HVT1PGMQ33P,,-1
+2025-12-11 18:43:41,1765478621976,bkaa.vercel.app/api/stories,OPTIONS,,500,p7hng-1765478620997-1ff589516d7e,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",error,production,main,MISS,serverless,/api/stories,bkaa.vercel.app,bkaa.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:43:40,1765478620997,bkaa.vercel.app/api/stories,OPTIONS,,500,p7hng-1765478620997-1ff589516d7e,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,376,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BKRC4N15N4HVT1MVRJTFC,,-1
+2025-12-11 18:43:25,1765478605334,bkaa.vercel.app/api/products,OPTIONS,branchId=1,500,qkh4p-1765478604868-a04aa80acb2e,vercel-screenshot/1.0,error,production,main,MISS,serverless,/api/products,bkaa.vercel.app,bkaa.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:43:24,1765478604868,bkaa.vercel.app/api/products,OPTIONS,branchId=1,500,qkh4p-1765478604868-a04aa80acb2e,vercel-screenshot/1.0,,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,410,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BK83E0VKM0PZXG4H6BBX6,,-1
+2025-12-11 18:43:26,1765478606007,bkaa.vercel.app/api/stories,OPTIONS,,500,pxhrd-1765478604868-af1e88dbe2a0,vercel-screenshot/1.0,error,production,main,MISS,serverless,/api/stories,bkaa.vercel.app,bkaa.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:43:24,1765478604868,bkaa.vercel.app/api/stories,OPTIONS,,500,pxhrd-1765478604868-af1e88dbe2a0,vercel-screenshot/1.0,,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,381,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BK84E60K2YSZSJ6DBJW0D,,-1
+2025-12-11 18:43:25,1765478605982,bkaa.vercel.app/api/categories,OPTIONS,,500,mtppm-1765478604868-65eb38b625fd,vercel-screenshot/1.0,error,production,main,MISS,serverless,/api/categories,bkaa.vercel.app,bkaa.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:43:24,1765478604868,bkaa.vercel.app/api/categories,OPTIONS,,500,mtppm-1765478604868-65eb38b625fd,vercel-screenshot/1.0,,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,379,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BK85AS96K9EH50CY3JZ30,,-1
+2025-12-11 18:43:26,1765478606157,bkaa.vercel.app/api/stories,OPTIONS,,500,xvp82-1765478604800-3d1fdd2149f0,vercel-screenshot/1.0,error,production,main,MISS,serverless,/api/stories,bkaa.vercel.app,bkaa.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:43:24,1765478604800,bkaa.vercel.app/api/stories,OPTIONS,,500,xvp82-1765478604800-3d1fdd2149f0,vercel-screenshot/1.0,,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,459,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BK859Z7X6V0827KMM7SDR,,-1
+2025-12-11 18:43:25,1765478605322,bkaa.vercel.app/api/products,OPTIONS,branchId=1,500,x4jn9-1765478604800-4c165ba984ac,vercel-screenshot/1.0,error,production,main,MISS,serverless,/api/products,bkaa.vercel.app,bkaa.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:43:24,1765478604800,bkaa.vercel.app/api/products,OPTIONS,branchId=1,500,x4jn9-1765478604800-4c165ba984ac,vercel-screenshot/1.0,,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,367,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BK84DP2CTVB1MJEJFRY78,,-1
+2025-12-11 18:43:25,1765478605406,bkaa.vercel.app/api/categories,OPTIONS,,500,s2dh6-1765478604800-386a6e47ee6f,vercel-screenshot/1.0,error,production,main,MISS,serverless,/api/categories,bkaa.vercel.app,bkaa.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:43:24,1765478604800,bkaa.vercel.app/api/categories,OPTIONS,,500,s2dh6-1765478604800-386a6e47ee6f,vercel-screenshot/1.0,,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,450,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BK84E60K2YSZSJAACBT57,,-1
+2025-12-11 18:42:44,1765478564635,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/favicon.ico,GET,,500,mghzj-1765478564170-ed2aecc16e45,vercel-screenshot/1.0,error,production,main,MISS,serverless,/favicon.ico,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:42:44,1765478564170,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/favicon.ico,GET,,500,mghzj-1765478564170-ed2aecc16e45,vercel-screenshot/1.0,,production,main,MISS,serverless,/index.js,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,379,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BJ0C4464YX4NSTFQ2WTB7,,-1
+2025-12-11 18:42:44,1765478564352,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/favicon.ico,GET,,,fh8hw-1765478563893-43eeba5c00ca,vercel-screenshot/1.0,error,production,main,,serverless,,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:42:43,1765478563893,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/favicon.ico,GET,,,fh8hw-1765478563893-43eeba5c00ca,vercel-screenshot/1.0,,production,main,,serverless,/index.js,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,393,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BJ035GMM8WTSYT1H34GR0,,-1
+2025-12-11 18:42:43,1765478563825,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/,GET,,500,s2dh6-1765478563387-26e271ba0378,vercel-screenshot/1.0,error,production,main,MISS,serverless,/,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:42:43,1765478563387,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/,GET,,500,s2dh6-1765478563387-26e271ba0378,vercel-screenshot/1.0,,production,main,MISS,serverless,/index.js,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,383,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BHZK31Q4CYRHB1EEY2SFE,,-1
+2025-12-11 18:42:43,1765478563788,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/,GET,,500,4zgcm-1765478563335-786779ff5e9e,vercel-screenshot/1.0,error,production,main,MISS,serverless,/,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:42:43,1765478563335,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/,GET,,500,4zgcm-1765478563335-786779ff5e9e,vercel-screenshot/1.0,,production,main,MISS,serverless,/index.js,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,398,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BHZHGHJGQTWTW92CB4BH6,,-1
+2025-12-11 18:42:43,1765478563254,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/,GET,,500,vz7dd-1765478561907-2f4c4e72f210,vercel-screenshot/1.0,error,production,main,MISS,serverless,/,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:42:41,1765478561907,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/,GET,,500,vz7dd-1765478561907-2f4c4e72f210,vercel-screenshot/1.0,,production,main,MISS,serverless,/index.js,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,429,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BHYBM10D818XD188WVJP2,,-1
+2025-12-11 18:42:43,1765478563229,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/,GET,,500,r6kf6-1765478561875-b113a7d08a92,vercel-screenshot/1.0,error,production,main,MISS,serverless,/,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:42:41,1765478561875,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app/,GET,,500,r6kf6-1765478561875-b113a7d08a92,vercel-screenshot/1.0,,production,main,MISS,serverless,/index.js,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,bkaa-pbj80rz60-bode-ahmeds-projects.vercel.app,dpl_EHhGFKvvXmnEJgZSJP1ATfspUZ6C,428,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BHYBM10D818XD17YW58V7,,-1
+2025-12-11 18:42:30,1765478550328,bkaa.vercel.app/api/categories,OPTIONS,,500,pxhrd-1765478549848-b179c70fd6e1,vercel-screenshot/1.0,error,production,main,MISS,serverless,/api/categories,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:42:29,1765478549848,bkaa.vercel.app/api/categories,OPTIONS,,500,pxhrd-1765478549848-b179c70fd6e1,vercel-screenshot/1.0,,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,339,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BHJC7YTMVBJRJ3AXCJG9S,,-1
+2025-12-11 18:42:30,1765478550341,bkaa.vercel.app/api/products,OPTIONS,branchId=1,500,d58sm-1765478549848-22c47bdf8342,vercel-screenshot/1.0,error,production,main,MISS,serverless,/api/products,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:42:29,1765478549848,bkaa.vercel.app/api/products,OPTIONS,branchId=1,500,d58sm-1765478549848-22c47bdf8342,vercel-screenshot/1.0,,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,437,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BHJC1KBN80ERFXXG9GYGB,,-1
+2025-12-11 18:42:30,1765478550263,bkaa.vercel.app/api/stories,OPTIONS,,500,9wqts-1765478549848-4348999b3025,vercel-screenshot/1.0,error,production,main,MISS,serverless,/api/stories,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:42:29,1765478549848,bkaa.vercel.app/api/stories,OPTIONS,,500,9wqts-1765478549848-4348999b3025,vercel-screenshot/1.0,,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,353,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BHJC470R10Q4R1RFSDV48,,-1
+2025-12-11 18:42:29,1765478549983,bkaa.vercel.app/api/stories,OPTIONS,,500,wxtbc-1765478549549-4a0cba0622c6,vercel-screenshot/1.0,error,production,main,MISS,serverless,/api/stories,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:42:29,1765478549549,bkaa.vercel.app/api/stories,OPTIONS,,500,wxtbc-1765478549549-4a0cba0622c6,vercel-screenshot/1.0,,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,374,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BHJ2QY236EGQD703MX6TS,,-1
+2025-12-11 18:42:30,1765478550086,bkaa.vercel.app/api/products,OPTIONS,branchId=1,500,jlms9-1765478549545-3c7950396ea2,vercel-screenshot/1.0,error,production,main,MISS,serverless,/api/products,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:42:29,1765478549545,bkaa.vercel.app/api/products,OPTIONS,branchId=1,500,jlms9-1765478549545-3c7950396ea2,vercel-screenshot/1.0,,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,477,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BHJ2PYRXHAHT036A0Z1HW,,-1
+2025-12-11 18:42:29,1765478549990,bkaa.vercel.app/api/categories,OPTIONS,,500,4hlmq-1765478549545-933a183aeac3,vercel-screenshot/1.0,error,production,main,MISS,serverless,/api/categories,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:42:29,1765478549545,bkaa.vercel.app/api/categories,OPTIONS,,500,4hlmq-1765478549545-933a183aeac3,vercel-screenshot/1.0,,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,381,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BHJ2RXP8A5Y6MY8W43F37,,-1
+2025-12-11 18:42:17,1765478537769,bkaa.vercel.app/api/favorites/1,OPTIONS,,500,5hdth-1765478537235-60b1bee990ad,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",error,production,main,MISS,serverless,/api/favorites/1,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:42:17,1765478537235,bkaa.vercel.app/api/favorites/1,OPTIONS,,500,5hdth-1765478537235-60b1bee990ad,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,400,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BH640RTX3Q1HWSNXDR20K,,-1
+2025-12-11 18:42:17,1765478537735,bkaa.vercel.app/api/products,OPTIONS,branchId=1,500,9vf2l-1765478537234-77e6899b5b1d,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",error,production,main,MISS,serverless,/api/products,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:42:17,1765478537234,bkaa.vercel.app/api/products,OPTIONS,branchId=1,500,9vf2l-1765478537234-77e6899b5b1d,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,370,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BH63XAG8286D8XBXJK3RB,,-1
+2025-12-11 18:42:17,1765478537787,bkaa.vercel.app/api/categories,OPTIONS,,500,5hdth-1765478537234-1490897b9bb4,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",error,production,main,MISS,serverless,/api/categories,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:42:17,1765478537234,bkaa.vercel.app/api/categories,OPTIONS,,500,5hdth-1765478537234-1490897b9bb4,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,423,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BH63WZX02WWQ3BXRYHWGG,,-1
+2025-12-11 18:42:17,1765478537836,bkaa.vercel.app/api/cart,OPTIONS,userId=1&branchId=1,500,hz2dq-1765478537233-a528199fae80,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",error,production,main,MISS,serverless,/api/cart,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:42:17,1765478537233,bkaa.vercel.app/api/cart,OPTIONS,userId=1&branchId=1,500,hz2dq-1765478537233-a528199fae80,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,470,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BH63XAG8286D8XDVDR2JY,,-1
+2025-12-11 18:42:17,1765478537774,bkaa.vercel.app/api/stories,OPTIONS,,500,cn8kv-1765478537233-236e508136c8,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",error,production,main,MISS,serverless,/api/stories,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:42:17,1765478537233,bkaa.vercel.app/api/stories,OPTIONS,,500,cn8kv-1765478537233-236e508136c8,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,410,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BH63WZX02WWQ3C00J6ZZE,,-1
+2025-12-11 18:38:27,1765478307762,bkaa.vercel.app/api/categories,OPTIONS,,500,842fj-1765478307222-72941c8e1fe3,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",error,production,main,MISS,serverless,/api/categories,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:38:27,1765478307222,bkaa.vercel.app/api/categories,OPTIONS,,500,842fj-1765478307222-72941c8e1fe3,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,387,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BA5GSMT8JMTQQJ8ZFWA27,,-1
+2025-12-11 18:38:28,1765478308547,bkaa.vercel.app/api/categories,OPTIONS,,500,thkzd-1765478307221-78015c046594,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",error,production,main,MISS,serverless,/api/categories,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:38:27,1765478307221,bkaa.vercel.app/api/categories,OPTIONS,,500,thkzd-1765478307221-78015c046594,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,473,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BA5GQADF67DT4QYWAKQ39,,-1
+2025-12-11 18:38:27,1765478307754,bkaa.vercel.app/api/products,OPTIONS,branchId=1,500,spmjv-1765478307221-54b7f350e9b3,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",error,production,main,MISS,serverless,/api/products,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:38:27,1765478307221,bkaa.vercel.app/api/products,OPTIONS,branchId=1,500,spmjv-1765478307221-54b7f350e9b3,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,384,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BA5GPNX772F4QJC0AZVN4,,-1
+2025-12-11 18:38:28,1765478308437,bkaa.vercel.app/api/products,OPTIONS,branchId=2,500,s6sgp-1765478307221-c4248666c7ca,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",error,production,main,MISS,serverless,/api/products,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:38:27,1765478307221,bkaa.vercel.app/api/products,OPTIONS,branchId=2,500,s6sgp-1765478307221-c4248666c7ca,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,343,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BA5J7P2MEVQM6DAFJTVQW,,-1
+2025-12-11 18:38:28,1765478308381,bkaa.vercel.app/api/stories,OPTIONS,,500,k86r8-1765478307221-216d03a58384,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",error,production,main,MISS,serverless,/api/stories,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:38:27,1765478307221,bkaa.vercel.app/api/stories,OPTIONS,,500,k86r8-1765478307221-216d03a58384,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,358,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7BA5GT5S8NY0XT7CK4GZW1,,-1
+2025-12-11 18:30:20,1765477820303,bkaa.vercel.app/api/categories,OPTIONS,,500,s7xnr-1765477819784-92bb23b0096d,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",error,production,main,MISS,serverless,/api/categories,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:30:19,1765477819784,bkaa.vercel.app/api/categories,OPTIONS,,500,s7xnr-1765477819784-92bb23b0096d,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,396,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AV9FE1HNH5YNHKFCS99C5,,-1
+2025-12-11 18:30:20,1765477820327,bkaa.vercel.app/api/products,OPTIONS,branchId=2,500,jwjf9-1765477819784-c4693a25d6cb,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",error,production,main,MISS,serverless,/api/products,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:30:19,1765477819784,bkaa.vercel.app/api/products,OPTIONS,branchId=2,500,jwjf9-1765477819784-c4693a25d6cb,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,422,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AV9FKMB1GFD53RMY6RKVW,,-1
+2025-12-11 18:30:20,1765477820315,bkaa.vercel.app/api/stories,OPTIONS,,500,flzkk-1765477819779-c841edec63cc,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",error,production,main,MISS,serverless,/api/stories,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:30:19,1765477819779,bkaa.vercel.app/api/stories,OPTIONS,,500,flzkk-1765477819779-c841edec63cc,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,413,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AV9FF701QYQ794B3G0QYQ,,-1
+2025-12-11 18:30:14,1765477814665,bkaa.vercel.app/api/branches,OPTIONS,,500,t7t8p-1765477814139-999eaad6ecfb,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",error,production,main,MISS,serverless,/api/branches,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:30:14,1765477814139,bkaa.vercel.app/api/branches,OPTIONS,,500,t7t8p-1765477814139-999eaad6ecfb,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,382,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AV3ZQDHDH2CGF1A8FQMMW,,-1
+2025-12-11 18:29:08,1765477748454,bkaa.vercel.app/api/stories,OPTIONS,,500,jwjf9-1765477747874-7f92e973c974,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",error,production,main,MISS,serverless,/api/stories,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:29:07,1765477747874,bkaa.vercel.app/api/stories,OPTIONS,,500,jwjf9-1765477747874-7f92e973c974,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,448,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AS38MHSRW6E31MBWBFV27,,-1
+2025-12-11 18:29:08,1765477748382,bkaa.vercel.app/api/products,OPTIONS,branchId=1,500,2t6sz-1765477747874-d243564e1dd1,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",error,production,main,MISS,serverless,/api/products,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:29:07,1765477747874,bkaa.vercel.app/api/products,OPTIONS,branchId=1,500,2t6sz-1765477747874-d243564e1dd1,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,386,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AS38C6F3R4BNSFH6K047N,,-1
+2025-12-11 18:29:08,1765477748394,bkaa.vercel.app/api/favorites/1,OPTIONS,,500,zl8jp-1765477747873-bed43bc482ec,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",error,production,main,MISS,serverless,/api/favorites/1,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:29:07,1765477747873,bkaa.vercel.app/api/favorites/1,OPTIONS,,500,zl8jp-1765477747873-bed43bc482ec,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,396,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AS38FERS1XV1CWJG3QA2T,,-1
+2025-12-11 18:29:08,1765477748379,bkaa.vercel.app/api/categories,OPTIONS,,500,ttkgl-1765477747873-4a61d868f59e,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",error,production,main,MISS,serverless,/api/categories,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:29:07,1765477747873,bkaa.vercel.app/api/categories,OPTIONS,,500,ttkgl-1765477747873-4a61d868f59e,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,375,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AS38FERS1XV1CWMCP7G3T,,-1
+2025-12-11 18:29:08,1765477748398,bkaa.vercel.app/api/cart,OPTIONS,userId=1&branchId=1,500,jwjf9-1765477747873-805c3fc5db44,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",error,production,main,MISS,serverless,/api/cart,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:29:07,1765477747873,bkaa.vercel.app/api/cart,OPTIONS,userId=1&branchId=1,500,jwjf9-1765477747873-805c3fc5db44,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,401,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AS38A3A1E338Y8D21Y4DR,,-1
+2025-12-11 18:27:36,1765477656958,bkaa.vercel.app/api/products,OPTIONS,,500,89t7x-1765477656430-520b6ba622d8,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",error,production,main,MISS,serverless,/api/products,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:27:36,1765477656430,bkaa.vercel.app/api/products,OPTIONS,,500,89t7x-1765477656430-520b6ba622d8,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,397,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AP9YZTQXAKA6SKP7803ZZ,,-1
+2025-12-11 18:26:15,1765477575545,bkaa.vercel.app/api/branches/dev/seed,POST,,500,jlz6r-1765477575030-dcad44c24221,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",error,production,main,MISS,serverless,/api/branches/dev/seed,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:26:15,1765477575030,bkaa.vercel.app/api/branches/dev/seed,POST,,500,jlz6r-1765477575030-dcad44c24221,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,389,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AKTF19SBA5BK5E6QRRKBJ,,-1
+2025-12-11 18:26:13,1765477573206,bkaa.vercel.app/api/categories/dev/seed,POST,,500,br4l7-1765477572467-d359b434136a,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",error,production,main,MISS,serverless,/api/categories/dev/seed,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:26:12,1765477572467,bkaa.vercel.app/api/categories/dev/seed,POST,,500,br4l7-1765477572467-d359b434136a,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,385,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AKR630ZXVVQ8PAB9RGBJB,,-1
+2025-12-11 18:26:01,1765477561729,bkaa.vercel.app/api/cart,OPTIONS,userId=1&branchId=1,500,wdr4m-1765477561226-eeaa8d0738e1,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",error,production,main,MISS,serverless,/api/cart,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:26:01,1765477561226,bkaa.vercel.app/api/cart,OPTIONS,userId=1&branchId=1,500,wdr4m-1765477561226-eeaa8d0738e1,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,380,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AKCZRJ89H8PNRP050SHK4,,-1
+2025-12-11 18:26:02,1765477562410,bkaa.vercel.app/api/products,OPTIONS,branchId=1,500,gjxcn-1765477561226-e6102778950c,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",error,production,main,MISS,serverless,/api/products,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:26:01,1765477561226,bkaa.vercel.app/api/products,OPTIONS,branchId=1,500,gjxcn-1765477561226-e6102778950c,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,401,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AKCZS37D3H9W28TMQFRT8,,-1
+2025-12-11 18:26:01,1765477561744,bkaa.vercel.app/api/favorites/1,OPTIONS,,500,7cgdb-1765477561224-bec9c4b969b0,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",error,production,main,MISS,serverless,/api/favorites/1,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:26:01,1765477561224,bkaa.vercel.app/api/favorites/1,OPTIONS,,500,7cgdb-1765477561224-bec9c4b969b0,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,396,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AKCZPRD3WMSWXJQJJBFK2,,-1
+2025-12-11 18:26:01,1765477561737,bkaa.vercel.app/api/categories,OPTIONS,,500,7cgdb-1765477561224-3d1ec0a71084,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",error,production,main,MISS,serverless,/api/categories,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:26:01,1765477561224,bkaa.vercel.app/api/categories,OPTIONS,,500,7cgdb-1765477561224-3d1ec0a71084,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,386,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AKCZRJ89H8PNRNXGMZ8EH,,-1
+2025-12-11 18:26:02,1765477562653,bkaa.vercel.app/api/branches,OPTIONS,,500,26rkw-1765477561224-25398f28f903,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",error,production,main,MISS,serverless,/api/branches,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:26:01,1765477561224,bkaa.vercel.app/api/branches,OPTIONS,,500,26rkw-1765477561224-25398f28f903,"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,402,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AKD6MFXXMRWAA8K608T04,,-1
+2025-12-11 18:24:47,1765477487450,bkaa.vercel.app/api/branches,OPTIONS,,500,sfbwt-1765477486709-c219466b52a1,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",error,production,main,MISS,serverless,/api/branches,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:24:46,1765477486709,bkaa.vercel.app/api/branches,OPTIONS,,500,sfbwt-1765477486709-c219466b52a1,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,391,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AH4E5T3EM9S72VZ7XHHXV,,-1
+2025-12-11 18:24:44,1765477484546,bkaa.vercel.app/api/hot-deals,OPTIONS,,500,mp4fd-1765477483811-12b84b47fbec,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",error,production,main,MISS,serverless,/api/hot-deals,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:24:43,1765477483811,bkaa.vercel.app/api/hot-deals,OPTIONS,,500,mp4fd-1765477483811-12b84b47fbec,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,382,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AH1KMK4799HQFZP0KCBFA,,-1
+2025-12-11 18:24:43,1765477483963,bkaa.vercel.app/api/delivery-fees/calculate,OPTIONS,,500,hzb2z-1765477482959-f83cb75ca2ae,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",error,production,main,MISS,serverless,/api/delivery-fees/calculate,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:24:42,1765477482959,bkaa.vercel.app/api/delivery-fees/calculate,OPTIONS,,500,hzb2z-1765477482959-f83cb75ca2ae,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,384,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AH115H1NNMGZSZQ7VRQM2,,-1
+2025-12-11 18:24:36,1765477476359,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app/favicon.ico,GET,,500,kvlcj-1765477475922-b7e3f28047ab,vercel-screenshot/1.0,error,production,main,MISS,serverless,/favicon.ico,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:24:35,1765477475922,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app/favicon.ico,GET,,500,kvlcj-1765477475922-b7e3f28047ab,vercel-screenshot/1.0,,production,main,MISS,serverless,/index.js,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,381,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AGSKSMA5G7FHN0N6V798H,,-1
+2025-12-11 18:24:36,1765477476325,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app/favicon.ico,GET,,500,tdjfz-1765477475886-427fc674921f,vercel-screenshot/1.0,error,production,main,MISS,serverless,/favicon.ico,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:24:35,1765477475886,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app/favicon.ico,GET,,500,tdjfz-1765477475886-427fc674921f,vercel-screenshot/1.0,,production,main,MISS,serverless,/index.js,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,385,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AGSJRYA14XJG1PBJC8RKD,,-1
+2025-12-11 18:24:35,1765477475847,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app/,GET,,,gw4fs-1765477475265-8d3e1eb7e316,vercel-screenshot/1.0,error,production,main,,serverless,,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:24:35,1765477475265,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app/,GET,,,gw4fs-1765477475265-8d3e1eb7e316,vercel-screenshot/1.0,,production,main,,serverless,/index.js,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,386,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AGS3Q0SANCQSMWH91J19Q,,-1
+2025-12-11 18:24:35,1765477475809,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app/,GET,,,4b77v-1765477475255-c8e5e21789fe,vercel-screenshot/1.0,error,production,main,,serverless,,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:24:35,1765477475255,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app/,GET,,,4b77v-1765477475255-c8e5e21789fe,vercel-screenshot/1.0,,production,main,,serverless,/index.js,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,390,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AGS23J7M219QD6TPZR598,,-1
+2025-12-11 18:24:35,1765477475137,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app/,GET,,500,vz7dd-1765477473854-ad2f94f01593,vercel-screenshot/1.0,error,production,main,MISS,serverless,/,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:24:33,1765477473854,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app/,GET,,500,vz7dd-1765477473854-ad2f94f01593,vercel-screenshot/1.0,,production,main,MISS,serverless,/index.js,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,379,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AGQSF6NCSJEF41XHWANKV,,-1
+2025-12-11 18:24:35,1765477475148,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app/,GET,,,km52b-1765477473838-f350bc949d21,vercel-screenshot/1.0,error,production,main,,serverless,,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,,,,,"SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.
+SyntaxError: Unexpected token ')'
+    at compileSourceTextModule (node:internal/modules/esm/utils:357:16)
+    at ModuleLoader.moduleStrategy (node:internal/modules/esm/translators:109:18)
+    at #translate (node:internal/modules/esm/loader:564:20)
+    at afterLoad (node:internal/modules/esm/loader:614:29)
+    at ModuleLoader.loadAndTranslate (node:internal/modules/esm/loader:619:12)
+    at #createModuleJob (node:internal/modules/esm/loader:643:36)
+    at #getJobFromResolveResult (node:internal/modules/esm/loader:353:34)
+    at ModuleLoader.getModuleJobForImport (node:internal/modules/esm/loader:318:41)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+Node.js process exited with exit status: 1. The logs above can help with debugging the issue.",prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:24:33,1765477473838,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app/,GET,,,km52b-1765477473838-f350bc949d21,vercel-screenshot/1.0,,production,main,,serverless,/index.js,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app,bkaa-eg8nbz9xo-bode-ahmeds-projects.vercel.app,dpl_FmrxZ6nEwZyBn12NrFdtskLtXbsf,400,iad1,-1,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AGQSJ8SG6EWHT28R003F1,,-1
+2025-12-11 18:24:33,1765477473130,bkaa.vercel.app/api/categories,GET,,304,zl8jp-1765477473130-652a3878c05f,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,92,iad1,292,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AGPYE6YC9PFD64N3TF6TK,YCUxT7xZLg8c,1
+2025-12-11 18:24:32,1765477472384,bkaa.vercel.app/api/categories,OPTIONS,,204,zl8jp-1765477472384-acb6958cceeb,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,5,iad1,291,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AGP7B7P7FPZC7NNEV9EGF,YCUxT7xZLg8c,1
+2025-12-11 18:24:20,1765477460651,bkaa.vercel.app/api/stories,GET,,304,hzb2z-1765477460651-17d2570bac07,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,610,iad1,286,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AGABP8FE9G5EX7RMYDTAH,se96XpR3zYw3,2
+2025-12-11 18:24:20,1765477460650,bkaa.vercel.app/api/products,GET,branchId=2,304,jlw8n-1765477460650-e1ea97918e1a,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,617,iad1,292,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AGARKYJ1CXMDYPMW4T8CS,YCUxT7xZLg8c,1
+2025-12-11 18:24:20,1765477460242,bkaa.vercel.app/api/categories,GET,,304,cc2j2-1765477460242-4457cfafddc8,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,616,iad1,287,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AGABP8FE9G5EX7RMYDTAH,se96XpR3zYw3,2
+2025-12-11 18:24:20,1765477460240,bkaa.vercel.app/api/stories,OPTIONS,,204,zl8jp-1765477460240-4557e8a038ed,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,8,iad1,292,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AGABVCT8PAM63550J8P6A,YCUxT7xZLg8c,1
+2025-12-11 18:24:20,1765477460240,bkaa.vercel.app/api/products,OPTIONS,branchId=2,204,jlw8n-1765477460240-3278536479b7,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,7,iad1,293,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AGABKZZP86H5AA5GK0H75,av77C4v4no5x,1
+2025-12-11 18:24:17,1765477457595,bkaa.vercel.app/api/branches,GET,,304,dbcvs-1765477457595-6d8db4fc6925,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,91,iad1,292,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AG7S1K9MJXNB0898C08XE,av77C4v4no5x,1
+2025-12-11 18:24:17,1765477457191,bkaa.vercel.app/api/branches,OPTIONS,,204,jlw8n-1765477457191-da774257cf37,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,5,iad1,292,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AG7CC1KJ9VAV9FG2DQKGQ,av77C4v4no5x,1
+2025-12-11 18:24:16,1765477456158,bkaa.vercel.app/api/categories,GET,,304,k7v8w-1765477456158-52d4b4fc92e1,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,616,iad1,292,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AG6C965Y55DG5Z43DFW08,av77C4v4no5x,1
+2025-12-11 18:24:15,1765477455701,bkaa.vercel.app/api/categories,OPTIONS,,204,k9nkp-1765477455701-4af6c89a0977,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,31,iad1,291,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AG5Y1M7WX2NBFK7Q50J6V,av77C4v4no5x,1
+2025-12-11 18:22:56,1765477376414,bkaa.vercel.app/api/products,GET,branchId=2,304,5wtzq-1765477376414-a6dd0d97b646,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,612,iad1,290,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7ADRG6J0VWTYRP1ZRJ5MAY,av77C4v4no5x,1
+2025-12-11 18:22:56,1765477376036,bkaa.vercel.app/api/products,OPTIONS,branchId=2,204,5wtzq-1765477376036-c0ed3752cc9c,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,38,iad1,288,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7ADR4E4TEYYP5W7871A58G,av77C4v4no5x,1
+2025-12-11 18:21:31,1765477291599,bkaa.vercel.app/api/stories,GET,,304,wdr4m-1765477291599-f03bd9e95766,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,131,iad1,292,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AB5NQ83XQXE1EVYPDF356,YCUxT7xZLg8c,1
+2025-12-11 18:21:31,1765477291584,bkaa.vercel.app/api/products,GET,branchId=2,304,trzd6-1765477291584-4eebb3fb4f67,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,609,iad1,287,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AB5NCGD19T9BCDCVBCCZN,av77C4v4no5x,1
+2025-12-11 18:21:31,1765477291584,bkaa.vercel.app/api/categories,GET,,304,dltjv-1765477291584-5c5debaec1c6,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,617,iad1,288,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AB5N5MV8RFTCQ6CJ59ZNV,se96XpR3zYw3,1
+2025-12-11 18:21:31,1765477291095,bkaa.vercel.app/api/stories,OPTIONS,,204,trzd6-1765477291095-90d5e5df2165,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,66,iad1,288,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AB55TM3NTM5SX11DEM7C5,se96XpR3zYw3,1
+2025-12-11 18:21:31,1765477291095,bkaa.vercel.app/api/categories,OPTIONS,,204,rbgsv-1765477291095-8bbd4c696808,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,9,iad1,287,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AB55VW8GMWJXXSMV8308B,av77C4v4no5x,1
+2025-12-11 18:21:31,1765477291095,bkaa.vercel.app/api/products,OPTIONS,branchId=2,204,dltjv-1765477291095-0bb436811a97,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,5,iad1,291,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AB55VW8GMWJXXSH9Z2NJR,YCUxT7xZLg8c,1
+2025-12-11 18:21:29,1765477289589,bkaa.vercel.app/api/delivery-fees/calculate,POST,,400,hzb2z-1765477289589-84eae8c1be15,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,6,iad1,291,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AB3QH35V5G7RP5YPB28A3,YCUxT7xZLg8c,1
+2025-12-11 18:21:29,1765477289189,bkaa.vercel.app/api/delivery-fees/calculate,OPTIONS,,204,trzd6-1765477289189-09f14e2ccd9d,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,5,iad1,291,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AB3ATKCEEKHJD22X5PAJC,YCUxT7xZLg8c,1
+2025-12-11 18:21:20,1765477280549,bkaa.vercel.app/api/categories,GET,,304,dltjv-1765477280549-d98c68c625ce,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,92,iad1,291,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AATWHBVCFF65Y9WEBZY5J,YCUxT7xZLg8c,1
+2025-12-11 18:21:20,1765477280158,bkaa.vercel.app/api/categories,OPTIONS,,204,fl99w-1765477280158-9a4a0e20710e,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,7,iad1,291,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AATGBH7BZ6MHTMMEBCW6Z,YCUxT7xZLg8c,1
+2025-12-11 18:21:19,1765477279424,bkaa.vercel.app/api/delivery-fees/calculate,POST,,400,jwjf9-1765477279424-723d50928d1d,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,7,iad1,291,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AASSHMVEX33TRJG330J1X,YCUxT7xZLg8c,1
+2025-12-11 18:21:19,1765477279024,bkaa.vercel.app/api/delivery-fees/calculate,OPTIONS,,204,2kkv7-1765477279024-a4d1b4105c78,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,5,iad1,291,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AASDE3QRX89ZRSNTV9E74,YCUxT7xZLg8c,1
+2025-12-11 18:20:54,1765477254045,bkaa.vercel.app/api/categories,GET,,304,9rlnw-1765477254045-f33e42613ee5,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,91,iad1,291,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AA1019GXQ3PN2YYP8J3XD,YCUxT7xZLg8c,1
+2025-12-11 18:20:53,1765477253629,bkaa.vercel.app/api/categories,OPTIONS,,204,9rlnw-1765477253629-77e8d4ac0f85,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,7,iad1,291,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7AA0K1ET1RQ9X4Z56VD51F,YCUxT7xZLg8c,1
+2025-12-11 18:20:46,1765477246485,bkaa.vercel.app/api/delivery-fees/calculate,POST,,400,6jmbl-1765477246485-d1a0109d3f1f,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,6,iad1,290,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A9SKTMQ4Z5R5EFR4N0SC3,YCUxT7xZLg8c,1
+2025-12-11 18:20:46,1765477246103,bkaa.vercel.app/api/delivery-fees/calculate,OPTIONS,,204,9rlnw-1765477246103-59d94ef46b53,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,5,iad1,290,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A9S7VN0BERRNTJ1V8834K,YCUxT7xZLg8c,1
+2025-12-11 18:20:45,1765477245943,bkaa.vercel.app/api/hot-deals,GET,,304,fl99w-1765477245943-378365f6e812,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,90,iad1,290,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A9S2TPB1M7RXX4NMPG8E1,YCUxT7xZLg8c,1
+2025-12-11 18:20:45,1765477245574,bkaa.vercel.app/api/hot-deals,OPTIONS,,204,9rlnw-1765477245574-f1aa61aff1a7,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,5,iad1,290,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A9RQETXBJDEQD58Z3JFZT,YCUxT7xZLg8c,1
+2025-12-11 18:20:45,1765477245221,bkaa.vercel.app/api/branches,GET,,304,fl99w-1765477245221-86ec0008e800,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,90,iad1,290,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A9RCBSWGEZP3P597YHEBW,YCUxT7xZLg8c,1
+2025-12-11 18:20:44,1765477244857,bkaa.vercel.app/api/branches,OPTIONS,,204,flzkk-1765477244857-d866f0716605,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,5,iad1,290,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A9R103XBASY1SX9P4MT4Q,YCUxT7xZLg8c,1
+2025-12-11 18:20:44,1765477244183,bkaa.vercel.app/api/categories,GET,,304,cc2j2-1765477244183-5abfb5061f78,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,94,iad1,290,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A9QC0CGBB6YGZF6EK17WT,YCUxT7xZLg8c,1
+2025-12-11 18:20:43,1765477243657,bkaa.vercel.app/api/categories,OPTIONS,,204,qqvs8-1765477243657-9131b943d9eb,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,6,iad1,290,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A9PVPX46VZHWCM17MHXVB,YCUxT7xZLg8c,1
+2025-12-11 18:20:40,1765477240829,bkaa.vercel.app/api/delivery-fees/calculate,POST,,400,4974k-1765477240829-93d9ae932798,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,8,iad1,290,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A9M3A8EHQ78RT8FXVJDVB,YCUxT7xZLg8c,1
+2025-12-11 18:20:40,1765477240455,bkaa.vercel.app/api/delivery-fees/calculate,OPTIONS,,204,9q7kn-1765477240455-9228bdedae32,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,7,iad1,290,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A9KQJ9WCQ8RX2RWSSEJGC,YCUxT7xZLg8c,1
+2025-12-11 18:20:36,1765477236534,bkaa.vercel.app/api/hot-deals,GET,,304,dhhhx-1765477236534-a44bc06accfe,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,92,iad1,289,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A9FWW9HVP8FCNQT23GG5B,YCUxT7xZLg8c,1
+2025-12-11 18:20:36,1765477236143,bkaa.vercel.app/api/hot-deals,OPTIONS,,204,chbrc-1765477236143-4c96c2b493e2,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,6,iad1,288,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A9FGKF00R57PVENEEC4N0,YCUxT7xZLg8c,1
+2025-12-11 18:20:25,1765477225750,bkaa.vercel.app/api/branches,GET,,304,hzb2z-1765477225750-b0ff282b3a9a,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,611,iad1,288,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A95BSHM7937FGT6SVBCGP,YCUxT7xZLg8c,1
+2025-12-11 18:20:25,1765477225243,bkaa.vercel.app/api/branches,OPTIONS,,204,hzb2z-1765477225243-1eec8782e0f0,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,7,iad1,287,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A94W2Y5DMB4EG4K34GV5B,YCUxT7xZLg8c,1
+2025-12-11 18:20:17,1765477217951,bkaa.vercel.app/socket.io/,GET,EIO=4&transport=polling&t=rjv8oxfq,404,vptvm-1765477217951-5b4307fd3cef,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,6,iad1,287,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A8XR4F1DD14SZ3VMFPFF7,YCUxT7xZLg8c,1
+2025-12-11 18:20:12,1765477212606,bkaa.vercel.app/socket.io/,GET,EIO=4&transport=polling&t=rjr5d9p2,404,2t6sz-1765477212606-2970d2b18691,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,7,iad1,287,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A8RHANPG98RMGGX5CM92V,YCUxT7xZLg8c,1
+2025-12-11 18:20:09,1765477209414,bkaa.vercel.app/socket.io/,GET,EIO=4&transport=polling&t=rjoot0fl,404,qqvs8-1765477209414-33ffa2947f7e,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,7,iad1,287,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A8NDAH9JGH27J6JWZMEJ9,YCUxT7xZLg8c,1
+2025-12-11 18:20:08,1765477208374,bkaa.vercel.app/api/chat/conversations/undefined,GET,,500,vptvm-1765477208374-c73578db7eb2,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,110,iad1,288,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A8MCV2JNQT1PXHCEY5XWS,YCUxT7xZLg8c,1
+2025-12-11 18:20:08,1765477208097,bkaa.vercel.app/api/chat/conversations/undefined,OPTIONS,,204,vptvm-1765477207976-a8d390b0f584,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",info,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,,,,,✅ Connected to PostgreSQL database: 2025-12-11T18:19:24.558Z,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:20:07,1765477207976,bkaa.vercel.app/api/chat/conversations/undefined,OPTIONS,,204,vptvm-1765477207976-a8d390b0f584,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,21,iad1,288,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A8M0BYFEBMRJCZN3KMF22,YCUxT7xZLg8c,1
+2025-12-11 18:20:07,1765477207975,bkaa.vercel.app/socket.io/,GET,EIO=4&transport=polling&t=rjnkoz40,404,qqvs8-1765477207975-6b5611708343,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,7,iad1,287,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A8M0AVWPTZ810GEPQ9K10,se96XpR3zYw3,1
+2025-12-11 18:20:07,1765477207398,bkaa.vercel.app/api/chat/conversations,POST,,500,qqvs8-1765477207398-e962f41adc22,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,108,iad1,287,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A8KEA5VGXQFHKY94XZ1C3,se96XpR3zYw3,1
+2025-12-11 18:20:07,1765477207025,bkaa.vercel.app/api/chat/conversations,OPTIONS,,204,6zrbm-1765477207025-743507b2766d,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,6,iad1,286,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A8K30MZY8C2AG12DWXYEC,se96XpR3zYw3,1
+2025-12-11 18:20:01,1765477201416,bkaa.vercel.app/api/branches,GET,,304,jlw8n-1765477201416-2220f91d4911,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,612,iad1,286,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A8DKKC4DF4ARM5P3CQC3B,se96XpR3zYw3,1
+2025-12-11 18:20:00,1765477200991,bkaa.vercel.app/api/branches,OPTIONS,,204,jlw8n-1765477200991-8bd43468d897,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,8,iad1,286,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A8D6XFVAARKAFB7N6QTEF,se96XpR3zYw3,1
+2025-12-11 18:19:26,1765477166188,bkaa.vercel.app/api/branches,GET,,304,4ftv5-1765477166188-c07826d75fb4,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,95,iad1,285,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A7B6K0GTY98WS102A2588,se96XpR3zYw3,1
+2025-12-11 18:19:25,1765477165779,bkaa.vercel.app/api/branches,OPTIONS,,204,rbgsv-1765477165779-6725049cff26,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,7,iad1,285,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A7ASP5MKNJVVWJ6Q4Y1QS,se96XpR3zYw3,1
+2025-12-11 18:19:25,1765477165044,bkaa.vercel.app/api/hot-deals,GET,,304,vptvm-1765477165044-053707aa58f5,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,100,iad1,285,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A7A2TZ4FKA37XN5H6PEZ7,se96XpR3zYw3,1
+2025-12-11 18:19:24,1765477164667,bkaa.vercel.app/api/hot-deals,OPTIONS,,204,vptvm-1765477164667-200a7bf3e64e,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,7,iad1,285,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A79PYWV914QEMB971F0GS,se96XpR3zYw3,1
+2025-12-11 18:19:24,1765477164403,bkaa.vercel.app/api/categories,GET,,304,zl8jp-1765477164403-a3680d0bf83d,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,94,iad1,284,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A79ERVDPANTW8KCPVQ0Q4,se96XpR3zYw3,1
+2025-12-11 18:19:24,1765477164403,bkaa.vercel.app/api/delivery-fees/calculate,POST,,400,vptvm-1765477164403-cac579aa186c,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,24,iad1,286,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A79ES4EMQWG22ZRBJFV2M,YCUxT7xZLg8c,1
+2025-12-11 18:19:23,1765477163994,bkaa.vercel.app/api/delivery-fees/calculate,OPTIONS,,204,qqvs8-1765477163994-e2c82fb54440,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,2,iad1,285,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A790KSRM4Z37J44DEC8ZD,YCUxT7xZLg8c,2
+2025-12-11 18:19:23,1765477163951,bkaa.vercel.app/api/categories,GET,,304,qqvs8-1765477163951-273d4ece28f9,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,92,iad1,286,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A790KSRM4Z37J44DEC8ZD,YCUxT7xZLg8c,2
+2025-12-11 18:19:22,1765477162690,bkaa.vercel.app/api/products,GET,branchId=1,304,rbgsv-1765477162690-0c87e9460077,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,617,iad1,287,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A77SC41SQ30PE2N9DJW3A,av77C4v4no5x,1
+2025-12-11 18:19:22,1765477162681,bkaa.vercel.app/api/stories,GET,,304,qqvs8-1765477162681-bf24182a99da,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,626,iad1,301,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A77S8YERF5725C65Q9EQY,se96XpR3zYw3,1
+2025-12-11 18:19:22,1765477162681,bkaa.vercel.app/api/products,GET,branchId=2,304,k7npw-1765477162681-38b071dddbdc,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,660,iad1,301,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A77S8YERF5725C444ADM9,YCUxT7xZLg8c,1
+2025-12-11 18:19:22,1765477162678,bkaa.vercel.app/api/categories,GET,,304,qqvs8-1765477162678-817c30fecb5d,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,616,iad1,289,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A77RVQN784HTAP4HQX6YG,weDs5skBcOyG,1
+2025-12-11 18:19:22,1765477162185,bkaa.vercel.app/api/categories,OPTIONS,,204,4ftv5-1765477162185-8d74c3f0ff4e,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,9,iad1,288,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A77CE69EVE2V76YFBBGJV,weDs5skBcOyG,1
+2025-12-11 18:19:22,1765477162174,bkaa.vercel.app/api/products,OPTIONS,branchId=1,204,zl8jp-1765477162174-5d8c8f8d4ebf,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,79,iad1,288,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A779AKCC4QY5W9A78ZCV1,weDs5skBcOyG,1
+2025-12-11 18:19:22,1765477162174,bkaa.vercel.app/api/stories,OPTIONS,,204,qqvs8-1765477162174-b33d5bb5a4f9,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,24,iad1,285,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A779AKCC4QY5W9BZX03XC,av77C4v4no5x,1
+2025-12-11 18:19:22,1765477162174,bkaa.vercel.app/api/categories,OPTIONS,,204,k9nkp-1765477162174-c5e112dbb484,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa-kv5kdal7m-bode-ahmeds-projects.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,21,iad1,301,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A779FA6D0BCWZR6CFPGYE,se96XpR3zYw3,1
+2025-12-11 18:19:22,1765477162338,bkaa.vercel.app/api/products,OPTIONS,branchId=2,204,cc2j2-1765477162174-78334b59e111,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",info,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,,,,,❌ Connection attempt 1/3 failed: Connection terminated due to connection timeout,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:19:22,1765477162338,bkaa.vercel.app/api/products,OPTIONS,branchId=2,204,cc2j2-1765477162174-78334b59e111,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",info,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,,,,,⏳ Retrying in 2 seconds...,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,,,
+2025-12-11 18:19:22,1765477162174,bkaa.vercel.app/api/products,OPTIONS,branchId=2,204,cc2j2-1765477162174-78334b59e111,"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36",,production,main,MISS,serverless,/index.js,bkaa.vercel.app,bkaa.vercel.app,dpl_5q9CF6EepPJENiKjG3GLEAkpXweE,43,iad1,300,2048,,prj_HbXdhFRX6RPJblHy5CUZd16nUZ2S,,,01KC7A779CAFSR3V77SPDW8SKB,YCUxT7xZLg8c,1
