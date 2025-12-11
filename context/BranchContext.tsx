@@ -89,10 +89,20 @@ export const BranchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Auto select branch using Supabase function (polygon/radius smart pick)
   const autoSelectByLocation = async (lat: number, lng: number): Promise<Branch | null> => {
     try {
+      // Try Supabase RPC first
       const { data, error } = await supabase.rpc('select_branch_for_location', { lat, lng });
-      if (error) throw error;
+      
+      if (error) {
+        console.warn('Supabase RPC failed, using fallback:', error);
+        // Fallback: Calculate nearest branch manually
+        return findNearestBranch(lat, lng);
+      }
+      
       const match = Array.isArray(data) ? data[0] : null;
-      if (!match) return null;
+      if (!match) {
+        // Fallback if no match found
+        return findNearestBranch(lat, lng);
+      }
 
       // ensure we have full branch info
       if (branches.length === 0) {
@@ -112,6 +122,62 @@ export const BranchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       return picked;
     } catch (err) {
       console.error('autoSelectByLocation error', err);
+      // Final fallback
+      return findNearestBranch(lat, lng);
+    }
+  };
+  
+  // Fallback: Calculate nearest branch using Haversine formula
+  const findNearestBranch = async (lat: number, lng: number): Promise<Branch | null> => {
+    try {
+      if (branches.length === 0) {
+        await fetchBranches();
+      }
+      
+      if (branches.length === 0) return null;
+      
+      // Haversine formula to calculate distance
+      const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+        const R = 6371; // Earth radius in km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = 
+          Math.sin(dLat/2) * Math.sin(dLat/2) +
+          Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+          Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+      };
+      
+      // Find nearest branch
+      let nearest: Branch | null = null;
+      let minDistance = Infinity;
+      
+      for (const branch of branches) {
+        if (branch.latitude && branch.longitude) {
+          const distance = calculateDistance(lat, lng, branch.latitude, branch.longitude);
+          if (distance < minDistance) {
+            minDistance = distance;
+            nearest = branch;
+          }
+        }
+      }
+      
+      if (nearest) {
+        selectBranch(nearest);
+        return nearest;
+      }
+      
+      // If no branch has coordinates, select first active branch
+      const firstActive = branches.find(b => b.is_active !== false);
+      if (firstActive) {
+        selectBranch(firstActive);
+        return firstActive;
+      }
+      
+      return null;
+    } catch (err) {
+      console.error('findNearestBranch error:', err);
       return null;
     }
   };

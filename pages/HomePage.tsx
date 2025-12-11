@@ -198,12 +198,6 @@ const HomePage = () => {
                     {!isAuthenticated && <Banner type="login" />}
                 </div>
 
-                {/* Sponsored Ads - Carousel Layout */}
-                <SponsoredAds ads={SPONSORED_ADS} layout="carousel" />
-
-                {/* Weekly Flyer Magazine */}
-                <FlyerCarousel pages={FLYER_PAGES} />
-
                 {/* Quick Access - Hot Deals & Magazine */}
                 <div className="grid grid-cols-2 gap-3">
                     {/* العروض الساخنة */}
@@ -276,16 +270,7 @@ const HomePage = () => {
                     </Link>
                 </div>
 
-                {/* Featured Brands Carousel */}
-                <BrandsCarousel title="براندات مميزة" />
-
-                {/* Facebook Reels Section */}
-                <FacebookReelsGrid pageUsername="Alloshchocolates" pageName="Allosh Chocolates" />
-
-                {/* Sponsored Ads - Grid Layout (Scattered) */}
-                <SponsoredAds ads={SPONSORED_ADS.slice(0, 2)} layout="grid" />
-
-                {/* Special Categories */}
+                {/* Special Categories - MOVED UP */}
                 <div>
                     <h3 className="text-base font-bold text-[#1F2937] mb-2.5">فئات مميزة</h3>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
@@ -299,6 +284,34 @@ const HomePage = () => {
                         ))}
                     </div>
                 </div>
+
+                {/* Categories Grid Preview - MOVED UP */}
+                {categories.length > 0 && (
+                    <div>
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-bold text-gray-900">تصفح الأقسام</h3>
+                            <a href="/categories" className="text-sm text-orange-500 font-medium hover:underline">
+                                عرض الكل
+                            </a>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                            {categories.slice(0, 12).map((cat, idx) => (
+                                <CategoryCard 
+                                    key={cat.id || idx} 
+                                    name={cat.name_ar || cat.name} 
+                                    nameEn={cat.name}
+                                    image={cat.image}
+                                    icon={cat.icon}
+                                    bgColor={cat.bg_color || 'bg-gradient-to-br from-orange-50 to-orange-100'} 
+                                    productsCount={cat.products_count}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Featured Brands Carousel - MOVED UP */}
+                <BrandsCarousel title="براندات مميزة" />
 
                 {/* Products You Might Like */}
                 <div>
@@ -337,30 +350,17 @@ const HomePage = () => {
                     )}
                 </div>
 
-                {/* Categories Grid Preview */}
-                {categories.length > 0 && (
-                    <div>
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-bold text-gray-900">تصفح الأقسام</h3>
-                            <a href="/categories" className="text-sm text-orange-500 font-medium hover:underline">
-                                عرض الكل
-                            </a>
-                        </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                            {categories.slice(0, 12).map((cat, idx) => (
-                                <CategoryCard 
-                                    key={cat.id || idx} 
-                                    name={cat.name_ar || cat.name} 
-                                    nameEn={cat.name}
-                                    image={cat.image}
-                                    icon={cat.icon}
-                                    bgColor={cat.bg_color || 'bg-gradient-to-br from-orange-50 to-orange-100'} 
-                                    productsCount={cat.products_count}
-                                />
-                            ))}
-                        </div>
-                    </div>
-                )}
+                {/* Sponsored Ads - Carousel Layout - MOVED DOWN */}
+                <SponsoredAds ads={SPONSORED_ADS} layout="carousel" />
+
+                {/* Weekly Flyer Magazine - MOVED DOWN */}
+                <FlyerCarousel pages={FLYER_PAGES} />
+
+                {/* Sponsored Ads - Grid Layout (Scattered) - MOVED DOWN */}
+                <SponsoredAds ads={SPONSORED_ADS.slice(0, 2)} layout="grid" />
+
+                {/* Facebook Reels Section - MOVED TO BOTTOM */}
+                <FacebookReelsGrid pageUsername="Alloshchocolates" pageName="Allosh Chocolates" />
             </div>
         </div>
     );

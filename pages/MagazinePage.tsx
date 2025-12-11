@@ -63,16 +63,30 @@ const MagazinePage = () => {
     };
 
     const handleAddToCart = (offer: MagazineOffer) => {
+        // Check if product_id exists - if not, show alert
+        if (!offer.product_id) {
+            alert('هذا المنتج غير متوفر حالياً في المخزون. يرجى الربط بمنتج من المخزون.');
+            return;
+        }
+        
         // Convert offer to product format
         const product = {
-            id: offer.product_id || `magazine-${offer.id}`,
+            id: offer.product_id,
             name: offer.name,
             price: offer.price,
             image: offer.image,
             category: offer.category,
-            weight: offer.unit
+            weight: offer.unit,
+            stock_quantity: 999 // Assuming available
         };
         addToCart(product as any, 1);
+        
+        // Show success toast
+        const toast = document.createElement('div');
+        toast.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-bounce';
+        toast.textContent = 'تمت الإضافة للسلة ✓';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2000);
     };
 
     // Get current date for magazine header

@@ -351,7 +351,9 @@ export const api = {
     branches: {
         getAll: async () => {
             const res = await fetch(`${API_URL}/branches`, { headers: getHeaders() });
-            return res.json();
+            const json = await res.json();
+            // API returns {message: 'success', data: [...]}
+            return json.data || json;
         },
         getOne: async (id: number) => {
             const res = await fetch(`${API_URL}/branches/${id}`, { headers: getHeaders() });

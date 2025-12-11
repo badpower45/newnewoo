@@ -84,13 +84,20 @@ const HotDealsPage = () => {
     };
 
     const handleAddToCart = async (deal: HotDeal) => {
+        // Check if product_id exists - if not, show alert
+        if (!deal.product_id) {
+            alert('هذا العرض غير مرتبط بمنتج. يرجى ربطه بمنتج من المخزون.');
+            return;
+        }
+        
         const product = {
-            id: deal.product_id || `deal-${deal.id}`,
+            id: deal.product_id,
             name: deal.name,
             price: deal.price,
             image: deal.image,
             category: 'عروض',
-            weight: ''
+            weight: '',
+            stock_quantity: deal.total_quantity - deal.sold_quantity
         };
         addToCart(product as any, 1);
 
@@ -100,6 +107,13 @@ const HotDealsPage = () => {
         } catch (err) {
             console.error('Failed to update sold quantity:', err);
         }
+        
+        // Show success toast
+        const toast = document.createElement('div');
+        toast.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-bounce';
+        toast.innerHTML = '<span class="font-bold">✓ تمت الإضافة للسلة</span>';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2000);
     };
 
     return (
