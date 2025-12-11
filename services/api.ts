@@ -1300,6 +1300,38 @@ export const api = {
             });
             return res.json();
         }
+    },
+
+    // Bulk Import API
+    bulkImport: {
+        uploadExcel: async (file: File) => {
+            const token = localStorage.getItem('token');
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const res = await fetch(`${API_URL}/products/bulk-import`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'apikey': SUPABASE_ANON_KEY
+                },
+                body: formData
+            });
+            
+            return res.json();
+        },
+
+        downloadTemplate: async () => {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/products/bulk-import/template`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'apikey': SUPABASE_ANON_KEY
+                }
+            });
+            
+            return res.blob();
+        }
     }
 };
 
