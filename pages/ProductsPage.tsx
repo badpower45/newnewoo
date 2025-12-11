@@ -119,6 +119,22 @@ export default function ProductsPage() {
     const filteredAndSortedProducts = useMemo(() => {
         let filtered = [...allProducts];
 
+        // Filter by search query (local search)
+        if (searchQuery.trim()) {
+            const query = searchQuery.toLowerCase().trim();
+            filtered = filtered.filter(p => {
+                const name = (p.name || '').toLowerCase();
+                const nameAr = (p.name_ar || '').toLowerCase();
+                const category = (p.category || '').toLowerCase();
+                const description = (p.description || '').toLowerCase();
+                
+                return name.includes(query) || 
+                       nameAr.includes(query) || 
+                       category.includes(query) ||
+                       description.includes(query);
+            });
+        }
+
         // Filter by category
         if (selectedCategory) {
             filtered = filtered.filter(p => p.category === selectedCategory);
@@ -159,7 +175,7 @@ export default function ProductsPage() {
         }
 
         return filtered;
-    }, [allProducts, selectedCategory, sortBy, priceRange, showOnlyOffers]);
+    }, [allProducts, selectedCategory, sortBy, priceRange, showOnlyOffers, searchQuery]);
 
     // Pagination
     const totalPages = Math.ceil(filteredAndSortedProducts.length / ITEMS_PER_PAGE);

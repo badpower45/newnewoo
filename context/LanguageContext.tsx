@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { getInitialLanguage, translateText, isArabic } from '../services/translationService';
 
 type Language = 'ar' | 'en';
 
@@ -6,6 +7,7 @@ interface LanguageContextType {
     language: Language;
     setLanguage: (lang: Language) => void;
     t: (key: string) => string;
+    autoTranslate: (text: string) => string;
     dir: 'rtl' | 'ltr';
 }
 
@@ -27,16 +29,10 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     const [language, setLanguageState] = useState<Language>('ar');
 
     useEffect(() => {
-        // Load saved language
-        const savedLang = localStorage.getItem('language') as Language;
-        if (savedLang && (savedLang === 'ar' || savedLang === 'en')) {
-            setLanguageState(savedLang);
-            applyLanguage(savedLang);
-        } else {
-            // Default to Arabic
-            setLanguageState('ar');
-            applyLanguage('ar');
-        }
+        // Load saved language or default to Arabic
+        const initialLang = getInitialLanguage();
+        setLanguageState(initialLang);
+        applyLanguage(initialLang);
     }, []);
 
     const applyLanguage = (lang: Language) => {
@@ -60,10 +56,28 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
         return translations[language]?.[key] || key;
     };
 
+    // Auto-translate text based on current language
+    const autoTranslate = (text: string): string => {
+        if (!text) return text;
+        
+        // If language is English and text is Arabic, translate
+        if (language === 'en' && isArabic(text)) {
+            return translateText(text, 'en');
+        }
+        
+        // If language is Arabic and text is English, translate
+        if (language === 'ar' && !isArabic(text)) {
+            return translateText(text, 'ar');
+        }
+        
+        return text;
+    };
+
     const value: LanguageContextType = {
         language,
         setLanguage,
         t,
+        autoTranslate,
         dir: language === 'ar' ? 'rtl' : 'ltr'
     };
 
