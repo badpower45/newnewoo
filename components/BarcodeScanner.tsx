@@ -11,6 +11,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
     const [scanning, setScanning] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
+    const [scannedCode, setScannedCode] = useState<string>('');
     const scannerRef = useRef<Html5Qrcode | null>(null);
     const readerIdRef = useRef('barcode-reader');
 
@@ -35,11 +36,12 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
                 },
                 (decodedText) => {
                     // Success callback
+                    setScannedCode(decodedText);
                     setSuccess(true);
                     stopScanner();
                     setTimeout(() => {
                         onScan(decodedText);
-                    }, 500);
+                    }, 1500);
                 },
                 (errorMessage) => {
                     // Error callback (scanning in progress)
@@ -75,8 +77,8 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+        <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-2 md:p-4">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
                 <div className="bg-gradient-to-r from-brand-orange to-orange-600 p-6 text-white relative">
                     <button
                         onClick={handleClose}
@@ -102,10 +104,16 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
                         </div>
                     )}
 
-                    {success && (
-                        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl flex items-center space-x-3 rtl:space-x-reverse">
-                            <CheckCircle2 className="text-green-500" size={20} />
-                            <p className="text-green-700 font-medium">تم المسح بنجاح!</p>
+                    {success && scannedCode && (
+                        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-xl">
+                            <div className="flex items-center space-x-3 rtl:space-x-reverse mb-2">
+                                <CheckCircle2 className="text-green-500" size={20} />
+                                <p className="text-green-700 font-medium">تم المسح بنجاح!</p>
+                            </div>
+                            <div className="bg-white p-3 rounded-lg border border-green-300">
+                                <p className="text-xs text-gray-500 mb-1">كود الباركود:</p>
+                                <p className="text-lg font-mono font-bold text-gray-900 break-all">{scannedCode}</p>
+                            </div>
                         </div>
                     )}
 

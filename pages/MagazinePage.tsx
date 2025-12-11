@@ -102,7 +102,7 @@ const MagazinePage = () => {
     return (
         <div className="min-h-screen bg-[#FAFAFA] pb-20">
             {/* Header */}
-            <div className="bg-gradient-to-br from-[#F97316] to-[#ea580c] p-6 pb-8 relative overflow-hidden">
+            <div className="bg-gradient-to-br from-[#F97316] to-[#ea580c] p-4 pb-6 md:p-6 md:pb-8 relative overflow-hidden">
                 {/* Confetti Background */}
                 <div className="absolute inset-0 opacity-10">
                     <div className="absolute top-4 right-10 w-3 h-3 bg-yellow-300 rounded-full" />
@@ -114,30 +114,30 @@ const MagazinePage = () => {
                     <div className="absolute bottom-12 right-12 w-4 h-4 bg-purple-300 rounded-full" />
                 </div>
 
-                <div className="flex items-center gap-3 mb-4 relative">
+                <div className="flex items-center gap-2 mb-3 relative">
                     <button 
                         onClick={() => navigate(-1)} 
-                        className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+                        className="w-9 h-9 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/30 transition-colors flex-shrink-0"
                     >
-                        <ArrowRight className="w-6 h-6 text-white" />
+                        <ArrowRight className="w-5 h-5 text-white" />
                     </button>
-                    <h1 className="text-white text-xl font-bold">مجلة العروض الأسبوعية</h1>
+                    <h1 className="text-white text-base md:text-xl font-bold line-clamp-1">مجلة العروض الأسبوعية</h1>
                 </div>
 
-                <p className="text-white/90 relative text-sm">
+                <p className="text-white/90 relative text-xs md:text-sm">
                     عروض حصرية ومتنوعة {getDateRange()}
                 </p>
             </div>
 
             {/* Categories */}
-            <div className="px-4 -mt-4 mb-4 relative z-10">
-                <div className="bg-white rounded-2xl shadow-lg p-3 overflow-x-auto scrollbar-hide">
-                    <div className="flex gap-2">
+            <div className="px-3 md:px-4 -mt-3 md:-mt-4 mb-3 md:mb-4 relative z-10">
+                <div className="bg-white rounded-xl md:rounded-2xl shadow-lg p-2 md:p-3 overflow-x-auto scrollbar-hide">
+                    <div className="flex gap-1.5 md:gap-2">
                         {categories.map((category, index) => (
                             <button
                                 key={index}
                                 onClick={() => setSelectedCategory(category)}
-                                className={`px-4 py-2 rounded-full whitespace-nowrap transition-all text-sm font-medium ${
+                                className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full whitespace-nowrap transition-all text-xs md:text-sm font-medium ${
                                     selectedCategory === category
                                         ? 'bg-[#F97316] text-white shadow-md'
                                         : 'bg-[#F3F4F6] text-[#6B7280] hover:bg-[#E5E7EB]'
@@ -158,8 +158,8 @@ const MagazinePage = () => {
             ) : (
                 <>
                     {/* Offers Grid - Magazine Style */}
-                    <div className="px-4">
-                        <div className="grid grid-cols-2 gap-3">
+                    <div className="px-3 md:px-4">
+                        <div className="grid grid-cols-2 gap-2 md:gap-3">
                             {offers.map((offer) => (
                                 <div
                                     key={offer.id}
@@ -167,9 +167,9 @@ const MagazinePage = () => {
                                 >
                                     {/* Discount Badge */}
                                     {offer.discount_percentage && offer.discount_percentage > 0 && (
-                                        <div className="absolute top-2 right-2 z-10">
-                                            <div className="bg-[#EF4444] text-white px-3 py-1 rounded-full text-sm shadow-lg transform rotate-[-10deg] font-bold">
-                                                {offer.discount_percentage}% خصم
+                                        <div className="absolute top-1.5 right-1.5 z-10">
+                                            <div className="bg-[#EF4444] text-white px-2 py-0.5 rounded-full text-xs shadow-lg transform rotate-[-10deg] font-bold">
+                                                {offer.discount_percentage}%
                                             </div>
                                         </div>
                                     )}
@@ -182,11 +182,11 @@ const MagazinePage = () => {
                                     </div>
 
                                     {/* Product Image */}
-                                    <div className="relative pt-4 px-4">
+                                    <div className="relative pt-2 px-2 md:pt-4 md:px-4">
                                         <img
                                             src={offer.image}
                                             alt={offer.name}
-                                            className="w-full h-32 object-contain relative z-10"
+                                            className="w-full h-24 md:h-32 object-contain relative z-10"
                                             onError={(e) => {
                                                 (e.target as HTMLImageElement).src = 'https://placehold.co/300x300?text=Product';
                                             }}
@@ -194,22 +194,22 @@ const MagazinePage = () => {
                                     </div>
 
                                     {/* Product Info */}
-                                    <div className="p-3 relative">
-                                        <p className="text-[#23110C] mb-2 min-h-[2.5rem] text-sm font-semibold line-clamp-2">
+                                    <div className="p-2 md:p-3 relative">
+                                        <p className="text-[#23110C] mb-1.5 min-h-[2rem] md:min-h-[2.5rem] text-xs md:text-sm font-semibold line-clamp-2">
                                             {offer.name}
                                         </p>
                                         
                                         {/* Price Tag - Large and Bold */}
-                                        <div className="flex items-end justify-between mb-2">
+                                        <div className="flex items-end justify-between mb-1">
                                             <div>
-                                                <span className="text-[#F97316] text-3xl font-bold">
+                                                <span className="text-[#F97316] text-xl md:text-3xl font-bold">
                                                     {offer.price}
                                                 </span>
-                                                <span className="text-[#6B7280] text-sm mr-1">
+                                                <span className="text-[#6B7280] text-[10px] md:text-sm mr-1">
                                                     {offer.unit}
                                                 </span>
                                                 {offer.old_price && offer.old_price > offer.price && (
-                                                    <div className="text-[#9CA3AF] line-through text-xs">
+                                                    <div className="text-[#9CA3AF] line-through text-[10px] md:text-xs">
                                                         {offer.old_price} جنيه
                                                     </div>
                                                 )}
@@ -218,9 +218,9 @@ const MagazinePage = () => {
                                             {/* Quick Add Button */}
                                             <button 
                                                 onClick={() => handleAddToCart(offer)}
-                                                className="w-8 h-8 bg-[#F97316] rounded-full flex items-center justify-center shadow-lg hover:bg-[#ea580c] transition-all active:scale-95"
+                                                className="w-7 h-7 md:w-8 md:h-8 bg-[#F97316] rounded-full flex items-center justify-center shadow-lg hover:bg-[#ea580c] transition-all active:scale-95 flex-shrink-0"
                                             >
-                                                <Plus className="w-4 h-4 text-white" />
+                                                <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 text-white" />
                                             </button>
                                         </div>
                                     </div>
