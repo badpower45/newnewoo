@@ -117,24 +117,8 @@ const TopBar = () => {
                             </div>
                         </Link>
 
-                        {/* Mobile Actions */}
+                        {/* Mobile Actions - Only User Icon */}
                         <div className="flex md:hidden items-center gap-3">
-                            <Link to="/favorites" className="relative p-2">
-                                <Heart size={22} className="text-gray-600" />
-                                {favorites.length > 0 && (
-                                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full text-[10px] flex items-center justify-center text-white font-bold">
-                                        {favorites.length}
-                                    </span>
-                                )}
-                            </Link>
-                            <Link to="/cart" className="relative p-2">
-                                <ShoppingCart size={22} className="text-gray-600" />
-                                {totalItems > 0 && (
-                                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-primary rounded-full text-[10px] flex items-center justify-center text-white font-bold">
-                                        {totalItems}
-                                    </span>
-                                )}
-                            </Link>
                             <Link to={isAuthenticated ? '/profile' : '/login'} className="p-2">
                                 {isAuthenticated ? (
                                     <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold text-sm">

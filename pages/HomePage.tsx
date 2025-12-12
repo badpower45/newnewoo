@@ -279,9 +279,12 @@ const HomePage = () => {
                             <p className="text-sm">أجود أنواع الحلويات والشوكولاتة</p>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        {products.filter(p => p.category === 'حلويات').slice(0, 4).map(product => (
-                            <ProductCard key={product.id} product={product} />
+                    {/* Horizontal scroll on mobile, grid on desktop */}
+                    <div className="flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible">
+                        {products.filter(p => p.category === 'حلويات').slice(0, 8).map(product => (
+                            <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
+                                <ProductCard product={product} />
+                            </div>
                         ))}
                     </div>
                 </section>
@@ -302,9 +305,11 @@ const HomePage = () => {
                             <p className="text-sm">حليب وأجبان طازجة يومياً</p>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        {products.filter(p => p.category === 'ألبان').slice(0, 4).map(product => (
-                            <ProductCard key={product.id} product={product} />
+                    <div className="flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible">
+                        {products.filter(p => p.category === 'ألبان').slice(0, 8).map(product => (
+                            <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
+                                <ProductCard product={product} />
+                            </div>
                         ))}
                     </div>
                 </section>
@@ -325,9 +330,11 @@ const HomePage = () => {
                             <p className="text-sm">منتجات صحية ومغذية</p>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        {products.filter(p => p.category === 'صحي').slice(0, 4).map(product => (
-                            <ProductCard key={product.id} product={product} />
+                    <div className="flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible">
+                        {products.filter(p => p.category === 'صحي').slice(0, 8).map(product => (
+                            <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
+                                <ProductCard product={product} />
+                            </div>
                         ))}
                     </div>
                 </section>
@@ -348,9 +355,11 @@ const HomePage = () => {
                             <p className="text-sm">منتجات العناية والجمال</p>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        {products.filter(p => p.category === 'تجميل').slice(0, 4).map(product => (
-                            <ProductCard key={product.id} product={product} />
+                    <div className="flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible">
+                        {products.filter(p => p.category === 'تجميل').slice(0, 8).map(product => (
+                            <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
+                                <ProductCard product={product} />
+                            </div>
                         ))}
                     </div>
                 </section>
@@ -371,9 +380,11 @@ const HomePage = () => {
                             <p className="text-sm">جبن محلي ومستورد</p>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        {products.filter(p => p.category === 'جبن').slice(0, 4).map(product => (
-                            <ProductCard key={product.id} product={product} />
+                    <div className="flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible">
+                        {products.filter(p => p.category === 'جبن').slice(0, 8).map(product => (
+                            <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
+                                <ProductCard product={product} />
+                            </div>
                         ))}
                     </div>
                 </section>
@@ -394,9 +405,11 @@ const HomePage = () => {
                             <p className="text-sm">حلوى ملونة ولذيذة</p>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        {products.filter(p => p.category === 'كاندي').slice(0, 4).map(product => (
-                            <ProductCard key={product.id} product={product} />
+                    <div className="flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible">
+                        {products.filter(p => p.category === 'كاندي').slice(0, 8).map(product => (
+                            <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
+                                <ProductCard product={product} />
+                            </div>
                         ))}
                     </div>
                 </section>
@@ -417,9 +430,11 @@ const HomePage = () => {
                             <p className="text-sm">مشروبات باردة ومنعشة</p>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        {products.filter(p => p.category === 'مشروبات').slice(0, 4).map(product => (
-                            <ProductCard key={product.id} product={product} />
+                    <div className="flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible">
+                        {products.filter(p => p.category === 'مشروبات').slice(0, 8).map(product => (
+                            <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
+                                <ProductCard product={product} />
+                            </div>
                         ))}
                     </div>
                 </section>
@@ -440,9 +455,11 @@ const HomePage = () => {
                             <p className="text-sm">أطعمة مجمدة وآيس كريم</p>
                         </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        {products.filter(p => p.category === 'مجمدات').slice(0, 4).map(product => (
-                            <ProductCard key={product.id} product={product} />
+                    <div className="flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible">
+                        {products.filter(p => p.category === 'مجمدات').slice(0, 8).map(product => (
+                            <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
+                                <ProductCard product={product} />
+                            </div>
                         ))}
                     </div>
                 </section>
