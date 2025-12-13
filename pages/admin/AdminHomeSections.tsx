@@ -149,6 +149,22 @@ const AdminHomeSections = () => {
                     {editingSection ? 'تعديل القسم' : 'إضافة قسم جديد'}
                 </h2>
 
+                {/* Info Banner */}
+                <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-start gap-3">
+                        <span className="text-2xl">ℹ️</span>
+                        <div>
+                            <h3 className="font-semibold text-blue-900 mb-1">كيف يعمل القسم؟</h3>
+                            <p className="text-sm text-blue-800">
+                                • اختر <strong>الفئة (Category)</strong> من القائمة<br />
+                                • سيتم جلب المنتجات من هذه الفئة <strong>تلقائياً</strong><br />
+                                • حدد عدد المنتجات التي تريد عرضها (4-20 منتج)<br />
+                                • سيتم عرض أحدث المنتجات المتوفرة من الفئة المحددة
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {/* English Name */}
@@ -185,6 +201,9 @@ const AdminHomeSections = () => {
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 الفئة
+                                <span className="text-xs text-green-600 font-normal mr-2">
+                                    ✨ سيتم عرض المنتجات من هذه الفئة تلقائياً
+                                </span>
                             </label>
                             <select
                                 required
@@ -200,6 +219,9 @@ const AdminHomeSections = () => {
                                     </option>
                                 ))}
                             </select>
+                            <p className="mt-1 text-xs text-gray-500">
+                                💡 سيتم جلب أحدث {formData.max_products} منتج من الفئة المحددة تلقائياً
+                            </p>
                         </div>
 
                         {/* Max Products */}
