@@ -17,6 +17,7 @@ const AdminHomeSections = () => {
     });
 
     useEffect(() => {
+        console.log('🚀 AdminHomeSections mounted - starting data fetch');
         fetchSections();
         fetchCategories();
     }, []);
@@ -34,15 +35,27 @@ const AdminHomeSections = () => {
     };
 
     const fetchCategories = async () => {
+        console.log('🔴 START: fetchCategories called');
+        
         try {
-            console.log('🔍 Fetching categories...');
-            const response = await api.categories.getAllAdmin();
-            console.log('📦 Categories response:', response);
+            console.log('🔍 Fetching categories from API...');
             
-            // API returns {success: true, data: [...]}
+            // Try getAllAdmin first
+            let response;
+            try {
+                response = await api.categories.getAllAdmin();
+                console.log('📦 getAllAdmin response:', response);
+            } catch (adminError) {
+                console.warn('⚠️ getAllAdmin failed, trying getAll:', adminError);
+                response = await api.categories.getAll();
+                console.log('📦 getAll response:', response);
+            }
+            
+            // Handle different response formats
             const categoriesData = response?.data || response || [];
+            console.log('📦 Categories data extracted:', categoriesData);
             
-            if (Array.isArray(categoriesData)) {
+            if (Array.isArray(categoriesData) && categoriesData.length > 0) {
                 // Convert categories data to format expected by the dropdown
                 const formattedCategories = categoriesData
                     .filter(cat => !cat.parent_id) // Only main categories, not subcategories
@@ -53,15 +66,41 @@ const AdminHomeSections = () => {
                         icon: cat.icon
                     }));
                 
-                console.log('✅ Formatted categories:', formattedCategories);
+                console.log('✅ Formatted categories (' + formattedCategories.length + '):', formattedCategories);
                 setCategories(formattedCategories);
             } else {
-                console.warn('⚠️ Categories data is not an array:', categoriesData);
-                setCategories([]);
+                console.warn('⚠️ No categories found, using fallback');
+                // Fallback categories from products
+                const fallbackCategories = [
+                    { category: 'بقالة', categoryName: 'بقالة', product_count: 0, icon: '🛒' },
+                    { category: 'ألبان', categoryName: 'ألبان', product_count: 0, icon: '🥛' },
+                    { category: 'مشروبات', categoryName: 'مشروبات', product_count: 0, icon: '🥤' },
+                    { category: 'سناكس', categoryName: 'سناكس', product_count: 0, icon: '🍿' },
+                    { category: 'حلويات', categoryName: 'حلويات', product_count: 0, icon: '🍫' },
+                    { category: 'زيوت', categoryName: 'زيوت', product_count: 0, icon: '🫏' },
+                    { category: 'منظفات', categoryName: 'منظفات', product_count: 0, icon: '🧹' },
+                    { category: 'عناية شخصية', categoryName: 'عناية شخصية', product_count: 0, icon: '🧼' }
+                ];
+                setCategories(fallbackCategories);
             }
         } catch (error) {
-            console.error('❌ Error fetching categories:', error);
-            setCategories([]);
+            console.error('❌ Fatal error in fetchCategories:', error);
+            console.error('Error stack:', error.stack);
+            
+            // Set fallback categories on error
+            const fallbackCategories = [
+                { category: 'بقالة', categoryName: 'بقالة', product_count: 0, icon: '🛒' },
+                { category: 'ألبان', categoryName: 'ألبان', product_count: 0, icon: '🥛' },
+                { category: 'مشروبات', categoryName: 'مشروبات', product_count: 0, icon: '🥤' },
+                { category: 'سناكس', categoryName: 'سناكس', product_count: 0, icon: '🍿' },
+                { category: 'حلويات', categoryName: 'حلويات', product_count: 0, icon: '🍫' },
+                { category: 'زيوت', categoryName: 'زيوت', product_count: 0, icon: '🫏' },
+                { category: 'منظفات', categoryName: 'منظفات', product_count: 0, icon: '🧹' },
+                { category: 'عناية شخصية', categoryName: 'عناية شخصية', product_count: 0, icon: '🧼' }
+            ];
+            setCategories(fallbackCategories);
+        } finally {
+            console.log('🔴 END: fetchCategories completed');
         }
     };
 

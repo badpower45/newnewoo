@@ -1064,15 +1064,18 @@ export const api = {
     categories: {
         // Get all active categories
         getAll: async () => {
+            console.log('📡 Calling API: GET /categories');
             const res = await fetch(`${API_URL}/categories`, {
                 headers: getHeaders()
             });
+            console.log('📡 Response status:', res.status);
             if (!res.ok) {
                 throw new Error('Failed to fetch categories');
             }
             const json = await res.json();
+            console.log('📡 Response data:', json);
             // API returns {success: true, data: [...]}
-            return json.data || json;
+            return json;
         },
 
         // Get single category
@@ -1093,10 +1096,18 @@ export const api = {
 
         // Admin: Get all categories (including inactive)
         getAllAdmin: async () => {
+            console.log('📡 Calling API: GET /categories/admin/all');
             const res = await fetch(`${API_URL}/categories/admin/all`, {
                 headers: getHeaders()
             });
-            return res.json();
+            console.log('📡 Admin categories response status:', res.status);
+            if (!res.ok) {
+                console.error('❌ Admin categories API failed:', res.status, res.statusText);
+                throw new Error(`Failed to fetch admin categories: ${res.status}`);
+            }
+            const json = await res.json();
+            console.log('📡 Admin categories data:', json);
+            return json;
         },
 
         // Admin: Create category
