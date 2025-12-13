@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, LogOut, ChevronLeft, Edit2, Phone, Save, X, Camera, LayoutDashboard, Truck, ClipboardList, Headphones, Package, Gift } from 'lucide-react';
+import { User, Mail, LogOut, ChevronLeft, Edit2, Phone, Save, X, Camera, LayoutDashboard, Truck, ClipboardList, Headphones, Package, Gift, MapPin } from 'lucide-react';
 import { api } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Footer from '../components/Footer';
@@ -389,6 +389,28 @@ const ProfilePage = () => {
                         </div>
                         <h3 className="font-bold text-gray-900 text-sm">نقاط الولاء</h3>
                         <p className="text-xs text-gray-500 mt-1">اجمع النقاط</p>
+                    </button>
+
+                    <button
+                        onClick={() => navigate('/addresses')}
+                        className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow text-center"
+                    >
+                        <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mx-auto mb-2">
+                            <MapPin size={24} />
+                        </div>
+                        <h3 className="font-bold text-gray-900 text-sm">عناويني</h3>
+                        <p className="text-xs text-gray-500 mt-1">إدارة العناوين</p>
+                    </button>
+
+                    <button
+                        onClick={() => navigate('/branches')}
+                        className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow text-center"
+                    >
+                        <div className="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center mx-auto mb-2">
+                            <MapPin size={24} />
+                        </div>
+                        <h3 className="font-bold text-gray-900 text-sm">فروعنا</h3>
+                        <p className="text-xs text-gray-500 mt-1">مواقع الفروع</p>
                     </button>
                 </div>
 

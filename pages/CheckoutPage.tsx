@@ -4,6 +4,7 @@ import { useBranch } from '../context/BranchContext';
 import { ArrowLeft, MapPin, Loader, CheckCircle, Tag, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import SubstitutionSelector from '../components/SubstitutionSelector';
+import SavedAddressSelector from '../components/SavedAddressSelector';
 import Footer from '../components/Footer';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -329,6 +330,39 @@ export default function CheckoutPage() {
                         {isPickup && (
                             <p className="text-sm text-green-700 mb-4">لا نحتاج عنوان؛ فقط الاسم ورقم الهاتف، وسيتم تجهيز الطلب في الفرع المحدد.</p>
                         )}
+                        
+                        {/* Saved Addresses - Show only if NOT pickup */}
+                        {!isPickup && user && (
+                            <div className="mb-6 p-4 bg-purple-50 rounded-xl border border-purple-200">
+                                <div className="flex items-center justify-between mb-3">
+                                    <h4 className="font-bold text-gray-900">العناوين المحفوظة</h4>
+                                    <button
+                                        type="button"
+                                        onClick={() => navigate('/addresses')}
+                                        className="text-sm text-purple-600 hover:underline font-medium"
+                                    >
+                                        إدارة العناوين
+                                    </button>
+                                </div>
+                                <SavedAddressSelector 
+                                    userId={user.id}
+                                    onSelect={(address: any) => {
+                                        setFormData({
+                                            firstName: address.full_name?.split(' ')[0] || '',
+                                            lastName: address.full_name?.split(' ').slice(1).join(' ') || '',
+                                            phone: address.phone || '',
+                                            building: address.building || '',
+                                            street: address.street || '',
+                                            floor: address.floor || '',
+                                            apartment: address.apartment || '',
+                                            address: `${address.governorate}, ${address.city}, ${address.area || ''}`,
+                                            notes: address.notes || ''
+                                        });
+                                    }}
+                                />
+                            </div>
+                        )}
+                        
                         <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
