@@ -184,15 +184,24 @@ const ProductsManager = () => {
             };
             
             if (editing) {
-                await api.products.update(editing.id, productData);
+                const result = await api.products.update(editing.id, productData);
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+                alert('✅ تم تعديل المنتج بنجاح');
             } else {
-                await api.products.create(productData);
+                const result = await api.products.create(productData);
+                if (result.error) {
+                    throw new Error(result.message || result.error);
+                }
+                alert('✅ تم إضافة المنتج بنجاح');
             }
             setShowModal(false);
             loadProducts();
-        } catch (err) {
+        } catch (err: any) {
             console.error('Failed to save product', err);
-            alert('فشل حفظ المنتج');
+            const errorMessage = err.message || 'فشل حفظ المنتج';
+            alert('❌ ' + errorMessage);
         }
     };
 

@@ -139,7 +139,11 @@ export const api = {
                 headers: getHeaders(),
                 body: JSON.stringify(data)
             });
-            return res.json();
+            const result = await res.json();
+            if (!res.ok) {
+                throw new Error(result.message || result.error || 'فشل إنشاء المنتج');
+            }
+            return result;
         },
         update: async (id: string, data: any) => {
             const res = await fetch(`${API_URL}/products/${id}`, {
@@ -147,7 +151,11 @@ export const api = {
                 headers: getHeaders(),
                 body: JSON.stringify(data)
             });
-            return res.json();
+            const result = await res.json();
+            if (!res.ok) {
+                throw new Error(result.message || result.error || 'فشل تحديث المنتج');
+            }
+            return result;
         },
         upload: async (formData: FormData) => {
             const res = await fetch(`${API_URL}/products/upload`, {
