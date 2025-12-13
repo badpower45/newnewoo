@@ -223,27 +223,34 @@ const HotDealsPage = () => {
                         </div>
                     )}
 
-                    {/* Deals Grid */}
+                    {/* Deals Grid - Hot Style */}
                     <div className="px-4 mt-6">
                         <div className="grid grid-cols-2 gap-4">
                             {deals.map((deal) => (
                                 <div
                                     key={deal.id}
-                                    className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all relative"
+                                    className="bg-gradient-to-br from-orange-50 to-red-50 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all relative border-2 border-orange-200"
                                 >
-                                    {/* Discount Badge */}
+                                    {/* Hot Badge */}
                                     <div className="absolute top-2 right-2 z-10">
-                                        <div className="bg-[#EF4444] text-white px-3 py-1.5 rounded-full shadow-lg font-bold">
+                                        <div className="bg-gradient-to-r from-red-600 to-orange-600 text-white px-3 py-1.5 rounded-full shadow-lg font-bold flex items-center gap-1">
+                                            <Flame className="w-3 h-3 animate-pulse" />
                                             -{deal.discount_percentage}%
                                         </div>
                                     </div>
 
+                                    {/* Flame decoration */}
+                                    <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden opacity-10">
+                                        <Flame className="absolute top-2 left-2 w-8 h-8 text-orange-500 transform rotate-12" />
+                                        <Flame className="absolute bottom-4 right-4 w-6 h-6 text-red-500 transform -rotate-12" />
+                                    </div>
+
                                     {/* Product Image */}
-                                    <div className="bg-[#F9FAFB] p-4">
+                                    <div className="bg-white/60 backdrop-blur-sm p-4 relative">
                                         <img
                                             src={deal.image}
                                             alt={deal.name}
-                                            className="w-full h-32 object-contain"
+                                            className="w-full h-32 object-contain transform hover:scale-105 transition-transform"
                                             onError={(e) => {
                                                 (e.target as HTMLImageElement).src = 'https://placehold.co/200x200?text=Product';
                                             }}
@@ -251,45 +258,53 @@ const HotDealsPage = () => {
                                     </div>
 
                                     {/* Product Info */}
-                                    <div className="p-3">
-                                        <p className="text-[#23110C] mb-2 min-h-[2.5rem] text-sm line-clamp-2 font-semibold">
+                                    <div className="p-3 bg-white/80 backdrop-blur-sm relative">
+                                        <p className="text-[#23110C] mb-2 min-h-[2.5rem] text-sm line-clamp-2 font-bold">
                                             {deal.name}
                                         </p>
                                         
                                         <div className="mb-2">
                                             <div className="flex items-center gap-2">
-                                                <span className="text-[#F97316] text-xl font-bold">
+                                                <span className="text-red-600 text-xl font-black">
                                                     {deal.price}
                                                 </span>
-                                                <span className="text-[#9CA3AF] text-sm">جنيه</span>
+                                                <span className="text-gray-500 text-sm font-medium">جنيه</span>
                                             </div>
-                                            <span className="text-[#9CA3AF] line-through text-sm">
-                                                {deal.old_price} جنيه
-                                            </span>
+                                            <div className="flex items-center gap-1">
+                                                <span className="text-gray-400 line-through text-sm">
+                                                    {deal.old_price}
+                                                </span>
+                                                <span className="text-xs text-green-600 font-bold bg-green-100 px-2 py-0.5 rounded-full">
+                                                    وفر {(deal.old_price - deal.price).toFixed(0)} ج.م
+                                                </span>
+                                            </div>
                                         </div>
 
-                                        {/* Stock Bar */}
+                                        {/* Stock Bar with Fire Effect */}
                                         <div className="mb-2">
-                                            <div className="w-full bg-[#F3F4F6] rounded-full h-1.5 overflow-hidden">
+                                            <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden shadow-inner">
                                                 <div
                                                     className={`h-full rounded-full transition-all ${
-                                                        deal.sold_percentage > 80 ? 'bg-[#EF4444]' : 'bg-[#F97316]'
+                                                        deal.sold_percentage > 80 
+                                                            ? 'bg-gradient-to-r from-red-600 to-red-500 animate-pulse' 
+                                                            : 'bg-gradient-to-r from-orange-500 to-red-500'
                                                     }`}
                                                     style={{ width: `${deal.sold_percentage}%` }}
                                                 />
                                             </div>
                                         </div>
-                                        <p className="text-[#6B7280] text-xs mb-3">
-                                            تم البيع: {deal.sold_percentage}%
+                                        <p className="text-gray-700 text-xs mb-3 font-semibold flex items-center gap-1">
+                                            🔥 تم البيع: {deal.sold_percentage}% 
+                                            {deal.sold_percentage > 80 && <span className="text-red-600 animate-pulse">• نفذت تقريباً!</span>}
                                         </p>
 
-                                        {/* Add Button */}
+                                        {/* Add Button - Hot Style */}
                                         <button 
                                             onClick={() => handleAddToCart(deal)}
-                                            className="w-full py-2 bg-[#F97316] text-white rounded-full flex items-center justify-center gap-2 shadow-md hover:bg-[#ea580c] transition-all active:scale-95"
+                                            className="w-full py-2.5 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-full flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:from-orange-700 hover:to-red-700 transition-all active:scale-95 font-bold"
                                         >
                                             <Plus className="w-4 h-4" />
-                                            <span className="font-semibold">أضف للسلة</span>
+                                            <span>اشتري الآن</span>
                                         </button>
                                     </div>
                                 </div>

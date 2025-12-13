@@ -163,64 +163,81 @@ const MagazinePage = () => {
                             {offers.map((offer) => (
                                 <div
                                     key={offer.id}
-                                    className="relative bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all"
+                                    className="relative bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl transition-all border border-orange-100"
                                 >
                                     {/* Discount Badge */}
                                     {offer.discount_percentage && offer.discount_percentage > 0 && (
                                         <div className="absolute top-1.5 right-1.5 z-10">
-                                            <div className="bg-[#EF4444] text-white px-2 py-0.5 rounded-full text-xs shadow-lg transform rotate-[-10deg] font-bold">
+                                            <div className="bg-gradient-to-br from-orange-600 to-red-600 text-white px-2 py-0.5 rounded-full text-xs shadow-lg transform rotate-[-10deg] font-bold flex items-center gap-1">
+                                                <span>📖</span>
                                                 {offer.discount_percentage}%
                                             </div>
                                         </div>
                                     )}
 
-                                    {/* Explosive Background Shape */}
-                                    <div className={`absolute inset-0 bg-gradient-to-br ${offer.bg_color || 'from-orange-500 to-orange-600'} opacity-5`}>
-                                        <svg viewBox="0 0 100 100" className="w-full h-full">
-                                            <polygon points="50,5 60,35 90,35 65,55 75,85 50,65 25,85 35,55 10,35 40,35" fill="currentColor" />
-                                        </svg>
+                                    {/* Magazine Page Corner Fold Effect */}
+                                    <div className="absolute top-0 left-0 w-0 h-0 border-t-[20px] border-t-orange-200 border-r-[20px] border-r-transparent z-10"></div>
+
+                                    {/* Decorative Magazine Background */}
+                                    <div className={`absolute inset-0 bg-gradient-to-br ${offer.bg_color || 'from-orange-50 to-yellow-50'} opacity-20`}>
+                                        {/* Magazine page lines decoration */}
+                                        <div className="absolute top-4 left-2 right-2 space-y-1 opacity-30">
+                                            <div className="h-0.5 bg-orange-300 w-3/4"></div>
+                                            <div className="h-0.5 bg-orange-300 w-1/2"></div>
+                                        </div>
                                     </div>
 
                                     {/* Product Image */}
                                     <div className="relative pt-2 px-2 md:pt-4 md:px-4">
-                                        <img
-                                            src={offer.image}
-                                            alt={offer.name}
-                                            className="w-full h-24 md:h-32 object-contain relative z-10"
-                                            onError={(e) => {
-                                                (e.target as HTMLImageElement).src = 'https://placehold.co/300x300?text=Product';
-                                            }}
-                                        />
+                                        <div className="bg-white/50 backdrop-blur-sm rounded-xl p-1">
+                                            <img
+                                                src={offer.image}
+                                                alt={offer.name}
+                                                className="w-full h-24 md:h-32 object-contain relative z-10"
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).src = 'https://placehold.co/300x300?text=Product';
+                                                }}
+                                            />
+                                        </div>
                                     </div>
 
                                     {/* Product Info */}
                                     <div className="p-2 md:p-3 relative">
-                                        <p className="text-[#23110C] mb-1.5 min-h-[2rem] md:min-h-[2.5rem] text-xs md:text-sm font-semibold line-clamp-2">
+                                        <p className="text-[#23110C] mb-1.5 min-h-[2rem] md:min-h-[2.5rem] text-xs md:text-sm font-bold line-clamp-2">
                                             {offer.name}
                                         </p>
                                         
-                                        {/* Price Tag - Large and Bold */}
+                                        {/* Price Tag - Large and Bold with Magazine Style */}
                                         <div className="flex items-end justify-between mb-1">
                                             <div>
-                                                <span className="text-[#F97316] text-xl md:text-3xl font-bold">
-                                                    {offer.price}
-                                                </span>
-                                                <span className="text-[#6B7280] text-[10px] md:text-sm mr-1">
-                                                    {offer.unit}
-                                                </span>
+                                                <div className="flex items-baseline gap-1">
+                                                    <span className="text-orange-600 text-xl md:text-3xl font-black">
+                                                        {offer.price}
+                                                    </span>
+                                                    <span className="text-gray-500 text-[10px] md:text-sm font-semibold">
+                                                        {offer.unit}
+                                                    </span>
+                                                </div>
                                                 {offer.old_price && offer.old_price > offer.price && (
-                                                    <div className="text-[#9CA3AF] line-through text-[10px] md:text-xs">
-                                                        {offer.old_price} جنيه
+                                                    <div className="flex items-center gap-1">
+                                                        <span className="text-gray-400 line-through text-[10px] md:text-xs">
+                                                            {offer.old_price} ج.م
+                                                        </span>
+                                                        <span className="text-[9px] text-green-600 font-bold bg-green-100 px-1 py-0.5 rounded">
+                                                            وفر {(offer.old_price - offer.price).toFixed(0)}
+                                                        </span>
                                                     </div>
                                                 )}
                                             </div>
                                             
-                                            {/* Quick Add Button */}
+                                            {/* Quick Add Button - Magazine Style */}
                                             <button 
                                                 onClick={() => handleAddToCart(offer)}
-                                                className="w-7 h-7 md:w-8 md:h-8 bg-[#F97316] rounded-full flex items-center justify-center shadow-lg hover:bg-[#ea580c] transition-all active:scale-95 flex-shrink-0"
+                                                className="w-7 h-7 md:w-9 md:h-9 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg hover:shadow-xl hover:from-orange-600 hover:to-orange-700 transition-all active:scale-95 flex-shrink-0 relative group"
                                             >
-                                                <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 text-white" />
+                                                <Plus className="w-3.5 h-3.5 md:w-5 md:h-5 text-white font-bold" />
+                                                {/* Ripple effect */}
+                                                <span className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 transition-opacity"></span>
                                             </button>
                                         </div>
                                     </div>

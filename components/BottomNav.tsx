@@ -32,7 +32,7 @@ const BottomNav = () => {
                         >
                             <div className="relative">
                                 <item.icon size={24} strokeWidth={isActive ? 2.5 : 2} />
-                                {item.badge && item.badge > 0 && (
+                                {item.badge !== undefined && item.badge > 0 && (
                                     <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full text-[9px] flex items-center justify-center text-white font-bold">
                                         {item.badge}
                                     </span>
