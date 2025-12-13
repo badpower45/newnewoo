@@ -185,6 +185,9 @@ const HomePage = () => {
                 {/* Featured Brands Carousel */}
                 <BrandsCarousel title="براندات مميزة" />
 
+                {/* Brand Offers Section */}
+                <BrandOffersSection />
+
                 {/* Desktop Grid for Banners */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {/* Login Banner - Only show if not authenticated */}

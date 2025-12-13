@@ -296,6 +296,15 @@ export const api = {
             });
             if (!res.ok) throw new Error('Failed to fetch profile');
             return res.json();
+        },
+        updateProfile: async (data: any) => {
+            const res = await fetch(`${API_URL}/users/profile`, {
+                method: 'PUT',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            if (!res.ok) throw new Error('Failed to update profile');
+            return res.json();
         }
     },
     chat: {

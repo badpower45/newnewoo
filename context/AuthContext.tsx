@@ -7,6 +7,7 @@ interface User {
     id: string;
     name: string;
     email: string;
+    phone?: string;
     role?: string;
     isGuest?: boolean;
     loyaltyPoints?: number;
@@ -20,6 +21,7 @@ interface AuthContextType {
     register: (data: any) => Promise<User>;
     loginAsGuest: () => User;
     logout: () => void;
+    updateUser: (userData: Partial<User>) => void;
     isAuthenticated: boolean;
 }
 
@@ -140,8 +142,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     };
 
+    const updateUser = (userData: Partial<User>) => {
+        if (user) {
+            const updatedUser = { ...user, ...userData };
+            setUser(updatedUser);
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+        }
+    };
+
     return (
-        <AuthContext.Provider value={{ user, loading, login, register, loginAsGuest, logout, isAuthenticated: !!user }}>
+        <AuthContext.Provider value={{ user, loading, login, register, loginAsGuest, logout, updateUser, isAuthenticated: !!user }}>
             {children}
         </AuthContext.Provider>
     );
