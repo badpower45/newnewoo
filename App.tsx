@@ -87,18 +87,31 @@ import DebugPanel from './components/DebugPanel';
 import LottieLoader from './components/LottieLoader';
 
 function AppContent() {
-  const [showLoader, setShowLoader] = React.useState(true);
+  const [showSplash, setShowSplash] = React.useState(true);
+  const [appReady, setAppReady] = React.useState(false);
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
 
+  React.useEffect(() => {
+    // Splash screen timing
+    const timer = setTimeout(() => {
+      setShowSplash(false);
+      setAppReady(true);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Show splash screen on first load
+  if (showSplash) {
+    return <SplashScreen />;
+  }
+
   return (
     <>
-      {showLoader && <LottieLoader onComplete={() => setShowLoader(false)} duration={2500} />}
       <div className="min-h-screen bg-gray-50 font-sans text-slate-900 relative flex flex-col">
         <main className={`flex-grow ${!isAdminRoute ? 'pb-16 md:pb-0' : ''}`}>
         <div className={!isAdminRoute ? "max-w-7xl mx-auto w-full" : "w-full"}>
           <Routes>
-            <Route path="/splash" element={<SplashScreen />} />
             <Route path="/" element={<HomePage />} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/product/:id" element={<ProductDetailsPage />} />
@@ -165,7 +178,7 @@ function AppContent() {
           </Routes>
         </div>
       </main>
-      {!isAdminRoute && location.pathname !== '/splash' && (
+      {!isAdminRoute && appReady && (
         <div className="md:hidden">
           <BottomNav />
         </div>

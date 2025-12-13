@@ -473,17 +473,41 @@ export default function CheckoutPage() {
                     <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
                         <h3 className="text-xl font-bold text-slate-800 mb-4">طريقة الدفع</h3>
                         <div className="space-y-3">
-                            <label className="flex items-center p-4 border-2 rounded-xl cursor-pointer hover:border-green-600 transition">
+                            {/* Cash on Delivery */}
+                            <label className={`flex items-center p-4 border-2 rounded-xl transition ${!isPickup ? 'cursor-pointer hover:border-green-600' : 'opacity-50 cursor-not-allowed'}`}>
                                 <input
                                     type="radio"
                                     name="payment"
                                     value="cod"
                                     checked={paymentMethod === 'cod'}
                                     onChange={(e) => setPaymentMethod(e.target.value)}
+                                    disabled={isPickup}
                                     className="w-5 h-5 text-green-600"
                                 />
-                                <span className="mr-3 font-medium">{PAYMENT_METHOD_LABELS.cod}</span>
+                                <div className="mr-3">
+                                    <div className="font-medium">{PAYMENT_METHOD_LABELS.cod}</div>
+                                    <div className="text-sm text-slate-500">ادفع نقداً عند استلام الطلب</div>
+                                </div>
                             </label>
+
+                            {/* Visa on Delivery */}
+                            <label className={`flex items-center p-4 border-2 rounded-xl transition ${!isPickup ? 'cursor-pointer hover:border-green-600' : 'opacity-50 cursor-not-allowed'}`}>
+                                <input
+                                    type="radio"
+                                    name="payment"
+                                    value="visa"
+                                    checked={paymentMethod === 'visa'}
+                                    onChange={(e) => setPaymentMethod(e.target.value)}
+                                    disabled={isPickup}
+                                    className="w-5 h-5 text-green-600"
+                                />
+                                <div className="mr-3">
+                                    <div className="font-medium">{PAYMENT_METHOD_LABELS.visa}</div>
+                                    <div className="text-sm text-slate-500">سيحضر مندوب التوصيل بماكينة الفيزا</div>
+                                </div>
+                            </label>
+
+                            {/* Branch Pickup */}
                             <label className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition ${isPickup ? 'border-green-600 bg-green-50' : 'hover:border-green-600'}`}>
                                 <input
                                     type="radio"
@@ -493,8 +517,13 @@ export default function CheckoutPage() {
                                     onChange={(e) => setPaymentMethod(e.target.value)}
                                     className="w-5 h-5 text-green-600"
                                 />
-                                <span className="mr-3 font-medium">{PAYMENT_METHOD_LABELS.branch_pickup}</span>
+                                <div className="mr-3">
+                                    <div className="font-medium">{PAYMENT_METHOD_LABELS.branch_pickup}</div>
+                                    <div className="text-sm text-slate-500">احضر للفرع وادفع عند الاستلام</div>
+                                </div>
                             </label>
+
+                            {/* Fawry - Coming Soon */}
                             <label className="flex items-center p-4 border-2 rounded-xl cursor-pointer hover:border-green-600 transition opacity-50">
                                 <input
                                     type="radio"

@@ -103,7 +103,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
     }
     if (user && !user.isGuest) {
-      // Optimistic update with proper state handling
+      // Optimistic update with smooth animation
       setItems(prev => {
         const existing = prev.find(item => String(item.id) === String(product.id));
         if (existing) {
@@ -116,20 +116,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
         return [...prev, { ...product, quantity, substitutionPreference }];
       });
 
-      try {
-        await api.cart.add({ 
-          userId: user.id, 
-          productId: String(product.id), 
-          quantity,
-          substitutionPreference 
-        });
-        // Sync to get accurate counts from server
-        setTimeout(() => syncCart(), 100);
-      } catch (err) {
+      // Add to cart in background without blocking UI
+      api.cart.add({ 
+        userId: user.id, 
+        productId: String(product.id), 
+        quantity,
+        substitutionPreference 
+      }).then(() => {
+        // Debounced sync - only sync after 300ms of no activity
+        if (window.cartSyncTimeout) clearTimeout(window.cartSyncTimeout);
+        window.cartSyncTimeout = setTimeout(() => syncCart(), 300);
+      }).catch(err => {
         console.error("Failed to add to cart", err);
-        // Revert on error
-        await syncCart();
-      }
+        syncCart(); // Revert on error
+      });
     } else {
       setItems(prev => {
         const existing = prev.find(item => String(item.id) === String(product.id));
@@ -189,6 +189,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
 
     if (user && !user.isGuest) {
+      // Immediate optimistic update
       setItems(prev =>
         prev.map(item =>
           item.id === productId 
@@ -196,17 +197,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
             : item
         )
       );
-      try {
-        await api.cart.update({ 
-          userId: user.id, 
-          productId: String(productId), 
-          quantity,
-          ...(substitutionPreference && { substitutionPreference })
-        });
-      } catch (err) {
-        console.error("Failed to update quantity", err);
-        await syncCart(); // Revert on error
-      }
+      
+      // Debounced API call - wait for user to finish clicking
+      if (window.quantityUpdateTimeout) clearTimeout(window.quantityUpdateTimeout);
+      window.quantityUpdateTimeout = setTimeout(async () => {
+        try {
+          await api.cart.update({ 
+            userId: user.id, 
+            productId: String(productId), 
+            quantity,
+            ...(substitutionPreference && { substitutionPreference })
+          });
+        } catch (err) {
+          console.error("Failed to update quantity", err);
+          syncCart(); // Revert on error
+        }
+      }, 500); // Wait 500ms after last click
     } else {
       setItems(prev =>
         prev.map(item =>

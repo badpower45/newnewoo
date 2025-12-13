@@ -23,18 +23,73 @@ const BranchesPage = () => {
     const [branches, setBranches] = useState<Branch[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedGovernorate, setSelectedGovernorate] = useState<string>('all');
+    const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+    const [nearestBranch, setNearestBranch] = useState<Branch | null>(null);
 
     useEffect(() => {
         fetchBranches();
+        getUserLocation();
     }, []);
+
+    const getUserLocation = () => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    setUserLocation({
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    });
+                },
+                (error) => console.error('Error getting location:', error)
+            );
+        }
+    };
+
+    const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+        const R = 6371; // Radius of Earth in km
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = 
+            Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    };
+
+    useEffect(() => {
+        if (userLocation && branches.length > 0) {
+            let nearest = branches[0];
+            let minDistance = Infinity;
+
+            branches.forEach(branch => {
+                if (branch.latitude && branch.longitude) {
+                    const distance = calculateDistance(
+                        userLocation.lat,
+                        userLocation.lng,
+                        branch.latitude,
+                        branch.longitude
+                    );
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        nearest = { ...branch, distance };
+                    }
+                }
+            });
+
+            setNearestBranch({ ...nearest, distance: minDistance } as any);
+        }
+    }, [userLocation, branches]);
 
     const fetchBranches = async () => {
         try {
             setLoading(true);
             const response = await api.get('/branches');
-            setBranches(response.filter((b: Branch) => b.is_active));
+            const branchData = response.data || response || [];
+            setBranches(branchData.filter((b: Branch) => b.is_active));
         } catch (error) {
             console.error('Error fetching branches:', error);
+            setBranches([]);
         } finally {
             setLoading(false);
         }
@@ -90,6 +145,29 @@ const BranchesPage = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Nearest Branch Alert */}
+            {nearestBranch && userLocation && (
+                <div className="mx-4 mt-4 p-4 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl text-white shadow-lg">
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                            <Navigation size={20} />
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium opacity-90">أقرب فرع إليك</p>
+                            <p className="text-lg font-bold">{nearestBranch.name}</p>
+                        </div>
+                    </div>
+                    <p className="text-sm opacity-90 mb-2">
+                        📍 {nearestBranch.address}, {nearestBranch.city}
+                    </p>
+                    {(nearestBranch as any).distance && (
+                        <p className="text-sm font-semibold">
+                            المسافة: {((nearestBranch as any).distance).toFixed(1)} كم
+                        </p>
+                    )}
+                </div>
+            )}
 
             {/* Governorate Filter */}
             <div className="bg-white border-b p-4">

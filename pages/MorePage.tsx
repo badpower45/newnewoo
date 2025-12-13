@@ -67,14 +67,6 @@ const MorePage = () => {
             requireAuth: true
         },
         {
-            icon: MapPin,
-            label: 'العناوين',
-            iconBg: 'bg-red-100',
-            iconColor: 'text-red-600',
-            route: '/addresses',
-            requireAuth: true
-        },
-        {
             icon: Globe,
             label: 'تغيير اللغة',
             iconBg: 'bg-cyan-100',

@@ -108,7 +108,8 @@ export const PAYMENT_METHODS = {
 } as const;
 
 export const PAYMENT_METHOD_LABELS: Record<string, string> = {
-  cod: 'الدفع عند الاستلام',
+  cod: 'الدفع عند الاستلام (كاش)',
+  visa: 'الدفع بالفيزا عند التوصيل',
   fawry: 'Fawry',
   card: 'بطاقة ائتمان',
   branch_pickup: 'تحضير في الفرع (استلام ذاتي)'
