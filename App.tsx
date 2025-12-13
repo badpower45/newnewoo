@@ -71,6 +71,7 @@ import MyOrdersPage from './pages/MyOrdersPage';
 import LoyaltyPage from './pages/LoyaltyPage';
 import AddressesPage from './pages/AddressesPage';
 import BranchesPage from './pages/BranchesPage';
+import SplashScreen from './pages/SplashScreen';
 
 // Premium Brand Pages
 import PepsiBrandPage from './pages/brands/PepsiBrandPage';
@@ -97,6 +98,7 @@ function AppContent() {
         <main className={`flex-grow ${!isAdminRoute ? 'pb-16 md:pb-0' : ''}`}>
         <div className={!isAdminRoute ? "max-w-7xl mx-auto w-full" : "w-full"}>
           <Routes>
+            <Route path="/splash" element={<SplashScreen />} />
             <Route path="/" element={<HomePage />} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/product/:id" element={<ProductDetailsPage />} />
@@ -163,7 +165,7 @@ function AppContent() {
           </Routes>
         </div>
       </main>
-      {!isAdminRoute && (
+      {!isAdminRoute && location.pathname !== '/splash' && (
         <div className="md:hidden">
           <BottomNav />
         </div>

@@ -24,9 +24,10 @@ const AdminHomeSections = () => {
     const fetchSections = async () => {
         try {
             const response = await api.get('/home-sections');
-            setSections(response.data);
+            setSections(response.data || []);
         } catch (error) {
             console.error('Error fetching sections:', error);
+            setSections([]);
         } finally {
             setLoading(false);
         }
@@ -35,9 +36,10 @@ const AdminHomeSections = () => {
     const fetchCategories = async () => {
         try {
             const response = await api.get('/products/categories');
-            setCategories(response.data);
+            setCategories(response.data || []);
         } catch (error) {
             console.error('Error fetching categories:', error);
+            setCategories([]);
         }
     };
 
