@@ -180,6 +180,18 @@ const ProductsManager = () => {
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // Validation
+        if (!form.name || form.name.trim() === '') {
+            alert('❌ يرجى إدخال اسم المنتج');
+            return;
+        }
+        
+        if (!form.price || form.price <= 0) {
+            alert('❌ يرجى إدخال سعر صحيح للمنتج (يجب أن يكون أكبر من صفر)');
+            return;
+        }
+        
         try {
             const productData = {
                 barcode: form.barcode,
@@ -190,7 +202,7 @@ const ProductsManager = () => {
                 category: form.category,
                 subcategory: form.subcategory,
                 expiryDate: form.expiryDate,
-                branchId: form.branchId,
+                branchId: form.branchId || 1,
                 stockQuantity: form.stockQuantity,
                 weight: form.weight,
                 shelfLocation: form.shelfLocation
@@ -276,11 +288,51 @@ const ProductsManager = () => {
         }
     };
 
+    const fixPrices = async () => {
+        if (!confirm('هل تريد إصلاح أسعار المنتجات التي بها مشاكل؟\n\nسيتم:\n1. إضافة المنتجات المفقودة من branch_products\n2. تحديث الأسعار التي تساوي صفر إلى 10 جنيه\n\nهل تريد المتابعة؟')) {
+            return;
+        }
+        
+        try {
+            console.log('🔧 Fixing prices...');
+            const res = await fetch(`${API_URL}/products/dev/fix-prices`, { 
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            
+            if (!res.ok) {
+                const text = await res.text();
+                console.error('❌ Response not OK:', res.status, text);
+                throw new Error(`HTTP ${res.status}: ${text}`);
+            }
+            
+            const json = await res.json();
+            console.log('✅ Prices fixed:', json);
+            alert(`✅ تم إصلاح الأسعار بنجاح!\n\n` +
+                  `تمت إضافة ${json.fixed.addedToBranch} منتج للفروع\n` +
+                  `تم تحديث ${json.fixed.updatedPrices} سعر`);
+            loadProducts();
+        } catch (e) {
+            console.error('❌ Fix prices failed:', e);
+            alert('فشل إصلاح الأسعار: ' + (e instanceof Error ? e.message : 'خطأ غير معروف'));
+        }
+    };
+
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold text-gray-900">Products Management</h1>
                 <div className="flex flex-wrap gap-2">
+                    <button
+                        onClick={fixPrices}
+                        className="flex items-center space-x-2 px-3 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors font-bold"
+                    >
+                        <span>🔧</span>
+                        <span>إصلاح الأسعار</span>
+                    </button>
                     <button
                         onClick={seedBranches}
                         className="flex items-center space-x-2 px-3 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-colors"
@@ -455,11 +507,13 @@ const ProductsManager = () => {
                                     <input
                                         type="number"
                                         step="0.01"
+                                        min="0.01"
                                         value={form.price}
                                         onChange={e => setForm({ ...form, price: parseFloat(e.target.value) || 0 })}
                                         className="w-full px-3 py-2 border rounded-md"
                                         required
                                     />
+                                    <p className="text-xs text-gray-500 mt-1">⚠️ يجب أن يكون السعر أكبر من صفر</p>
                                 </div>
                             </div>
 
