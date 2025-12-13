@@ -68,35 +68,46 @@ const ProductsManager = () => {
 
     const loadBranches = async () => {
         try {
-            const data = await api.branches.getAll();
-            console.log('📍 Branches loaded:', data);
-            if (Array.isArray(data)) {
-                setBranches(data);
+            const response = await api.branches.getAll();
+            console.log('📍 Branches loaded:', response);
+            // Handle different response formats
+            const branchData = response?.data || response || [];
+            if (Array.isArray(branchData) && branchData.length > 0) {
+                setBranches(branchData);
+            } else {
+                // Fallback to default branches
+                setBranches([
+                    { id: 1, name: 'الفرع الرئيسي', address: 'القاهرة' },
+                    { id: 2, name: 'فرع المعادي', address: 'المعادي' },
+                    { id: 3, name: 'فرع الإسكندرية', address: 'الإسكندرية' }
+                ]);
             }
         } catch (error) {
             console.error('❌ Failed to load branches:', error);
             // Fallback to default branches
             setBranches([
-                { id: 1, name: 'الفرع الرئيسي' },
-                { id: 2, name: 'فرع 2' },
-                { id: 3, name: 'فرع 3' }
+                { id: 1, name: 'الفرع الرئيسي', address: 'القاهرة' },
+                { id: 2, name: 'فرع المعادي', address: 'المعادي' },
+                { id: 3, name: 'فرع الإسكندرية', address: 'الإسكندرية' }
             ]);
         }
     };
 
     const loadCategories = async () => {
         try {
-            const data = await api.categories.getAll();
-            console.log('🗂️ Categories loaded:', data);
-            if (Array.isArray(data)) {
-                setCategories(data);
+            const response = await api.categories.getAll();
+            console.log('🗂️ Categories loaded:', response);
+            // Handle different response formats
+            const categoryData = response?.data || response || [];
+            if (Array.isArray(categoryData) && categoryData.length > 0) {
+                setCategories(categoryData);
                 
                 // Build subcategories map
                 const subMap: { [key: string]: any[] } = {};
-                data.forEach((cat: any) => {
-                    if (cat.parent_id === null) {
+                categoryData.forEach((cat: any) => {
+                    if (!cat.parent_id) {
                         // Main category - find its children
-                        const children = data.filter((c: any) => c.parent_id === cat.id);
+                        const children = categoryData.filter((c: any) => c.parent_id === cat.id);
                         subMap[cat.name] = children;
                         if (cat.name_ar) {
                             subMap[cat.name_ar] = children;
@@ -106,12 +117,12 @@ const ProductsManager = () => {
                 setSubcategories(subMap);
             } else {
                 // Fallback to default
-                setCategories(defaultCategories.map((name, idx) => ({ id: idx + 1, name, name_ar: name })));
+                setCategories(defaultCategories.map((name, idx) => ({ id: idx + 1, name, name_ar: name, parent_id: null })));
             }
         } catch (error) {
             console.error('❌ Failed to load categories:', error);
             // Fallback to default
-            setCategories(defaultCategories.map((name, idx) => ({ id: idx + 1, name, name_ar: name })));
+            setCategories(defaultCategories.map((name, idx) => ({ id: idx + 1, name, name_ar: name, parent_id: null })));
         }
     };
 
@@ -492,7 +503,7 @@ const ProductsManager = () => {
                                     <select
                                         value={form.branchId}
                                         onChange={e => setForm({ ...form, branchId: parseInt(e.target.value) })}
-                                        className="w-full px-3 py-2 border rounded-md"
+                                        className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                                         required
                                     >
                                         <option value="">اختر فرع</option>

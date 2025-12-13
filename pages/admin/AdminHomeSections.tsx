@@ -35,8 +35,17 @@ const AdminHomeSections = () => {
 
     const fetchCategories = async () => {
         try {
-            const response = await api.get('/products/categories');
-            setCategories(response.data || []);
+            const response = await api.categories.getAll();
+            if (response.success && response.data) {
+                // Convert categories data to format expected by the dropdown
+                const formattedCategories = response.data.map(cat => ({
+                    category: cat.name_ar || cat.name,
+                    product_count: cat.products_count || 0
+                }));
+                setCategories(formattedCategories);
+            } else {
+                setCategories([]);
+            }
         } catch (error) {
             console.error('Error fetching categories:', error);
             setCategories([]);
@@ -186,7 +195,8 @@ const AdminHomeSections = () => {
                                 <option value="">اختر الفئة</option>
                                 {categories.map((cat) => (
                                     <option key={cat.category} value={cat.category}>
-                                        {cat.category} ({cat.product_count} منتج)
+                                        {cat.category}
+                                        {cat.product_count > 0 && ` (${cat.product_count} منتج)`}
                                     </option>
                                 ))}
                             </select>
