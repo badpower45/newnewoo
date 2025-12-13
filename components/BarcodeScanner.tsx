@@ -65,14 +65,19 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
         }
     };
 
-    const stopScanner = () => {
-        if (scannerRef.current) {
-            scannerRef.current.stop().catch((err) => {
-                console.error('Error stopping scanner:', err);
-            });
-            scannerRef.current = null;
+    const stopScanner = async () => {
+        if (scannerRef.current && scanning) {
+            try {
+                await scannerRef.current.stop();
+                console.log('✅ Scanner stopped successfully');
+            } catch (err) {
+                // Ignore errors if scanner is already stopped
+                console.log('🔴 Scanner stop ignored:', err);
+            } finally {
+                scannerRef.current = null;
+                setScanning(false);
+            }
         }
-        setScanning(false);
     };
 
     const handleClose = () => {

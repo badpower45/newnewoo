@@ -41,13 +41,17 @@ const TopBar = () => {
             
             recognitionInstance.onresult = (event: any) => {
                 const transcript = event.results[0][0].transcript;
-                console.log('🎤 Voice input:', transcript);
+                const isFinal = event.results[0].isFinal;
+                
+                console.log(`🎤 Voice input: "${transcript}" (Final: ${isFinal})`);
                 setSearchQuery(transcript);
                 
                 // Auto-search after voice input ends (final result)
-                if (event.results[0].isFinal && transcript.trim()) {
-                    setIsListening(false);
-                    navigate(`/products?search=${encodeURIComponent(transcript.trim())}`);
+                if (isFinal && transcript.trim()) {
+                    console.log('✅ Voice search triggered:', transcript);
+                    setTimeout(() => {
+                        navigate(`/products?search=${encodeURIComponent(transcript.trim())}`);
+                    }, 300);
                 }
             };
             
@@ -57,17 +61,29 @@ const TopBar = () => {
                 
                 // User-friendly error messages
                 if (event.error === 'no-speech') {
-                    alert(t('no_speech_detected'));
+                    alert('لم يتم اكتشاف صوت. جرب مرة أخرى.');
                 } else if (event.error === 'not-allowed') {
-                    alert(t('microphone_permission_required'));
+                    alert('يرجى السماح بالوصول إلى الميكروفون');
                 } else if (event.error === 'network') {
-                    alert(t('network_error'));
+                    alert('خطأ في الشبكة. تحقق من اتصال الإنترنت.');
+                } else if (event.error === 'aborted') {
+                    console.log('🎤 Voice recognition aborted');
+                } else {
+                    console.error('🎤 Unknown error:', event.error);
                 }
             };
             
             recognitionInstance.onend = () => {
-                setIsListening(false);
                 console.log('🎤 Voice recognition ended');
+                setIsListening(false);
+                
+                // If we have a search query but recognition ended without final result, trigger search
+                if (searchQuery && searchQuery.trim()) {
+                    console.log('🔍 Triggering search on end:', searchQuery);
+                    setTimeout(() => {
+                        navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+                    }, 200);
+                }
             };
             
             setRecognition(recognitionInstance);

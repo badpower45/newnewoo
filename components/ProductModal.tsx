@@ -12,6 +12,29 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
     const [quantity, setQuantity] = useState(1);
     const [isAdding, setIsAdding] = useState(false);
     const { addToCart } = useCart();
+    
+    // Debug: Log product data
+    console.log('📦 ProductModal - Product data:', product);
+    
+    // Validate product data
+    if (!product) {
+        console.error('❌ Product data is null or undefined');
+        return (
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="bg-white rounded-3xl p-8 max-w-md text-center">
+                    <div className="text-6xl mb-4">❌</div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2">خطأ في تحميل المنتج</h2>
+                    <p className="text-gray-600 mb-6">لم يتم العثور على بيانات المنتج</p>
+                    <button
+                        onClick={onClose}
+                        className="px-6 py-3 bg-brand-orange text-white rounded-xl font-bold hover:bg-orange-600 transition"
+                    >
+                        إغلاق
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     const handleAddToCart = async () => {
         setIsAdding(true);
@@ -32,11 +55,15 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
     const incrementQuantity = () => setQuantity(q => q + 1);
     const decrementQuantity = () => setQuantity(q => (q > 1 ? q - 1 : 1));
 
-    const hasDiscount = product.discount_price && product.discount_price < product.price;
-    const finalPrice = hasDiscount ? product.discount_price : product.price;
+    // Safe data handling
+    const productPrice = product.price || 0;
+    const productDiscountPrice = product.discount_price || 0;
+    const hasDiscount = productDiscountPrice > 0 && productDiscountPrice < productPrice;
+    const finalPrice = hasDiscount ? productDiscountPrice : productPrice;
     const discountPercent = hasDiscount 
-        ? Math.round(((product.price - product.discount_price!) / product.price) * 100)
+        ? Math.round(((productPrice - productDiscountPrice) / productPrice) * 100)
         : 0;
+    const stockQty = product.stock_quantity || 0;
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
@@ -144,12 +171,12 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
                     </div>
 
                     {/* Stock Status */}
-                    <div className={`p-3 rounded-xl ${product.stock_quantity > 10 ? 'bg-green-50' : product.stock_quantity > 0 ? 'bg-yellow-50' : 'bg-red-50'}`}>
-                        <p className={`text-sm font-medium ${product.stock_quantity > 10 ? 'text-green-700' : product.stock_quantity > 0 ? 'text-yellow-700' : 'text-red-700'}`}>
-                            {product.stock_quantity > 10 
+                    <div className={`p-3 rounded-xl ${stockQty > 10 ? 'bg-green-50' : stockQty > 0 ? 'bg-yellow-50' : 'bg-red-50'}`}>
+                        <p className={`text-sm font-medium ${stockQty > 10 ? 'text-green-700' : stockQty > 0 ? 'text-yellow-700' : 'text-red-700'}`}>
+                            {stockQty > 10 
                                 ? '✅ متوفر' 
-                                : product.stock_quantity > 0 
-                                    ? `⚠️ متبقي ${product.stock_quantity} فقط` 
+                                : stockQty > 0 
+                                    ? `⚠️ متبقي ${stockQty} فقط` 
                                     : '❌ غير متوفر'}
                         </p>
                     </div>
@@ -198,7 +225,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
                             <button
                                 onClick={incrementQuantity}
                                 className="w-10 h-10 rounded-full bg-white shadow-md hover:shadow-lg transition-all flex items-center justify-center text-gray-700 hover:text-brand-orange disabled:opacity-50"
-                                disabled={quantity >= (product.stock_quantity || 0)}
+                                disabled={quantity >= stockQty}
                             >
                                 <Plus size={20} />
                             </button>
@@ -218,7 +245,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
                     {/* Add to Cart Button */}
                     <button
                         onClick={handleAddToCart}
-                        disabled={isAdding || product.stock_quantity <= 0}
+                        disabled={isAdding || stockQty <= 0}
                         className={`w-full py-4 rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-3 ${
                             isAdding
                                 ? 'bg-green-500 text-white'
@@ -232,7 +259,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
                                 <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent"></div>
                                 <span>جاري الإضافة...</span>
                             </>
-                        ) : product.stock_quantity <= 0 ? (
+                        ) : stockQty <= 0 ? (
                             <span>غير متوفر</span>
                         ) : (
                             <>
