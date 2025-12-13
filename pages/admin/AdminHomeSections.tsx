@@ -35,19 +35,32 @@ const AdminHomeSections = () => {
 
     const fetchCategories = async () => {
         try {
-            const response = await api.categories.getAll();
-            if (response.success && response.data) {
+            console.log('🔍 Fetching categories...');
+            const response = await api.categories.getAllAdmin();
+            console.log('📦 Categories response:', response);
+            
+            // API returns {success: true, data: [...]}
+            const categoriesData = response?.data || response || [];
+            
+            if (Array.isArray(categoriesData)) {
                 // Convert categories data to format expected by the dropdown
-                const formattedCategories = response.data.map(cat => ({
-                    category: cat.name_ar || cat.name,
-                    product_count: cat.products_count || 0
-                }));
+                const formattedCategories = categoriesData
+                    .filter(cat => !cat.parent_id) // Only main categories, not subcategories
+                    .map(cat => ({
+                        category: cat.name_ar || cat.name,
+                        categoryName: cat.name, // Keep original name for API
+                        product_count: cat.products_count || 0,
+                        icon: cat.icon
+                    }));
+                
+                console.log('✅ Formatted categories:', formattedCategories);
                 setCategories(formattedCategories);
             } else {
+                console.warn('⚠️ Categories data is not an array:', categoriesData);
                 setCategories([]);
             }
         } catch (error) {
-            console.error('Error fetching categories:', error);
+            console.error('❌ Error fetching categories:', error);
             setCategories([]);
         }
     };
@@ -212,12 +225,16 @@ const AdminHomeSections = () => {
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                             >
                                 <option value="">اختر الفئة</option>
-                                {categories.map((cat) => (
-                                    <option key={cat.category} value={cat.category}>
-                                        {cat.category}
-                                        {cat.product_count > 0 && ` (${cat.product_count} منتج)`}
-                                    </option>
-                                ))}
+                                {categories.length === 0 ? (
+                                    <option disabled>جاري التحميل...</option>
+                                ) : (
+                                    categories.map((cat, index) => (
+                                        <option key={`${cat.categoryName || cat.category}-${index}`} value={cat.categoryName || cat.category}>
+                                            {cat.icon && `${cat.icon} `}{cat.category}
+                                            {cat.product_count > 0 && ` (${cat.product_count} منتج)`}
+                                        </option>
+                                    ))
+                                )}
                             </select>
                             <p className="mt-1 text-xs text-gray-500">
                                 💡 سيتم جلب أحدث {formData.max_products} منتج من الفئة المحددة تلقائياً
