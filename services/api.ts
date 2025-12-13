@@ -289,6 +289,13 @@ export const api = {
                 headers: getHeaders()
             });
             return res.json();
+        },
+        getProfile: async () => {
+            const res = await fetch(`${API_URL}/users/profile`, {
+                headers: getHeaders()
+            });
+            if (!res.ok) throw new Error('Failed to fetch profile');
+            return res.json();
         }
     },
     chat: {
@@ -1391,6 +1398,60 @@ export const api = {
             throw new Error(error.error || error.message || 'Request failed');
         }
         return res.json();
+    },
+
+    addresses: {
+        getAll: async (userId: number) => {
+            const res = await fetch(`${API_URL}/addresses?userId=${userId}`, {
+                headers: getHeaders()
+            });
+            if (!res.ok) throw new Error('Failed to fetch addresses');
+            return res.json();
+        },
+        create: async (data: any) => {
+            const res = await fetch(`${API_URL}/addresses`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            if (!res.ok) throw new Error('Failed to create address');
+            return res.json();
+        },
+        update: async (id: number, data: any) => {
+            const res = await fetch(`${API_URL}/addresses/${id}`, {
+                method: 'PUT',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            if (!res.ok) throw new Error('Failed to update address');
+            return res.json();
+        },
+        delete: async (id: number) => {
+            const res = await fetch(`${API_URL}/addresses/${id}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+            if (!res.ok) throw new Error('Failed to delete address');
+            return res.json();
+        },
+        setDefault: async (id: number) => {
+            const res = await fetch(`${API_URL}/addresses/${id}/set-default`, {
+                method: 'PUT',
+                headers: getHeaders()
+            });
+            if (!res.ok) throw new Error('Failed to set default address');
+            return res.json();
+        }
+    },
+
+    loyalty: {
+        getTransactions: async (userId: number) => {
+            const res = await fetch(`${API_URL}/loyalty/transactions?userId=${userId}`, {
+                headers: getHeaders()
+            });
+            if (!res.ok) throw new Error('Failed to fetch loyalty transactions');
+            return res.json();
+        }
     }
 };
 

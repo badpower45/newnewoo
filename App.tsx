@@ -68,6 +68,9 @@ import DeliveryDriverPage from './pages/DeliveryDriverPage';
 import BrandPage from './pages/BrandPage';
 import BrandsPage from './pages/BrandsPage';
 import MyOrdersPage from './pages/MyOrdersPage';
+import LoyaltyPage from './pages/LoyaltyPage';
+import AddressesPage from './pages/AddressesPage';
+import BranchesPage from './pages/BranchesPage';
 
 // Premium Brand Pages
 import PepsiBrandPage from './pages/brands/PepsiBrandPage';
@@ -117,6 +120,9 @@ function AppContent() {
             <Route path="/faq" element={<FAQPage />} />
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/my-orders" element={<ProtectedRoute><MyOrdersPage /></ProtectedRoute>} />
+            <Route path="/loyalty" element={<ProtectedRoute><LoyaltyPage /></ProtectedRoute>} />
+            <Route path="/addresses" element={<ProtectedRoute><AddressesPage /></ProtectedRoute>} />
+            <Route path="/branches" element={<BranchesPage />} />
             <Route path="/favorites" element={<FavoritesPage />} />
             <Route path="/brands" element={<BrandsPage />} />
             <Route path="/chat" element={<ProtectedRoute><CustomerChatPage /></ProtectedRoute>} />

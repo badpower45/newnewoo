@@ -38,7 +38,7 @@ const MorePage = () => {
             label: 'طلباتي',
             iconBg: 'bg-orange-100',
             iconColor: 'text-orange-600',
-            route: '/orders',
+            route: '/my-orders',
             requireAuth: true
         },
         {
@@ -75,14 +75,6 @@ const MorePage = () => {
             requireAuth: true
         },
         {
-            icon: CreditCard,
-            label: 'بطاقات الدفع',
-            iconBg: 'bg-purple-100',
-            iconColor: 'text-purple-600',
-            route: '/payment-methods',
-            requireAuth: true
-        },
-        {
             icon: Globe,
             label: 'تغيير اللغة',
             iconBg: 'bg-cyan-100',
@@ -95,7 +87,8 @@ const MorePage = () => {
             label: 'إرسال الاقتراح',
             iconBg: 'bg-indigo-100',
             iconColor: 'text-indigo-600',
-            route: '/feedback'
+            route: '/chat',
+            requireAuth: true
         },
         {
             icon: MapPinned,
@@ -109,7 +102,8 @@ const MorePage = () => {
             label: 'طلب المساعدة',
             iconBg: 'bg-yellow-100',
             iconColor: 'text-yellow-600',
-            route: '/help'
+            route: '/chat',
+            requireAuth: true
         }
     ];
 
