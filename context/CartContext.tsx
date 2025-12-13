@@ -103,13 +103,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
     }
     if (user && !user.isGuest) {
-      // Optimistic update
+      // Optimistic update with proper state handling
       setItems(prev => {
-        const existing = prev.find(item => item.id === product.id);
+        const existing = prev.find(item => String(item.id) === String(product.id));
         if (existing) {
           return prev.map(item =>
-            item.id === product.id
-              ? { ...item, quantity: item.quantity + quantity, substitutionPreference }
+            String(item.id) === String(product.id)
+              ? { ...item, quantity: item.quantity + quantity, substitutionPreference: substitutionPreference || item.substitutionPreference }
               : item
           );
         }
@@ -123,7 +123,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
           quantity,
           substitutionPreference 
         });
-        await syncCart(); // Refetch to get DB state
+        // Sync to get accurate counts from server
+        setTimeout(() => syncCart(), 100);
       } catch (err) {
         console.error("Failed to add to cart", err);
         // Revert on error
@@ -131,11 +132,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
     } else {
       setItems(prev => {
-        const existing = prev.find(item => item.id === product.id);
+        const existing = prev.find(item => String(item.id) === String(product.id));
         if (existing) {
           return prev.map(item =>
-            item.id === product.id
-              ? { ...item, quantity: item.quantity + quantity, substitutionPreference }
+            String(item.id) === String(product.id)
+              ? { ...item, quantity: item.quantity + quantity, substitutionPreference: substitutionPreference || item.substitutionPreference }
               : item
           );
         }

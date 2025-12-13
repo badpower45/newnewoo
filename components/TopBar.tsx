@@ -117,8 +117,20 @@ const TopBar = () => {
                             </div>
                         </Link>
 
-                        {/* Mobile Actions - Only User Icon */}
-                        <div className="flex md:hidden items-center gap-3">
+                        {/* Mobile Actions - Branch & User Icons */}
+                        <div className="flex md:hidden items-center gap-2">
+                            {/* Branch Selector */}
+                            <button 
+                                onClick={() => setShowBranchSelector(true)}
+                                className="p-2 rounded-xl hover:bg-gray-50 transition-colors relative"
+                                title="اختر الفرع"
+                            >
+                                <MapPin size={20} className="text-gray-600" />
+                                {selectedBranch && (
+                                    <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                                )}
+                            </button>
+                            {/* User Icon */}
                             <Link to={isAuthenticated ? '/profile' : '/login'} className="p-2">
                                 {isAuthenticated ? (
                                     <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold text-sm">
