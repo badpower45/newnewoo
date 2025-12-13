@@ -167,8 +167,11 @@ export const api = {
             });
             return res.json();
         },
-        getByBarcode: async (barcode: string) => {
-            const res = await fetch(`${API_URL}/products/barcode/${barcode}`, { headers: getHeaders() });
+        getByBarcode: async (barcode: string, branchId?: number) => {
+            const url = branchId 
+                ? `${API_URL}/products/barcode/${barcode}?branchId=${branchId}`
+                : `${API_URL}/products/barcode/${barcode}`;
+            const res = await fetch(url, { headers: getHeaders() });
             return res.json();
         }
     },

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import ProductCard from '../components/ProductCard';
 import BarcodeScanner from '../components/BarcodeScanner';
+import ProductModal from '../components/ProductModal';
 import { ProductGridSkeleton } from '../components/Skeleton';
 import ProductsTopBar from '../components/ProductsTopBar';
 import { 
@@ -60,9 +61,17 @@ export default function ProductsPage() {
 
     useEffect(() => {
         const category = searchParams.get('category');
+        const barcode = searchParams.get('barcode');
+        
         if (category) {
             setSelectedCategory(category);
         }
+        
+        // Handle barcode from URL (from TopBar navigation)
+        if (barcode) {
+            handleBarcodeScanned(barcode);
+        }
+        
         fetchProducts();
     }, [searchParams, selectedBranch]);
 
@@ -85,16 +94,34 @@ export default function ProductsPage() {
 
     const handleBarcodeScanned = async (barcode: string) => {
         setShowScanner(false);
+        
+        // Show loading
+        const loadingDiv = document.createElement('div');
+        loadingDiv.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm';
+        loadingDiv.innerHTML = `
+            <div class="bg-white rounded-2xl p-6 shadow-2xl flex flex-col items-center gap-4">
+                <div class="animate-spin rounded-full h-12 w-12 border-4 border-brand-orange border-t-transparent"></div>
+                <p class="text-gray-700 font-medium">جارٍ البحث عن المنتج...</p>
+            </div>
+        `;
+        document.body.appendChild(loadingDiv);
+        
         try {
-            const response = await api.products.getByBarcode(barcode);
-            if (response.data) {
+            const branchId = selectedBranch?.id || 1;
+            const response = await api.products.getByBarcode(barcode, branchId);
+            
+            document.body.removeChild(loadingDiv);
+            
+            if (response.data && response.message === 'success') {
                 setScannedProduct(response.data);
                 setShowProductModal(true);
             } else {
-                alert('❌ المنتج غير موجود في قاعدة البيانات');
+                alert('❌ المنتج غير موجود في قاعدة البيانات\nالباركود: ' + barcode);
             }
         } catch (error) {
-            alert('حدث خطأ في البحث عن المنتج');
+            document.body.removeChild(loadingDiv);
+            console.error('Error fetching product:', error);
+            alert('❌ حدث خطأ في البحث عن المنتج');
         }
     };
 
@@ -503,6 +530,17 @@ export default function ProductsPage() {
 
             {/* Scanned Product Modal */}
             {showProductModal && scannedProduct && (
+                <ProductModal
+                    product={scannedProduct}
+                    onClose={() => {
+                        setShowProductModal(false);
+                        setScannedProduct(null);
+                    }}
+                />
+            )}
+
+            {/* Old Modal Code - Kept for reference, can be deleted */}
+            {false && showProductModal && scannedProduct && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
                     <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
                         {/* Header */}

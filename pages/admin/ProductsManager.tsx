@@ -54,12 +54,25 @@ const ProductsManager = () => {
     const loadProducts = async () => {
         setLoading(true);
         try {
-            // Use branch 1 for admin preview since API requires branchId
-            const data = await api.products.getAllByBranch(1);
-            if (Array.isArray(data?.data)) setProducts(data.data);
-            else if (Array.isArray(data)) setProducts(data);
-            else setProducts(sampleProducts);
-        } catch {
+            // Fetch all products for admin view (not filtered by branch)
+            const response = await fetch(`${API_URL}/products?includeAllBranches=true`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            const data = await response.json();
+            console.log('📦 Products loaded:', data);
+            
+            if (Array.isArray(data?.data)) {
+                setProducts(data.data);
+            } else if (Array.isArray(data)) {
+                setProducts(data);
+            } else {
+                setProducts(sampleProducts);
+            }
+        } catch (error) {
+            console.error('❌ Error loading products:', error);
             setProducts(sampleProducts);
         } finally {
             setLoading(false);
@@ -197,7 +210,8 @@ const ProductsManager = () => {
                 alert('✅ تم إضافة المنتج بنجاح');
             }
             setShowModal(false);
-            loadProducts();
+            // Force reload products after save
+            await loadProducts();
         } catch (err: any) {
             console.error('Failed to save product', err);
             const errorMessage = err.message || 'فشل حفظ المنتج';

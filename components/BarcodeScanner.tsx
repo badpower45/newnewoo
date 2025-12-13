@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { X, Camera, CheckCircle2, AlertCircle } from 'lucide-react';
+import { X, Camera, CheckCircle2, AlertCircle, Keyboard } from 'lucide-react';
 
 interface BarcodeScannerProps {
     onScan: (barcode: string) => void;
@@ -12,15 +12,19 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
     const [scannedCode, setScannedCode] = useState<string>('');
+    const [manualInput, setManualInput] = useState('');
+    const [useManualMode, setUseManualMode] = useState(false);
     const scannerRef = useRef<Html5Qrcode | null>(null);
     const readerIdRef = useRef('barcode-reader');
 
     useEffect(() => {
-        startScanner();
+        if (!useManualMode) {
+            startScanner();
+        }
         return () => {
             stopScanner();
         };
-    }, []);
+    }, [useManualMode]);
 
     const startScanner = async () => {
         try {
@@ -76,6 +80,28 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
         onClose();
     };
 
+    const handleManualSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (manualInput.trim()) {
+            setScannedCode(manualInput.trim());
+            setSuccess(true);
+            setTimeout(() => {
+                onScan(manualInput.trim());
+            }, 1000);
+        }
+    };
+
+    const toggleMode = () => {
+        if (!useManualMode) {
+            stopScanner();
+        }
+        setUseManualMode(!useManualMode);
+        setError('');
+        setSuccess(false);
+        setScannedCode('');
+        setManualInput('');
+    };
+
     return (
         <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-2 md:p-4">
             <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
@@ -94,6 +120,32 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
                 </div>
 
                 <div className="p-6">
+                    {/* Mode Toggle */}
+                    <div className="mb-4 flex gap-2">
+                        <button
+                            onClick={toggleMode}
+                            className={`flex-1 px-4 py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
+                                !useManualMode 
+                                    ? 'bg-brand-orange text-white shadow-lg' 
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                        >
+                            <Camera size={20} />
+                            <span>مسح ضوئي</span>
+                        </button>
+                        <button
+                            onClick={toggleMode}
+                            className={`flex-1 px-4 py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
+                                useManualMode 
+                                    ? 'bg-brand-orange text-white shadow-lg' 
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                        >
+                            <Keyboard size={20} />
+                            <span>إدخال يدوي</span>
+                        </button>
+                    </div>
+
                     {error && (
                         <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-xl flex items-start space-x-3 rtl:space-x-reverse">
                             <AlertCircle className="text-red-500 flex-shrink-0 mt-0.5" size={20} />
@@ -117,21 +169,51 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
                         </div>
                     )}
 
-                    <div
-                        id={readerIdRef.current}
-                        className="rounded-xl overflow-hidden bg-gray-100"
-                        style={{ minHeight: '300px' }}
-                    />
-
-                    {scanning && (
-                        <div className="mt-4 text-center">
-                            <div className="inline-flex items-center space-x-2 rtl:space-x-reverse text-gray-600">
-                                <div className="animate-pulse w-2 h-2 bg-brand-orange rounded-full"></div>
-                                <div className="animate-pulse w-2 h-2 bg-brand-orange rounded-full animation-delay-200"></div>
-                                <div className="animate-pulse w-2 h-2 bg-brand-orange rounded-full animation-delay-400"></div>
-                                <span className="mr-2 rtl:ml-2">جارٍ البحث عن الباركود...</span>
+                    {useManualMode ? (
+                        <form onSubmit={handleManualSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    أدخل رقم الباركود
+                                </label>
+                                <input
+                                    type="text"
+                                    value={manualInput}
+                                    onChange={(e) => setManualInput(e.target.value)}
+                                    placeholder="مثال: 6223000236703"
+                                    className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20 outline-none transition-all text-lg font-mono"
+                                    autoFocus
+                                />
+                                <p className="mt-2 text-xs text-gray-500">
+                                    💡 أدخل الرقم الموجود أسفل الباركود
+                                </p>
                             </div>
-                        </div>
+                            <button
+                                type="submit"
+                                disabled={!manualInput.trim()}
+                                className="w-full px-6 py-3 bg-brand-orange hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-xl transition-colors"
+                            >
+                                بحث عن المنتج
+                            </button>
+                        </form>
+                    ) : (
+                        <>
+                            <div
+                                id={readerIdRef.current}
+                                className="rounded-xl overflow-hidden bg-gray-100"
+                                style={{ minHeight: '300px' }}
+                            />
+
+                            {scanning && (
+                                <div className="mt-4 text-center">
+                                    <div className="inline-flex items-center space-x-2 rtl:space-x-reverse text-gray-600">
+                                        <div className="animate-pulse w-2 h-2 bg-brand-orange rounded-full"></div>
+                                        <div className="animate-pulse w-2 h-2 bg-brand-orange rounded-full animation-delay-200"></div>
+                                        <div className="animate-pulse w-2 h-2 bg-brand-orange rounded-full animation-delay-400"></div>
+                                        <span className="mr-2 rtl:ml-2">جارٍ البحث عن الباركود...</span>
+                                    </div>
+                                </div>
+                            )}
+                        </>
                     )}
 
                     <div className="mt-6 flex space-x-3 rtl:space-x-reverse">
