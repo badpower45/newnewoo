@@ -1340,6 +1340,57 @@ export const api = {
             
             return res.blob();
         }
+    },
+
+    // Generic HTTP methods for custom endpoints
+    get: async (endpoint: string) => {
+        const res = await fetch(`${API_URL}${endpoint}`, {
+            method: 'GET',
+            headers: getHeaders()
+        });
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.error || error.message || 'Request failed');
+        }
+        return res.json();
+    },
+
+    post: async (endpoint: string, data?: any) => {
+        const res = await fetch(`${API_URL}${endpoint}`, {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify(data)
+        });
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.error || error.message || 'Request failed');
+        }
+        return res.json();
+    },
+
+    put: async (endpoint: string, data?: any) => {
+        const res = await fetch(`${API_URL}${endpoint}`, {
+            method: 'PUT',
+            headers: getHeaders(),
+            body: JSON.stringify(data)
+        });
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.error || error.message || 'Request failed');
+        }
+        return res.json();
+    },
+
+    delete: async (endpoint: string) => {
+        const res = await fetch(`${API_URL}${endpoint}`, {
+            method: 'DELETE',
+            headers: getHeaders()
+        });
+        if (!res.ok) {
+            const error = await res.json();
+            throw new Error(error.error || error.message || 'Request failed');
+        }
+        return res.json();
     }
 };
 

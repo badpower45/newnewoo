@@ -58,6 +58,7 @@ import DeliverySlotsManager from './pages/admin/DeliverySlotsManager';
 import CouponsManager from './pages/admin/CouponsManager';
 import MagazineManager from './pages/admin/MagazineManager';
 import HotDealsManager from './pages/admin/HotDealsManager';
+import AdminHomeSections from './pages/admin/AdminHomeSections';
 import StoriesManager from './pages/admin/StoriesManager';
 import CategoriesManager from './pages/admin/CategoriesManager';
 import CategoryBannersManager from './pages/admin/CategoryBannersManager';
@@ -143,6 +144,7 @@ function AppContent() {
               <Route path="coupons" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><CouponsManager /></ProtectedRoute>} />
               <Route path="magazine" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><MagazineManager /></ProtectedRoute>} />
               <Route path="hot-deals" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><HotDealsManager /></ProtectedRoute>} />
+              <Route path="home-sections" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><AdminHomeSections /></ProtectedRoute>} />
               <Route path="stories" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><StoriesManager /></ProtectedRoute>} />
               <Route path="facebook-reels" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><FacebookReelsManager /></ProtectedRoute>} />
               <Route path="brand-offers" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><BrandOffersAdminPage /></ProtectedRoute>} />
