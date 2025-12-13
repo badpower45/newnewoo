@@ -107,6 +107,9 @@ const AdminHomeSections = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            console.log('💾 Saving section with category:', formData.category);
+            console.log('📋 Full form data:', formData);
+            
             if (editingSection) {
                 await api.put(`/home-sections/${editingSection.id}`, formData);
             } else {
