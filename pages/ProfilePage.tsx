@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, LogOut, ChevronLeft, Edit2, Phone, Save, X, Camera } from 'lucide-react';
+import { User, Mail, LogOut, ChevronLeft, Edit2, Phone, Save, X, Camera, LayoutDashboard, Truck, ClipboardList, Headphones, Package, Gift } from 'lucide-react';
 import { api } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Footer from '../components/Footer';
+import { CLOUDINARY_CONFIG } from '../src/config';
 
 const ProfilePage = () => {
     const { user, logout, updateUser } = useAuth();
@@ -12,6 +13,8 @@ const ProfilePage = () => {
     const [loading, setLoading] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [uploadingImage, setUploadingImage] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [formData, setFormData] = useState({
         name: user?.name || '',
         email: user?.email || '',
@@ -69,18 +72,56 @@ const ProfilePage = () => {
         navigate('/');
     };
 
-    const handleUpdateProfile = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!user) return;
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
 
+        // Check file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('حجم الصورة كبير جداً. الحد الأقصى 5 ميجابايت');
+            return;
+        }
+
+        // Check file type
+        if (!file.type.startsWith('image/')) {
+            alert('الرجاء اختيار صورة');
+            return;
+        }
+
+        setUploadingImage(true);
         try {
-            await api.users.update(String(user.id), formData);
-            alert('تم تحديث الملف الشخصي بنجاح');
-            setEditMode(false);
-            window.location.reload();
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
+            formData.append('folder', 'users');
+
+            const response = await fetch(
+                `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/image/upload`,
+                {
+                    method: 'POST',
+                    body: formData
+                }
+            );
+
+            if (!response.ok) throw new Error('Failed to upload image');
+
+            const data = await response.json();
+            const imageUrl = data.secure_url;
+
+            // Update profile with new avatar
+            const updateResponse = await api.users.updateProfile({
+                avatar: imageUrl
+            });
+
+            if (updateResponse.success) {
+                updateUser({ avatar: imageUrl });
+                alert('تم تحديث الصورة بنجاح');
+            }
         } catch (err) {
-            alert('فشل تحديث الملف الشخصي');
-            console.error(err);
+            console.error('Failed to upload image:', err);
+            alert('فشل رفع الصورة');
+        } finally {
+            setUploadingImage(false);
         }
     };
 
@@ -117,13 +158,38 @@ const ProfilePage = () => {
                 
                 <div className="flex items-center gap-4">
                     <div className="relative">
-                        <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white text-3xl font-bold border-4 border-white/30">
-                            {user?.name ? user.name.charAt(0).toUpperCase() : <User size={32} />}
-                        </div>
+                        {user?.avatar ? (
+                            <img 
+                                src={user.avatar} 
+                                alt={user.name}
+                                className="w-20 h-20 rounded-full object-cover border-4 border-white/30"
+                            />
+                        ) : (
+                            <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white text-3xl font-bold border-4 border-white/30">
+                                {user?.name ? user.name.charAt(0).toUpperCase() : <User size={32} />}
+                            </div>
+                        )}
                         {!editMode && (
-                            <button className="absolute bottom-0 right-0 w-8 h-8 bg-white text-orange-600 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform">
-                                <Camera size={16} />
-                            </button>
+                            <>
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleImageUpload}
+                                    className="hidden"
+                                />
+                                <button 
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={uploadingImage}
+                                    className="absolute bottom-0 right-0 w-8 h-8 bg-white text-orange-600 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform disabled:opacity-50"
+                                >
+                                    {uploadingImage ? (
+                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-600"></div>
+                                    ) : (
+                                        <Camera size={16} />
+                                    )}
+                                </button>
+                            </>
                         )}
                     </div>
                     <div className="flex-1">
@@ -228,14 +294,87 @@ const ProfilePage = () => {
                     </div>
                 </div>
 
-                {/* Quick Actions */}
+                {/* Role-based Quick Access */}
+                {(user?.role === 'admin' || user?.role === 'manager') && (
+                    <button
+                        onClick={() => navigate('/admin')}
+                        className="w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-2xl p-5 shadow-md hover:shadow-lg transition-shadow"
+                    >
+                        <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
+                                <LayoutDashboard size={28} />
+                            </div>
+                            <div className="text-right flex-1">
+                                <h3 className="font-bold text-lg">لوحة الإدارة</h3>
+                                <p className="text-white/80 text-sm">إدارة المنتجات والطلبات والفروع</p>
+                            </div>
+                            <ChevronLeft size={24} className="rotate-180" />
+                        </div>
+                    </button>
+                )}
+
+                {user?.role === 'distributor' && (
+                    <button
+                        onClick={() => navigate('/admin/distribution')}
+                        className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl p-5 shadow-md hover:shadow-lg transition-shadow"
+                    >
+                        <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
+                                <ClipboardList size={28} />
+                            </div>
+                            <div className="text-right flex-1">
+                                <h3 className="font-bold text-lg">لوحة التوزيع</h3>
+                                <p className="text-white/80 text-sm">توزيع الطلبات على عمال التوصيل</p>
+                            </div>
+                            <ChevronLeft size={24} className="rotate-180" />
+                        </div>
+                    </button>
+                )}
+
+                {user?.role === 'delivery' && (
+                    <button
+                        onClick={() => navigate('/delivery')}
+                        className="w-full bg-gradient-to-r from-cyan-500 to-cyan-600 text-white rounded-2xl p-5 shadow-md hover:shadow-lg transition-shadow"
+                    >
+                        <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
+                                <Truck size={28} />
+                            </div>
+                            <div className="text-right flex-1">
+                                <h3 className="font-bold text-lg">صفحة التوصيل</h3>
+                                <p className="text-white/80 text-sm">إدارة طلبات التوصيل الخاصة بك</p>
+                            </div>
+                            <ChevronLeft size={24} className="rotate-180" />
+                        </div>
+                    </button>
+                )}
+
+                {user?.role === 'employee' && (
+                    <button
+                        onClick={() => navigate('/customer-service')}
+                        className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white rounded-2xl p-5 shadow-md hover:shadow-lg transition-shadow"
+                    >
+                        <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
+                                <Headphones size={28} />
+                            </div>
+                            <div className="text-right flex-1">
+                                <h3 className="font-bold text-lg">خدمة العملاء</h3>
+                                <p className="text-white/80 text-sm">الرد على استفسارات العملاء</p>
+                            </div>
+                            <ChevronLeft size={24} className="rotate-180" />
+                        </div>
+                    </button>
+                )}
+
+                {/* Quick Actions for all users */}
                 <div className="grid grid-cols-2 gap-3">
                     <button
                         onClick={() => navigate('/my-orders')}
                         className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow text-center"
                     >
                         <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mx-auto mb-2">
-                            <Mail size={24} />
+                            <Package size={24} />
                         </div>
                         <h3 className="font-bold text-gray-900 text-sm">طلباتي</h3>
                         <p className="text-xs text-gray-500 mt-1">تتبع طلباتك</p>
@@ -246,7 +385,7 @@ const ProfilePage = () => {
                         className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow text-center"
                     >
                         <div className="w-12 h-12 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center mx-auto mb-2">
-                            <Mail size={24} />
+                            <Gift size={24} />
                         </div>
                         <h3 className="font-bold text-gray-900 text-sm">نقاط الولاء</h3>
                         <p className="text-xs text-gray-500 mt-1">اجمع النقاط</p>

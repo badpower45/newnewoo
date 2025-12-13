@@ -114,3 +114,9 @@ export const PAYMENT_METHOD_LABELS: Record<string, string> = {
   card: 'بطاقة ائتمان',
   branch_pickup: 'تحضير في الفرع (استلام ذاتي)'
 };
+
+// Cloudinary Configuration
+export const CLOUDINARY_CONFIG = {
+  cloudName: 'dwnaacuih',
+  uploadPreset: 'ml_default'
+};
