@@ -1461,6 +1461,19 @@ export const api = {
             if (!res.ok) throw new Error('Failed to fetch loyalty transactions');
             return res.json();
         }
+    },
+
+    homeSections: {
+        get: async (branchId?: number) => {
+            const url = branchId 
+                ? `${API_URL}/home-sections?branchId=${branchId}`
+                : `${API_URL}/home-sections`;
+            const res = await fetch(url, {
+                headers: getHeaders()
+            });
+            if (!res.ok) throw new Error('Failed to fetch home sections');
+            return res.json();
+        }
     }
 };
 

@@ -31,9 +31,23 @@ interface Category {
     products_count?: number;
 }
 
+interface HomeSection {
+    id: number;
+    section_name: string;
+    section_name_ar: string;
+    banner_image: string;
+    category: string;
+    display_order: number;
+    max_products: number;
+    is_active: boolean;
+    products?: Product[];
+}
+
 const HomePage = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
+    const [homeSections, setHomeSections] = useState<HomeSection[]>([]);
+    const [sectionsLoading, setSectionsLoading] = useState(true);
     const [branchMap, setBranchMap] = useState<Record<string | number, { price?: number; stockQuantity?: number; reservedQuantity?: number }>>({});
     const [loading, setLoading] = useState(true);
     const [categoriesLoading, setCategoriesLoading] = useState(true);
@@ -130,6 +144,22 @@ const HomePage = () => {
         return colors[index % colors.length];
     };
 
+    // Fetch home sections from API
+    const fetchHomeSections = async () => {
+        setSectionsLoading(true);
+        try {
+            const branchId = selectedBranch?.id || DEFAULT_BRANCH_ID;
+            const response = await api.homeSections.get(branchId);
+            const sectionsData = response?.data || response || [];
+            setHomeSections(Array.isArray(sectionsData) ? sectionsData : []);
+        } catch (err) {
+            console.error('Error fetching sections:', err);
+            setHomeSections([]);
+        } finally {
+            setSectionsLoading(false);
+        }
+    };
+
     const fetchProducts = async () => {
         setLoading(true);
         setError(null);
@@ -164,6 +194,7 @@ const HomePage = () => {
     useEffect(() => {
         fetchProducts();
         fetchCategories();
+        fetchHomeSections();
     }, [selectedBranch]);
 
     useEffect(() => {
@@ -266,183 +297,71 @@ const HomePage = () => {
                     </Link>
                 </div>
 
-                {/* قسم الحلويات */}
-                <section className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-bold text-gray-900">حلويات</h2>
-                        <Link to="/products?category=حلويات" className="text-[#FF4500] text-sm font-semibold flex items-center gap-1 hover:gap-2 transition-all">
-                            عرض المزيد <ChevronRight className="w-4 h-4" />
-                        </Link>
-                    </div>
-                    <div className="relative rounded-2xl overflow-hidden h-40 bg-gradient-to-br from-pink-100 via-pink-200 to-rose-200">
-                        <img src="https://images.unsplash.com/photo-1581798459219-785eb0842e5e?w=1200" alt="حلويات" className="w-full h-full object-cover opacity-90" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                        <div className="absolute bottom-4 right-4 text-white">
-                            <h3 className="text-2xl font-bold">حلويات شهية</h3>
-                            <p className="text-sm">أجود أنواع الحلويات والشوكولاتة</p>
-                        </div>
-                    </div>
-                    {/* Horizontal scroll on mobile, grid on desktop */}
-                    <div className="flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible">
-                        {products.filter(p => p.category === 'حلويات').slice(0, 8).map(product => (
-                            <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
-                                <ProductCard product={product} />
+                {/* Dynamic Sections from Database */}
+                {sectionsLoading ? (
+                    <div className="space-y-6">
+                        {[1, 2, 3].map(i => (
+                            <div key={i} className="space-y-4">
+                                <div className="h-6 bg-gray-200 rounded w-32 animate-pulse" />
+                                <div className="h-40 bg-gray-200 rounded-2xl animate-pulse" />
+                                <div className="grid grid-cols-4 gap-3">
+                                    {[1, 2, 3, 4].map(j => (
+                                        <div key={j} className="h-48 bg-gray-200 rounded-xl animate-pulse" />
+                                    ))}
+                                </div>
                             </div>
                         ))}
                     </div>
-                </section>
-
-                {/* قسم الألبان */}
-                <section className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-bold text-gray-900">ألبان</h2>
-                        <Link to="/products?category=ألبان" className="text-[#FF4500] text-sm font-semibold flex items-center gap-1 hover:gap-2 transition-all">
-                            عرض المزيد <ChevronRight className="w-4 h-4" />
-                        </Link>
-                    </div>
-                    <div className="relative rounded-2xl overflow-hidden h-40 bg-gradient-to-br from-blue-100 via-blue-200 to-sky-200">
-                        <img src="https://images.unsplash.com/photo-1550583724-b2692b85b150?w=1200" alt="ألبان" className="w-full h-full object-cover opacity-90" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                        <div className="absolute bottom-4 right-4 text-white">
-                            <h3 className="text-2xl font-bold">منتجات الألبان</h3>
-                            <p className="text-sm">حليب وأجبان طازجة يومياً</p>
-                        </div>
-                    </div>
-                    <div className="flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible">
-                        {products.filter(p => p.category === 'ألبان').slice(0, 8).map(product => (
-                            <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
-                                <ProductCard product={product} />
+                ) : homeSections.length > 0 ? (
+                    homeSections.map((section) => (
+                        <section key={section.id} className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-xl font-bold text-gray-900">{section.section_name_ar}</h2>
+                                <Link 
+                                    to={`/products?category=${section.category}`} 
+                                    className="text-[#FF4500] text-sm font-semibold flex items-center gap-1 hover:gap-2 transition-all"
+                                >
+                                    عرض المزيد <ChevronRight className="w-4 h-4" />
+                                </Link>
                             </div>
-                        ))}
-                    </div>
-                </section>
-
-                {/* قسم Healthy */}
-                <section className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-bold text-gray-900">منتجات صحية</h2>
-                        <Link to="/products?category=صحي" className="text-[#FF4500] text-sm font-semibold flex items-center gap-1 hover:gap-2 transition-all">
-                            عرض المزيد <ChevronRight className="w-4 h-4" />
-                        </Link>
-                    </div>
-                    <div className="relative rounded-2xl overflow-hidden h-40 bg-gradient-to-br from-green-100 via-green-200 to-emerald-200">
-                        <img src="https://images.unsplash.com/photo-1490818387583-1baba5e638af?w=1200" alt="صحي" className="w-full h-full object-cover opacity-90" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                        <div className="absolute bottom-4 right-4 text-white">
-                            <h3 className="text-2xl font-bold">Healthy</h3>
-                            <p className="text-sm">منتجات صحية ومغذية</p>
-                        </div>
-                    </div>
-                    <div className="flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible">
-                        {products.filter(p => p.category === 'صحي').slice(0, 8).map(product => (
-                            <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
-                                <ProductCard product={product} />
+                            <div className="relative rounded-2xl overflow-hidden h-40">
+                                <img 
+                                    src={section.banner_image} 
+                                    alt={section.section_name_ar} 
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        e.currentTarget.src = 'https://images.unsplash.com/photo-1543168256-418811576931?w=1200';
+                                    }}
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                                <div className="absolute bottom-4 right-4 text-white">
+                                    <h3 className="text-2xl font-bold">{section.section_name_ar}</h3>
+                                    <p className="text-sm">{section.section_name}</p>
+                                </div>
                             </div>
-                        ))}
-                    </div>
-                </section>
-
-                {/* قسم مستحضرات التجميل */}
-                <section className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-bold text-gray-900">مستحضرات تجميل</h2>
-                        <Link to="/products?category=تجميل" className="text-[#FF4500] text-sm font-semibold flex items-center gap-1 hover:gap-2 transition-all">
-                            عرض المزيد <ChevronRight className="w-4 h-4" />
-                        </Link>
-                    </div>
-                    <div className="relative rounded-2xl overflow-hidden h-40 bg-gradient-to-br from-purple-100 via-purple-200 to-pink-200">
-                        <img src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=1200" alt="تجميل" className="w-full h-full object-cover opacity-90" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                        <div className="absolute bottom-4 right-4 text-white">
-                            <h3 className="text-2xl font-bold">Cosmetics</h3>
-                            <p className="text-sm">منتجات العناية والجمال</p>
-                        </div>
-                    </div>
-                    <div className="flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible">
-                        {products.filter(p => p.category === 'تجميل').slice(0, 8).map(product => (
-                            <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
-                                <ProductCard product={product} />
+                            <div className="flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible">
+                                {section.products && section.products.length > 0 ? (
+                                    section.products.slice(0, section.max_products || 8).map(product => (
+                                        <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
+                                            <ProductCard product={product} />
+                                        </div>
+                                    ))
+                                ) : products.filter(p => p.category === section.category).slice(0, section.max_products || 8).map(product => (
+                                    <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
+                                        <ProductCard product={product} />
+                                    </div>
+                                ))}
                             </div>
-                        ))}
+                        </section>
+                    ))
+                ) : (
+                    <div className="text-center py-12">
+                        <p className="text-gray-500">لا توجد أقسام متاحة حالياً</p>
                     </div>
-                </section>
+                )}
 
-                {/* قسم الجبن */}
-                <section className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-bold text-gray-900">جبن</h2>
-                        <Link to="/products?category=جبن" className="text-[#FF4500] text-sm font-semibold flex items-center gap-1 hover:gap-2 transition-all">
-                            عرض المزيد <ChevronRight className="w-4 h-4" />
-                        </Link>
-                    </div>
-                    <div className="relative rounded-2xl overflow-hidden h-40 bg-gradient-to-br from-yellow-100 via-yellow-200 to-amber-200">
-                        <img src="https://images.unsplash.com/photo-1452195100486-9cc805987862?w=1200" alt="جبن" className="w-full h-full object-cover opacity-90" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                        <div className="absolute bottom-4 right-4 text-white">
-                            <h3 className="text-2xl font-bold">أنواع الجبن</h3>
-                            <p className="text-sm">جبن محلي ومستورد</p>
-                        </div>
-                    </div>
-                    <div className="flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible">
-                        {products.filter(p => p.category === 'جبن').slice(0, 8).map(product => (
-                            <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
-                                <ProductCard product={product} />
-                            </div>
-                        ))}
-                    </div>
-                </section>
-
-                {/* قسم الكاندي */}
-                <section className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-bold text-gray-900">كاندي</h2>
-                        <Link to="/products?category=كاندي" className="text-[#FF4500] text-sm font-semibold flex items-center gap-1 hover:gap-2 transition-all">
-                            عرض المزيد <ChevronRight className="w-4 h-4" />
-                        </Link>
-                    </div>
-                    <div className="relative rounded-2xl overflow-hidden h-40 bg-gradient-to-br from-fuchsia-100 via-fuchsia-200 to-pink-200">
-                        <img src="https://images.unsplash.com/photo-1582058091505-f87a2e55a40f?w=1200" alt="كاندي" className="w-full h-full object-cover opacity-90" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                        <div className="absolute bottom-4 right-4 text-white">
-                            <h3 className="text-2xl font-bold">Candy</h3>
-                            <p className="text-sm">حلوى ملونة ولذيذة</p>
-                        </div>
-                    </div>
-                    <div className="flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible">
-                        {products.filter(p => p.category === 'كاندي').slice(0, 8).map(product => (
-                            <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
-                                <ProductCard product={product} />
-                            </div>
-                        ))}
-                    </div>
-                </section>
-
-                {/* قسم المشروبات */}
-                <section className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-bold text-gray-900">مشروبات</h2>
-                        <Link to="/products?category=مشروبات" className="text-[#FF4500] text-sm font-semibold flex items-center gap-1 hover:gap-2 transition-all">
-                            عرض المزيد <ChevronRight className="w-4 h-4" />
-                        </Link>
-                    </div>
-                    <div className="relative rounded-2xl overflow-hidden h-40 bg-gradient-to-br from-cyan-100 via-cyan-200 to-blue-200">
-                        <img src="https://images.unsplash.com/photo-1437418747212-8d9709afab22?w=1200" alt="مشروبات" className="w-full h-full object-cover opacity-90" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                        <div className="absolute bottom-4 right-4 text-white">
-                            <h3 className="text-2xl font-bold">Beverages</h3>
-                            <p className="text-sm">مشروبات باردة ومنعشة</p>
-                        </div>
-                    </div>
-                    <div className="flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible">
-                        {products.filter(p => p.category === 'مشروبات').slice(0, 8).map(product => (
-                            <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
-                                <ProductCard product={product} />
-                            </div>
-                        ))}
-                    </div>
-                </section>
-
-                {/* قسم المجمدات */}
+                {/* قسم المجمدات (fallback if no dynamic sections) */}
+                {!sectionsLoading && homeSections.length === 0 && (
                 <section className="space-y-4">
                     <div className="flex items-center justify-between">
                         <h2 className="text-xl font-bold text-gray-900">مجمدات</h2>
@@ -466,6 +385,7 @@ const HomePage = () => {
                         ))}
                     </div>
                 </section>
+                )}
 
                 {/* Facebook Reels Section */}
                 <FacebookReelsGrid pageUsername="Alloshchocolates" pageName="Allosh Chocolates" />
