@@ -55,15 +55,29 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
     const incrementQuantity = () => setQuantity(q => q + 1);
     const decrementQuantity = () => setQuantity(q => (q > 1 ? q - 1 : 1));
 
-    // Safe data handling
-    const productPrice = product.price || 0;
-    const productDiscountPrice = product.discount_price || 0;
+    // Safe data handling with detailed logging
+    const productPrice = Number(product.price) || 0;
+    const productDiscountPrice = Number(product.discount_price) || 0;
     const hasDiscount = productDiscountPrice > 0 && productDiscountPrice < productPrice;
     const finalPrice = hasDiscount ? productDiscountPrice : productPrice;
     const discountPercent = hasDiscount 
         ? Math.round(((productPrice - productDiscountPrice) / productPrice) * 100)
         : 0;
-    const stockQty = product.stock_quantity || 0;
+    const stockQty = Number(product.stock_quantity) || 0;
+    
+    console.log('💰 Price calculation:', {
+        rawPrice: product.price,
+        productPrice,
+        productDiscountPrice,
+        finalPrice,
+        hasDiscount,
+        stockQty
+    });
+    
+    // Show warning if price is 0
+    if (productPrice === 0) {
+        console.warn('⚠️ Product price is 0 - check database branch_products table');
+    }
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
@@ -183,29 +197,36 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
 
                     {/* Price */}
                     <div className="bg-gradient-to-r from-brand-orange/10 to-orange-100 rounded-2xl p-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm text-gray-600 mb-1">السعر</p>
-                                <div className="flex items-baseline gap-2">
-                                    <span className="text-3xl font-bold text-brand-orange">
-                                        {finalPrice.toFixed(2)} جنيه
-                                    </span>
-                                    {hasDiscount && (
-                                        <span className="text-lg text-gray-500 line-through">
-                                            {product.price.toFixed(2)}
+                        {finalPrice > 0 ? (
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm text-gray-600 mb-1">السعر</p>
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="text-3xl font-bold text-brand-orange">
+                                            {finalPrice.toFixed(2)} جنيه
                                         </span>
-                                    )}
+                                        {hasDiscount && (
+                                            <span className="text-lg text-gray-500 line-through">
+                                                {productPrice.toFixed(2)}
+                                            </span>
+                                        )}
+                                    </div>
                                 </div>
+                                {hasDiscount && (
+                                    <div className="bg-red-500 text-white px-3 py-2 rounded-xl">
+                                        <p className="text-xs">توفر</p>
+                                        <p className="text-lg font-bold">
+                                            {(productPrice - productDiscountPrice).toFixed(2)} جنيه
+                                        </p>
+                                    </div>
+                                )}
                             </div>
-                            {hasDiscount && (
-                                <div className="bg-red-500 text-white px-3 py-2 rounded-xl">
-                                    <p className="text-xs">توفر</p>
-                                    <p className="text-lg font-bold">
-                                        {(product.price - product.discount_price!).toFixed(2)} جنيه
-                                    </p>
-                                </div>
-                            )}
-                        </div>
+                        ) : (
+                            <div className="text-center py-3">
+                                <p className="text-lg font-bold text-red-600">⚠️ السعر غير متوفر</p>
+                                <p className="text-sm text-gray-600 mt-1">يرجى التواصل مع المتجر لمعرفة السعر</p>
+                            </div>
+                        )}
                     </div>
 
                     {/* Quantity Selector */}
@@ -233,23 +254,25 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
                     </div>
 
                     {/* Total */}
-                    <div className="bg-gray-900 text-white rounded-2xl p-4">
-                        <div className="flex items-center justify-between">
-                            <span className="text-lg">الإجمالي</span>
-                            <span className="text-2xl font-bold">
-                                {(finalPrice * quantity).toFixed(2)} جنيه
-                            </span>
+                    {finalPrice > 0 && (
+                        <div className="bg-gray-900 text-white rounded-2xl p-4">
+                            <div className="flex items-center justify-between">
+                                <span className="text-lg">الإجمالي</span>
+                                <span className="text-2xl font-bold">
+                                    {(finalPrice * quantity).toFixed(2)} جنيه
+                                </span>
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* Add to Cart Button */}
                     <button
                         onClick={handleAddToCart}
-                        disabled={isAdding || stockQty <= 0}
+                        disabled={isAdding || stockQty <= 0 || finalPrice <= 0}
                         className={`w-full py-4 rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-3 ${
                             isAdding
                                 ? 'bg-green-500 text-white'
-                                : product.stock_quantity <= 0
+                                : (stockQty <= 0 || finalPrice <= 0)
                                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                     : 'bg-gradient-to-r from-brand-orange to-orange-600 hover:from-orange-600 hover:to-brand-orange text-white shadow-lg hover:shadow-xl'
                         }`}
@@ -259,6 +282,8 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
                                 <div className="animate-spin rounded-full h-6 w-6 border-2 border-white border-t-transparent"></div>
                                 <span>جاري الإضافة...</span>
                             </>
+                        ) : finalPrice <= 0 ? (
+                            <span>السعر غير متوفر - اتصل بالمتجر</span>
                         ) : stockQty <= 0 ? (
                             <span>غير متوفر</span>
                         ) : (
