@@ -183,8 +183,8 @@ function AppContent() {
           <BottomNav />
         </div>
       )}
-        {/* Debug panel is always available */}
-        <DebugPanel />
+        {/* Debug panel - Only in development */}
+        {import.meta.env.DEV && <DebugPanel />}
       </div>
     </>
   );

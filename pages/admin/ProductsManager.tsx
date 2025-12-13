@@ -440,16 +440,84 @@ const ProductsManager = () => {
                                 </div>
                             </div>
 
-                            {/* Image URL */}
+                            {/* Image Upload */}
                             <div>
-                                <label className="block text-sm font-medium mb-1">لينك الصورة</label>
-                                <input
-                                    type="text"
-                                    value={form.image}
-                                    onChange={e => setForm({ ...form, image: e.target.value })}
-                                    className="w-full px-3 py-2 border rounded-md"
-                                    placeholder="https://..."
-                                />
+                                <label className="block text-sm font-medium mb-1">صورة المنتج</label>
+                                <div className="space-y-2">
+                                    {/* Current Image Preview */}
+                                    {form.image && (
+                                        <div className="relative w-32 h-32 border-2 border-gray-200 rounded-lg overflow-hidden">
+                                            <img 
+                                                src={form.image} 
+                                                alt="Product preview" 
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => {
+                                                    e.currentTarget.src = 'https://placehold.co/400x400?text=No+Image';
+                                                }}
+                                            />
+                                        </div>
+                                    )}
+                                    
+                                    {/* File Upload */}
+                                    <div className="flex items-center gap-2">
+                                        <label className="flex-1 cursor-pointer">
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={async (e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (!file) return;
+                                                    
+                                                    // Show loading state
+                                                    const originalImage = form.image;
+                                                    setForm({ ...form, image: 'uploading...' });
+                                                    
+                                                    try {
+                                                        const formData = new FormData();
+                                                        formData.append('image', file);
+                                                        formData.append('productId', form.barcode || `product_${Date.now()}`);
+                                                        
+                                                        const response = await fetch(`${API_URL}/upload/image`, {
+                                                            method: 'POST',
+                                                            body: formData
+                                                        });
+                                                        
+                                                        const result = await response.json();
+                                                        
+                                                        if (result.success) {
+                                                            setForm({ ...form, image: result.data.url });
+                                                            alert('✅ تم رفع الصورة بنجاح!');
+                                                        } else {
+                                                            throw new Error(result.error || 'فشل رفع الصورة');
+                                                        }
+                                                    } catch (error) {
+                                                        console.error('Upload error:', error);
+                                                        alert('❌ فشل رفع الصورة: ' + error.message);
+                                                        setForm({ ...form, image: originalImage });
+                                                    }
+                                                }}
+                                                className="hidden"
+                                            />
+                                            <div className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-center">
+                                                📤 رفع صورة
+                                            </div>
+                                        </label>
+                                        
+                                        {/* Or URL Input */}
+                                        <span className="text-gray-500">أو</span>
+                                        <input
+                                            type="text"
+                                            value={form.image === 'uploading...' ? '' : form.image}
+                                            onChange={e => setForm({ ...form, image: e.target.value })}
+                                            className="flex-1 px-3 py-2 border rounded-md text-sm"
+                                            placeholder="https://..."
+                                            disabled={form.image === 'uploading...'}
+                                        />
+                                    </div>
+                                    <p className="text-xs text-gray-500">
+                                        💡 يمكنك رفع صورة من جهازك أو إدخال رابط مباشر
+                                    </p>
+                                </div>
                             </div>
 
                             {/* Categories Row */}
