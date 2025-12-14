@@ -53,19 +53,28 @@ export const BranchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/branches`);
-      if (!response.ok) throw new Error('Failed to fetch branches');
-      const data = await response.json();
-      setBranches(data.data || data);
+      // Use Supabase to fetch branches from database
+      const { data, error: fetchError } = await supabase
+        .from('branches')
+        .select('*')
+        .eq('is_active', true)
+        .order('name');
+      
+      if (fetchError) {
+        console.error('Error fetching branches from Supabase:', fetchError);
+        throw fetchError;
+      }
+      
+      setBranches(data || []);
       
       // If no branch selected, select the first one
-      if (!selectedBranch && data.data?.length > 0) {
-        selectBranch(data.data[0]);
+      if (!selectedBranch && data && data.length > 0) {
+        selectBranch(data[0]);
       }
     } catch (err) {
-      // Silent fallback when backend unavailable
+      console.error('Failed to fetch branches:', err);
+      setError('فشل تحميل الفروع');
       setBranches([]);
-      setError(null);
     } finally {
       setLoading(false);
     }

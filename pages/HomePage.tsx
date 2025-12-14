@@ -336,32 +336,36 @@ const HomePage = () => {
                                 </Link>
                             </div>
                             
-                            {/* White Wave Shape at Top - exactly like the image */}
-                            <div className="relative w-full" style={{ height: '35px' }}>
-                                <svg viewBox="0 0 1440 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" preserveAspectRatio="none">
-                                    <path 
-                                        d="M0,50 Q360,15 720,50 T1440,50 L1440,100 L0,100 Z" 
-                                        fill="white"
-                                        className="drop-shadow-md"
+                            {/* Banner with wave on top only */}
+                            <div className="relative">
+                                {/* White Wave Shape at Top */}
+                                <div className="relative w-full" style={{ height: '30px' }}>
+                                    <svg viewBox="0 0 1440 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" preserveAspectRatio="none">
+                                        <path 
+                                            d="M0,50 Q360,15 720,50 T1440,50 L1440,100 L0,100 Z" 
+                                            fill="white"
+                                            className="drop-shadow-sm"
+                                        />
+                                    </svg>
+                                </div>
+                                
+                                {/* Banner Image */}
+                                <div className="relative rounded-2xl overflow-hidden h-40 -mt-1">
+                                    <img 
+                                        src={section.banner_image} 
+                                        alt={section.section_name_ar} 
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                            e.currentTarget.src = 'https://images.unsplash.com/photo-1543168256-418811576931?w=1200';
+                                        }}
                                     />
-                                </svg>
-                            </div>
-                            
-                            <div className="relative rounded-b-2xl overflow-hidden h-40 -mt-1">
-                                <img 
-                                    src={section.banner_image} 
-                                    alt={section.section_name_ar} 
-                                    className="w-full h-full object-cover"
-                                    onError={(e) => {
-                                        e.currentTarget.src = 'https://images.unsplash.com/photo-1543168256-418811576931?w=1200';
-                                    }}
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-br from-[#B8774D]/75 via-[#A66B4A]/85 to-[#8B5A3C]/90" />
-                                <div className="absolute bottom-4 right-4 text-white z-10">
-                                    <h3 className="text-2xl font-bold drop-shadow-lg">{section.section_name_ar}</h3>
-                                    <p className="text-sm drop-shadow-md opacity-95">{section.section_name}</p>
+                                    <div className="absolute bottom-4 right-4 text-white z-10">
+                                        <h3 className="text-2xl font-bold drop-shadow-lg">{section.section_name_ar}</h3>
+                                        <p className="text-sm drop-shadow-md opacity-95">{section.section_name}</p>
+                                    </div>
                                 </div>
                             </div>
+                            
                             <div className="flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible mt-4">
                                 {/* عرض المنتجات من الـ API أولاً، ثم fallback للمنتجات المحلية */}
                                 {section.products && section.products.length > 0 ? (
