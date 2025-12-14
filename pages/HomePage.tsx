@@ -54,6 +54,7 @@ const HomePage = () => {
     const [error, setError] = useState<string | null>(null);
     const { isAuthenticated } = useAuth();
     const { selectedBranch } = useBranch();
+    const wavePalette = ['#FDF2E9', '#EEF2FF', '#ECFDF3', '#FFF7ED', '#E0F2FE'];
 
     // Fetch categories from API
     const fetchCategories = async () => {
@@ -324,85 +325,88 @@ const HomePage = () => {
                         ))}
                     </div>
                 ) : homeSections.length > 0 ? (
-                    homeSections.map((section, sectionIndex) => (
-                        <section key={section.id} className="space-y-0">
-                            <div className="flex items-center justify-between mb-3">
-                                <h2 className="text-xl font-bold text-gray-900">{section.section_name_ar}</h2>
-                                <Link 
-                                    to={`/products?category=${encodeURIComponent(section.category)}`} 
-                                    className="text-[#FF4500] text-sm font-semibold flex items-center gap-1 hover:gap-2 transition-all"
-                                >
-                                    عرض المزيد <ChevronRight className="w-4 h-4" />
-                                </Link>
-                            </div>
-                            
-                            {/* Banner with wave on top only */}
-                            <div className="relative">
-                                {/* White Wave Shape at Top */}
-                                <div className="relative w-full" style={{ height: '30px' }}>
-                                    <svg viewBox="0 0 1440 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" preserveAspectRatio="none">
-                                        <path 
-                                            d="M0,50 Q360,15 720,50 T1440,50 L1440,100 L0,100 Z" 
-                                            fill="white"
-                                            className="drop-shadow-sm"
-                                        />
+                    homeSections.map((section, sectionIndex) => {
+                        const waveColor = wavePalette[sectionIndex % wavePalette.length];
+
+                        return (
+                            <section key={section.id} className="relative mt-12">
+                                {/* موجة علوية بنفس لون البانر */}
+                                <div className="absolute -top-10 left-0 w-full h-12 text-[color:var(--wave-color)]" style={{ '--wave-color': waveColor } as React.CSSProperties}>
+                                    <svg viewBox="0 0 1440 120" className="w-full h-full" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M0,80 Q240,30 480,55 T960,60 T1440,80 L1440,0 L0,0 Z" fill="currentColor" />
                                     </svg>
                                 </div>
-                                
-                                {/* Banner Image */}
-                                <div className="relative rounded-2xl overflow-hidden h-40 -mt-1">
-                                    <img 
-                                        src={section.banner_image} 
-                                        alt={section.section_name_ar} 
-                                        className="w-full h-full object-cover"
-                                        onError={(e) => {
-                                            e.currentTarget.src = 'https://images.unsplash.com/photo-1543168256-418811576931?w=1200';
-                                        }}
-                                    />
-                                    <div className="absolute bottom-4 right-4 text-white z-10">
-                                        <h3 className="text-2xl font-bold drop-shadow-lg">{section.section_name_ar}</h3>
-                                        <p className="text-sm drop-shadow-md opacity-95">{section.section_name}</p>
+
+                                <div className="rounded-[28px] overflow-hidden shadow-[0_12px_30px_rgba(0,0,0,0.06)] border border-white/60 bg-white/90 backdrop-blur-[2px]">
+                                    {/* Banner with wave-like top mood */}
+                                    <div className="relative h-44 sm:h-52 md:h-56" style={{ background: `linear-gradient(135deg, ${waveColor} 0%, #ffffff 70%)` }}>
+                                        <img
+                                            src={section.banner_image}
+                                            alt={section.section_name_ar}
+                                            className="absolute inset-0 w-full h-full object-cover mix-blend-multiply"
+                                            onError={(e) => {
+                                                e.currentTarget.src = 'https://images.unsplash.com/photo-1543168256-418811576931?w=1200';
+                                            }}
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-r from-black/15 via-black/5 to-transparent" />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-white/55 via-transparent to-transparent" />
+                                        <div className="absolute bottom-4 right-4 text-white z-10 drop-shadow-[0_6px_14px_rgba(0,0,0,0.25)]">
+                                            <h3 className="text-2xl font-extrabold leading-tight">{section.section_name_ar}</h3>
+                                            <p className="text-sm opacity-95">{section.section_name}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="px-3 sm:px-4 md:px-5 pb-5 pt-4 bg-white">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <h2 className="text-xl font-bold text-gray-900">{section.section_name_ar}</h2>
+                                            <Link
+                                                to={`/products?category=${encodeURIComponent(section.category)}`}
+                                                className="text-[#FF4500] text-sm font-semibold flex items-center gap-1 hover:gap-2 transition-all"
+                                            >
+                                                عرض المزيد <ChevronRight className="w-4 h-4" />
+                                            </Link>
+                                        </div>
+
+                                        <div className="flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible mt-1">
+                                            {/* عرض المنتجات من الـ API أولاً، ثم fallback للمنتجات المحلية */}
+                                            {section.products && section.products.length > 0 ? (
+                                                section.products.slice(0, section.max_products || 8).map(product => (
+                                                    <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
+                                                        <ProductCard product={product} />
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                // Fallback: البحث في المنتجات المحلية باستخدام مطابقة أكثر مرونة
+                                                products.filter(p => {
+                                                    if (!p.category || !section.category) return false;
+                                                    const pCat = p.category.trim().toLowerCase();
+                                                    const sCat = section.category.trim().toLowerCase();
+                                                    return pCat === sCat || pCat.includes(sCat) || sCat.includes(pCat);
+                                                }).slice(0, section.max_products || 8).length > 0 ? (
+                                                    products.filter(p => {
+                                                        if (!p.category || !section.category) return false;
+                                                        const pCat = p.category.trim().toLowerCase();
+                                                        const sCat = section.category.trim().toLowerCase();
+                                                        return pCat === sCat || pCat.includes(sCat) || sCat.includes(pCat);
+                                                    }).slice(0, section.max_products || 8).map(product => (
+                                                        <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
+                                                            <ProductCard product={product} />
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <div className="col-span-full text-center py-8">
+                                                        <p className="text-gray-500 text-sm">
+                                                            لا توجد منتجات متاحة في فئة "{section.category}" حالياً
+                                                        </p>
+                                                    </div>
+                                                )
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            
-                            <div className="flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible mt-4">
-                                {/* عرض المنتجات من الـ API أولاً، ثم fallback للمنتجات المحلية */}
-                                {section.products && section.products.length > 0 ? (
-                                    section.products.slice(0, section.max_products || 8).map(product => (
-                                        <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
-                                            <ProductCard product={product} />
-                                        </div>
-                                    ))
-                                ) : (
-                                    // Fallback: البحث في المنتجات المحلية باستخدام مطابقة أكثر مرونة
-                                    products.filter(p => {
-                                        if (!p.category || !section.category) return false;
-                                        const pCat = p.category.trim().toLowerCase();
-                                        const sCat = section.category.trim().toLowerCase();
-                                        return pCat === sCat || pCat.includes(sCat) || sCat.includes(pCat);
-                                    }).slice(0, section.max_products || 8).length > 0 ? (
-                                        products.filter(p => {
-                                            if (!p.category || !section.category) return false;
-                                            const pCat = p.category.trim().toLowerCase();
-                                            const sCat = section.category.trim().toLowerCase();
-                                            return pCat === sCat || pCat.includes(sCat) || sCat.includes(pCat);
-                                        }).slice(0, section.max_products || 8).map(product => (
-                                            <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
-                                                <ProductCard product={product} />
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <div className="col-span-full text-center py-8">
-                                            <p className="text-gray-500 text-sm">
-                                                لا توجد منتجات متاحة في فئة "{section.category}" حالياً
-                                            </p>
-                                        </div>
-                                    )
-                                )}
-                            </div>
-                        </section>
-                    ))
+                            </section>
+                        );
+                    })
                 ) : (
                     <div className="text-center py-12">
                         <p className="text-gray-500">لا توجد أقسام متاحة حالياً</p>
