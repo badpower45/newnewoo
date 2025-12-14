@@ -113,60 +113,16 @@ const HeroCarousel: React.FC = () => {
     const currentOffer = offers[currentIndex];
 
     return (
-        <div className="relative -mb-1">
-            {/* Wave Shape at Top - Connected to banner */}
-            <div className="relative w-full" style={{ height: '50px' }}>
-                <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" preserveAspectRatio="none">
-                    <path 
-                        d="M0,60 C240,20 360,100 720,60 C1080,20 1200,100 1440,60 L1440,120 L0,120 Z" 
-                        className="transition-all duration-700"
-                        style={{
-                            fill: `url(#wave-gradient-${currentIndex})`
-                        }}
-                    />
-                    {/* Decorative wave overlay for depth */}
-                    <path 
-                        d="M0,70 C240,30 360,110 720,70 C1080,30 1200,110 1440,70 L1440,120 L0,120 Z" 
-                        className="transition-all duration-700"
-                        style={{
-                            fill: `url(#wave-gradient-overlay-${currentIndex})`,
-                            opacity: 0.3
-                        }}
-                    />
-                    <defs>
-                        {offers.map((offer, idx) => {
-                            const colors = offer.bgGradient.match(/from-\[([^\]]+)\].*via-\[([^\]]+)\].*to-\[([^\]]+)\]/);
-                            const fromColor = colors?.[1] || '#8B4513';
-                            const viaColor = colors?.[2] || '#A0522D';
-                            const toColor = colors?.[3] || '#D2691E';
-                            return (
-                                <React.Fragment key={idx}>
-                                    <linearGradient id={`wave-gradient-${idx}`} x1="0%" y1="0%" x2="100%" y2="0%">
-                                        <stop offset="0%" stopColor={fromColor} />
-                                        <stop offset="50%" stopColor={viaColor} />
-                                        <stop offset="100%" stopColor={toColor} />
-                                    </linearGradient>
-                                    <linearGradient id={`wave-gradient-overlay-${idx}`} x1="0%" y1="0%" x2="100%" y2="0%">
-                                        <stop offset="0%" stopColor={viaColor} />
-                                        <stop offset="100%" stopColor={toColor} />
-                                    </linearGradient>
-                                </React.Fragment>
-                            );
-                        })}
-                    </defs>
-                </svg>
-            </div>
-
-            {/* Main Carousel - connected seamlessly with wave */}
-            <div className="relative overflow-hidden rounded-b-2xl shadow-lg -mt-1">
-                <div
-                    className="relative h-[140px] sm:h-[160px] md:h-[200px] lg:h-[250px]"
-                    onTouchStart={handleTouchStart}
-                    onTouchMove={handleTouchMove}
-                    onTouchEnd={handleTouchEnd}
-                >
-                    {/* Background Gradient */}
-                    <div className={`absolute inset-0 bg-gradient-to-l ${currentOffer.bgGradient} transition-all duration-700`} />
+        <div className="relative overflow-hidden rounded-2xl shadow-lg">
+            {/* Main Carousel */}
+            <div
+                className="relative h-[140px] sm:h-[160px] md:h-[200px] lg:h-[250px]"
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+            >
+                {/* Background Gradient */}
+                <div className={`absolute inset-0 bg-gradient-to-l ${currentOffer.bgGradient} transition-all duration-700`} />
                                         <stop offset="50%" stopColor={viaColor} />
                                         <stop offset="100%" stopColor={toColor} />
                                     </linearGradient>
