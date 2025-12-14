@@ -53,22 +53,55 @@ export const BranchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setLoading(true);
     setError(null);
     try {
-      // Use backend API to fetch branches
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/branches`);
-      if (!response.ok) throw new Error('Failed to fetch branches');
+      // Try backend API first
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://bkaa.vercel.app/api';
+      console.log('🔍 Fetching branches from:', `${apiUrl}/branches`);
+      
+      const response = await fetch(`${apiUrl}/branches`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        throw new Error('Response is not JSON');
+      }
+      
       const result = await response.json();
       const branchesData = result.data || result;
       
-      setBranches(branchesData || []);
+      if (!branchesData || branchesData.length === 0) {
+        throw new Error('No branches found');
+      }
+      
+      console.log('✅ Branches loaded:', branchesData.length);
+      setBranches(branchesData);
       
       // If no branch selected, select the first one
-      if (!selectedBranch && branchesData && branchesData.length > 0) {
+      if (!selectedBranch && branchesData.length > 0) {
         selectBranch(branchesData[0]);
       }
     } catch (err) {
-      console.error('Failed to fetch branches:', err);
-      setError('فشل تحميل الفروع');
-      setBranches([]);
+      console.error('❌ Failed to fetch branches from API:', err);
+      
+      // Fallback: Use default branch
+      const defaultBranch: Branch = {
+        id: 1,
+        name: 'Default',
+        address: 'الفرع الرئيسي',
+        phone: '01000000000',
+        is_active: true
+      };
+      
+      console.log('⚠️ Using fallback default branch');
+      setBranches([defaultBranch]);
+      
+      if (!selectedBranch) {
+        selectBranch(defaultBranch);
+      }
+      
+      setError(null); // Don't show error to user, just use fallback
     } finally {
       setLoading(false);
     }
