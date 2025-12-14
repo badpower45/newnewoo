@@ -138,17 +138,19 @@ const TopBar = () => {
                             {/* Branch Selector - Enhanced with name */}
                             <button 
                                 onClick={() => setShowBranchSelector(true)}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 transition-all border border-blue-200 shadow-sm"
+                                className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border-2 border-blue-500 hover:bg-blue-50 transition-all shadow-md hover:shadow-lg"
                                 title="اختر الفرع"
                             >
-                                <MapPin size={16} className="text-blue-600" />
-                                <div className="flex flex-col items-start">
-                                    <span className="text-[9px] text-blue-500 font-medium leading-none">التوصيل إلى</span>
-                                    <span className="text-[10px] text-blue-900 font-bold leading-tight max-w-[80px] truncate">
-                                        {selectedBranch?.name || 'اختر الفرع'}
-                                    </span>
+                                <div className="flex items-center gap-1.5">
+                                    <MapPin size={18} className="text-blue-600 flex-shrink-0" />
+                                    <div className="flex flex-col items-start">
+                                        <span className="text-[10px] text-blue-600 font-medium leading-none">التوصيل إلى</span>
+                                        <span className="text-xs text-gray-900 font-bold leading-tight max-w-[100px] truncate">
+                                            {selectedBranch?.name || 'اختر فرعك'}
+                                        </span>
+                                    </div>
                                 </div>
-                                <ChevronDown size={12} className="text-blue-600" />
+                                <ChevronDown size={14} className="text-blue-600 flex-shrink-0" />
                             </button>
                             {/* User Icon */}
                             <Link to={isAuthenticated ? '/profile' : '/login'} className="p-2">
@@ -204,16 +206,20 @@ const TopBar = () => {
                         {/* Branch Selector - Desktop */}
                         <button 
                             onClick={() => setShowBranchSelector(true)}
-                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 transition-all border border-blue-200 shadow-sm flex-shrink-0"
+                            className="flex items-center gap-3 px-5 py-2.5 rounded-xl bg-white border-2 border-blue-500 hover:bg-blue-50 transition-all shadow-md hover:shadow-lg flex-shrink-0"
                         >
-                            <MapPin size={18} className="text-blue-600" />
-                            <div className="flex flex-col items-start">
-                                <span className="text-[10px] text-blue-500 font-medium leading-none">التوصيل إلى</span>
-                                <span className="text-xs text-blue-900 font-bold leading-tight">
-                                    {selectedBranch?.name || 'اختر الفرع'}
-                                </span>
+                            <div className="flex items-center gap-2">
+                                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <MapPin size={20} className="text-blue-600" />
+                                </div>
+                                <div className="flex flex-col items-start">
+                                    <span className="text-xs text-blue-600 font-medium leading-none">التوصيل إلى:</span>
+                                    <span className="text-sm text-gray-900 font-bold leading-tight">
+                                        {selectedBranch?.name || 'اختر فرعك الآن'}
+                                    </span>
+                                </div>
                             </div>
-                            <ChevronDown size={14} className="text-blue-600" />
+                            <ChevronDown size={18} className="text-blue-600" />
                         </button>
                         
                         {/* Search Bar */}

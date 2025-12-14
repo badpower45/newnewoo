@@ -14,6 +14,8 @@ const BranchSelector: React.FC<BranchSelectorProps> = ({ isOpen, onClose }) => {
   const { branches, selectedBranch, loading, error, selectBranch, fetchBranches, autoSelectByLocation } = useBranch();
   const [locating, setLocating] = useState(false);
   const [locError, setLocError] = useState('');
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [branchDistances, setBranchDistances] = useState<Map<number, number>>(new Map());
 
   useEffect(() => {
     if (isOpen && branches.length === 0) {
@@ -63,6 +65,27 @@ const BranchSelector: React.FC<BranchSelectorProps> = ({ isOpen, onClose }) => {
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
+        const userPos = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude
+        };
+        setUserLocation(userPos);
+
+        // Calculate distances for all branches
+        const distances = new Map<number, number>();
+        branches.forEach(branch => {
+          if (branch.latitude && branch.longitude) {
+            const distance = calculateDistance(
+              userPos.lat,
+              userPos.lng,
+              branch.latitude,
+              branch.longitude
+            );
+            distances.set(branch.id, distance);
+          }
+        });
+        setBranchDistances(distances);
+
         // Find nearest branch manually
         if (branches.length === 0) {
           setLocError('لا توجد فروع متاحة');
@@ -76,8 +99,8 @@ const BranchSelector: React.FC<BranchSelectorProps> = ({ isOpen, onClose }) => {
         branches.forEach(branch => {
           if (branch.latitude && branch.longitude) {
             const distance = calculateDistance(
-              pos.coords.latitude,
-              pos.coords.longitude,
+              userPos.lat,
+              userPos.lng,
               branch.latitude,
               branch.longitude
             );
@@ -90,6 +113,22 @@ const BranchSelector: React.FC<BranchSelectorProps> = ({ isOpen, onClose }) => {
 
         if (nearest) {
           selectBranch(nearest);
+          
+          // Show success toast with distance
+          const toast = document.createElement('div');
+          toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-xl shadow-2xl z-[9999] animate-bounce flex items-center gap-3';
+          toast.innerHTML = `
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+            <div>
+              <p class="font-bold">تم اختيار أقرب فرع ✓</p>
+              <p class="text-xs opacity-90">${nearest.name} - ${minDistance.toFixed(1)} كم</p>
+            </div>
+          `;
+          document.body.appendChild(toast);
+          setTimeout(() => toast.remove(), 4000);
+          
           onClose();
         } else {
           setLocError('لم يتم العثور على فرع مناسب لموقعك');
@@ -105,18 +144,31 @@ const BranchSelector: React.FC<BranchSelectorProps> = ({ isOpen, onClose }) => {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="اختر الفرع الأقرب إليك 📍" size="medium">
+    <Modal isOpen={isOpen} onClose={onClose} title="📍 اختر الفرع الأقرب إليك" size="medium">
       {loading ? (
         <LoadingSpinner message="جاري تحميل الفروع..." />
       ) : error ? (
         <ErrorMessage message={error} onRetry={fetchBranches} />
       ) : (
         <div className="space-y-4">
+          {/* Alert Banner - if no branch selected */}
+          {!selectedBranch && (
+            <div className="p-4 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl text-white animate-pulse">
+              <div className="flex items-center gap-3">
+                <div className="text-3xl">⚠️</div>
+                <div>
+                  <h3 className="font-bold text-lg">لا يوجد فرع متاحة</h3>
+                  <p className="text-xs text-orange-100">يرجى اختيار فرع لعرض المنتجات المتوفرة</p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Info Banner */}
-          <div className="p-4 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl text-white">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                <MapPin className="text-white" size={20} />
+          <div className="p-4 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl text-white shadow-lg">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                <MapPin className="text-white" size={24} />
               </div>
               <div>
                 <h3 className="font-bold text-lg">اختر فرعك</h3>
@@ -125,23 +177,29 @@ const BranchSelector: React.FC<BranchSelectorProps> = ({ isOpen, onClose }) => {
             </div>
           </div>
 
-          {/* Auto Location Button */}
+          {/* Auto Location Button - Prominent */}
           <button
             onClick={handleUseMyLocation}
             disabled={locating}
-            className="w-full flex items-center justify-between gap-3 p-4 rounded-xl bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 hover:border-green-400 transition-all group"
+            className="w-full p-5 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-xl hover:shadow-2xl transition-all transform hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed"
           >
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600 group-hover:scale-110 transition-transform">
-                <Navigation size={22} />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
+                  {locating ? (
+                    <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <Navigation size={28} className="text-white" />
+                  )}
+                </div>
+                <div className="text-right">
+                  <p className="text-base font-bold mb-1">🎯 اختر تلقائياً حسب موقعي</p>
+                  <p className="text-sm text-green-100">سنختار أقرب فرع لك تلقائياً</p>
+                </div>
               </div>
-              <div className="text-right">
-                <p className="text-sm font-bold text-green-900">اختر تلقائياً حسب موقعي</p>
-                <p className="text-xs text-green-700">سنختار أقرب فرع لك</p>
+              <div className="text-2xl">
+                {locating ? '⏳' : '→'}
               </div>
-            </div>
-            <div className="px-4 py-2 bg-green-600 text-white rounded-lg font-bold text-sm group-hover:bg-green-700 transition-colors">
-              {locating ? '⏳ جاري...' : 'حدد موقعي'}
             </div>
           </button>
           
@@ -163,13 +221,24 @@ const BranchSelector: React.FC<BranchSelectorProps> = ({ isOpen, onClose }) => {
             <p className="text-center text-gray-500 py-8">لا توجد فروع متاحة حالياً</p>
           ) : (
             <div className="space-y-3 max-h-96 overflow-y-auto">
-              {branches.map((branch) => (
+              {/* Sort branches by distance if available */}
+              {[...branches].sort((a, b) => {
+                const distA = branchDistances.get(a.id) ?? Infinity;
+                const distB = branchDistances.get(b.id) ?? Infinity;
+                return distA - distB;
+              }).map((branch) => {
+                const distance = branchDistances.get(branch.id);
+                const isNearest = distance && distance === Math.min(...Array.from(branchDistances.values()));
+                
+                return (
                 <button
                   key={branch.id}
                   onClick={() => handleSelectBranch(branch)}
                   className={`w-full text-right p-4 rounded-xl border-2 transition-all ${
                     selectedBranch?.id === branch.id
                       ? 'border-green-500 bg-green-50 shadow-md'
+                      : isNearest
+                      ? 'border-blue-400 bg-blue-50 hover:border-blue-500 hover:shadow-sm'
                       : 'border-gray-200 hover:border-green-300 hover:shadow-sm'
                   }`}
                 >
@@ -180,6 +249,11 @@ const BranchSelector: React.FC<BranchSelectorProps> = ({ isOpen, onClose }) => {
                         {selectedBranch?.id === branch.id && (
                           <span className="px-2 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded-full">
                             ✓ مُختار
+                          </span>
+                        )}
+                        {isNearest && selectedBranch?.id !== branch.id && (
+                          <span className="px-2 py-0.5 bg-blue-500 text-white text-[10px] font-bold rounded-full animate-pulse">
+                            ⭐ الأقرب
                           </span>
                         )}
                       </div>
@@ -198,6 +272,12 @@ const BranchSelector: React.FC<BranchSelectorProps> = ({ isOpen, onClose }) => {
                             📍 {branch.governorate}
                           </p>
                         )}
+                        {/* Show distance if available */}
+                        {branchDistances.has(branch.id) && (
+                          <p className="text-xs text-green-600 font-bold flex items-center gap-1.5 bg-green-50 px-2 py-1 rounded-md w-fit">
+                            🎯 البعد: {branchDistances.get(branch.id)?.toFixed(1)} كم
+                          </p>
+                        )}
                       </div>
                     </div>
                     {selectedBranch?.id === branch.id && (
@@ -209,7 +289,7 @@ const BranchSelector: React.FC<BranchSelectorProps> = ({ isOpen, onClose }) => {
                     )}
                   </div>
                 </button>
-              ))}
+              )})}
             </div>
           )}
         </div>
