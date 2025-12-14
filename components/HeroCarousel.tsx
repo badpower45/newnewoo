@@ -113,10 +113,10 @@ const HeroCarousel: React.FC = () => {
     const currentOffer = offers[currentIndex];
 
     return (
-        <div className="relative">
-            {/* Wave Shape at Top - Purple gradient like the image */}
-            <div className="absolute -top-6 sm:-top-8 md:-top-10 left-0 right-0 z-10 pointer-events-none">
-                <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto" preserveAspectRatio="none">
+        <div className="relative -mb-1">
+            {/* Wave Shape at Top - Connected to banner */}
+            <div className="relative w-full" style={{ height: '50px' }}>
+                <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" preserveAspectRatio="none">
                     <path 
                         d="M0,60 C240,20 360,100 720,60 C1080,20 1200,100 1440,60 L1440,120 L0,120 Z" 
                         className="transition-all duration-700"
@@ -157,8 +157,32 @@ const HeroCarousel: React.FC = () => {
                 </svg>
             </div>
 
-            {/* Main Carousel */}
-            <div className="relative overflow-hidden rounded-2xl shadow-lg">
+            {/* Main Carousel - connected seamlessly with wave */}
+            <div className="relative overflow-hidden rounded-b-2xl shadow-lg -mt-1">
+                <div
+                    className="relative h-[140px] sm:h-[160px] md:h-[200px] lg:h-[250px]"
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                >
+                    {/* Background Gradient */}
+                    <div className={`absolute inset-0 bg-gradient-to-l ${currentOffer.bgGradient} transition-all duration-700`} />
+                                        <stop offset="50%" stopColor={viaColor} />
+                                        <stop offset="100%" stopColor={toColor} />
+                                    </linearGradient>
+                                    <linearGradient id={`wave-gradient-overlay-${idx}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stopColor={viaColor} />
+                                        <stop offset="100%" stopColor={toColor} />
+                                    </linearGradient>
+                                </React.Fragment>
+                            );
+                        })}
+                    </defs>
+                </svg>
+            </div>
+
+            {/* Main Carousel - connected seamlessly with wave */}
+            <div className="relative overflow-hidden rounded-b-2xl shadow-lg -mt-1">
                 <div
                     className="relative h-[140px] sm:h-[160px] md:h-[200px] lg:h-[250px]"
                     onTouchStart={handleTouchStart}
