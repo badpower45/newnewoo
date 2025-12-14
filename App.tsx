@@ -71,7 +71,6 @@ import MyOrdersPage from './pages/MyOrdersPage';
 import LoyaltyPage from './pages/LoyaltyPage';
 import AddressesPage from './pages/AddressesPage';
 import BranchesPage from './pages/BranchesPage';
-import SplashScreen from './pages/SplashScreen';
 
 // Premium Brand Pages
 import PepsiBrandPage from './pages/brands/PepsiBrandPage';
@@ -92,18 +91,17 @@ function AppContent() {
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
 
-  React.useEffect(() => {
-    // Splash screen timing
-    const timer = setTimeout(() => {
-      setShowSplash(false);
-      setAppReady(true);
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, []);
-
   // Show splash screen on first load
   if (showSplash) {
-    return <SplashScreen />;
+    return (
+      <LottieLoader
+        duration={2600}
+        onComplete={() => {
+          setShowSplash(false);
+          setAppReady(true);
+        }}
+      />
+    );
   }
 
   return (
