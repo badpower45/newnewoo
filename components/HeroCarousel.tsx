@@ -123,30 +123,6 @@ const HeroCarousel: React.FC = () => {
             >
                 {/* Background Gradient */}
                 <div className={`absolute inset-0 bg-gradient-to-l ${currentOffer.bgGradient} transition-all duration-700`} />
-                                        <stop offset="50%" stopColor={viaColor} />
-                                        <stop offset="100%" stopColor={toColor} />
-                                    </linearGradient>
-                                    <linearGradient id={`wave-gradient-overlay-${idx}`} x1="0%" y1="0%" x2="100%" y2="0%">
-                                        <stop offset="0%" stopColor={viaColor} />
-                                        <stop offset="100%" stopColor={toColor} />
-                                    </linearGradient>
-                                </React.Fragment>
-                            );
-                        })}
-                    </defs>
-                </svg>
-            </div>
-
-            {/* Main Carousel - connected seamlessly with wave */}
-            <div className="relative overflow-hidden rounded-b-2xl shadow-lg -mt-1">
-                <div
-                    className="relative h-[140px] sm:h-[160px] md:h-[200px] lg:h-[250px]"
-                    onTouchStart={handleTouchStart}
-                    onTouchMove={handleTouchMove}
-                    onTouchEnd={handleTouchEnd}
-                >
-                    {/* Background Gradient */}
-                    <div className={`absolute inset-0 bg-gradient-to-l ${currentOffer.bgGradient} transition-all duration-700`} />
 
                 {/* Decorative Elements */}
                 <div className="absolute inset-0 overflow-hidden">
