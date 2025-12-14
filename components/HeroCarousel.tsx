@@ -219,7 +219,6 @@ const HeroCarousel: React.FC = () => {
                     to { width: 100%; }
                 }
             `}</style>
-            </div>
         </div>
     );
 };
