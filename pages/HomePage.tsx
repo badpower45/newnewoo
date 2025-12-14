@@ -149,9 +149,13 @@ const HomePage = () => {
         setSectionsLoading(true);
         try {
             const branchId = selectedBranch?.id || DEFAULT_BRANCH_ID;
+            console.log('🏠 Loading home sections for branch:', selectedBranch?.name || 'Default', 'ID:', branchId);
+            
             const response = await api.homeSections.get(branchId);
             const sectionsData = response?.data || response || [];
             setHomeSections(Array.isArray(sectionsData) ? sectionsData : []);
+            
+            console.log('✅ Home sections loaded:', sectionsData?.length || 0, 'sections');
         } catch (err) {
             console.error('Error fetching sections:', err);
             setHomeSections([]);
@@ -165,11 +169,14 @@ const HomePage = () => {
         setError(null);
         try {
             const branchId = selectedBranch?.id || DEFAULT_BRANCH_ID;
+            console.log('🏪 Loading products for branch:', selectedBranch?.name || 'Default', 'ID:', branchId);
+            
             // Get products from API (now returns array directly)
             let list = await api.products.getAllByBranch(branchId);
 
             // Fallback if empty
             if (!list || list.length === 0) {
+                console.log('⚠️ No products found for branch, trying fallback...');
                 try {
                     list = await api.products.getAll();
                 } catch (fallbackErr) {
@@ -179,6 +186,8 @@ const HomePage = () => {
             }
 
             setProducts(Array.isArray(list) ? list : []);
+            console.log('✅ Products loaded:', list?.length || 0, 'products for branch:', selectedBranch?.name);
+            
             if (!list || list.length === 0) {
                 setError('لا توجد منتجات متاحة حالياً لهذا الفرع');
             }

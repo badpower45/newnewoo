@@ -70,9 +70,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
     return (
       <div
         onClick={handleCardClick}
-        className="flex items-center p-3 bg-white rounded-xl shadow-sm border border-gray-50 space-x-3 cursor-pointer hover:shadow-md transition-shadow"
+        className="flex items-center p-3 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 space-x-3 cursor-pointer"
       >
-        <div className="w-20 h-20 flex-shrink-0 bg-gray-50 rounded-lg p-2 relative">
+        <div className="w-20 h-20 flex-shrink-0 bg-white rounded-lg p-2 relative shadow-sm">
           {hasDiscount && (
             <span className="absolute -top-1 -right-1 text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded-full font-bold">
               -{discountPercent}%
@@ -108,8 +108,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
       onClick={handleCardClick}
       className="flex flex-col relative cursor-pointer group"
     >
-      {/* Image Container - Square with beige background */}
-      <div className="relative w-full aspect-square bg-[#f5f0e8] rounded-xl overflow-hidden mb-1.5">
+      {/* Image Container - Square with white background and shadow */}
+      <div className="relative w-full aspect-square bg-white rounded-xl overflow-hidden mb-1.5 shadow-sm hover:shadow-md transition-shadow">
         {/* Favorite Button */}
         <button
           onClick={handleToggleFavorite}

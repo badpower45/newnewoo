@@ -135,16 +135,20 @@ const TopBar = () => {
 
                         {/* Mobile Actions - Branch & User Icons */}
                         <div className="flex md:hidden items-center gap-2">
-                            {/* Branch Selector */}
+                            {/* Branch Selector - Enhanced with name */}
                             <button 
                                 onClick={() => setShowBranchSelector(true)}
-                                className="p-2 rounded-xl hover:bg-gray-50 transition-colors relative"
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 transition-all border border-blue-200 shadow-sm"
                                 title="اختر الفرع"
                             >
-                                <MapPin size={20} className="text-gray-600" />
-                                {selectedBranch && (
-                                    <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                                )}
+                                <MapPin size={16} className="text-blue-600" />
+                                <div className="flex flex-col items-start">
+                                    <span className="text-[9px] text-blue-500 font-medium leading-none">التوصيل إلى</span>
+                                    <span className="text-[10px] text-blue-900 font-bold leading-tight max-w-[80px] truncate">
+                                        {selectedBranch?.name || 'اختر الفرع'}
+                                    </span>
+                                </div>
+                                <ChevronDown size={12} className="text-blue-600" />
                             </button>
                             {/* User Icon */}
                             <Link to={isAuthenticated ? '/profile' : '/login'} className="p-2">
@@ -197,6 +201,21 @@ const TopBar = () => {
 
                     {/* Desktop: Location + Search + Actions */}
                     <div className="hidden md:flex items-center gap-4 w-full">
+                        {/* Branch Selector - Desktop */}
+                        <button 
+                            onClick={() => setShowBranchSelector(true)}
+                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-blue-50 to-blue-100 hover:from-blue-100 hover:to-blue-200 transition-all border border-blue-200 shadow-sm flex-shrink-0"
+                        >
+                            <MapPin size={18} className="text-blue-600" />
+                            <div className="flex flex-col items-start">
+                                <span className="text-[10px] text-blue-500 font-medium leading-none">التوصيل إلى</span>
+                                <span className="text-xs text-blue-900 font-bold leading-tight">
+                                    {selectedBranch?.name || 'اختر الفرع'}
+                                </span>
+                            </div>
+                            <ChevronDown size={14} className="text-blue-600" />
+                        </button>
+                        
                         {/* Search Bar */}
                         <form onSubmit={handleSearch} className="flex-1 flex items-center gap-3">
                             <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-xl w-full border border-gray-100 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
