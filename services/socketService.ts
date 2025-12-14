@@ -4,27 +4,38 @@ import { SOCKET_URL } from '../src/config';
 class SocketService {
     private socket: Socket | null = null;
     private connected: boolean = false;
+    private connecting: boolean = false;
+    private disabled: boolean = false;
     private currentConversationId: number | null = null;
     private currentCustomerName: string | null = null;
     private trackingOrderId: number | null = null;
     private driverId: number | null = null;
+    private reconnectAttempts: number = 0;
+    private maxReconnectAttempts: number = 3;
 
     connect() {
-        if (this.socket) return;
+        // Don't try to connect if disabled or already connecting/connected
+        if (this.disabled || this.socket || this.connecting) return;
+
+        this.connecting = true;
 
         // ✅ Get auth token for authenticated socket connections
         const token = localStorage.getItem('token');
 
         this.socket = io(SOCKET_URL, {
             reconnection: true,
-            reconnectionDelay: 1000,
-            reconnectionAttempts: 5,
+            reconnectionDelay: 2000,
+            reconnectionAttempts: this.maxReconnectAttempts,
+            timeout: 10000,
+            transports: ['polling', 'websocket'],
             // ✅ Send auth token with connection
             auth: token ? { token } : undefined
         });
 
         this.socket.on('connect', () => {
             this.connected = true;
+            this.connecting = false;
+            this.reconnectAttempts = 0;
             console.log('✅ Socket connected');
 
             // Re-join conversation if we were in one
@@ -50,8 +61,26 @@ class SocketService {
         });
 
         this.socket.on('connect_error', (error) => {
-            console.error('Socket connection error:', error);
+            this.connecting = false;
+            this.reconnectAttempts++;
+            
+            // Disable socket after max attempts to prevent spam
+            if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+                console.warn('⚠️ Socket.io not available on this server. Using Supabase Realtime instead.');
+                this.disabled = true;
+                this.disconnect();
+            } else {
+                console.warn(`Socket connection attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts} failed`);
+            }
         });
+    }
+
+    isConnected(): boolean {
+        return this.connected && !this.disabled;
+    }
+
+    isDisabled(): boolean {
+        return this.disabled;
     }
 
     disconnect() {

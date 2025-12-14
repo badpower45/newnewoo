@@ -90,6 +90,7 @@ function AppContent() {
   const [appReady, setAppReady] = React.useState(false);
   const location = useLocation();
   const isAdminRoute = location.pathname.startsWith('/admin');
+  const isChatPage = location.pathname === '/chat';
 
   // Show splash screen on first load
   if (showSplash) {
@@ -181,8 +182,8 @@ function AppContent() {
           <BottomNav />
         </div>
       )}
-        {/* Customer Chat Widget - Show on all pages except admin */}
-        {!isAdminRoute && appReady && <Chatbot />}
+        {/* Customer Chat Widget - Show on all pages except admin and chat page */}
+        {!isAdminRoute && !isChatPage && appReady && <Chatbot />}
         {/* Debug panel - Only in development */}
         {import.meta.env.DEV && <DebugPanel />}
       </div>

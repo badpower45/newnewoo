@@ -1,316 +1,427 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Send, ArrowRight, Phone, Clock, MessageCircle, CheckCheck, Check, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { supabaseChatService, ChatMessage, ChatConversation } from '../services/supabaseChatService';
 import { useAuth } from '../context/AuthContext';
-import { socketService } from '../services/socketService';
-import { api } from '../services/api';
-import { ArrowRight, Send, Phone, Plus, MessageCircle } from 'lucide-react';
 
-interface Message {
-    id: string;
-    conversationId: string;
-    senderId: string | null;
-    senderType: 'customer' | 'agent';
-    message: string;
-    timestamp: string;
-    isRead: boolean;
+// Quick response options
+const QUICK_RESPONSES = [
+  { id: 1, text: 'استفسار عن طلب', icon: '📦' },
+  { id: 2, text: 'مشكلة في التوصيل', icon: '🚚' },
+  { id: 3, text: 'العروض والخصومات', icon: '🎉' },
+  { id: 4, text: 'التحدث مع خدمة العملاء', icon: '👤' },
+  { id: 5, text: 'مساعدة عامة', icon: '❓' },
+];
+
+// Bot auto-responses
+const BOT_RESPONSES: { keywords: string[]; response: string }[] = [
+  {
+    keywords: ['طلب', 'طلبي', 'اوردر', 'order'],
+    response: 'يمكنك تتبع طلبك من خلال صفحة "طلباتي" في حسابك. إذا كان لديك رقم الطلب، يمكنك إدخاله هنا وسنساعدك في متابعته. 📦'
+  },
+  {
+    keywords: ['توصيل', 'شحن', 'delivery', 'shipping'],
+    response: 'نحن نوفر خدمة التوصيل السريع خلال 24-48 ساعة. التوصيل مجاني للطلبات فوق 200 جنيه! 🚚'
+  },
+  {
+    keywords: ['عرض', 'عروض', 'خصم', 'كوبون', 'offer', 'discount'],
+    response: 'لدينا عروض رائعة! تابعنا على وسائل التواصل الاجتماعي للحصول على أحدث العروض والخصومات. استخدم كود WELCOME10 للحصول على خصم 10% على طلبك الأول! 🎉'
+  },
+  {
+    keywords: ['سعر', 'اسعار', 'كام', 'price'],
+    response: 'أسعارنا تنافسية جداً! يمكنك تصفح المنتجات ومقارنة الأسعار. نضمن لك أفضل قيمة مقابل المال. 💰'
+  },
+  {
+    keywords: ['مرتجع', 'استرجاع', 'استبدال', 'return', 'exchange'],
+    response: 'نوفر سياسة إرجاع مرنة خلال 14 يوم من تاريخ الاستلام. يجب أن يكون المنتج في حالته الأصلية. 🔄'
+  },
+  {
+    keywords: ['دفع', 'فيزا', 'كاش', 'payment', 'visa'],
+    response: 'نقبل الدفع عند الاستلام، البطاقات الائتمانية (فيزا/ماستركارد)، والمحافظ الإلكترونية. 💳'
+  },
+  {
+    keywords: ['شكر', 'شكرا', 'thanks', 'thank'],
+    response: 'شكراً لتواصلك معنا! نحن دائماً هنا لخدمتك. إذا كان لديك أي استفسار آخر، لا تتردد في السؤال! 😊'
+  },
+  {
+    keywords: ['مساعدة', 'help', 'مشكلة', 'problem'],
+    response: 'أنا هنا لمساعدتك! يرجى وصف المشكلة أو الاستفسار بالتفصيل وسأحاول مساعدتك أو توجيهك لأحد ممثلي خدمة العملاء. 🙋‍♂️'
+  }
+];
+
+// Get bot response based on message content
+const getBotResponse = (message: string): string | null => {
+  const lowerMessage = message.toLowerCase();
+  for (const item of BOT_RESPONSES) {
+    if (item.keywords.some(keyword => lowerMessage.includes(keyword))) {
+      return item.response;
+    }
+  }
+  return null;
+};
+
+interface DisplayMessage {
+  id: string;
+  content: string;
+  sender: 'user' | 'agent' | 'bot';
+  timestamp: Date;
+  status?: 'sending' | 'sent' | 'delivered';
 }
 
-const CustomerChatPage = () => {
-    const { user } = useAuth();
-    const navigate = useNavigate();
-    const [messages, setMessages] = useState<Message[]>([]);
-    const [message, setMessage] = useState('');
-    const [conversationId, setConversationId] = useState<string | null>(null);
-    const [isTyping, setIsTyping] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isConnected, setIsConnected] = useState(false);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
-    const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+const CustomerChatPage: React.FC = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [messages, setMessages] = useState<DisplayMessage[]>([]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const [conversation, setConversation] = useState<ChatConversation | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
+  // Initialize chat
+  useEffect(() => {
+    const initChat = async () => {
+      try {
+        // Get or create conversation
+        const customerId = user?.id ? Number(user.id) : null;
+        const customerName = user?.full_name || 'زائر';
+        
+        const conv = await supabaseChatService.getOrCreateConversation(customerId, customerName);
+        setConversation(conv);
+        setIsConnected(true);
 
-    useEffect(() => {
-        scrollToBottom();
-    }, [messages]);
+        // Load existing messages
+        if (conv) {
+          const existingMessages = await supabaseChatService.getMessages(conv.id);
+          const displayMessages: DisplayMessage[] = existingMessages.map(msg => ({
+            id: String(msg.id),
+            content: msg.message,
+            sender: msg.sender_type === 'customer' ? 'user' : msg.sender_type as 'agent' | 'bot',
+            timestamp: new Date(msg.timestamp),
+            status: 'delivered' as const
+          }));
+          setMessages(displayMessages);
 
-    // Initialize chat on component mount
-    useEffect(() => {
-        const initChat = async () => {
-            if (!user) {
-                navigate('/login');
-                return;
-            }
-
-            setIsLoading(true);
-            try {
-                // Create or get existing conversation
-                const response = await api.chat.createConversation(String(user.id), user.name || 'عميل');
-                setConversationId(response.conversationId);
-
-                // Connect to socket
-                socketService.connect();
-                socketService.joinAsCustomer(response.conversationId, user.name || 'عميل');
-                setIsConnected(true);
-
-                // Load existing messages
-                const convData = await api.chat.getConversation(response.conversationId);
-                setMessages(convData.messages || []);
-            } catch (error) {
-                console.error('Error initializing chat:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        initChat();
-
-        return () => {
-            if (conversationId) {
-                socketService.stopTyping(conversationId, 'customer');
-            }
-            socketService.disconnect();
-        };
-    }, [user, navigate]);
-
-    // Socket event listeners
-    useEffect(() => {
-        if (!conversationId) return;
-
-        const handleNewMessage = (msg: Message) => {
-            setMessages((prev) => [...prev, msg]);
-
-            // Play notification sound for agent messages
-            if (msg.senderType === 'agent') {
-                playNotificationSound();
-            }
-        };
-
-        const handleTyping = ({ userType, isTyping: typing }: { userType: string; isTyping: boolean }) => {
-            if (userType === 'agent') {
-                setIsTyping(typing);
-            }
-        };
-
-        socketService.on('message:new', handleNewMessage);
-        socketService.on('typing:indicator', handleTyping);
-
-        return () => {
-            socketService.off('message:new', handleNewMessage);
-            socketService.off('typing:indicator', handleTyping);
-        };
-    }, [conversationId]);
-
-    const playNotificationSound = () => {
-        try {
-            // Create a simple beep using Web Audio API
-            const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-
-            oscillator.frequency.value = 800;
-            oscillator.type = 'sine';
-
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.5);
-        } catch (error) {
-            console.error('Error playing notification sound:', error);
+          // Subscribe to new messages
+          supabaseChatService.subscribeToMessages(conv.id, (newMessage) => {
+            const displayMsg: DisplayMessage = {
+              id: String(newMessage.id),
+              content: newMessage.message,
+              sender: newMessage.sender_type === 'customer' ? 'user' : newMessage.sender_type as 'agent' | 'bot',
+              timestamp: new Date(newMessage.timestamp),
+              status: 'delivered'
+            };
+            setMessages(prev => {
+              // Avoid duplicates
+              if (prev.find(m => m.id === displayMsg.id)) return prev;
+              return [...prev, displayMsg];
+            });
+          });
         }
+      } catch (error) {
+        console.error('Error initializing chat:', error);
+        // Add welcome message even if connection fails
+        setMessages([{
+          id: 'welcome',
+          content: 'مرحباً بك في خدمة العملاء! 👋 كيف يمكنني مساعدتك اليوم؟',
+          sender: 'bot',
+          timestamp: new Date(),
+          status: 'delivered'
+        }]);
+      }
     };
 
-    const handleSendMessage = () => {
-        if (!message.trim() || !conversationId) return;
+    initChat();
 
-        socketService.sendMessage(conversationId, String(user?.id), 'customer', message);
-        setMessage('');
-        socketService.stopTyping(conversationId, 'customer');
+    // Add initial welcome message
+    if (messages.length === 0) {
+      setMessages([{
+        id: 'welcome',
+        content: 'مرحباً بك في خدمة العملاء! 👋 كيف يمكنني مساعدتك اليوم؟',
+        sender: 'bot',
+        timestamp: new Date(),
+        status: 'delivered'
+      }]);
+    }
 
-        // Clear typing timeout
-        if (typingTimeoutRef.current) {
-            clearTimeout(typingTimeoutRef.current);
-            typingTimeoutRef.current = null;
+    return () => {
+      supabaseChatService.unsubscribeFromMessages();
+    };
+  }, [user]);
+
+  // Auto scroll to bottom
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Send message
+  const sendMessage = async (content: string) => {
+    if (!content.trim()) return;
+
+    const tempId = `temp_${Date.now()}`;
+    const newMessage: DisplayMessage = {
+      id: tempId,
+      content: content.trim(),
+      sender: 'user',
+      timestamp: new Date(),
+      status: 'sending'
+    };
+
+    setMessages(prev => [...prev, newMessage]);
+    setInputMessage('');
+
+    try {
+      // Send to Supabase if connected
+      if (conversation && isConnected) {
+        const sentMessage = await supabaseChatService.sendMessage(
+          conversation.id,
+          user?.id ? Number(user.id) : null,
+          'customer',
+          content.trim()
+        );
+        
+        // Update message status
+        if (sentMessage) {
+          setMessages(prev => prev.map(msg => 
+            msg.id === tempId 
+              ? { ...msg, id: String(sentMessage.id), status: 'sent' as const }
+              : msg
+          ));
         }
-    };
+      } else {
+        // Mark as sent even without connection
+        setMessages(prev => prev.map(msg => 
+          msg.id === tempId 
+            ? { ...msg, status: 'sent' as const }
+            : msg
+        ));
+      }
 
-    const handleTyping = () => {
-        if (!conversationId || !user) return;
+      // Show typing indicator
+      setIsTyping(true);
 
-        socketService.startTyping(conversationId, 'customer', user.name || 'عميل');
+      // Get bot response
+      setTimeout(async () => {
+        setIsTyping(false);
+        const botResponse = getBotResponse(content);
+        
+        if (botResponse) {
+          const botMessage: DisplayMessage = {
+            id: `bot_${Date.now()}`,
+            content: botResponse,
+            sender: 'bot',
+            timestamp: new Date(),
+            status: 'delivered'
+          };
+          
+          setMessages(prev => [...prev, botMessage]);
 
-        // Clear existing timeout
-        if (typingTimeoutRef.current) {
-            clearTimeout(typingTimeoutRef.current);
+          // Save bot message to Supabase
+          if (conversation && isConnected) {
+            await supabaseChatService.sendMessage(
+              conversation.id,
+              null,
+              'bot',
+              botResponse
+            );
+          }
+        } else {
+          // Default response if no keyword match
+          const defaultResponse: DisplayMessage = {
+            id: `bot_${Date.now()}`,
+            content: 'شكراً لرسالتك! سيتواصل معك أحد ممثلي خدمة العملاء قريباً. في الأثناء، هل يمكنني مساعدتك بأي شيء آخر؟',
+            sender: 'bot',
+            timestamp: new Date(),
+            status: 'delivered'
+          };
+          
+          setMessages(prev => [...prev, defaultResponse]);
+
+          if (conversation && isConnected) {
+            await supabaseChatService.sendMessage(
+              conversation.id,
+              null,
+              'bot',
+              defaultResponse.content
+            );
+          }
         }
+      }, 1000 + Math.random() * 1000);
 
-        // Set new timeout to stop typing after 2 seconds
-        typingTimeoutRef.current = setTimeout(() => {
-            socketService.stopTyping(conversationId, 'customer');
-        }, 2000);
-    };
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setMessages(prev => prev.map(msg => 
+        msg.id === tempId 
+          ? { ...msg, status: 'sent' as const }
+          : msg
+      ));
+    }
+  };
 
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            handleSendMessage();
-        }
-    };
+  // Handle form submit
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    sendMessage(inputMessage);
+  };
 
-    return (
-        <div className="min-h-screen flex flex-col bg-[#FAFAFA]">
-            {/* Header - Sticky */}
-            <div className="bg-[#23110C] text-white p-4 shadow-lg sticky top-0 z-50">
-                <div className="flex items-center gap-3">
-                    <button
-                        onClick={() => navigate(-1)}
-                        className="w-10 h-10 flex items-center justify-center"
-                    >
-                        <ArrowRight className="w-6 h-6" />
-                    </button>
+  // Handle quick response click
+  const handleQuickResponse = (text: string) => {
+    sendMessage(text);
+  };
 
-                    <div className="flex items-center gap-3 flex-1">
-                        {/* Agent Avatar */}
-                        <div className="relative">
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#F97316] to-[#ea580c] flex items-center justify-center text-white">
-                                👤
-                            </div>
-                            <div className={`absolute bottom-0 left-0 w-3 h-3 ${isConnected ? 'bg-[#10B981]' : 'bg-gray-400'} border-2 border-[#23110C] rounded-full`} />
-                        </div>
+  // Format time
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+  };
 
-                        <div className="flex-1">
-                            <h3 className="text-white text-lg font-semibold">دعم علوش</h3>
-                            <p className="text-[#9CA3AF] text-sm">
-                                {isConnected ? 'متصل • يرد عادة خلال دقيقتين' : 'غير متصل'}
-                            </p>
-                        </div>
-                    </div>
+  // Get message status icon
+  const getStatusIcon = (status?: string) => {
+    switch (status) {
+      case 'sending':
+        return <Loader2 size={12} className="animate-spin text-gray-400" />;
+      case 'sent':
+        return <Check size={12} className="text-gray-400" />;
+      case 'delivered':
+        return <CheckCheck size={12} className="text-green-500" />;
+      default:
+        return null;
+    }
+  };
 
-                    <button className="w-10 h-10 flex items-center justify-center text-white hover:bg-white/10 rounded-full transition-colors">
-                        <Phone className="w-5 h-5" />
-                    </button>
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col" dir="rtl">
+      {/* Header */}
+      <header className="bg-gradient-to-r from-orange-500 to-orange-600 text-white sticky top-0 z-10 shadow-lg">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate(-1)}
+                className="p-2 hover:bg-white/20 rounded-full transition-colors"
+              >
+                <ArrowRight size={24} />
+              </button>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                  <MessageCircle size={24} />
                 </div>
+                <div>
+                  <h1 className="text-lg font-bold">خدمة العملاء</h1>
+                  <div className="flex items-center gap-2 text-sm text-white/80">
+                    <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-400' : 'bg-yellow-400'} animate-pulse`}></span>
+                    <span>{isConnected ? 'متصل الآن' : 'جاري الاتصال...'}</span>
+                  </div>
+                </div>
+              </div>
             </div>
-
-            {/* Chat Area */}
-            <div
-                className="flex-1 overflow-y-auto p-4 pb-24"
-                style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23F97316' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-                }}
+            
+            <a
+              href="tel:+201234567890"
+              className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full transition-colors"
             >
-                {isLoading ? (
-                    <div className="flex items-center justify-center h-64">
-                        <div className="text-center">
-                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F97316] mx-auto mb-4"></div>
-                            <p className="text-[#6B7280]">جاري التحميل...</p>
-                        </div>
-                    </div>
-                ) : messages.length === 0 ? (
-                    <div className="flex items-center justify-center h-64">
-                        <div className="text-center">
-                            <div className="bg-gradient-to-br from-[#F97316] to-[#ea580c] p-6 rounded-full w-24 h-24 mx-auto mb-4 flex items-center justify-center shadow-xl">
-                                <MessageCircle size={48} className="text-white" />
-                            </div>
-                            <h2 className="text-xl font-bold text-[#23110C] mb-2">مرحباً {user?.name}! 🍊</h2>
-                            <p className="text-[#6B7280]">ابدأ محادثة مع خدمة العملاء</p>
-                            <p className="text-sm text-[#9CA3AF] mt-2">نحن هنا لمساعدتك في أي استفسار</p>
-                        </div>
-                    </div>
-                ) : (
-                    <>
-                        {/* Date Separator */}
-                        <div className="flex justify-center mb-4">
-                            <div className="bg-white/80 backdrop-blur-sm px-4 py-1.5 rounded-full shadow-sm">
-                                <span className="text-[#6B7280] text-sm">اليوم</span>
-                            </div>
-                        </div>
-
-                        {/* Messages */}
-                        <div className="space-y-4">
-                            {messages.map((msg) => (
-                                <div
-                                    key={msg.id}
-                                    className={`flex ${msg.senderType === 'customer' ? 'justify-start' : 'justify-end'}`}
-                                >
-                                    <div
-                                        className={`max-w-[75%] p-3 rounded-2xl shadow-sm ${
-                                            msg.senderType === 'customer'
-                                                ? 'bg-[#F97316] text-white rounded-br-sm'
-                                                : 'bg-white text-[#23110C] rounded-bl-sm'
-                                        }`}
-                                    >
-                                        <p className="mb-1 leading-relaxed whitespace-pre-wrap">{msg.message}</p>
-                                        <span
-                                            className={`text-xs ${
-                                                msg.senderType === 'customer' ? 'text-white/70' : 'text-[#9CA3AF]'
-                                            }`}
-                                        >
-                                            {new Date(msg.timestamp).toLocaleTimeString('ar-EG', {
-                                                hour: '2-digit',
-                                                minute: '2-digit'
-                                            })}
-                                        </span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-
-                        {/* Typing Indicator */}
-                        {isTyping && (
-                            <div className="flex justify-end mt-4">
-                                <div className="bg-white rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm">
-                                    <div className="flex items-center gap-1">
-                                        <div className="w-2 h-2 bg-[#F97316] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                                        <div className="w-2 h-2 bg-[#F97316] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                                        <div className="w-2 h-2 bg-[#F97316] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </>
-                )}
-                <div ref={messagesEndRef} />
-            </div>
-
-            {/* Input Area - Fixed at bottom */}
-            <div className="bg-white border-t border-[#E5E7EB] p-4 shadow-[0_-2px_8px_rgba(0,0,0,0.05)] fixed bottom-0 left-0 right-0 z-40">
-                <div className="flex items-center gap-2 max-w-3xl mx-auto">
-                    <button className="w-10 h-10 flex items-center justify-center text-[#9CA3AF] hover:text-[#F97316] transition-colors">
-                        <Plus className="w-6 h-6" />
-                    </button>
-
-                    <div className="flex-1 relative">
-                        <input
-                            type="text"
-                            value={message}
-                            onChange={(e) => {
-                                setMessage(e.target.value);
-                                handleTyping();
-                            }}
-                            onKeyDown={handleKeyDown}
-                            placeholder="اكتب رسالة..."
-                            dir="rtl"
-                            className="w-full bg-[#F3F4F6] rounded-full px-4 py-2.5 text-[#23110C] placeholder:text-[#9CA3AF] focus:outline-none focus:ring-2 focus:ring-[#F97316]/20"
-                        />
-                    </div>
-
-                    <button
-                        onClick={handleSendMessage}
-                        disabled={!message.trim()}
-                        className="w-10 h-10 bg-[#F97316] rounded-full flex items-center justify-center shadow-lg hover:bg-[#ea580c] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        <Send className="w-5 h-5 text-white" />
-                    </button>
-                </div>
-            </div>
+              <Phone size={18} />
+              <span className="hidden sm:inline">اتصل بنا</span>
+            </a>
+          </div>
         </div>
-    );
+      </header>
+
+      {/* Chat Area */}
+      <div className="flex-1 max-w-4xl mx-auto w-full overflow-hidden flex flex-col">
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={`flex ${message.sender === 'user' ? 'justify-start' : 'justify-end'}`}
+            >
+              <div
+                className={`max-w-[85%] sm:max-w-[70%] rounded-2xl px-4 py-3 shadow-sm ${
+                  message.sender === 'user'
+                    ? 'bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-br-none'
+                    : 'bg-white text-gray-800 rounded-bl-none border border-gray-100'
+                }`}
+              >
+                <p className="text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
+                  {message.content}
+                </p>
+                <div className={`flex items-center gap-1 mt-1 text-xs ${
+                  message.sender === 'user' ? 'text-white/70' : 'text-gray-400'
+                }`}>
+                  <Clock size={10} />
+                  <span>{formatTime(message.timestamp)}</span>
+                  {message.sender === 'user' && getStatusIcon(message.status)}
+                </div>
+              </div>
+            </div>
+          ))}
+          
+          {/* Typing Indicator */}
+          {isTyping && (
+            <div className="flex justify-end">
+              <div className="bg-white text-gray-800 rounded-2xl rounded-bl-none px-4 py-3 shadow-sm border border-gray-100">
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                  <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Quick Responses */}
+        {messages.length <= 1 && (
+          <div className="px-4 pb-2">
+            <p className="text-gray-500 text-sm mb-3 text-center">اختر موضوع للمساعدة السريعة:</p>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {QUICK_RESPONSES.map((response) => (
+                <button
+                  key={response.id}
+                  onClick={() => handleQuickResponse(response.text)}
+                  className="flex items-center gap-2 bg-white border border-orange-200 text-orange-600 px-4 py-2 rounded-full text-sm hover:bg-orange-50 hover:border-orange-300 transition-all shadow-sm"
+                >
+                  <span>{response.icon}</span>
+                  <span>{response.text}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Input Area */}
+        <div className="border-t bg-white p-4">
+          <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
+            <div className="flex items-center gap-3">
+              <input
+                ref={inputRef}
+                type="text"
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                placeholder="اكتب رسالتك هنا..."
+                className="flex-1 border border-gray-200 rounded-full px-5 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-right bg-gray-50"
+              />
+              <button
+                type="submit"
+                disabled={!inputMessage.trim()}
+                className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-3 rounded-full hover:from-orange-600 hover:to-orange-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+              >
+                <Send size={20} className="rotate-180" />
+              </button>
+            </div>
+          </form>
+          
+          {/* Working Hours Note */}
+          <p className="text-center text-gray-400 text-xs mt-3">
+            ساعات العمل: السبت - الخميس، 9 صباحاً - 10 مساءً
+          </p>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default CustomerChatPage;
