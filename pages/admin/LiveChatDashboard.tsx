@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { MessageCircle, User, Clock } from 'lucide-react';
+import { MessageCircle, User, Clock, Wifi, WifiOff, RefreshCw, Send } from 'lucide-react';
 import { api } from '../../services/api';
 import { socketService } from '../../services/socketService';
+import { supabaseChatService, ChatConversation, ChatMessage } from '../../services/supabaseChatService';
 import { useAuth } from '../../context/AuthContext';
 
 interface Conversation {
@@ -17,7 +18,7 @@ interface Message {
     id: number;
     conversationId: number;
     senderId: number | null;
-    senderType: 'customer' | 'agent';
+    senderType: 'customer' | 'agent' | 'bot';
     message: string;
     timestamp: string;
 }
@@ -29,6 +30,8 @@ const LiveChatDashboard = () => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputMessage, setInputMessage] = useState('');
     const [filter, setFilter] = useState<'all' | 'assigned' | 'unassigned'>('all');
+    const [useSupabase, setUseSupabase] = useState(false);
+    const [isConnected, setIsConnected] = useState(true);
     const typingTimeoutRef = React.useRef<NodeJS.Timeout>();
 
     // Load conversations
@@ -55,26 +58,79 @@ const LiveChatDashboard = () => {
         return () => {
             socketService.off('message:notification');
             socketService.off('message:new');
+            supabaseChatService.unsubscribeFromMessages();
         };
-    }, [user]);
+    }, [user, selectedConv]);
 
     const loadConversations = async () => {
         try {
+            // Try API first
             const response = await api.chat.getConversations('active');
             const list = Array.isArray(response?.conversations) ? response.conversations : [];
-            setConversations(list);
+            if (list.length > 0) {
+                setConversations(list);
+                setIsConnected(true);
+                setUseSupabase(false);
+                return;
+            }
         } catch (error) {
-            console.error('Failed to load conversations:', error);
+            console.warn('API failed, trying Supabase:', error);
+        }
+
+        // Fallback to Supabase
+        try {
+            const supabaseConvs = await supabaseChatService.getAllConversations('active');
+            const formatted = supabaseConvs.map(c => ({
+                id: c.id,
+                customerName: c.customer_name,
+                agentId: c.agent_id,
+                status: c.status,
+                createdAt: c.created_at,
+                lastMessageAt: c.last_message_at
+            }));
+            setConversations(formatted);
+            setUseSupabase(true);
+            setIsConnected(true);
+        } catch (supaError) {
+            console.error('Failed to load conversations from Supabase:', supaError);
             setConversations([]);
+            setIsConnected(false);
         }
     };
 
     const loadMessages = async (convId: number) => {
         try {
-            const response = await api.chat.getConversation(convId);
-            const msgs = Array.isArray(response?.messages) ? response.messages : [];
-            setMessages(msgs);
-            socketService.openConversation(convId);
+            if (useSupabase) {
+                // Use Supabase
+                const msgs = await supabaseChatService.getMessages(convId);
+                const formatted = msgs.map(m => ({
+                    id: m.id,
+                    conversationId: m.conversation_id,
+                    senderId: m.sender_id,
+                    senderType: m.sender_type as 'customer' | 'agent' | 'bot',
+                    message: m.message,
+                    timestamp: m.timestamp
+                }));
+                setMessages(formatted);
+                
+                // Subscribe to new messages
+                supabaseChatService.subscribeToMessages(convId, (newMsg) => {
+                    setMessages(prev => [...prev, {
+                        id: newMsg.id,
+                        conversationId: newMsg.conversation_id,
+                        senderId: newMsg.sender_id,
+                        senderType: newMsg.sender_type as 'customer' | 'agent' | 'bot',
+                        message: newMsg.message,
+                        timestamp: newMsg.timestamp
+                    }]);
+                });
+            } else {
+                // Use API
+                const response = await api.chat.getConversation(convId);
+                const msgs = Array.isArray(response?.messages) ? response.messages : [];
+                setMessages(msgs);
+                socketService.openConversation(convId);
+            }
         } catch (error) {
             console.error('Failed to load messages:', error);
             setMessages([]);
@@ -86,17 +142,25 @@ const LiveChatDashboard = () => {
         loadMessages(convId);
     };
 
-    const handleSendMessage = () => {
+    const handleSendMessage = async () => {
         if (!inputMessage.trim() || !selectedConv || !user) return;
 
-        socketService.sendMessage(selectedConv, user.id, 'agent', inputMessage.trim());
+        const message = inputMessage.trim();
         setInputMessage('');
-        socketService.stopTyping(selectedConv, 'agent');
+
+        if (useSupabase) {
+            // Use Supabase
+            await supabaseChatService.sendMessage(selectedConv, user.id, 'agent', message);
+        } else {
+            // Use Socket
+            socketService.sendMessage(selectedConv, user.id, 'agent', message);
+            socketService.stopTyping(selectedConv, 'agent');
+        }
     };
 
     const handleInputChange = (val: string) => {
         setInputMessage(val);
-        if (!selectedConv || !user) return;
+        if (!selectedConv || !user || useSupabase) return;
         socketService.startTyping(selectedConv, 'agent', user.name);
         if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
         typingTimeoutRef.current = setTimeout(() => {
@@ -107,8 +171,12 @@ const LiveChatDashboard = () => {
     const handleAssign = async (convId: number) => {
         if (!user) return;
         try {
-            await api.chat.assignConversation(convId, user.id);
-            socketService.assignConversation(convId, user.id, user.name);
+            if (useSupabase) {
+                await supabaseChatService.assignConversation(convId, user.id);
+            } else {
+                await api.chat.assignConversation(convId, user.id);
+                socketService.assignConversation(convId, user.id, user.name);
+            }
             loadConversations();
         } catch (error) {
             console.error('Failed to assign:', error);
@@ -131,7 +199,22 @@ const LiveChatDashboard = () => {
             {/* Conversations List */}
             <div className="w-1/3 border-r border-gray-200 flex flex-col">
                 <div className="p-4 border-b border-gray-200">
-                    <h2 className="text-xl font-bold text-gray-800 mb-3">المحادثات المباشرة</h2>
+                    <div className="flex items-center justify-between mb-3">
+                        <h2 className="text-xl font-bold text-gray-800">المحادثات المباشرة</h2>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => loadConversations()}
+                                className="p-1.5 text-gray-500 hover:text-brand-orange hover:bg-orange-50 rounded-lg transition-colors"
+                                title="تحديث"
+                            >
+                                <RefreshCw size={16} />
+                            </button>
+                            <span className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${isConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                {isConnected ? <Wifi size={12} /> : <WifiOff size={12} />}
+                                {useSupabase ? 'Supabase' : 'Socket'}
+                            </span>
+                        </div>
+                    </div>
 
                     {/* Filter Tabs */}
                     <div className="flex space-x-2 rtl:space-x-reverse">

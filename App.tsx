@@ -79,7 +79,7 @@ import JuhaynaBrandPage from './pages/brands/JuhaynaBrandPage';
 
 import { FavoritesProvider } from './context/FavoritesContext';
 import { LanguageProvider } from './context/LanguageContext';
-import ChatWidget from './components/ChatWidget';
+import Chatbot from './components/Chatbot';
 import ProtectedRoute from './components/ProtectedRoute';
 import { DebugProvider } from './context/DebugLogContext';
 import DebugPanel from './components/DebugPanel';
@@ -181,6 +181,8 @@ function AppContent() {
           <BottomNav />
         </div>
       )}
+        {/* Customer Chat Widget - Show on all pages except admin */}
+        {!isAdminRoute && appReady && <Chatbot />}
         {/* Debug panel - Only in development */}
         {import.meta.env.DEV && <DebugPanel />}
       </div>

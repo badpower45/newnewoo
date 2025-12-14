@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Upload, Download, FileSpreadsheet, CheckCircle, XCircle, AlertCircle, Loader } from 'lucide-react';
 import { api } from '../../services/api';
+import { API_URL } from '../../src/config';
 
 interface ImportResult {
     success: boolean;
@@ -77,7 +78,7 @@ const ProductImporter: React.FC = () => {
             const formData = new FormData();
             formData.append('file', file);
 
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/products/bulk-import`, {
+            const response = await fetch(`${API_URL}/products/bulk-import`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -103,7 +104,7 @@ const ProductImporter: React.FC = () => {
 
     const downloadTemplate = async () => {
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/products/bulk-import/template`, {
+            const response = await fetch(`${API_URL}/products/bulk-import/template`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
