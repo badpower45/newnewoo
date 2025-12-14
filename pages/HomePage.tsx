@@ -316,8 +316,8 @@ const HomePage = () => {
                     </div>
                 ) : homeSections.length > 0 ? (
                     homeSections.map((section, sectionIndex) => (
-                        <section key={section.id} className="space-y-4">
-                            <div className="flex items-center justify-between">
+                        <section key={section.id} className="space-y-0">
+                            <div className="flex items-center justify-between mb-3">
                                 <h2 className="text-xl font-bold text-gray-900">{section.section_name_ar}</h2>
                                 <Link 
                                     to={`/products?category=${encodeURIComponent(section.category)}`} 
@@ -326,31 +326,18 @@ const HomePage = () => {
                                     عرض المزيد <ChevronRight className="w-4 h-4" />
                                 </Link>
                             </div>
-                            {/* Wave Shape at Top */}
-                            <div className="relative w-full" style={{ height: '40px' }}>
-                                <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" preserveAspectRatio="none">
+                            
+                            {/* White Wave Shape at Top - exactly like the image */}
+                            <div className="relative w-full" style={{ height: '35px' }}>
+                                <svg viewBox="0 0 1440 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full" preserveAspectRatio="none">
                                     <path 
-                                        d="M0,60 C240,20 360,100 720,60 C1080,20 1200,100 1440,60 L1440,120 L0,120 Z" 
-                                        fill={`url(#section-wave-gradient-${sectionIndex})`}
+                                        d="M0,50 Q360,15 720,50 T1440,50 L1440,100 L0,100 Z" 
+                                        fill="white"
+                                        className="drop-shadow-md"
                                     />
-                                    <path 
-                                        d="M0,70 C240,30 360,110 720,70 C1080,30 1200,110 1440,70 L1440,120 L0,120 Z" 
-                                        fill={`url(#section-wave-overlay-${sectionIndex})`}
-                                        opacity="0.3"
-                                    />
-                                    <defs>
-                                        <linearGradient id={`section-wave-gradient-${sectionIndex}`} x1="0%" y1="0%" x2="100%" y2="0%">
-                                            <stop offset="0%" stopColor="#8B4513" />
-                                            <stop offset="50%" stopColor="#A0522D" />
-                                            <stop offset="100%" stopColor="#D2691E" />
-                                        </linearGradient>
-                                        <linearGradient id={`section-wave-overlay-${sectionIndex}`} x1="0%" y1="0%" x2="100%" y2="0%">
-                                            <stop offset="0%" stopColor="#A0522D" />
-                                            <stop offset="100%" stopColor="#D2691E" />
-                                        </linearGradient>
-                                    </defs>
                                 </svg>
                             </div>
+                            
                             <div className="relative rounded-b-2xl overflow-hidden h-40 -mt-1">
                                 <img 
                                     src={section.banner_image} 
@@ -360,13 +347,13 @@ const HomePage = () => {
                                         e.currentTarget.src = 'https://images.unsplash.com/photo-1543168256-418811576931?w=1200';
                                     }}
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-br from-[#8B4513]/80 via-[#A0522D]/70 to-[#D2691E]/80" />
-                                <div className="absolute bottom-4 right-4 text-white">
+                                <div className="absolute inset-0 bg-gradient-to-br from-[#B8774D]/75 via-[#A66B4A]/85 to-[#8B5A3C]/90" />
+                                <div className="absolute bottom-4 right-4 text-white z-10">
                                     <h3 className="text-2xl font-bold drop-shadow-lg">{section.section_name_ar}</h3>
-                                    <p className="text-sm drop-shadow-md">{section.section_name}</p>
+                                    <p className="text-sm drop-shadow-md opacity-95">{section.section_name}</p>
                                 </div>
                             </div>
-                            <div className="flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible">
+                            <div className="flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible mt-4">
                                 {/* عرض المنتجات من الـ API أولاً، ثم fallback للمنتجات المحلية */}
                                 {section.products && section.products.length > 0 ? (
                                     section.products.slice(0, section.max_products || 8).map(product => (
