@@ -59,12 +59,18 @@ const AdminHomeSections = () => {
                 // Convert categories data to format expected by the dropdown
                 const formattedCategories = categoriesData
                     .filter(cat => !cat.parent_id) // Only main categories, not subcategories
-                    .map(cat => ({
-                        category: cat.name_ar || cat.name,
-                        categoryName: cat.name, // Keep original name for API
-                        product_count: cat.products_count || 0,
-                        icon: cat.icon
-                    }));
+                    .map(cat => {
+                        // استخدم name كـ categoryName لأنه ما يُخزن في products.category
+                        const categoryName = cat.name || cat.name_ar;
+                        const displayName = cat.name_ar || cat.name;
+                        console.log(`🏷️ Category formatted: name="${cat.name}", name_ar="${cat.name_ar}", using="${categoryName}"`);
+                        return {
+                            category: displayName, // للعرض
+                            categoryName: categoryName, // للحفظ في قاعدة البيانات
+                            product_count: cat.products_count || 0,
+                            icon: cat.icon
+                        };
+                    });
                 
                 console.log('✅ Formatted categories (' + formattedCategories.length + '):', formattedCategories);
                 setCategories(formattedCategories);
@@ -263,24 +269,37 @@ const AdminHomeSections = () => {
                             <select
                                 required
                                 value={formData.category}
-                                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                                onChange={(e) => {
+                                    const selectedValue = e.target.value;
+                                    console.log('📝 Category selected:', selectedValue);
+                                    setFormData({ ...formData, category: selectedValue });
+                                }}
                                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
                             >
                                 <option value="">اختر الفئة</option>
                                 {categories.length === 0 ? (
                                     <option disabled>جاري التحميل...</option>
                                 ) : (
-                                    categories.map((cat, index) => (
-                                        <option key={`${cat.categoryName || cat.category}-${index}`} value={cat.categoryName || cat.category}>
-                                            {cat.icon && `${cat.icon} `}{cat.category}
-                                            {cat.product_count > 0 && ` (${cat.product_count} منتج)`}
-                                        </option>
-                                    ))
+                                    categories.map((cat, index) => {
+                                        // استخدم الاسم العربي أو الإنجليزي - ما يتطابق مع قاعدة البيانات
+                                        const value = cat.categoryName || cat.category;
+                                        return (
+                                            <option key={`${value}-${index}`} value={value}>
+                                                {cat.icon && `${cat.icon} `}{cat.category}
+                                                {cat.product_count > 0 && ` (${cat.product_count} منتج)`}
+                                            </option>
+                                        );
+                                    })
                                 )}
                             </select>
                             <p className="mt-1 text-xs text-gray-500">
                                 💡 سيتم جلب أحدث {formData.max_products} منتج من الفئة المحددة تلقائياً
                             </p>
+                            {formData.category && (
+                                <p className="mt-1 text-xs text-blue-600 font-medium">
+                                    ✓ الفئة المحددة: "{formData.category}"
+                                </p>
+                            )}
                         </div>
 
                         {/* Max Products */}

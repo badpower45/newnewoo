@@ -210,8 +210,10 @@ const HomePage = () => {
                 {/* Stories Section */}
                 <StoriesSection />
 
-                {/* Hero Offers Carousel - Main Banner */}
-                <HeroCarousel />
+                {/* Hero Offers Carousel - Main Banner with Wave */}
+                <div className="mt-8">
+                    <HeroCarousel />
+                </div>
 
                 {/* Featured Brands Carousel */}
                 <BrandsCarousel title="براندات مميزة" />
@@ -318,7 +320,7 @@ const HomePage = () => {
                             <div className="flex items-center justify-between">
                                 <h2 className="text-xl font-bold text-gray-900">{section.section_name_ar}</h2>
                                 <Link 
-                                    to={`/products?category=${section.category}`} 
+                                    to={`/products?category=${encodeURIComponent(section.category)}`} 
                                     className="text-[#FF4500] text-sm font-semibold flex items-center gap-1 hover:gap-2 transition-all"
                                 >
                                     عرض المزيد <ChevronRight className="w-4 h-4" />
@@ -340,17 +342,39 @@ const HomePage = () => {
                                 </div>
                             </div>
                             <div className="flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible">
+                                {/* عرض المنتجات من الـ API أولاً، ثم fallback للمنتجات المحلية */}
                                 {section.products && section.products.length > 0 ? (
                                     section.products.slice(0, section.max_products || 8).map(product => (
                                         <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
                                             <ProductCard product={product} />
                                         </div>
                                     ))
-                                ) : products.filter(p => p.category === section.category).slice(0, section.max_products || 8).map(product => (
-                                    <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
-                                        <ProductCard product={product} />
-                                    </div>
-                                ))}
+                                ) : (
+                                    // Fallback: البحث في المنتجات المحلية باستخدام مطابقة أكثر مرونة
+                                    products.filter(p => {
+                                        if (!p.category || !section.category) return false;
+                                        const pCat = p.category.trim().toLowerCase();
+                                        const sCat = section.category.trim().toLowerCase();
+                                        return pCat === sCat || pCat.includes(sCat) || sCat.includes(pCat);
+                                    }).slice(0, section.max_products || 8).length > 0 ? (
+                                        products.filter(p => {
+                                            if (!p.category || !section.category) return false;
+                                            const pCat = p.category.trim().toLowerCase();
+                                            const sCat = section.category.trim().toLowerCase();
+                                            return pCat === sCat || pCat.includes(sCat) || sCat.includes(pCat);
+                                        }).slice(0, section.max_products || 8).map(product => (
+                                            <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
+                                                <ProductCard product={product} />
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="col-span-full text-center py-8">
+                                            <p className="text-gray-500 text-sm">
+                                                لا توجد منتجات متاحة في فئة "{section.category}" حالياً
+                                            </p>
+                                        </div>
+                                    )
+                                )}
                             </div>
                         </section>
                     ))
