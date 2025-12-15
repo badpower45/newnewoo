@@ -126,136 +126,125 @@ const BranchesPage = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 pb-24">
-            {/* Header */}
-            <div className="bg-primary text-white p-6 pt-12">
+            {/* Simple Header */}
+            <div className="bg-white border-b p-4 pt-12">
                 <button 
                     onClick={() => navigate(-1)} 
-                    className="mb-4 p-2 -ml-2 hover:bg-white/10 rounded-xl transition-colors"
+                    className="mb-3 p-2 -ml-2 hover:bg-gray-100 rounded-lg transition-colors"
                 >
-                    <ChevronLeft size={24} />
+                    <ChevronLeft size={24} className="text-gray-700" />
                 </button>
                 
-                <div className="flex items-center gap-3 mb-4">
-                    <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center">
-                        <Map size={32} />
+                <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-orange-50 rounded-lg flex items-center justify-center">
+                        <Map size={24} className="text-brand-orange" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold">فروعنا</h1>
-                        <p className="text-white/80">{branches.length} فرع في خدمتك</p>
+                        <h1 className="text-xl font-bold text-gray-900">فروعنا</h1>
+                        <p className="text-sm text-gray-500">{branches.length} فرع في خدمتك</p>
                     </div>
                 </div>
             </div>
 
-            {/* Nearest Branch Alert */}
+            {/* Nearest Branch - Simple Version */}
             {nearestBranch && userLocation && (
-                <div className="mx-4 mt-4 p-4 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl text-white shadow-lg">
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                            <Navigation size={20} />
-                        </div>
-                        <div>
-                            <p className="text-sm font-medium opacity-90">أقرب فرع إليك</p>
-                            <p className="text-lg font-bold">{nearestBranch.name}</p>
-                        </div>
+                <div className="mx-4 mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div className="flex items-center gap-2 mb-1">
+                        <Navigation size={18} className="text-green-600" />
+                        <p className="text-sm font-medium text-green-900">أقرب فرع إليك</p>
                     </div>
-                    <p className="text-sm opacity-90 mb-2">
+                    <p className="font-bold text-gray-900">{nearestBranch.name}</p>
+                    <p className="text-sm text-gray-600 mt-1">
                         📍 {nearestBranch.address}, {nearestBranch.city}
                     </p>
                     {(nearestBranch as any).distance && (
-                        <p className="text-sm font-semibold">
-                            المسافة: {((nearestBranch as any).distance).toFixed(1)} كم
+                        <p className="text-sm text-green-700 mt-1 font-medium">
+                            {((nearestBranch as any).distance).toFixed(1)} كم
                         </p>
                     )}
                 </div>
             )}
 
-            {/* Governorate Filter */}
-            <div className="bg-white border-b p-4">
-                <div className="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
+            {/* Simple Governorate Filter */}
+            <div className="bg-white border-b p-3">
+                <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
                     {governorates.map(gov => (
                         <button
                             key={gov}
                             onClick={() => setSelectedGovernorate(gov)}
-                            className={`px-4 py-2 rounded-xl font-semibold whitespace-nowrap transition-all ${
+                            className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all ${
                                 selectedGovernorate === gov
-                                    ? 'bg-primary text-white'
+                                    ? 'bg-brand-orange text-white'
                                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
                         >
-                            {gov === 'all' ? 'كل المحافظات' : gov}
+                            {gov === 'all' ? 'الكل' : gov}
                         </button>
                     ))}
                 </div>
             </div>
 
-            {/* Branches List */}
-            <div className="p-4 space-y-4">
+            {/* Simple Branches List */}
+            <div className="p-4 space-y-3">
                 {filteredBranches.length === 0 ? (
-                    <div className="bg-white rounded-2xl p-12 text-center">
-                        <MapPin size={64} className="text-gray-300 mx-auto mb-4" />
-                        <h3 className="font-bold text-lg mb-2">لا توجد فروع</h3>
-                        <p className="text-gray-500">لم نجد فروع في هذه المحافظة</p>
+                    <div className="bg-white rounded-xl p-8 text-center border">
+                        <MapPin size={48} className="text-gray-300 mx-auto mb-3" />
+                        <h3 className="font-bold text-base mb-1">لا توجد فروع</h3>
+                        <p className="text-sm text-gray-500">لم نجد فروع في هذه المحافظة</p>
                     </div>
                 ) : (
                     filteredBranches.map(branch => (
-                        <div key={branch.id} className="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow">
+                        <div key={branch.id} className="bg-white rounded-xl p-4 shadow-sm border">
                             {/* Branch Header */}
-                            <div className="flex items-start justify-between mb-4">
-                                <div className="flex items-start gap-3">
-                                    <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary flex-shrink-0">
-                                        <MapPin size={24} />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-lg text-gray-900">{branch.name}</h3>
-                                        <p className="text-sm text-gray-500">{branch.governorate}</p>
-                                    </div>
+                            <div className="flex items-start gap-3 mb-3">
+                                <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <MapPin size={20} className="text-brand-orange" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-base text-gray-900">{branch.name}</h3>
+                                    <p className="text-xs text-gray-500">{branch.governorate}</p>
                                 </div>
                             </div>
 
                             {/* Branch Details */}
-                            <div className="space-y-3 mb-4">
-                                {/* Address */}
-                                <div className="flex items-start gap-3 text-sm">
-                                    <MapPin size={16} className="text-gray-400 mt-0.5 flex-shrink-0" />
-                                    <p className="text-gray-700">
-                                        {branch.address}, {branch.city}
-                                    </p>
+                            <div className="space-y-2 mb-3 text-sm">
+                                <div className="flex items-start gap-2">
+                                    <MapPin size={14} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                                    <p className="text-gray-700">{branch.address}, {branch.city}</p>
                                 </div>
 
-                                {/* Phone */}
-                                <div className="flex items-center gap-3 text-sm">
-                                    <Phone size={16} className="text-gray-400 flex-shrink-0" />
+                                <div className="flex items-center gap-2">
+                                    <Phone size={14} className="text-gray-400 flex-shrink-0" />
                                     <a 
                                         href={`tel:${branch.phone}`}
-                                        className="text-primary font-medium hover:underline"
+                                        className="text-brand-orange font-medium hover:underline"
                                     >
                                         {branch.phone}
                                     </a>
                                 </div>
 
-                                {/* Opening Hours */}
                                 {branch.opening_hours && (
-                                    <div className="flex items-center gap-3 text-sm">
-                                        <Clock size={16} className="text-gray-400 flex-shrink-0" />
+                                    <div className="flex items-center gap-2">
+                                        <Clock size={14} className="text-gray-400 flex-shrink-0" />
                                         <p className="text-gray-700">{branch.opening_hours}</p>
                                     </div>
                                 )}
                             </div>
 
-                            {/* Actions */}
-                            <div className="flex gap-3 pt-3 border-t">
+                            {/* Simple Actions */}
+                            <div className="flex gap-2 pt-3 border-t">
                                 <button
                                     onClick={() => handleGetDirections(branch)}
-                                    className="flex-1 py-3 bg-primary text-white rounded-xl font-semibold hover:bg-primary-dark transition-colors flex items-center justify-center gap-2"
+                                    className="flex-1 py-2.5 bg-brand-orange text-white rounded-lg font-medium hover:bg-orange-600 transition-colors flex items-center justify-center gap-2 text-sm"
                                 >
-                                    <Navigation size={18} />
-                                    الوصول للفرع
+                                    <Navigation size={16} />
+                                    الوصول
                                 </button>
                                 <button
                                     onClick={() => handleCall(branch.phone)}
-                                    className="px-6 py-3 border-2 border-primary text-primary rounded-xl font-semibold hover:bg-primary/5 transition-colors flex items-center gap-2"
+                                    className="px-5 py-2.5 border border-brand-orange text-brand-orange rounded-lg font-medium hover:bg-orange-50 transition-colors flex items-center gap-2 text-sm"
                                 >
-                                    <Phone size={18} />
+                                    <Phone size={16} />
                                     اتصال
                                 </button>
                             </div>

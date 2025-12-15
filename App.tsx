@@ -72,14 +72,8 @@ import LoyaltyPage from './pages/LoyaltyPage';
 import AddressesPage from './pages/AddressesPage';
 import BranchesPage from './pages/BranchesPage';
 
-// Premium Brand Pages
-import PepsiBrandPage from './pages/brands/PepsiBrandPage';
-import NescafeBrandPage from './pages/brands/NescafeBrandPage';
-import JuhaynaBrandPage from './pages/brands/JuhaynaBrandPage';
-
 import { FavoritesProvider } from './context/FavoritesContext';
 import { LanguageProvider } from './context/LanguageContext';
-import Chatbot from './components/Chatbot';
 import ProtectedRoute from './components/ProtectedRoute';
 import { DebugProvider } from './context/DebugLogContext';
 import DebugPanel from './components/DebugPanel';
@@ -142,12 +136,9 @@ function AppContent() {
             <Route path="/chat" element={<ProtectedRoute><CustomerChatPage /></ProtectedRoute>} />
             <Route path="/customer-service" element={<ProtectedRoute><CustomerServiceDashboard /></ProtectedRoute>} />
             <Route path="/delivery" element={<ProtectedRoute allowedRoles={['delivery', 'admin']}><DeliveryDriverPage /></ProtectedRoute>} />
-            <Route path="/brand/:brandName" element={<BrandPage />} />
             
-            {/* Premium Brand Pages - Each with unique design */}
-            <Route path="/brand/pepsi" element={<PepsiBrandPage />} />
-            <Route path="/brand/nescafe" element={<NescafeBrandPage />} />
-            <Route path="/brand/juhayna" element={<JuhaynaBrandPage />} />
+            {/* All Brand Pages use unified BrandPage component */}
+            <Route path="/brand/:brandName" element={<BrandPage />} />
 
             {/* Admin Routes - Protected with role-based access */}
             <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'distributor']}><AdminLayout /></ProtectedRoute>}>
@@ -182,8 +173,6 @@ function AppContent() {
           <BottomNav />
         </div>
       )}
-        {/* Customer Chat Widget - Show on all pages except admin and chat page */}
-        {!isAdminRoute && !isChatPage && appReady && <Chatbot />}
         {/* Debug panel - Only in development */}
         {import.meta.env.DEV && <DebugPanel />}
       </div>

@@ -176,20 +176,30 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
       </div>
 
       {/* Product Info */}
-      <div className="px-0.5">
-        <h4 className="text-xs font-medium text-gray-800 line-clamp-2 mb-0.5 leading-tight">{title}</h4>
-        {weight && <p className="text-[10px] text-gray-400 mb-0.5">{weight}</p>}
+      <div className="px-1 py-1.5">
+        {/* اسم المنتج - واضح وبارز */}
+        <h4 className="text-sm font-bold text-gray-900 line-clamp-2 mb-1.5 leading-snug min-h-[2.5rem]">
+          {title}
+        </h4>
+        
+        {/* الوزن/الحجم */}
+        {weight && (
+          <p className="text-xs text-gray-500 mb-1">{weight}</p>
+        )}
+        
+        {/* الموقع */}
         {product.shelf_location && (
-          <p className="text-[9px] text-orange-500 mb-0.5">
+          <p className="text-[10px] text-orange-500 mb-1.5 flex items-center gap-0.5">
             📍 {product.shelf_location}
           </p>
         )}
         
-        <div className="flex items-center gap-1.5">
-          <span className="font-bold text-sm text-gray-900">{currentPrice.toFixed(2)}</span>
-          <span className="text-[10px] text-gray-400">ج.م</span>
+        {/* السعر */}
+        <div className="flex items-center gap-1.5 mt-auto">
+          <span className="font-bold text-base text-gray-900">{currentPrice.toFixed(2)}</span>
+          <span className="text-xs text-gray-500">ج.م</span>
           {hasDiscount && (
-            <span className="text-[10px] text-gray-400 line-through">{priceBeforeDiscount.toFixed(2)}</span>
+            <span className="text-xs text-gray-400 line-through">{priceBeforeDiscount.toFixed(2)}</span>
           )}
         </div>
       </div>

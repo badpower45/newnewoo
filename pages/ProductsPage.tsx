@@ -14,22 +14,6 @@ import { Product } from '../types';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useBranch } from '../context/BranchContext';
 
-// Categories with icons and colors - using brand colors
-const CATEGORIES = [
-    { id: '', name: 'الكل', icon: '🛒', color: 'from-brand-brown to-brand-brown/80' },
-    { id: 'Dairy', name: 'الألبان', icon: '🥛', color: 'from-brand-orange to-amber-500' },
-    { id: 'Cheese', name: 'الجبن', icon: '🧀', color: 'from-yellow-500 to-amber-500' },
-    { id: 'Meat', name: 'اللحوم', icon: '🥩', color: 'from-red-500 to-rose-600' },
-    { id: 'Vegetables', name: 'الخضروات', icon: '🥬', color: 'from-green-500 to-emerald-600' },
-    { id: 'Fruits', name: 'الفواكه', icon: '🍎', color: 'from-pink-500 to-rose-500' },
-    { id: 'Bakery', name: 'المخبوزات', icon: '🍞', color: 'from-amber-500 to-orange-500' },
-    { id: 'Beverages', name: 'المشروبات', icon: '🥤', color: 'from-cyan-500 to-blue-500' },
-    { id: 'Snacks', name: 'سناكس', icon: '🍿', color: 'from-brand-orange to-red-500' },
-    { id: 'Frozen', name: 'مجمدات', icon: '🧊', color: 'from-sky-400 to-blue-500' },
-    { id: 'Cleaning', name: 'تنظيف', icon: '🧹', color: 'from-purple-500 to-violet-600' },
-    { id: 'Personal Care', name: 'عناية شخصية', icon: '🧴', color: 'from-rose-400 to-pink-500' },
-];
-
 const SORT_OPTIONS = [
     { id: 'newest', name: 'الأحدث', icon: Clock },
     { id: 'popular', name: 'الأكثر مبيعاً', icon: TrendingUp },
@@ -42,6 +26,7 @@ const ITEMS_PER_PAGE = 20;
 
 export default function ProductsPage() {
     const [allProducts, setAllProducts] = useState<Product[]>([]);
+    const [categories, setCategories] = useState<{id: string, name: string, icon: string, color: string}[]>([]);
     const [loading, setLoading] = useState(true);
     const [showScanner, setShowScanner] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -58,6 +43,55 @@ export default function ProductsPage() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const { selectedBranch } = useBranch();
+
+    // Load categories from API
+    useEffect(() => {
+        const loadCategories = async () => {
+            try {
+                const response = await api.categories.getAll();
+                const apiCategories = response.data || [];
+                
+                // Build categories with icons
+                const categoriesWithIcons = [
+                    { id: '', name: 'الكل', icon: '🛒', color: 'from-brand-brown to-brand-brown/80' },
+                    ...apiCategories.map((cat: any) => {
+                        // Dynamic icon mapping
+                        const icons: {[key: string]: string} = {
+                            'ألبان': '🥛', 'Dairy': '🥛',
+                            'جبن': '🧀', 'Cheese': '🧀',
+                            'لحوم': '🥩', 'Meat': '🥩',
+                            'خضروات': '🥬', 'Vegetables': '🥬',
+                            'فواكه': '🍎', 'Fruits': '🍎',
+                            'مخبوزات': '🍞', 'Bakery': '🍞',
+                            'مشروبات': '🥤', 'Beverages': '🥤',
+                            'سناكس': '🍿', 'Snacks': '🍿',
+                            'مجمدات': '🧊', 'Frozen': '🧊',
+                            'تنظيف': '🧹', 'Cleaning': '🧹',
+                            'عناية شخصية': '🧴', 'Personal Care': '🧴',
+                        };
+                        
+                        const catName = cat.name || cat.name_ar || '';
+                        return {
+                            id: catName,
+                            name: catName,
+                            icon: icons[catName] || '📦',
+                            color: 'from-brand-orange to-amber-500'
+                        };
+                    })
+                ];
+                
+                setCategories(categoriesWithIcons);
+            } catch (error) {
+                console.error('Error loading categories:', error);
+                // Fallback to default categories
+                setCategories([
+                    { id: '', name: 'الكل', icon: '🛒', color: 'from-brand-brown to-brand-brown/80' }
+                ]);
+            }
+        };
+        
+        loadCategories();
+    }, []);
 
     useEffect(() => {
         const category = searchParams.get('category');
@@ -215,7 +249,7 @@ export default function ProductsPage() {
             <div className="bg-white shadow-sm sticky top-0 z-40">
                 <div className="max-w-7xl mx-auto">
                     <div className="flex gap-2 py-4 px-4 overflow-x-auto scrollbar-hide">
-                        {CATEGORIES.map((cat) => (
+                        {categories.map((cat) => (
                             <button
                                 key={cat.id}
                                 onClick={() => {
@@ -326,8 +360,8 @@ export default function ProductsPage() {
                     <div className="flex flex-wrap items-center gap-2 mb-6">
                         {selectedCategory && (
                             <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-100 text-brand-orange rounded-full text-sm">
-                                {CATEGORIES.find(c => c.id === selectedCategory)?.icon}
-                                {CATEGORIES.find(c => c.id === selectedCategory)?.name}
+                                {categories.find(c => c.id === selectedCategory)?.icon}
+                                {categories.find(c => c.id === selectedCategory)?.name}
                                 <button onClick={() => setSelectedCategory('')} className="hover:bg-orange-200 rounded-full p-0.5">
                                     <X size={14} />
                                 </button>
