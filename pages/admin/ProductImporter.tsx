@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Upload, Download, FileSpreadsheet, CheckCircle, XCircle, AlertCircle, Loader } from 'lucide-react';
+import { Upload, Download, FileSpreadsheet, CheckCircle, XCircle, AlertCircle, Loader, Eye } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
 import { API_URL } from '../../src/config';
 
@@ -21,6 +22,33 @@ const ProductImporter: React.FC = () => {
     const [uploading, setUploading] = useState(false);
     const [result, setResult] = useState<ImportResult | null>(null);
     const [dragActive, setDragActive] = useState(false);
+    const [settingUp, setSettingUp] = useState(false);
+    const navigate = useNavigate();
+
+    const setupDraftTable = async () => {
+        setSettingUp(true);
+        try {
+            const response = await fetch(`${API_URL}/products/setup-draft-table`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert('✅ تم إعداد قاعدة البيانات بنجاح! يمكنك الآن رفع المنتجات.');
+            } else {
+                alert(`❌ فشل الإعداد: ${data.message}`);
+            }
+        } catch (err) {
+            console.error('Setup error:', err);
+            alert('❌ حدث خطأ أثناء الإعداد');
+        } finally {
+            setSettingUp(false);
+        }
+    };
 
     const handleDrag = (e: React.DragEvent) => {
         e.preventDefault();
@@ -139,8 +167,28 @@ const ProductImporter: React.FC = () => {
         <div className="p-6 max-w-6xl mx-auto">
             {/* Header */}
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">استيراد المنتجات من Excel</h1>
-                <p className="text-gray-600">قم برفع ملف Excel يحتوي على بيانات المنتجات لإضافتها دفعة واحدة</p>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">استيراد المنتجات من Excel</h1>
+                        <p className="text-gray-600">قم برفع ملف Excel يحتوي على بيانات المنتجات لإضافتها دفعة واحدة</p>
+                    </div>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() => navigate('/admin/drafts')}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+                        >
+                            <Eye className="w-4 h-4" />
+                            عرض المسودات
+                        </button>
+                        <button
+                            onClick={setupDraftTable}
+                            disabled={settingUp}
+                            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium disabled:opacity-50"
+                        >
+                            {settingUp ? 'جاري الإعداد...' : '⚙️ إعداد قاعدة البيانات'}
+                        </button>
+                    </div>
+                </div>
             </div>
 
             {/* Template Download */}
@@ -293,9 +341,15 @@ const ProductImporter: React.FC = () => {
                     <div className={`p-4 rounded-lg mb-6 ${result.success ? 'bg-green-50 text-green-800' : 'bg-yellow-50 text-yellow-800'}`}>
                         <p className="font-medium">{result.message}</p>
                         {(result as any).batchId && (
-                            <p className="text-sm mt-2">
-                                سيتم توجيهك لصفحة المراجعة خلال ثوانٍ...
-                            </p>
+                            <div className="mt-3">
+                                <button
+                                    onClick={() => navigate(`/admin/drafts/${(result as any).batchId}`)}
+                                    className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2"
+                                >
+                                    <Eye className="w-5 h-5" />
+                                    مراجعة المنتجات المستوردة ({result.imported})
+                                </button>
+                            </div>
                         )}
                     </div>
 
