@@ -146,6 +146,7 @@ function AppContent() {
               <Route index element={<DashboardOverview />} />
               <Route path="products" element={<ProductsManager />} />
               <Route path="product-importer" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><ProductImporter /></ProtectedRoute>} />
+              <Route path="import" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><ProductImporter /></ProtectedRoute>} />
               <Route path="drafts/:batchId?" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><DraftProductsReview /></ProtectedRoute>} />
               <Route path="categories" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><CategoriesManager /></ProtectedRoute>} />
               <Route path="category-banners" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><CategoryBannersManager /></ProtectedRoute>} />
