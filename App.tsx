@@ -46,6 +46,7 @@ import DashboardOverview from './pages/admin/DashboardOverview';
 import ProductsManager from './pages/admin/ProductsManager';
 import ProductUploadPage from './pages/admin/ProductUploadPage';
 import ProductImporter from './pages/admin/ProductImporter';
+import DraftProductsReview from './pages/admin/DraftProductsReview';
 import OrdersManager from './pages/admin/OrdersManager';
 import EmployeesManager from './pages/admin/EmployeesManager';
 import LiveChatDashboard from './pages/admin/LiveChatDashboard';
@@ -145,6 +146,7 @@ function AppContent() {
               <Route index element={<DashboardOverview />} />
               <Route path="products" element={<ProductsManager />} />
               <Route path="product-importer" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><ProductImporter /></ProtectedRoute>} />
+              <Route path="drafts/:batchId?" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><DraftProductsReview /></ProtectedRoute>} />
               <Route path="categories" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><CategoriesManager /></ProtectedRoute>} />
               <Route path="category-banners" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><CategoryBannersManager /></ProtectedRoute>} />
               <Route path="upload" element={<ProductUploadPage />} />

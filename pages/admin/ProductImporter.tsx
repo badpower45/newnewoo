@@ -91,6 +91,13 @@ const ProductImporter: React.FC = () => {
             if (response.ok) {
                 setResult(data);
                 setFile(null);
+                
+                // Redirect to draft review page if there's a batchId
+                if (data.batchId) {
+                    setTimeout(() => {
+                        navigate(`/admin/drafts/${data.batchId}`);
+                    }, 2000);
+                }
             } else {
                 const errorMessage = data.error || data.message || 'حدث خطأ غير معروف';
                 const detailsMessage = data.details ? `\n\nالتفاصيل: ${data.details}` : '';
@@ -285,6 +292,11 @@ const ProductImporter: React.FC = () => {
                     {/* Success Message */}
                     <div className={`p-4 rounded-lg mb-6 ${result.success ? 'bg-green-50 text-green-800' : 'bg-yellow-50 text-yellow-800'}`}>
                         <p className="font-medium">{result.message}</p>
+                        {(result as any).batchId && (
+                            <p className="text-sm mt-2">
+                                سيتم توجيهك لصفحة المراجعة خلال ثوانٍ...
+                            </p>
+                        )}
                     </div>
 
                     {/* Errors Details */}
