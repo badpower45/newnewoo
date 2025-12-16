@@ -146,12 +146,25 @@ const ProfilePage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-24">
+        <div className="min-h-screen bg-gray-50 pb-24 md:pb-8">
             {/* Header */}
-            <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 pt-12">
+            <div className="bg-white p-4 sticky top-0 z-40 shadow-sm flex items-center relative md:hidden">
+                <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-primary absolute left-4">
+                    <ChevronLeft size={28} />
+                </button>
+                <h1 className="text-xl font-bold text-gray-900 w-full text-center">Profile</h1>
+            </div>
+
+            <div className="max-w-7xl mx-auto md:p-6">
+                <div className="hidden md:flex items-center justify-between mb-6">
+                    <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
+                </div>
+
+            {/* User Info Card */}
+            <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl p-6 mx-4 md:mx-0 mt-4">
                 <button 
                     onClick={() => navigate(-1)} 
-                    className="mb-4 p-2 -ml-2 hover:bg-white/10 rounded-xl transition-colors"
+                    className="mb-4 p-2 -ml-2 hover:bg-white/10 rounded-xl transition-colors md:hidden"
                 >
                     <ChevronLeft size={24} />
                 </button>
@@ -199,7 +212,7 @@ const ProfilePage = () => {
                 </div>
             </div>
 
-            <div className="max-w-2xl mx-auto p-4 -mt-6 space-y-4">
+            <div className="max-w-2xl mx-auto p-4 space-y-4">
                 {/* Edit Profile Card */}
                 <div className="bg-white rounded-2xl shadow-sm p-6">
                     <div className="flex items-center justify-between mb-6">
@@ -422,6 +435,7 @@ const ProfilePage = () => {
                     <LogOut size={20} />
                     <span className="font-bold">تسجيل الخروج</span>
                 </button>
+            </div>
             </div>
             <Footer />
         </div>

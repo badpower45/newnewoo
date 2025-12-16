@@ -5,7 +5,6 @@ import {
     ChevronLeft, ShoppingBag, MapPin, Calendar,
     RefreshCw, Eye, Phone, Star, X, MessageSquare
 } from 'lucide-react';
-import TopBar from '../components/TopBar';
 import Footer from '../components/Footer';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -213,8 +212,6 @@ const MyOrdersPage = () => {
 
     return (
         <div className="min-h-screen bg-gray-50 pb-24">
-            <TopBar />
-
             {/* Header */}
             <div className="bg-white border-b sticky top-0 z-20">
                 <div className="max-w-4xl mx-auto px-4 py-4">

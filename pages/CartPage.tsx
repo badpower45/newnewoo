@@ -106,13 +106,13 @@ const CartPage = () => {
                                 </div>
                                 <div className="flex-1 flex flex-col justify-between">
                                     <div className="flex justify-between items-start">
-                                        <div>
-                                            <h3 className="font-bold text-gray-900 line-clamp-1">{item.title}</h3>
+                                        <div className="flex-1 pr-2">
+                                            <h3 className="font-bold text-gray-900 text-sm leading-snug mb-1">{item.title}</h3>
                                             <p className="text-sm text-gray-500">{item.weight}</p>
                                         </div>
                                         <button
                                             onClick={() => removeFromCart(item.id)}
-                                            className="text-red-500 p-1 hover:bg-red-50 rounded-lg"
+                                            className="text-red-500 p-1 hover:bg-red-50 rounded-lg flex-shrink-0"
                                         >
                                             <Trash2 size={18} />
                                         </button>

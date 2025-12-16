@@ -3,6 +3,7 @@ import { Gift, ChevronLeft, TrendingUp, CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
+import Footer from '../components/Footer';
 
 interface LoyaltyTransaction {
     id: number;
@@ -59,28 +60,21 @@ const LoyaltyPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-24">
-            {/* Simple Header */}
-            <div className="bg-white border-b p-4 pt-12">
-                <button 
-                    onClick={() => navigate(-1)} 
-                    className="mb-3 p-2 -ml-2 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                    <ChevronLeft size={24} className="text-gray-700" />
+        <div className="min-h-screen bg-gray-50 pb-24 md:pb-8">
+            {/* Header */}
+            <div className="bg-white p-4 sticky top-0 z-40 shadow-sm flex items-center relative md:hidden">
+                <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-primary absolute left-4">
+                    <ChevronLeft size={28} />
                 </button>
-                
-                <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-orange-50 rounded-lg flex items-center justify-center">
-                        <Gift size={24} className="text-brand-orange" />
-                    </div>
-                    <div>
-                        <h1 className="text-xl font-bold text-gray-900">نقاط الولاء</h1>
-                        <p className="text-sm text-gray-500">اجمع نقاط مع كل طلب</p>
-                    </div>
-                </div>
+                <h1 className="text-xl font-bold text-gray-900 w-full text-center">Loyalty Points</h1>
             </div>
 
-            <div className="p-4 max-w-2xl mx-auto">
+            <div className="max-w-7xl mx-auto md:p-6">
+                <div className="hidden md:flex items-center justify-between mb-6">
+                    <h1 className="text-3xl font-bold text-gray-900">Loyalty Points</h1>
+                </div>
+
+            <div className="p-4 md:p-0">
                 {/* Simple Points Card */}
                 <div className="bg-white rounded-xl p-6 shadow-sm border mb-4">
                     <div className="text-center">
@@ -165,6 +159,8 @@ const LoyaltyPage = () => {
                     )}
                 </div>
             </div>
+            </div>
+            <Footer />
         </div>
     );
 };

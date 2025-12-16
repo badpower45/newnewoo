@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MapPin, ChevronLeft, Phone, Clock, Navigation, Map } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
+import Footer from '../components/Footer';
 
 interface Branch {
     id: number;
@@ -125,30 +126,23 @@ const BranchesPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-24">
-            {/* Simple Header */}
-            <div className="bg-white border-b p-4 pt-12">
-                <button 
-                    onClick={() => navigate(-1)} 
-                    className="mb-3 p-2 -ml-2 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                    <ChevronLeft size={24} className="text-gray-700" />
+        <div className="min-h-screen bg-gray-50 pb-24 md:pb-8">
+            {/* Header */}
+            <div className="bg-white p-4 sticky top-0 z-40 shadow-sm flex items-center relative md:hidden">
+                <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-primary absolute left-4">
+                    <ChevronLeft size={28} />
                 </button>
-                
-                <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-orange-50 rounded-lg flex items-center justify-center">
-                        <Map size={24} className="text-brand-orange" />
-                    </div>
-                    <div>
-                        <h1 className="text-xl font-bold text-gray-900">فروعنا</h1>
-                        <p className="text-sm text-gray-500">{branches.length} فرع في خدمتك</p>
-                    </div>
-                </div>
+                <h1 className="text-xl font-bold text-gray-900 w-full text-center">Our Branches</h1>
             </div>
+
+            <div className="max-w-7xl mx-auto md:p-6">
+                <div className="hidden md:flex items-center justify-between mb-6">
+                    <h1 className="text-3xl font-bold text-gray-900">Our Branches</h1>
+                </div>
 
             {/* Nearest Branch - Simple Version */}
             {nearestBranch && userLocation && (
-                <div className="mx-4 mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="mx-4 md:mx-0 mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
                     <div className="flex items-center gap-2 mb-1">
                         <Navigation size={18} className="text-green-600" />
                         <p className="text-sm font-medium text-green-900">أقرب فرع إليك</p>
@@ -166,7 +160,7 @@ const BranchesPage = () => {
             )}
 
             {/* Simple Governorate Filter */}
-            <div className="bg-white border-b p-3">
+            <div className="bg-white border-b p-3 md:rounded-xl md:mt-4">
                 <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
                     {governorates.map(gov => (
                         <button
@@ -174,7 +168,7 @@ const BranchesPage = () => {
                             onClick={() => setSelectedGovernorate(gov)}
                             className={`px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all ${
                                 selectedGovernorate === gov
-                                    ? 'bg-brand-orange text-white'
+                                    ? 'bg-primary text-white'
                                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
                         >
@@ -185,8 +179,7 @@ const BranchesPage = () => {
             </div>
 
             {/* Simple Branches List */}
-            <div className="p-4 space-y-3">
-                {filteredBranches.length === 0 ? (
+            <div className="p-4 md:p-0 md:mt-4 space-y-3">{filteredBranches.length === 0 ? (
                     <div className="bg-white rounded-xl p-8 text-center border">
                         <MapPin size={48} className="text-gray-300 mx-auto mb-3" />
                         <h3 className="font-bold text-base mb-1">لا توجد فروع</h3>
@@ -198,7 +191,7 @@ const BranchesPage = () => {
                             {/* Branch Header */}
                             <div className="flex items-start gap-3 mb-3">
                                 <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                                    <MapPin size={20} className="text-brand-orange" />
+                                    <MapPin size={20} className="text-primary" />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-base text-gray-900">{branch.name}</h3>
@@ -217,7 +210,7 @@ const BranchesPage = () => {
                                     <Phone size={14} className="text-gray-400 flex-shrink-0" />
                                     <a 
                                         href={`tel:${branch.phone}`}
-                                        className="text-brand-orange font-medium hover:underline"
+                                        className="text-primary font-medium hover:underline"
                                     >
                                         {branch.phone}
                                     </a>
@@ -235,14 +228,14 @@ const BranchesPage = () => {
                             <div className="flex gap-2 pt-3 border-t">
                                 <button
                                     onClick={() => handleGetDirections(branch)}
-                                    className="flex-1 py-2.5 bg-brand-orange text-white rounded-lg font-medium hover:bg-orange-600 transition-colors flex items-center justify-center gap-2 text-sm"
+                                    className="flex-1 py-2.5 bg-primary text-white rounded-lg font-medium hover:bg-primary-dark transition-colors flex items-center justify-center gap-2 text-sm"
                                 >
                                     <Navigation size={16} />
                                     الوصول
                                 </button>
                                 <button
                                     onClick={() => handleCall(branch.phone)}
-                                    className="px-5 py-2.5 border border-brand-orange text-brand-orange rounded-lg font-medium hover:bg-orange-50 transition-colors flex items-center gap-2 text-sm"
+                                    className="px-5 py-2.5 border border-primary text-primary rounded-lg font-medium hover:bg-orange-50 transition-colors flex items-center gap-2 text-sm"
                                 >
                                     <Phone size={16} />
                                     اتصال
@@ -252,6 +245,8 @@ const BranchesPage = () => {
                     ))
                 )}
             </div>
+            </div>
+            <Footer />
         </div>
     );
 };
