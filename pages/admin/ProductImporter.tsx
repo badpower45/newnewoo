@@ -92,7 +92,10 @@ const ProductImporter: React.FC = () => {
                 setResult(data);
                 setFile(null);
             } else {
-                alert(`فشل الرفع: ${data.error || data.message}`);
+                const errorMessage = data.error || data.message || 'حدث خطأ غير معروف';
+                const detailsMessage = data.details ? `\n\nالتفاصيل: ${data.details}` : '';
+                alert(`فشل الرفع: ${errorMessage}${detailsMessage}`);
+                console.error('Upload failed:', data);
             }
         } catch (err) {
             console.error('Upload error:', err);
