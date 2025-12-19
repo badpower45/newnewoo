@@ -119,7 +119,8 @@ const MorePage = () => {
     };
 
     return (
-        <div claWhatsApp Customer Service Button */}
+        <div className="min-h-screen bg-gray-50">
+            {/* WhatsApp Customer Service Button */}
             {!isAuthenticated && (
                 <div className="bg-gradient-to-r from-green-500 to-green-600 mx-4 mt-4 rounded-2xl p-4 shadow-lg">
                     <a
