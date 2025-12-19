@@ -51,7 +51,7 @@ const LottieLoader: React.FC<LottieLoaderProps> = ({ onComplete, duration = 2000
             }`}
         >
             {/* Enlarged Video/Animation - Full Screen */}
-            <div className="w-full h-full flex items-center justify-center">
+            <div className="w-full h-full flex items-center justify-center overflow-hidden">
                 <dotlottie-player
                     src={DOT_LOTTIE_SRC}
                     background="transparent"
