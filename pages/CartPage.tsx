@@ -144,16 +144,16 @@ const CartPage = () => {
                                             <button
                                                 onClick={() => updateQuantity(item.id, item.quantity + 1)}
                                                 className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-white rounded-md transition-colors"
-                                            >brand-orange text-lg">
-                                                {(item.price * item.quantity).toFixed(2)} 
-                                                <span className="text-xs text-gray-500 mr-1">جنيه</span>
-                                            </p>
-                                            <p className="text-xs text-gray-400">شامل الضريبة
+                                            >
                                                 <Plus size={16} />
                                             </button>
                                         </div>
                                         <div className="text-right">
-                                            <p className="font-bold text-primary text-lg">{(item.price * item.quantity).toFixed(2)} <span className="text-xs text-gray-500">EGP</span></p>
+                                            <p className="font-bold text-brand-orange text-lg">
+                                                {(item.price * item.quantity).toFixed(2)} 
+                                                <span className="text-xs text-gray-500 mr-1">جنيه</span>
+                                            </p>
+                                            <p className="text-xs text-gray-400">شامل الضريبة</p>
                                         </div>
                                     </div>
 
