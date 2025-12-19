@@ -193,10 +193,6 @@ class SocketService {
             this.socket?.off(event);
         }
     }
-
-    isConnected() {
-        return this.connected;
-    }
 }
 
 export const socketService = new SocketService();

@@ -124,7 +124,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
                     <p className="mt-2 text-sm md:text-base text-white/90">وجّه الكاميرا نحو الباركود</p>
                 </div>
 
-                <div className="p-4 md:p-6">{
+                <div className="p-4 md:p-6">
                     {/* Mode Toggle */}
                     <div className="mb-4 flex gap-2">
                         <button

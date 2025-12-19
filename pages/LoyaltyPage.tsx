@@ -189,12 +189,6 @@ const LoyaltyPage = () => {
                 )}
 
                 {/* Transactions History */}
-                            <p className="text-gray-700">نقاطك معك دائماً ولا تنتهي صلاحيتها</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Transactions History */}
                 <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
                     <div className="p-4 border-b bg-gray-50">
                         <h3 className="font-bold text-lg text-gray-900">سجل النقاط</h3>
