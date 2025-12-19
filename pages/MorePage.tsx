@@ -199,13 +199,7 @@ const MorePage = () => {
                         <span className="text-gray-900 font-medium text-base">خدمة العملاء (واتساب)</span>
                     </div>
                     <ChevronLeft className="w-5 h-5 text-gray-400" />
-                </a>             <span className="text-gray-500 text-sm">{item.rightText}</span>
-                            ) : (
-                                <ChevronLeft className="w-5 h-5 text-gray-400" />
-                            )}
-                        </div>
-                    </button>
-                ))}
+                </a>
 
                 {/* Logout Button */}
                 {isAuthenticated && (
