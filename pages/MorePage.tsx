@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, LogOut, ChevronLeft, Package, Heart, Gift, MapPin, CreditCard, Globe, MessageSquare, MapPinned, HelpCircle } from 'lucide-react';
+import { User, LogOut, ChevronLeft, Package, Heart, Gift, MapPin, CreditCard, Globe, MessageSquare, MapPinned, HelpCircle, Shield, FileText, LogIn } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -67,6 +67,27 @@ const MorePage = () => {
             requireAuth: true
         },
         {
+            icon: MapPinned,
+            label: 'فروعنا',
+            iconBg: 'bg-teal-100',
+            iconColor: 'text-teal-600',
+            route: '/branches'
+        },
+        {
+            icon: HelpCircle,
+            label: 'الأسئلة الشائعة',
+            iconBg: 'bg-yellow-100',
+            iconColor: 'text-yellow-600',
+            route: '/general-faq'
+        },
+        {
+            icon: Shield,
+            label: 'سياسة الخصوصية',
+            iconBg: 'bg-purple-100',
+            iconColor: 'text-purple-600',
+            route: '/privacy-policy'
+        },
+        {
             icon: Globe,
             label: 'تغيير اللغة',
             iconBg: 'bg-cyan-100',
@@ -79,21 +100,6 @@ const MorePage = () => {
             label: 'إرسال الاقتراح',
             iconBg: 'bg-indigo-100',
             iconColor: 'text-indigo-600',
-            route: '/chat',
-            requireAuth: true
-        },
-        {
-            icon: MapPinned,
-            label: 'فروعنا',
-            iconBg: 'bg-teal-100',
-            iconColor: 'text-teal-600',
-            route: '/branches'
-        },
-        {
-            icon: HelpCircle,
-            label: 'طلب المساعدة',
-            iconBg: 'bg-yellow-100',
-            iconColor: 'text-yellow-600',
             route: '/chat',
             requireAuth: true
         }
@@ -113,14 +119,44 @@ const MorePage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 pb-24">
-            {/* Header */}
-            <div className="bg-white px-4 py-4 text-center border-b border-gray-200">
-                <h1 className="text-xl font-bold text-gray-900">المزيد</h1>
-            </div>
+        <div claWhatsApp Customer Service Button */}
+            {!isAuthenticated && (
+                <div className="bg-gradient-to-r from-green-500 to-green-600 mx-4 mt-4 rounded-2xl p-4 shadow-lg">
+                    <a
+                        href="https://wa.me/201234567890"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-between text-white"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                                <MessageSquare size={24} />
+                            </div>
+                            <div>
+                                <p className="font-bold text-lg">خدمة العملاء</p>
+                                <p className="text-sm text-white/90">تواصل معنا عبر الواتساب</p>
+                            </div>
+                        </div>
+                        <ChevronLeft size={20} />
+                    </a>
+                </div>
+            )}
+
+            {/* Login Button for Guests */}
+            {!isAuthenticated && (
+                <div className="mx-4 mt-4">
+                    <button
+                        onClick={() => navigate('/login')}
+                        className="w-full bg-gradient-to-r from-brand-orange to-orange-600 text-white px-6 py-4 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3"
+                    >
+                        <LogIn size={24} />
+                        <span>تسجيل الدخول</span>
+                    </button>
+                </div>
+            )}
 
             {/* Menu Items */}
-            <div className="bg-white mt-2 divide-y divide-gray-100">
+            <div className="bg-white mt-4 divide-y divide-gray-100">
                 {menuItems.map((item, index) => (
                     <button
                         key={index}
@@ -141,6 +177,28 @@ const MorePage = () => {
                             )}
                             {item.rightText ? (
                                 <span className="text-gray-500 text-sm">{item.rightText}</span>
+                            ) : (
+                                <ChevronLeft className="w-5 h-5 text-gray-400" />
+                            )}
+                        </div>
+                    </button>
+                ))}
+
+                {/* WhatsApp Customer Service - Also in Menu */}
+                <a
+                    href="https://wa.me/201234567890"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center justify-between px-4 py-4 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                >
+                    <div className="flex items-center gap-4">
+                        <div className="bg-green-100 text-green-600 p-2.5 rounded-xl">
+                            <MessageSquare className="w-6 h-6" />
+                        </div>
+                        <span className="text-gray-900 font-medium text-base">خدمة العملاء (واتساب)</span>
+                    </div>
+                    <ChevronLeft className="w-5 h-5 text-gray-400" />
+                </a>             <span className="text-gray-500 text-sm">{item.rightText}</span>
                             ) : (
                                 <ChevronLeft className="w-5 h-5 text-gray-400" />
                             )}

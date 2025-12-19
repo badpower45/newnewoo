@@ -195,12 +195,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
         )}
         
         {/* السعر */}
-        <div className="flex items-center gap-1.5 mt-auto">
-          <span className="font-bold text-base text-gray-900">{currentPrice.toFixed(2)}</span>
-          <span className="text-xs text-gray-500">ج.م</span>
-          {hasDiscount && (
-            <span className="text-xs text-gray-400 line-through">{priceBeforeDiscount.toFixed(2)}</span>
-          )}
+        <div className="mt-auto">
+          <div className="flex items-center gap-1.5">
+            <span className="font-bold text-base text-gray-900">{currentPrice.toFixed(2)}</span>
+            <span className="text-xs text-gray-500">ج.م</span>
+            {hasDiscount && (
+              <span className="text-xs text-gray-400 line-through">{priceBeforeDiscount.toFixed(2)}</span>
+            )}
+          </div>
+          <p className="text-[9px] text-gray-400 mt-0.5">شامل ضريبة القيمة المضافة</p>
         </div>
       </div>
     </div>

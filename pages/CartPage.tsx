@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ShoppingCart, Trash2, Plus, Minus } from 'lucide-react';
+import { ChevronLeft, ShoppingCart, Trash2, Plus, Minus, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useBranch } from '../context/BranchContext';
 import Footer from '../components/Footer';
 import { api } from '../services/api';
+
+// Constants
+const MINIMUM_ORDER_AMOUNT = 200;
+const SERVICE_FEE = 7;
+const FREE_SHIPPING_THRESHOLD = 600;
 
 const CartPage = () => {
     const navigate = useNavigate();
@@ -12,6 +17,10 @@ const CartPage = () => {
     const { selectedBranch } = useBranch();
     const [deliveryFee, setDeliveryFee] = useState(20);
     const [freeDelivery, setFreeDelivery] = useState(false);
+    
+    // Calculate service fee (7 EGP if total < 600, otherwise 0)
+    const serviceFee = totalPrice >= FREE_SHIPPING_THRESHOLD ? 0 : SERVICE_FEE;
+    const finalTotal = totalPrice + serviceFee;
 
     // Calculate delivery fee
     useEffect(() => {
@@ -101,14 +110,19 @@ const CartPage = () => {
                     <div className="flex-1 space-y-4 p-4 md:p-0">
                         {items.map((item) => (
                             <div key={item.id} className="bg-white p-4 rounded-2xl shadow-sm flex gap-4">
-                                <div className="w-24 h-24 bg-gray-50 rounded-xl flex items-center justify-center p-2">
-                                    <img src={item.image} alt={item.title} className="w-full h-full object-contain mix-blend-multiply" />
+                                <div className="w-24 h-24 bg-gray-50 rounded-xl flex items-center justify-center p-2 flex-shrink-0">
+                                    <img src={item.image} alt={item.name || item.title} className="w-full h-full object-contain mix-blend-multiply" />
                                 </div>
-                                <div className="flex-1 flex flex-col justify-between">
-                                    <div className="flex justify-between items-start">
-                                        <div className="flex-1 pr-2">
-                                            <h3 className="font-bold text-gray-900 text-sm leading-snug mb-1">{item.title}</h3>
+                                <div className="flex-1 flex flex-col justify-between min-w-0">
+                                    <div className="flex justify-between items-start gap-2">
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-bold text-gray-900 text-base leading-tight mb-1 line-clamp-2">
+                                                {item.name || item.title}
+                                            </h3>
                                             <p className="text-sm text-gray-500">{item.weight}</p>
+                                            <p className="text-xs text-gray-400 mt-1">
+                                                {item.price.toFixed(2)} جنيه للوحدة • شامل الضريبة
+                                            </p>
                                         </div>
                                         <button
                                             onClick={() => removeFromCart(item.id)}
@@ -130,7 +144,11 @@ const CartPage = () => {
                                             <button
                                                 onClick={() => updateQuantity(item.id, item.quantity + 1)}
                                                 className="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-white rounded-md transition-colors"
-                                            >
+                                            >brand-orange text-lg">
+                                                {(item.price * item.quantity).toFixed(2)} 
+                                                <span className="text-xs text-gray-500 mr-1">جنيه</span>
+                                            </p>
+                                            <p className="text-xs text-gray-400">شامل الضريبة
                                                 <Plus size={16} />
                                             </button>
                                         </div>
@@ -160,30 +178,62 @@ const CartPage = () => {
                     {/* Order Summary */}
                     <div className="lg:w-96 p-4 md:p-0">
                         <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-24">
-                            <h3 className="font-bold text-lg text-gray-900 mb-4">Order Summary</h3>
+                            <h3 className="font-bold text-lg text-gray-900 mb-4">ملخص الطلب</h3>
+
+                            {/* Free Shipping Progress */}
+                            {totalPrice < FREE_SHIPPING_THRESHOLD && (
+                                <div className="mb-4 p-3 bg-blue-50 rounded-xl">
+                                    <p className="text-sm text-blue-800 font-medium mb-2">
+                                        أضف {(FREE_SHIPPING_THRESHOLD - totalPrice).toFixed(2)} جنيه للحصول على شحن مجاني! 🎉
+                                    </p>
+                                    <div className="w-full bg-blue-200 rounded-full h-2">
+                                        <div 
+                                            className="bg-blue-600 h-2 rounded-full transition-all"
+                                            style={{ width: `${Math.min((totalPrice / FREE_SHIPPING_THRESHOLD) * 100, 100)}%` }}
+                                        />
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="space-y-3 mb-6">
                                 <div className="flex justify-between text-gray-600">
-                                    <span>Subtotal</span>
-                                    <span>{totalPrice.toFixed(2)} EGP</span>
+                                    <span>المجموع الفرعي</span>
+                                    <span>{totalPrice.toFixed(2)} جنيه</span>
                                 </div>
                                 <div className="flex justify-between text-gray-600">
-                                    <span>Delivery Fee</span>
-                                    <span className={freeDelivery ? 'text-green-600 font-bold' : ''}>
-                                        {freeDelivery ? 'FREE! 🎉' : `${deliveryFee.toFixed(2)} EGP`}
+                                    <span>رسوم الخدمة</span>
+                                    <span className={serviceFee === 0 ? 'text-green-600 font-bold' : ''}>
+                                        {serviceFee === 0 ? 'مجاني! 🎉' : `${serviceFee.toFixed(2)} جنيه`}
                                     </span>
                                 </div>
+                                {serviceFee === 0 && (
+                                    <p className="text-xs text-green-600 -mt-2">الشحن مجاني للطلبات فوق {FREE_SHIPPING_THRESHOLD} جنيه</p>
+                                )}
                                 <div className="border-t border-gray-100 pt-3 flex justify-between font-bold text-lg text-gray-900">
-                                    <span>Total</span>
-                                    <span>{(totalPrice + deliveryFee).toFixed(2)} EGP</span>
+                                    <span>الإجمالي</span>
+                                    <span>{finalTotal.toFixed(2)} جنيه</span>
                                 </div>
                             </div>
 
+                            {/* Minimum Order Warning */}
+                            {totalPrice < MINIMUM_ORDER_AMOUNT && (
+                                <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2">
+                                    <AlertCircle className="text-amber-600 flex-shrink-0 mt-0.5" size={18} />
+                                    <p className="text-sm text-amber-800">
+                                        الحد الأدنى للطلب هو {MINIMUM_ORDER_AMOUNT} جنيه. يرجى إضافة {(MINIMUM_ORDER_AMOUNT - totalPrice).toFixed(2)} جنيه أخرى.
+                                    </p>
+                                </div>
+                            )}
+
                             <button
                                 onClick={() => navigate('/checkout')}
-                                className="w-full bg-primary text-gray-900 font-bold py-4 rounded-xl shadow-lg hover:bg-primary-dark transition-colors"
+                                disabled={totalPrice < MINIMUM_ORDER_AMOUNT}
+                                className="w-full bg-brand-orange text-white font-bold py-4 rounded-xl shadow-lg hover:bg-orange-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
                             >
-                                Proceed to Checkout
+                                {totalPrice < MINIMUM_ORDER_AMOUNT 
+                                    ? `احتاج ${(MINIMUM_ORDER_AMOUNT - totalPrice).toFixed(2)} جنيه أخرى`
+                                    : 'إتمام الطلب'
+                                }
                             </button>
                         </div>
                     </div>

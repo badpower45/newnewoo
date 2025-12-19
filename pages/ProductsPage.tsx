@@ -27,10 +27,12 @@ const ITEMS_PER_PAGE = 20;
 export default function ProductsPage() {
     const [allProducts, setAllProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<{id: string, name: string, icon: string, color: string}[]>([]);
+    const [brands, setBrands] = useState<{id: string, name: string}[]>([]);
     const [loading, setLoading] = useState(true);
     const [showScanner, setShowScanner] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('');
+    const [selectedBrand, setSelectedBrand] = useState<string>('');
     const [sortBy, setSortBy] = useState<string>('newest');
     const [currentPage, setCurrentPage] = useState(1);
     const [showFilters, setShowFilters] = useState(false);
@@ -91,6 +93,28 @@ export default function ProductsPage() {
         };
         
         loadCategories();
+    }, []);
+
+    // Load brands
+    useEffect(() => {
+        const loadBrands = async () => {
+            try {
+                const response = await api.brands.getAll();
+                const apiBrands = response.data || [];
+                setBrands([
+                    { id: '', name: 'كل البراندات' },
+                    ...apiBrands.map((b: any) => ({
+                        id: b.id,
+                        name: b.name_ar || b.name_en
+                    }))
+                ]);
+            } catch (error) {
+                console.error('Error loading brands:', error);
+                setBrands([{ id: '', name: 'كل البراندات' }]);
+            }
+        };
+        
+        loadBrands();
     }, []);
 
     useEffect(() => {
@@ -189,6 +213,16 @@ export default function ProductsPage() {
             filtered = filtered.filter(p => p.category === selectedCategory);
         }
 
+        // Filter by brand
+        if (selectedBrand) {
+            filtered = filtered.filter(p => {
+                const productBrand = (p.brand || '').toLowerCase();
+                const productName = (p.name || '').toLowerCase();
+                const brandName = selectedBrand.toLowerCase();
+                return productBrand.includes(brandName) || productName.includes(brandName);
+            });
+        }
+
         // Filter by price range
         filtered = filtered.filter(p => {
             const price = Number(p.price) || 0;
@@ -224,7 +258,7 @@ export default function ProductsPage() {
         }
 
         return filtered;
-    }, [allProducts, selectedCategory, sortBy, priceRange, showOnlyOffers]);
+    }, [allProducts, selectedCategory, selectedBrand, sortBy, priceRange, showOnlyOffers]);
 
     // Pagination
     const totalPages = Math.ceil(filteredAndSortedProducts.length / ITEMS_PER_PAGE);
@@ -235,13 +269,14 @@ export default function ProductsPage() {
 
     const clearFilters = () => {
         setSelectedCategory('');
+        setSelectedBrand('');
         setPriceRange([0, 1000]);
         setShowOnlyOffers(false);
         setSortBy('newest');
         setSearchQuery('');
     };
 
-    const hasActiveFilters = selectedCategory || showOnlyOffers || priceRange[0] > 0 || priceRange[1] < 1000;
+    const hasActiveFilters = selectedCategory || selectedBrand || showOnlyOffers || priceRange[0] > 0 || priceRange[1] < 1000;
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-orange-50/30 to-white">
@@ -367,6 +402,15 @@ export default function ProductsPage() {
                                 </button>
                             </span>
                         )}
+                        {selectedBrand && (
+                            <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm">
+                                <Tag size={14} />
+                                {brands.find(b => b.id === selectedBrand)?.name}
+                                <button onClick={() => setSelectedBrand('')} className="hover:bg-blue-200 rounded-full p-0.5">
+                                    <X size={14} />
+                                </button>
+                            </span>
+                        )}
                         {showOnlyOffers && (
                             <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-100 text-orange-700 rounded-full text-sm">
                                 <Tag size={14} />
@@ -460,6 +504,36 @@ export default function ProductsPage() {
                                     ))}
                                 </div>
                             </div>
+
+                            {/* Brands Filter */}
+                            {brands.length > 1 && (
+                                <div>
+                                    <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                        <Tag size={18} className="text-orange-500" />
+                                        البراند
+                                    </h3>
+                                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                                        {brands.map((brand) => (
+                                            <button
+                                                key={brand.id}
+                                                onClick={() => setSelectedBrand(brand.id)}
+                                                className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border-2 transition-all w-full text-right ${
+                                                    selectedBrand === brand.id
+                                                        ? 'border-orange-500 bg-orange-50 text-orange-700'
+                                                        : 'border-gray-200 hover:border-orange-300'
+                                                }`}
+                                            >
+                                                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                                                    selectedBrand === brand.id ? 'bg-orange-500 border-orange-500' : 'border-gray-300'
+                                                }`}>
+                                                    {selectedBrand === brand.id && <div className="w-2 h-2 bg-white rounded-full" />}
+                                                </div>
+                                                <span className="flex-1">{brand.name}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}

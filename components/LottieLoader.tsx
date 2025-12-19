@@ -50,28 +50,16 @@ const LottieLoader: React.FC<LottieLoaderProps> = ({ onComplete, duration = 2000
                 fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
             }`}
         >
-            <div className="mb-6 text-center">
-                <div className="mx-auto mb-3 h-14 w-14 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 text-white shadow-lg flex items-center justify-center text-2xl font-bold">
-                    🛒
-                </div>
-                <h1 className="text-xl font-semibold text-gray-900">Shop Allosh</h1>
-                <p className="text-xs text-gray-500">جارٍ تجهيز تجربتك</p>
-            </div>
-
-            <div className="h-56 w-56">
+            {/* Enlarged Video/Animation - Full Screen */}
+            <div className="w-full h-full flex items-center justify-center">
                 <dotlottie-player
                     src={DOT_LOTTIE_SRC}
                     background="transparent"
                     speed="1"
                     loop
                     autoplay
-                    style={{ width: '100%', height: '100%' }}
+                    style={{ width: '100%', height: '100%', maxWidth: '800px', maxHeight: '800px' }}
                 />
-            </div>
-
-            <div className="mt-4 flex items-center gap-2 text-sm text-orange-700">
-                <div className="h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
-                <span>جارٍ التحميل...</span>
             </div>
         </div>
     );

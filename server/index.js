@@ -32,6 +32,7 @@ import bulkImportRoutes from './routes/bulkImport.js';
 import homeSectionsRoutes from './routes/homeSections.js';
 import addressesRoutes from './routes/addresses.js';
 import loyaltyRoutes from './routes/loyalty.js';
+import reviewsRoutes from './routes/reviews.js';
 
 // dotenv is loaded in database.js with the correct path
 // No need to load it again here
@@ -148,6 +149,7 @@ app.use('/api/products', bulkImportRoutes);
 app.use('/api/home-sections', homeSectionsRoutes);
 app.use('/api/addresses', addressesRoutes);
 app.use('/api/loyalty', loyaltyRoutes);
+app.use('/api/reviews', reviewsRoutes);
 
 // Image Upload Route
 import uploadRoutes from './routes/upload.js';

@@ -46,6 +46,18 @@ const LoyaltyPage = () => {
         }
     };
 
+    // New loyalty system: 1000 points = 35 EGP coupon
+    const POINTS_PER_COUPON = 1000;
+    const COUPON_VALUE = 35;
+    
+    const getAvailableCoupons = () => {
+        return Math.floor(points / POINTS_PER_COUPON);
+    };
+    
+    const getTotalCouponValue = () => {
+        return getAvailableCoupons() * COUPON_VALUE;
+    };
+
     const getPointsValue = () => {
         // 1 point = 1 EGP
         return points;
@@ -75,38 +87,117 @@ const LoyaltyPage = () => {
                 </div>
 
             <div className="p-4 md:p-0">
-                {/* Simple Points Card */}
-                <div className="bg-white rounded-xl p-6 shadow-sm border mb-4">
+                {/* Enhanced Points Card */}
+                <div className="bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-6 shadow-lg mb-4 text-white">
                     <div className="text-center">
-                        <p className="text-sm text-gray-600 mb-2">رصيدك الحالي</p>
-                        <h2 className="text-5xl font-bold text-gray-900 mb-2">{points.toLocaleString()}</h2>
-                        <p className="text-gray-600">نقطة = {getPointsValue().toLocaleString()} جنيه</p>
+                        <p className="text-white/90 text-sm mb-2">رصيدك الحالي</p>
+                        <h2 className="text-6xl font-black mb-4">{points.toLocaleString()}</h2>
+                        <p className="text-white/90 text-lg mb-4">نقطة ولاء</p>
+                        
+                        {/* Coupons Available */}
+                        <div className="bg-white/20 backdrop-blur rounded-xl p-4 mt-4">
+                            <p className="text-white/90 text-sm mb-2">يمكنك استبدال</p>
+                            <div className="text-3xl font-bold">{getAvailableCoupons()}</div>
+                            <p className="text-white/90 text-sm">كوبون خصم</p>
+                            <p className="text-white font-bold text-xl mt-2">بقيمة {getTotalCouponValue()} جنيه</p>
+                        </div>
+                        
+                        {/* Progress to next coupon */}
+                        {points % POINTS_PER_COUPON > 0 && (
+                            <div className="mt-4">
+                                <div className="bg-white/20 rounded-full h-2 overflow-hidden">
+                                    <div 
+                                        className="bg-white h-full transition-all"
+                                        style={{ width: `${((points % POINTS_PER_COUPON) / POINTS_PER_COUPON) * 100}%` }}
+                                    />
+                                </div>
+                                <p className="text-white/80 text-xs mt-2">
+                                    متبقي {POINTS_PER_COUPON - (points % POINTS_PER_COUPON)} نقطة للكوبون التالي
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
 
-                {/* Simple How it works */}
+                {/* How it works */}
                 <div className="bg-white rounded-xl p-5 shadow-sm border mb-4">
-                    <h3 className="font-bold text-base mb-4 text-gray-900">كيف تعمل النقاط؟</h3>
-                    <div className="space-y-3 text-sm">
-                        <div className="flex items-start gap-3">
-                            <CheckCircle size={18} className="text-green-500 mt-0.5 flex-shrink-0" />
-                            <p className="text-gray-700">كل طلب يتم توصيله بنجاح يضيف نقاط بقيمة إجمالي الطلب</p>
+                    <h3 className="font-bold text-lg mb-4 text-gray-900">كيف يعمل نظام النقاط؟</h3>
+                    <div className="space-y-4 text-sm">
+                        <div className="flex items-start gap-3 p-3 bg-green-50 rounded-lg">
+                            <CheckCircle size={20} className="text-green-600 mt-0.5 flex-shrink-0" />
+                            <div>
+                                <p className="font-bold text-green-900 mb-1">اجمع النقاط</p>
+                                <p className="text-gray-700">كل 1000 جنيه تنفقها = 1000 نقطة ولاء</p>
+                            </div>
                         </div>
-                        <div className="flex items-start gap-3">
-                            <Gift size={18} className="text-orange-500 mt-0.5 flex-shrink-0" />
-                            <p className="text-gray-700">استخدم نقاطك للحصول على خصومات في طلباتك القادمة</p>
+                        <div className="flex items-start gap-3 p-3 bg-orange-50 rounded-lg">
+                            <Gift size={20} className="text-orange-600 mt-0.5 flex-shrink-0" />
+                            <div>
+                                <p className="font-bold text-orange-900 mb-1">
+                                    استبدل النقاط
+                                </p>
+                                <p className="text-gray-700">كل 1000 نقطة = كوبون خصم بقيمة 35 جنيه</p>
+                            </div>
                         </div>
-                        <div className="flex items-start gap-3">
-                            <TrendingUp size={18} className="text-blue-500 mt-0.5 flex-shrink-0" />
+                        <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">
+                            <TrendingUp size={20} className="text-blue-600 mt-0.5 flex-shrink-0" />
+                            <div>
+                                <p className="font-bold text-blue-900 mb-1">نقاطك لا تنتهي</p>
+                                <p className="text-gray-700">نقاطك معك دائماً ولا تنتهي صلاحيتها</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Redeem Section */}
+                {getAvailableCoupons() > 0 && (
+                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl p-5 shadow-sm border border-green-200 mb-4">
+                        <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                                <Gift size={24} className="text-green-600" />
+                                <h3 className="font-bold text-lg text-gray-900">استبدال النقاط</h3>
+                            </div>
+                        </div>
+                        <p className="text-gray-700 text-sm mb-4">
+                            لديك {getAvailableCoupons()} كوبون خصم متاح! كل كوبون يوفر لك 35 جنيه خصم على طلبك القادم.
+                        </p>
+                        <button
+                            onClick={async () => {
+                                const availableCoupons = getAvailableCoupons();
+                                const pointsToRedeem = availableCoupons * 1000;
+                                
+                                if (!confirm(`هل تريد استبدال ${pointsToRedeem} نقطة بـ ${availableCoupons} كوبون بقيمة ${getTotalCouponValue()} جنيه؟`)) {
+                                    return;
+                                }
+
+                                try {
+                                    const result = await api.loyalty.redeemPoints(pointsToRedeem);
+                                    alert(`✅ ${result.message}\n\nكود الكوبون: ${result.coupon.code}\n\nقيمة الخصم: ${result.coupon.value} جنيه\nصالح حتى: ${new Date(result.coupon.validUntil).toLocaleDateString('ar-EG')}\n\nاستخدمه في طلبك القادم!`);
+                                    
+                                    // Refresh page data
+                                    fetchLoyaltyData();
+                                } catch (error: any) {
+                                    alert('❌ ' + (error.message || 'حدث خطأ أثناء استبدال النقاط'));
+                                }
+                            }}
+                            className="w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3 px-4 rounded-lg font-bold hover:from-green-700 hover:to-emerald-700 transition-all shadow-md flex items-center justify-center gap-2"
+                        >
+                            <Gift size={20} />
+                            استبدال {getAvailableCoupons()} كوبون ({getTotalCouponValue()} جنيه)
+                        </button>
+                    </div>
+                )}
+
+                {/* Transactions History */}
                             <p className="text-gray-700">نقاطك معك دائماً ولا تنتهي صلاحيتها</p>
                         </div>
                     </div>
                 </div>
 
-                {/* Simple Transactions History */}
+                {/* Transactions History */}
                 <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
                     <div className="p-4 border-b bg-gray-50">
-                        <h3 className="font-bold text-base text-gray-900">سجل النقاط</h3>
+                        <h3 className="font-bold text-lg text-gray-900">سجل النقاط</h3>
                     </div>
                     
                     {transactions.length === 0 ? (

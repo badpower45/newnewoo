@@ -131,45 +131,94 @@ interface BrandInfo {
 const BrandPage = () => {
     const { brandName } = useParams<{ brandName: string }>();
     const { selectedBranch } = useBranch();
-    const [brand, setBrand] = useState<BrandInfo | null>(null);
+    const [brand, setBrand] = useState<any>(null);
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'all' | 'offers' | 'new'>('all');
 
     useEffect(() => {
         if (brandName) {
-            const brandKey = brandName.toLowerCase();
-            const foundBrand = BRANDS_DATA[brandKey];
-            setBrand(foundBrand || null);
-            loadBrandProducts(foundBrand);
+            loadBrandData();
         }
     }, [brandName, selectedBranch]);
 
-    const loadBrandProducts = async (brandInfo: BrandInfo | undefined) => {
-        if (!brandInfo) {
-            setLoading(false);
-            return;
-        }
-
+    const loadBrandData = async () => {
         setLoading(true);
         try {
-            // جلب جميع المنتجات والفلترة حسب الكلمات المفتاحية للبراند
+            // Try to load from database first
+            const response = await api.brands.getAll();
+            const allBrands = response.data || [];
+            
+            // Find brand by name (English or Arabic)
+            const foundBrand = allBrands.find((b: any) => 
+                b.name_en?.toLowerCase().replace(/\s+/g, '-') === brandName?.toLowerCase() ||
+                b.id === brandName
+            );
+
+            if (foundBrand) {
+                // Use database brand with custom colors
+                setBrand({
+                    ...foundBrand,
+                    primaryColor: foundBrand.primary_color || '#F97316',
+                    secondaryColor: foundBrand.secondary_color || '#EA580C',
+                    gradientFrom: foundBrand.primary_color || '#F97316',
+                    gradientTo: foundBrand.secondary_color || '#EA580C'
+                });
+                await loadBrandProducts(foundBrand.name_en || foundBrand.name_ar);
+            } else {
+                // Fallback to static data
+                const brandKey = brandName.toLowerCase();
+                const staticBrand = BRANDS_DATA[brandKey];
+                if (staticBrand) {
+                    setBrand(staticBrand);
+                    await loadBrandProducts(staticBrand);
+                } else {
+                    setBrand(null);
+                }
+            }
+        } catch (error) {
+            console.error('Error loading brand:', error);
+            // Fallback to static data
+            const brandKey = brandName.toLowerCase();
+            const staticBrand = BRANDS_DATA[brandKey];
+            if (staticBrand) {
+                setBrand(staticBrand);
+                await loadBrandProducts(staticBrand);
+            }
+        }
+        setLoading(false);
+    };
+
+    const loadBrandProducts = async (brandInfo: any) => {
+        if (!brandInfo) return;
+
+        try {
             const res = selectedBranch 
                 ? await api.products.getAllByBranch(selectedBranch.id)
                 : await api.products.getAll();
             
-            const allProducts = res.data || [];
+            const allProducts = res.data || res || [];
             
-            // فلترة المنتجات التي تحتوي على اسم البراند
+            // Get keywords from brand
+            const keywords = brandInfo.keywords || [
+                brandInfo.name_en?.toLowerCase(),
+                brandInfo.name_ar?.toLowerCase(),
+                brandInfo.nameEn?.toLowerCase(),
+                brandInfo.name?.toLowerCase()
+            ].filter(Boolean);
+            
+            // Filter products by brand name/keywords
             const brandProducts = allProducts.filter((p: any) => {
                 const productName = (p.name || '').toLowerCase();
                 const productDesc = (p.description || '').toLowerCase();
                 const productCategory = (p.category || '').toLowerCase();
+                const productBrand = (p.brand || '').toLowerCase();
                 
-                return brandInfo.keywords.some(keyword => 
-                    productName.includes(keyword.toLowerCase()) ||
-                    productDesc.includes(keyword.toLowerCase()) ||
-                    productCategory.includes(keyword.toLowerCase())
+                return keywords.some((keyword: string) => 
+                    productName.includes(keyword) ||
+                    productDesc.includes(keyword) ||
+                    productCategory.includes(keyword) ||
+                    productBrand.includes(keyword)
                 );
             });
             
@@ -177,7 +226,6 @@ const BrandPage = () => {
         } catch (err) {
             console.error('Failed to load brand products:', err);
         }
-        setLoading(false);
     };
 
     // فلترة المنتجات حسب التاب

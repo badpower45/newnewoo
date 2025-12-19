@@ -108,23 +108,23 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-2 md:p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-                <div className="bg-gradient-to-r from-brand-orange to-orange-600 p-6 text-white relative">
+        <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-0">
+            <div className="bg-white w-full h-full md:rounded-2xl md:shadow-2xl md:max-w-md md:w-full md:max-h-[90vh] md:h-auto overflow-y-auto">
+                <div className="bg-gradient-to-r from-brand-orange to-orange-600 p-4 md:p-6 text-white relative">
                     <button
                         onClick={handleClose}
-                        className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-lg transition-colors"
+                        className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-lg transition-colors z-10"
                     >
                         <X size={24} />
                     </button>
                     <div className="flex items-center space-x-3 rtl:space-x-reverse">
-                        <Camera size={28} />
-                        <h2 className="text-2xl font-bold">مسح الباركود</h2>
+                        <Camera size={24} className="md:w-7 md:h-7" />
+                        <h2 className="text-xl md:text-2xl font-bold">مسح الباركود</h2>
                     </div>
-                    <p className="mt-2 text-white/90">وجّه الكاميرا نحو الباركود</p>
+                    <p className="mt-2 text-sm md:text-base text-white/90">وجّه الكاميرا نحو الباركود</p>
                 </div>
 
-                <div className="p-6">
+                <div className="p-4 md:p-6">{
                     {/* Mode Toggle */}
                     <div className="mb-4 flex gap-2">
                         <button

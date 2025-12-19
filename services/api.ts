@@ -1482,6 +1482,99 @@ export const api = {
             });
             if (!res.ok) throw new Error('Failed to fetch loyalty transactions');
             return res.json();
+        },
+        redeemPoints: async (pointsToRedeem: number) => {
+            const res = await fetch(`${API_URL}/loyalty/redeem`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ pointsToRedeem })
+            });
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.error || 'Failed to redeem points');
+            }
+            return res.json();
+        }
+    },
+
+    brands: {
+        getAll: async () => {
+            const res = await fetch(`${API_URL}/brands`, {
+                headers: getHeaders()
+            });
+            if (!res.ok) throw new Error('Failed to fetch brands');
+            return res.json();
+        },
+        create: async (data: any) => {
+            const res = await fetch(`${API_URL}/brands`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            if (!res.ok) throw new Error('Failed to create brand');
+            return res.json();
+        },
+        update: async (id: string, data: any) => {
+            const res = await fetch(`${API_URL}/brands/${id}`, {
+                method: 'PUT',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            if (!res.ok) throw new Error('Failed to update brand');
+            return res.json();
+        },
+        delete: async (id: string) => {
+            const res = await fetch(`${API_URL}/brands/${id}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+            if (!res.ok) throw new Error('Failed to delete brand');
+            return res.json();
+        }
+    },
+
+    reviews: {
+        getByProduct: async (productId: string) => {
+            const res = await fetch(`${API_URL}/reviews?productId=${productId}`, {
+                headers: getHeaders()
+            });
+            if (!res.ok) throw new Error('Failed to fetch reviews');
+            return res.json();
+        },
+        create: async (data: { product_id: string; rating: number; comment?: string }) => {
+            const res = await fetch(`${API_URL}/reviews`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            if (!res.ok) throw new Error('Failed to create review');
+            return res.json();
+        },
+        delete: async (id: string) => {
+            const res = await fetch(`${API_URL}/reviews/${id}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+            if (!res.ok) throw new Error('Failed to delete review');
+            return res.json();
+        }
+    },
+
+    images: {
+        upload: async (file: File) => {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const res = await fetch(`${API_URL}/images/upload`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: formData
+            });
+            if (!res.ok) throw new Error('Failed to upload image');
+            const data = await res.json();
+            return data.url;
         }
     },
 

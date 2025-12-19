@@ -11,6 +11,11 @@ import { useAuth } from '../context/AuthContext';
 import { PAYMENT_METHOD_LABELS } from '../src/config';
 import { useToast } from '../components/Toast';
 
+// Constants
+const MINIMUM_ORDER_AMOUNT = 200;
+const SERVICE_FEE = 7;
+const FREE_SHIPPING_THRESHOLD = 600;
+
 export default function CheckoutPage() {
     const { items, totalPrice, clearCart, updateQuantity } = useCart();
     const { user, loginAsGuest } = useAuth();
@@ -37,6 +42,10 @@ export default function CheckoutPage() {
     const [couponDiscount, setCouponDiscount] = useState(0);
     const [couponError, setCouponError] = useState('');
     const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+
+    // Calculate service fee
+    const serviceFee = totalPrice >= FREE_SHIPPING_THRESHOLD ? 0 : SERVICE_FEE;
+    const finalTotal = totalPrice + serviceFee - couponDiscount;
 
     const [formData, setFormData] = useState({
         firstName: '',
@@ -195,6 +204,12 @@ export default function CheckoutPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        // Check minimum order amount
+        if (totalPrice < MINIMUM_ORDER_AMOUNT) {
+            showToast(`الحد الأدنى للطلب هو ${MINIMUM_ORDER_AMOUNT} جنيه`, 'error');
+            return;
+        }
+
         // Use selected branch or default to branch 1
         const branchId = selectedBranch?.id || 1;
         if (!branchId) {
@@ -240,7 +255,7 @@ export default function CheckoutPage() {
             const orderData = {
                 userId: currentUserId,
                 branchId: branchId,
-                total: totalPrice + deliveryFee - couponDiscount, // Subtotal + delivery - coupon discount
+                total: finalTotal, // Includes service fee and coupon discount
                 paymentMethod: paymentMethod,
                 deliveryAddress: isPickup
                     ? 'استلام من الفرع'

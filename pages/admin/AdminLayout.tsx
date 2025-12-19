@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingBag, Users, Settings, LogOut, Upload, MessageCircle, Store, Boxes, CalendarClock, ClipboardList, Truck, Tag, Menu, X, BookOpen, Flame, CircleDot, FolderTree, Facebook, Gift, FileSpreadsheet, LayoutGrid } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, Users, Settings, LogOut, Upload, MessageCircle, Store, Boxes, CalendarClock, ClipboardList, Truck, Tag, Menu, X, BookOpen, Flame, CircleDot, FolderTree, Facebook, Gift, FileSpreadsheet, LayoutGrid, Briefcase } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const AdminLayout = () => {
@@ -50,6 +50,7 @@ const AdminLayout = () => {
         { path: '/admin/stories', icon: <CircleDot size={20} />, label: 'الاستوريز', roles: ['admin', 'manager'] },
         { path: '/admin/facebook-reels', icon: <Facebook size={20} />, label: 'ريلز فيسبوك', roles: ['admin', 'manager'] },
         { path: '/admin/brand-offers', icon: <Gift size={20} />, label: 'عروض البراندات', roles: ['admin', 'manager'] },
+        { path: '/admin/brands', icon: <Briefcase size={20} />, label: 'إدارة البراندات', roles: ['admin', 'manager'] },
         { path: '/admin/magazine', icon: <BookOpen size={20} />, label: 'مجلة العروض', roles: ['admin', 'manager'] },
         { path: '/admin/hot-deals', icon: <Flame size={20} />, label: 'العروض الساخنة', roles: ['admin', 'manager'] },
         { path: '/admin/home-sections', icon: <LayoutGrid size={20} />, label: 'أقسام الرئيسية', roles: ['admin', 'manager'] },

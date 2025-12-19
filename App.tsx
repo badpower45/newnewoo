@@ -39,6 +39,8 @@ import TrackOrderPage from './pages/TrackOrderPage';
 import DeliveryPolicyPage from './pages/DeliveryPolicyPage';
 import ReturnPolicyPage from './pages/ReturnPolicyPage';
 import FAQPage from './pages/FAQPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import GeneralFAQPage from './pages/GeneralFAQPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
 
 import AdminLayout from './pages/admin/AdminLayout';
@@ -65,6 +67,7 @@ import CategoriesManager from './pages/admin/CategoriesManager';
 import CategoryBannersManager from './pages/admin/CategoryBannersManager';
 import FacebookReelsManager from './pages/admin/FacebookReelsManager';
 import BrandOffersAdminPage from './pages/admin/BrandOffersAdminPage';
+import BrandsManager from './pages/admin/BrandsManager';
 import DeliveryDriverPage from './pages/DeliveryDriverPage';
 import BrandPage from './pages/BrandPage';
 import BrandsPage from './pages/BrandsPage';
@@ -127,6 +130,8 @@ function AppContent() {
             <Route path="/delivery-policy" element={<DeliveryPolicyPage />} />
             <Route path="/return-policy" element={<ReturnPolicyPage />} />
             <Route path="/faq" element={<FAQPage />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+            <Route path="/general-faq" element={<GeneralFAQPage />} />
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/my-orders" element={<ProtectedRoute><MyOrdersPage /></ProtectedRoute>} />
             <Route path="/loyalty" element={<ProtectedRoute><LoyaltyPage /></ProtectedRoute>} />
@@ -162,6 +167,7 @@ function AppContent() {
               <Route path="stories" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><StoriesManager /></ProtectedRoute>} />
               <Route path="facebook-reels" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><FacebookReelsManager /></ProtectedRoute>} />
               <Route path="brand-offers" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><BrandOffersAdminPage /></ProtectedRoute>} />
+              <Route path="brands" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><BrandsManager /></ProtectedRoute>} />
               <Route path="employees" element={<ProtectedRoute requireAdmin><EmployeesManager /></ProtectedRoute>} />
               <Route path="chat" element={<ProtectedRoute requireAdmin><LiveChatDashboard /></ProtectedRoute>} />
               <Route path="settings" element={<ProtectedRoute requireAdmin><AdminSettingsPage /></ProtectedRoute>} />

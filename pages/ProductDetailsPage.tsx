@@ -25,14 +25,50 @@ const ProductDetailsPage = () => {
     const [selectedSize, setSelectedSize] = useState<string>('');
     const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
     const [activeTab, setActiveTab] = useState<'description' | 'reviews' | 'info'>('description');
+    const [reviews, setReviews] = useState<any[]>([]);
+    const [userReview, setUserReview] = useState({ rating: 5, comment: '' });
+    const [showReviewForm, setShowReviewForm] = useState(false);
 
-    // Mock reviews - في المستقبل هنجيبهم من API
-    const reviews = [
-        { id: 1, name: 'أحمد محمد', rating: 5, comment: 'منتج ممتاز وطعمه رائع! التوصيل كان سريع والمنتج طازج جداً. أنصح بشرائه.', date: 'منذ يومين', verified: true },
-        { id: 2, name: 'فاطمة علي', rating: 4, comment: 'جودة عالية لكن السعر مرتفع قليلاً. بشكل عام راضية عن المنتج.', date: 'منذ أسبوع', verified: true },
-        { id: 3, name: 'محمود حسن', rating: 5, comment: 'المنتج المفضل لعائلتي، نشتريه دائماً. جودة ممتازة.', date: 'منذ أسبوعين', verified: false },
-        { id: 4, name: 'سارة أحمد', rating: 5, comment: 'ممتاز! التغليف رائع والمنتج وصل بحالة ممتازة.', date: 'منذ 3 أسابيع', verified: true }
-    ];
+    // Fetch reviews from API
+    useEffect(() => {
+        if (id) {
+            fetchReviews();
+        }
+    }, [id]);
+
+    const fetchReviews = async () => {
+        try {
+            if (!id) return;
+            const response = await api.reviews.getByProduct(id);
+            setReviews(response.data || []);
+        } catch (error) {
+            console.error('Error fetching reviews:', error);
+            setReviews([]);
+        }
+    };
+
+    const handleSubmitReview = async () => {
+        if (!userReview.comment.trim()) {
+            alert('الرجاء كتابة تعليق');
+            return;
+        }
+
+        try {
+            await api.reviews.create({
+                product_id: id!,
+                rating: userReview.rating,
+                comment: userReview.comment
+            });
+            
+            setUserReview({ rating: 5, comment: '' });
+            setShowReviewForm(false);
+            fetchReviews(); // Refresh reviews
+            alert('تم إضافة تقييمك بنجاح!');
+        } catch (error) {
+            console.error('Error submitting review:', error);
+            alert('حدث خطأ أثناء إضافة التقييم');
+        }
+    };
 
     // Load product and branch price together
     useEffect(() => {
@@ -294,6 +330,7 @@ const ProductDetailsPage = () => {
                                     </span>
                                     <span className="text-[#23110C] text-base font-semibold">جنيه</span>
                                 </div>
+                                <p className="text-xs text-gray-500 mt-1">شامل ضريبة القيمة المضافة</p>
                                 {oldPrice > displayPrice && (
                                     <div className="flex items-center gap-2 mt-1">
                                         <span className="text-[#9CA3AF] line-through text-base font-semibold">
@@ -485,43 +522,125 @@ const ProductDetailsPage = () => {
                         {/* Reviews Tab */}
                         {activeTab === 'reviews' && (
                             <div className="space-y-3">
-                                {reviews.map((review, index) => (
-                                    <div 
-                                        key={review.id} 
-                                        className="bg-white border border-[#E5E7EB] rounded-2xl p-4 hover:shadow-lg transition-all animate-slide-up"
-                                        style={{animationDelay: `${index * 0.1}s`}}
+                                {/* Add Review Button */}
+                                {!showReviewForm && (
+                                    <button
+                                        onClick={() => setShowReviewForm(true)}
+                                        className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold hover:from-orange-600 hover:to-orange-700 transition-all flex items-center justify-center gap-2"
                                     >
-                                        <div className="flex items-start justify-between mb-3">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#F97316] to-[#EA580C] flex items-center justify-center text-white font-black text-lg shadow-lg">
-                                                    {review.name.charAt(0)}
-                                                </div>
-                                                <div>
-                                                    <div className="flex items-center gap-2">
-                                                        <p className="text-[#23110C] font-bold">
-                                                            {review.name}
-                                                        </p>
-                                                        {review.verified && (
-                                                            <div className="bg-[#10B981]/10 px-2 py-0.5 rounded-full flex items-center gap-1">
-                                                                <CheckCircle2 className="w-3 h-3 text-[#10B981]" />
-                                                                <span className="text-[#10B981] text-xs font-bold">موثق</span>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    <p className="text-[#9CA3AF] text-xs">{review.date}</p>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center gap-1 bg-[#FFF7ED] px-2 py-1 rounded-lg">
-                                                <Star className="w-4 h-4 fill-[#FFC107] text-[#FFC107]" />
-                                                <span className="text-[#23110C] font-bold text-sm">{review.rating}</span>
+                                        <Star className="w-5 h-5" />
+                                        أضف تقييمك
+                                    </button>
+                                )}
+
+                                {/* Review Form */}
+                                {showReviewForm && (
+                                    <div className="bg-white border border-orange-200 rounded-2xl p-4 mb-4">
+                                        <h4 className="font-bold text-gray-900 mb-3">أضف تقييمك</h4>
+                                        
+                                        {/* Rating Stars */}
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <span className="text-sm font-medium text-gray-700">التقييم:</span>
+                                            <div className="flex gap-1">
+                                                {[1, 2, 3, 4, 5].map((star) => (
+                                                    <button
+                                                        key={star}
+                                                        type="button"
+                                                        onClick={() => setUserReview({ ...userReview, rating: star })}
+                                                        className="focus:outline-none"
+                                                    >
+                                                        <Star
+                                                            className={`w-6 h-6 transition-colors ${
+                                                                star <= userReview.rating
+                                                                    ? 'fill-yellow-400 text-yellow-400'
+                                                                    : 'fill-gray-300 text-gray-300'
+                                                            }`}
+                                                        />
+                                                    </button>
+                                                ))}
                                             </div>
                                         </div>
-                                        <p className="text-[#6B7280] leading-relaxed text-sm">{review.comment}</p>
+
+                                        {/* Comment */}
+                                        <textarea
+                                            value={userReview.comment}
+                                            onChange={(e) => setUserReview({ ...userReview, comment: e.target.value })}
+                                            placeholder="شاركنا رأيك في المنتج..."
+                                            rows={4}
+                                            className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-sm"
+                                        />
+
+                                        {/* Buttons */}
+                                        <div className="flex gap-2 mt-3">
+                                            <button
+                                                onClick={handleSubmitReview}
+                                                className="flex-1 py-2 bg-orange-500 text-white rounded-lg font-medium hover:bg-orange-600 transition-colors"
+                                            >
+                                                إرسال التقييم
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setShowReviewForm(false);
+                                                    setUserReview({ rating: 5, comment: '' });
+                                                }}
+                                                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                                            >
+                                                إلغاء
+                                            </button>
+                                        </div>
                                     </div>
-                                ))}
-                                <button className="w-full py-3 px-4 rounded-xl bg-[#F3F4F6] text-[#6B7280] font-bold hover:bg-[#E5E7EB] transition-all">
-                                    عرض جميع التقييمات
-                                </button>
+                                )}
+
+                                {/* Reviews List */}
+                                {reviews.length === 0 ? (
+                                    <div className="text-center py-8 bg-gray-50 rounded-2xl">
+                                        <Star size={40} className="text-gray-300 mx-auto mb-3" />
+                                        <p className="text-gray-600 font-medium">لا توجد تقييمات حتى الآن</p>
+                                        <p className="text-gray-400 text-sm">كن أول من يقيّم هذا المنتج!</p>
+                                    </div>
+                                ) : (
+                                    <>
+                                        {reviews.map((review, index) => (
+                                            <div 
+                                                key={review.id} 
+                                                className="bg-white border border-[#E5E7EB] rounded-2xl p-4 hover:shadow-lg transition-all animate-slide-up"
+                                                style={{animationDelay: `${index * 0.1}s`}}
+                                            >
+                                                <div className="flex items-start justify-between mb-3">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#F97316] to-[#EA580C] flex items-center justify-center text-white font-black text-lg shadow-lg">
+                                                            {(review.user_name || review.name || 'U').charAt(0)}
+                                                        </div>
+                                                        <div>
+                                                            <div className="flex items-center gap-2">
+                                                                <p className="text-[#23110C] font-bold">
+                                                                    {review.user_name || review.name || 'مستخدم'}
+                                                                </p>
+                                                                {review.verified && (
+                                                                    <div className="bg-[#10B981]/10 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                                                        <CheckCircle2 className="w-3 h-3 text-[#10B981]" />
+                                                                        <span className="text-[#10B981] text-xs font-bold">موثق</span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <p className="text-[#9CA3AF] text-xs">
+                                                                {review.created_at 
+                                                                    ? new Date(review.created_at).toLocaleDateString('ar-EG')
+                                                                    : review.date
+                                                                }
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-1 bg-[#FFF7ED] px-2 py-1 rounded-lg">
+                                                        <Star className="w-4 h-4 fill-[#FFC107] text-[#FFC107]" />
+                                                        <span className="text-[#23110C] font-bold text-sm">{review.rating}</span>
+                                                    </div>
+                                                </div>
+                                                <p className="text-[#6B7280] leading-relaxed text-sm">{review.comment}</p>
+                                            </div>
+                                        ))}
+                                    </>
+                                )}
                             </div>
                         )}
 

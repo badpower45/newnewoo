@@ -10,6 +10,7 @@ import ErrorMessage from '../components/ErrorMessage';
 import { ProductGridSkeleton, BannerSkeleton, CategoriesGridSkeleton } from '../components/Skeleton';
 import BrandsCarousel from '../components/BrandsCarousel';
 import BrandOffersSection from '../components/BrandOffersSection';
+import FeaturedBrands from '../components/FeaturedBrands';
 import StoriesSection from '../components/StoriesSection';
 import FacebookReelsGrid from '../components/FacebookReelsGrid';
 import HeroCarousel from '../components/HeroCarousel';
@@ -224,6 +225,9 @@ const HomePage = () => {
                 <div className="mt-8">
                     <HeroCarousel />
                 </div>
+
+                {/* Featured Brands - New Component */}
+                <FeaturedBrands maxBrands={6} />
 
                 {/* Featured Brands Carousel */}
                 <BrandsCarousel title="براندات مميزة" />
