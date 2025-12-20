@@ -184,9 +184,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    // Branch availability guard when increasing
+    // Get current item
     const current = items.find(i => String(i.id) === String(productId));
-    if (selectedBranch && current && quantity > current.quantity) {
+    
+    // Only check stock for large quantity increases (more than 5 at once)
+    const isLargeIncrease = current && quantity > current.quantity && (quantity - current.quantity) > 5;
+    
+    if (selectedBranch && isLargeIncrease) {
       try {
         const res = await api.branchProducts.getByBranch(selectedBranch.id);
         const list = res.data || res || [];
@@ -207,17 +211,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
     }
 
+    // INSTANT UI update - no delay!
+    setItems(prev =>
+      prev.map(item =>
+        item.id === productId 
+          ? { ...item, quantity, ...(substitutionPreference && { substitutionPreference }) } 
+          : item
+      )
+    );
+
     if (user && !user.isGuest) {
-      // Immediate optimistic update
-      setItems(prev =>
-        prev.map(item =>
-          item.id === productId 
-            ? { ...item, quantity, ...(substitutionPreference && { substitutionPreference }) } 
-            : item
-        )
-      );
-      
-      // Debounced API call - wait for user to finish clicking
+      // Very fast debounced API call - only 150ms
       if (window.quantityUpdateTimeout) clearTimeout(window.quantityUpdateTimeout);
       window.quantityUpdateTimeout = setTimeout(async () => {
         try {
@@ -231,15 +235,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           console.error("Failed to update quantity", err);
           syncCart(); // Revert on error
         }
-      }, 500); // Wait 500ms after last click
-    } else {
-      setItems(prev =>
-        prev.map(item =>
-          item.id === productId 
-            ? { ...item, quantity, ...(substitutionPreference && { substitutionPreference }) } 
-            : item
-        )
-      );
+      }, 150); // Super fast - only 150ms wait!
     }
   };
 
