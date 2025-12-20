@@ -28,22 +28,37 @@ const AuthCallbackPage: React.FC = () => {
 
         const user = session.user;
         const token = session.access_token;
+        
+        // Extract phone number from user metadata
+        const phone = user?.user_metadata?.phone || user?.phone;
 
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify({
+        const userData = {
           id: user?.id || 'supabase-user',
           email: user?.email || '',
           name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Supabase User',
+          phone: phone,
           avatar: user?.user_metadata?.avatar_url,
           role: 'customer',
           isGuest: false
-        }));
+        };
+
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', JSON.stringify(userData));
 
         setStatus('success');
-        setMessage('تم تسجيل الدخول بنجاح، سيتم تحويلك...');
-        setTimeout(() => {
-          window.location.replace('/');
-        }, 400);
+        
+        // Check if phone number is missing
+        if (!phone) {
+          setMessage('يرجى إكمال بياناتك...');
+          setTimeout(() => {
+            window.location.replace('/complete-profile');
+          }, 400);
+        } else {
+          setMessage('تم تسجيل الدخول بنجاح، سيتم تحويلك...');
+          setTimeout(() => {
+            window.location.replace('/');
+          }, 400);
+        }
       } catch (err: any) {
         setStatus('error');
         setMessage(err?.message || 'حدث خطأ أثناء المعالجة.');

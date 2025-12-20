@@ -120,28 +120,34 @@ const MorePage = () => {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* WhatsApp Customer Service Button */}
-            {!isAuthenticated && (
-                <div className="bg-gradient-to-r from-green-500 to-green-600 mx-4 mt-4 rounded-2xl p-4 shadow-lg">
-                    <a
-                        href="https://wa.me/201234567890"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-between text-white"
-                    >
+            {/* Header */}
+            <div className="bg-gradient-to-r from-brand-orange to-orange-600 text-white px-4 py-6 mb-4">
+                <h1 className="text-2xl font-bold">المزيد</h1>
+                <p className="text-sm text-white/90 mt-1">الخدمات والإعدادات</p>
+            </div>
+
+            {/* WhatsApp Customer Service Button - Prominent */}
+            <div className="mx-4 mb-4">
+                <a
+                    href="https://wa.me/201234567890"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-4 shadow-lg hover:shadow-xl transition-shadow"
+                >
+                    <div className="flex items-center justify-between text-white">
                         <div className="flex items-center gap-3">
                             <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
                                 <MessageSquare size={24} />
                             </div>
                             <div>
-                                <p className="font-bold text-lg">خدمة العملاء</p>
-                                <p className="text-sm text-white/90">تواصل معنا عبر الواتساب</p>
+                                <p className="font-bold text-lg">تواصل مع خدمة العملاء</p>
+                                <p className="text-sm text-white/90">نحن هنا لمساعدتك عبر الواتساب</p>
                             </div>
                         </div>
                         <ChevronLeft size={20} />
-                    </a>
-                </div>
-            )}
+                    </div>
+                </a>
+            </div>
 
             {/* Login Button for Guests */}
             {!isAuthenticated && (
@@ -185,33 +191,17 @@ const MorePage = () => {
                     </button>
                 ))}
 
-                {/* WhatsApp Customer Service - Also in Menu */}
-                <a
-                    href="https://wa.me/201234567890"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full flex items-center justify-between px-4 py-4 hover:bg-gray-50 active:bg-gray-100 transition-colors"
-                >
-                    <div className="flex items-center gap-4">
-                        <div className="bg-green-100 text-green-600 p-2.5 rounded-xl">
-                            <MessageSquare className="w-6 h-6" />
-                        </div>
-                        <span className="text-gray-900 font-medium text-base">خدمة العملاء (واتساب)</span>
-                    </div>
-                    <ChevronLeft className="w-5 h-5 text-gray-400" />
-                </a>
-
-                {/* Logout Button */}
+                {/* Logout Button - More prominent */}
                 {isAuthenticated && (
                     <button
                         onClick={handleLogout}
-                        className="w-full flex items-center justify-between px-4 py-4 hover:bg-red-50 active:bg-red-100 transition-colors"
+                        className="w-full flex items-center justify-between px-4 py-5 hover:bg-red-50 active:bg-red-100 transition-colors border-t-2 border-red-100"
                     >
                         <div className="flex items-center gap-4">
-                            <div className="bg-red-100 text-red-600 p-2.5 rounded-xl">
+                            <div className="bg-red-100 text-red-600 p-3 rounded-xl">
                                 <LogOut className="w-6 h-6" />
                             </div>
-                            <span className="text-red-600 font-medium text-base">تسجيل خروج</span>
+                            <span className="text-red-600 font-bold text-lg">تسجيل خروج</span>
                         </div>
                         <ChevronLeft className="w-5 h-5 text-red-400" />
                     </button>

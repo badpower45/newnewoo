@@ -43,9 +43,10 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
                     setScannedCode(decodedText);
                     setSuccess(true);
                     stopScanner();
+                    // Call onScan immediately without delay
                     setTimeout(() => {
                         onScan(decodedText);
-                    }, 1500);
+                    }, 300); // Reduced delay for better UX
                 },
                 (errorMessage) => {
                     // Error callback (scanning in progress)
@@ -90,9 +91,10 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
         if (manualInput.trim()) {
             setScannedCode(manualInput.trim());
             setSuccess(true);
+            // Call onScan immediately for manual input
             setTimeout(() => {
                 onScan(manualInput.trim());
-            }, 1000);
+            }, 300); // Reduced delay
         }
     };
 

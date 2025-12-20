@@ -75,10 +75,12 @@ import MyOrdersPage from './pages/MyOrdersPage';
 import LoyaltyPage from './pages/LoyaltyPage';
 import AddressesPage from './pages/AddressesPage';
 import BranchesPage from './pages/BranchesPage';
+import CompleteProfilePage from './pages/CompleteProfilePage';
 
 import { FavoritesProvider } from './context/FavoritesContext';
 import { LanguageProvider } from './context/LanguageContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import PhoneNumberGuard from './components/PhoneNumberGuard';
 import { DebugProvider } from './context/DebugLogContext';
 import DebugPanel from './components/DebugPanel';
 import LottieLoader from './components/LottieLoader';
@@ -108,8 +110,9 @@ function AppContent() {
       <div className="min-h-screen bg-gray-50 font-sans text-slate-900 relative flex flex-col">
         <main className={`flex-grow ${!isAdminRoute ? 'pb-16 md:pb-0' : ''}`}>
         <div className={!isAdminRoute ? "max-w-7xl mx-auto w-full" : "w-full"}>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
+          <PhoneNumberGuard>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/product/:id" element={<ProductDetailsPage />} />
             <Route path="/cart" element={<CartPage />} />
@@ -123,6 +126,7 @@ function AppContent() {
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/complete-profile" element={<CompleteProfilePage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
@@ -175,6 +179,7 @@ function AppContent() {
               <Route path="delivery-staff" element={<DeliveryStaffManager />} />
             </Route>
           </Routes>
+          </PhoneNumberGuard>
         </div>
       </main>
       {!isAdminRoute && appReady && (

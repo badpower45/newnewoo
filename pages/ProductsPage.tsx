@@ -151,15 +151,18 @@ export default function ProductsPage() {
     const [showProductModal, setShowProductModal] = useState(false);
 
     const handleBarcodeScanned = async (barcode: string) => {
+        // Close scanner immediately
         setShowScanner(false);
         
-        // Show loading
+        // Show loading overlay
         const loadingDiv = document.createElement('div');
+        loadingDiv.id = 'barcode-loading-overlay';
         loadingDiv.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm';
         loadingDiv.innerHTML = `
             <div class="bg-white rounded-2xl p-6 shadow-2xl flex flex-col items-center gap-4">
                 <div class="animate-spin rounded-full h-12 w-12 border-4 border-brand-orange border-t-transparent"></div>
                 <p class="text-gray-700 font-medium">جارٍ البحث عن المنتج...</p>
+                <p class="text-gray-500 text-sm font-mono">${barcode}</p>
             </div>
         `;
         document.body.appendChild(loadingDiv);
@@ -168,7 +171,11 @@ export default function ProductsPage() {
             const branchId = selectedBranch?.id || 1;
             const response = await api.products.getByBarcode(barcode, branchId);
             
-            document.body.removeChild(loadingDiv);
+            // Remove loading overlay safely
+            const overlay = document.getElementById('barcode-loading-overlay');
+            if (overlay) {
+                document.body.removeChild(overlay);
+            }
             
             if (response.data && response.message === 'success') {
                 setScannedProduct(response.data);
@@ -177,7 +184,11 @@ export default function ProductsPage() {
                 alert('❌ المنتج غير موجود في قاعدة البيانات\nالباركود: ' + barcode);
             }
         } catch (error) {
-            document.body.removeChild(loadingDiv);
+            // Remove loading overlay safely on error
+            const overlay = document.getElementById('barcode-loading-overlay');
+            if (overlay && overlay.parentNode) {
+                document.body.removeChild(overlay);
+            }
             console.error('Error fetching product:', error);
             alert('❌ حدث خطأ في البحث عن المنتج');
         }

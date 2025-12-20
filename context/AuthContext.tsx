@@ -23,6 +23,7 @@ interface AuthContextType {
     logout: () => void;
     updateUser: (userData: Partial<User>) => void;
     isAuthenticated: boolean;
+    needsPhoneNumber: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,6 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             id: sUser?.id || 'supabase-user',
             email: sUser?.email || '',
             name: sUser?.user_metadata?.full_name || sUser?.email?.split('@')[0] || 'Supabase User',
+            phone: sUser?.user_metadata?.phone || sUser?.phone,
             avatar: sUser?.user_metadata?.avatar_url,
             role: 'customer',
             isGuest: false
@@ -150,8 +152,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     };
 
+    // Check if user needs to complete phone number
+    const needsPhoneNumber = !!user && !user.isGuest && !user.phone;
+
     return (
-        <AuthContext.Provider value={{ user, loading, login, register, loginAsGuest, logout, updateUser, isAuthenticated: !!user }}>
+        <AuthContext.Provider value={{ 
+            user, 
+            loading, 
+            login, 
+            register, 
+            loginAsGuest, 
+            logout, 
+            updateUser, 
+            isAuthenticated: !!user,
+            needsPhoneNumber 
+        }}>
             {children}
         </AuthContext.Provider>
     );
