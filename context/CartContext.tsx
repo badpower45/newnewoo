@@ -5,6 +5,14 @@ import { api } from '../services/api';
 import { useBranch } from './BranchContext';
 import { useToast } from '../components/Toast';
 
+// Financial Constants
+const SERVICE_FEE = 7;
+const MIN_ORDER = 200;
+const FREE_SHIPPING_THRESHOLD = 600;
+const LOYALTY_POINTS_RATIO = 1; // 1 EGP = 1 Point
+const REWARD_POINTS_REQUIRED = 1000; // Points needed for reward
+const REWARD_COUPON_VALUE = 35; // EGP discount
+
 export interface CartItem extends Product {
   quantity: number;
   cartId?: number; // ID from database
@@ -20,6 +28,11 @@ interface CartContextType {
   syncCart: () => Promise<void>;
   totalItems: number;
   totalPrice: number;
+  serviceFee: number;
+  finalTotal: number;
+  loyaltyPointsEarned: number;
+  meetsMinimumOrder: boolean;
+  redeemPointsForCoupon: () => Promise<{ success: boolean; couponCode?: string; message: string }>;
   isCartOpen: boolean;
   toggleCart: () => void;
 }
@@ -239,8 +252,68 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const toggleCart = () => setIsCartOpen(prev => !prev);
 
+  // Financial Calculations
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  
+  // Service fee: 7 EGP if under free shipping threshold, otherwise 0
+  const serviceFee = totalPrice >= FREE_SHIPPING_THRESHOLD ? 0 : SERVICE_FEE;
+  
+  // Final total with service fee
+  const finalTotal = totalPrice + serviceFee;
+  
+  // Loyalty points earned (1:1 ratio with total price, rounded down)
+  const loyaltyPointsEarned = Math.floor(totalPrice * LOYALTY_POINTS_RATIO);
+  
+  // Check if order meets minimum requirement
+  const meetsMinimumOrder = totalPrice >= MIN_ORDER;
+
+  // Redeem 1000 points for 35 EGP coupon
+  const redeemPointsForCoupon = async (): Promise<{ success: boolean; couponCode?: string; message: string }> => {
+    if (!user || user.isGuest) {
+      return { success: false, message: 'يجب تسجيل الدخول لاسترداد النقاط' };
+    }
+
+    try {
+      // Check user's current loyalty points
+      const userPoints = user.loyalty_points || user.loyaltyPoints || 0;
+      
+      if (userPoints < REWARD_POINTS_REQUIRED) {
+        return { 
+          success: false, 
+          message: `تحتاج إلى ${REWARD_POINTS_REQUIRED - userPoints} نقطة إضافية. لديك ${userPoints} نقطة فقط.` 
+        };
+      }
+
+      // Generate unique coupon code
+      const couponCode = `REWARD${Date.now()}`;
+      
+      // Create coupon via API
+      const response = await api.post('/coupons/redeem', {
+        userId: user.id,
+        pointsToRedeem: REWARD_POINTS_REQUIRED,
+        couponCode,
+        discountValue: REWARD_COUPON_VALUE
+      });
+
+      if (response.success) {
+        showToast(`تم إنشاء كوبون بقيمة ${REWARD_COUPON_VALUE} جنيه! الكود: ${couponCode}`, 'success');
+        return { 
+          success: true, 
+          couponCode, 
+          message: `تم استبدال ${REWARD_POINTS_REQUIRED} نقطة بكوبون خصم ${REWARD_COUPON_VALUE} جنيه` 
+        };
+      } else {
+        return { success: false, message: response.message || 'فشل إنشاء الكوبون' };
+      }
+    } catch (error: any) {
+      console.error('Error redeeming points:', error);
+      return { 
+        success: false, 
+        message: error.response?.data?.message || 'حدث خطأ أثناء استبدال النقاط' 
+      };
+    }
+  };
 
   return (
     <CartContext.Provider value={{
@@ -252,6 +325,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       syncCart,
       totalItems,
       totalPrice,
+      serviceFee,
+      finalTotal,
+      loyaltyPointsEarned,
+      meetsMinimumOrder,
+      redeemPointsForCoupon,
       isCartOpen,
       toggleCart
     }}>

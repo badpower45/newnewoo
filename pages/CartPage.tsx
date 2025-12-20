@@ -1,26 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ShoppingCart, Trash2, Plus, Minus, AlertCircle } from 'lucide-react';
+import { ChevronLeft, ShoppingCart, Trash2, Plus, Minus, AlertCircle, Gift } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useBranch } from '../context/BranchContext';
+import { useAuth } from '../context/AuthContext';
 import Footer from '../components/Footer';
 import { api } from '../services/api';
 
-// Constants
-const MINIMUM_ORDER_AMOUNT = 200;
-const SERVICE_FEE = 7;
-const FREE_SHIPPING_THRESHOLD = 600;
-
 const CartPage = () => {
     const navigate = useNavigate();
-    const { items, removeFromCart, updateQuantity, totalPrice, clearCart } = useCart();
+    const { user } = useAuth();
+    const { items, removeFromCart, updateQuantity, clearCart, totalPrice, serviceFee, finalTotal, loyaltyPointsEarned, meetsMinimumOrder, redeemPointsForCoupon } = useCart();
     const { selectedBranch } = useBranch();
     const [deliveryFee, setDeliveryFee] = useState(20);
     const [freeDelivery, setFreeDelivery] = useState(false);
+    const [isRedeeming, setIsRedeeming] = useState(false);
     
-    // Calculate service fee (7 EGP if total < 600, otherwise 0)
-    const serviceFee = totalPrice >= FREE_SHIPPING_THRESHOLD ? 0 : SERVICE_FEE;
-    const finalTotal = totalPrice + serviceFee;
+    // Constants
+    const MINIMUM_ORDER_AMOUNT = 200;
+    const FREE_SHIPPING_THRESHOLD = 600;
 
     // Calculate delivery fee
     useEffect(() => {
@@ -41,6 +39,23 @@ const CartPage = () => {
 
         calculateDeliveryFee();
     }, [selectedBranch, totalPrice]);
+
+    // Handle rewards redemption
+    const handleRedeemRewards = async () => {
+        setIsRedeeming(true);
+        try {
+            const result = await redeemPointsForCoupon();
+            if (result.success) {
+                alert(`🎉 ${result.message}\n\nالكود: ${result.couponCode}\n\nاستخدمه في صفحة الدفع!`);
+            } else {
+                alert(result.message);
+            }
+        } catch (error) {
+            alert('حدث خطأ أثناء استرداد النقاط');
+        } finally {
+            setIsRedeeming(false);
+        }
+    };
 
     if (items.length === 0) {
         return (
@@ -84,7 +99,7 @@ const CartPage = () => {
     }
 
     return (
-        <div className="bg-gray-50 min-h-screen pb-24 md:pb-8">
+        <div className="bg-gray-50 min-h-screen pb-60 md:pb-8">
             {/* Header */}
             <div className="bg-white p-4 sticky top-0 z-40 shadow-sm flex items-center relative md:hidden">
                 <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-primary absolute left-4">
@@ -177,7 +192,8 @@ const CartPage = () => {
 
                     {/* Order Summary */}
                     <div className="lg:w-96 p-4 md:p-0">
-                        <div className="bg-white rounded-2xl shadow-sm p-6 sticky top-24">
+                        {/* Desktop: Sticky sidebar */}
+                        <div className="hidden lg:block bg-white rounded-2xl shadow-sm p-6 sticky top-24">
                             <h3 className="font-bold text-lg text-gray-900 mb-4">ملخص الطلب</h3>
 
                             {/* Free Shipping Progress */}
@@ -192,6 +208,36 @@ const CartPage = () => {
                                             style={{ width: `${Math.min((totalPrice / FREE_SHIPPING_THRESHOLD) * 100, 100)}%` }}
                                         />
                                     </div>
+                                </div>
+                            )}
+
+                            {/* Loyalty Points Card */}
+                            {user && !user.isGuest && (
+                                <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-200">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center gap-2">
+                                            <Gift className="text-purple-600" size={20} />
+                                            <span className="font-bold text-purple-900">نقاط الولاء</span>
+                                        </div>
+                                        <span className="text-2xl font-bold text-purple-600">+{loyaltyPointsEarned}</span>
+                                    </div>
+                                    <p className="text-xs text-purple-700 mb-3">
+                                        ستحصل على {loyaltyPointsEarned} نقطة من هذا الطلب!
+                                    </p>
+                                    {user.loyalty_points >= 1000 && (
+                                        <button
+                                            onClick={handleRedeemRewards}
+                                            disabled={isRedeeming}
+                                            className="w-full bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors text-sm disabled:opacity-50"
+                                        >
+                                            {isRedeeming ? 'جاري الاسترداد...' : 'استبدل 1000 نقطة بـ 35 جنيه! 🎁'}
+                                        </button>
+                                    )}
+                                    {user.loyalty_points < 1000 && (
+                                        <div className="text-xs text-purple-600 bg-white/50 rounded-lg p-2">
+                                            لديك {user.loyalty_points || 0} نقطة. تحتاج {1000 - (user.loyalty_points || 0)} نقطة للحصول على كوبون 35 جنيه
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
@@ -216,7 +262,7 @@ const CartPage = () => {
                             </div>
 
                             {/* Minimum Order Warning */}
-                            {totalPrice < MINIMUM_ORDER_AMOUNT && (
+                            {!meetsMinimumOrder && (
                                 <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-2">
                                     <AlertCircle className="text-amber-600 flex-shrink-0 mt-0.5" size={18} />
                                     <p className="text-sm text-amber-800">
@@ -227,10 +273,10 @@ const CartPage = () => {
 
                             <button
                                 onClick={() => navigate('/checkout')}
-                                disabled={totalPrice < MINIMUM_ORDER_AMOUNT}
+                                disabled={!meetsMinimumOrder}
                                 className="w-full bg-brand-orange text-white font-bold py-4 rounded-xl shadow-lg hover:bg-orange-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
                             >
-                                {totalPrice < MINIMUM_ORDER_AMOUNT 
+                                {!meetsMinimumOrder 
                                     ? `احتاج ${(MINIMUM_ORDER_AMOUNT - totalPrice).toFixed(2)} جنيه أخرى`
                                     : 'إتمام الطلب'
                                 }
@@ -239,6 +285,58 @@ const CartPage = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Mobile: Fixed Bottom Summary */}
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg z-50">
+                {/* Loyalty Points Banner - Mobile */}
+                {user && !user.isGuest && loyaltyPointsEarned > 0 && (
+                    <div className="mb-3 p-2 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                            <Gift className="text-purple-600" size={16} />
+                            <span className="text-xs font-bold text-purple-900">ستربح {loyaltyPointsEarned} نقطة!</span>
+                        </div>
+                        {user.loyalty_points >= 1000 && (
+                            <button
+                                onClick={handleRedeemRewards}
+                                disabled={isRedeeming}
+                                className="bg-purple-600 text-white text-xs font-bold py-1 px-3 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
+                            >
+                                استبدل نقاطك 🎁
+                            </button>
+                        )}
+                    </div>
+                )}
+
+                {/* Price Summary */}
+                <div className="flex justify-between items-center mb-3">
+                    <div>
+                        <p className="text-xs text-gray-500">الإجمالي (شامل رسوم الخدمة)</p>
+                        <p className="text-2xl font-bold text-gray-900">{finalTotal.toFixed(2)} <span className="text-sm">جنيه</span></p>
+                        {!meetsMinimumOrder && (
+                            <p className="text-xs text-amber-600 flex items-center gap-1 mt-1">
+                                <AlertCircle size={12} />
+                                احتاج {(MINIMUM_ORDER_AMOUNT - totalPrice).toFixed(2)} جنيه
+                            </p>
+                        )}
+                    </div>
+                    <button
+                        onClick={() => navigate('/checkout')}
+                        disabled={!meetsMinimumOrder}
+                        className="bg-brand-orange text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:bg-orange-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
+                    >
+                        {!meetsMinimumOrder ? 'أضف المزيد' : 'إتمام الطلب'}
+                    </button>
+                </div>
+
+                {/* Service Fee Info */}
+                <div className="flex justify-between text-xs text-gray-500">
+                    <span>المجموع الفرعي: {totalPrice.toFixed(2)} جنيه</span>
+                    <span className={serviceFee === 0 ? 'text-green-600 font-bold' : ''}>
+                        {serviceFee === 0 ? 'رسوم مجانية! 🎉' : `رسوم خدمة: ${serviceFee.toFixed(2)} جنيه`}
+                    </span>
+                </div>
+            </div>
+
             <Footer />
         </div>
     );

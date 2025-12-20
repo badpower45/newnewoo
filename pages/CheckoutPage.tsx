@@ -13,11 +13,10 @@ import { useToast } from '../components/Toast';
 
 // Constants
 const MINIMUM_ORDER_AMOUNT = 200;
-const SERVICE_FEE = 7;
 const FREE_SHIPPING_THRESHOLD = 600;
 
 export default function CheckoutPage() {
-    const { items, totalPrice, clearCart, updateQuantity } = useCart();
+    const { items, totalPrice, serviceFee, finalTotal: cartFinalTotal, clearCart, updateQuantity, meetsMinimumOrder, loyaltyPointsEarned } = useCart();
     const { user, loginAsGuest } = useAuth();
     const { selectedBranch } = useBranch();
     const navigate = useNavigate();
@@ -43,9 +42,8 @@ export default function CheckoutPage() {
     const [couponError, setCouponError] = useState('');
     const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
 
-    // Calculate service fee
-    const serviceFee = totalPrice >= FREE_SHIPPING_THRESHOLD ? 0 : SERVICE_FEE;
-    const finalTotal = totalPrice + serviceFee - couponDiscount;
+    // Final total with coupon discount (service fee already included in cartFinalTotal)
+    const finalTotal = cartFinalTotal - couponDiscount;
 
     const [formData, setFormData] = useState({
         firstName: '',
