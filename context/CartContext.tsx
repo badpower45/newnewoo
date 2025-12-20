@@ -129,6 +129,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         return [...prev, { ...product, quantity, substitutionPreference }];
       });
 
+      // Show success toast
+      showToast(`تمت إضافة ${product.name || product.title} إلى السلة`, 'success');
+
       // Add to cart in background without blocking UI
       api.cart.add({ 
         userId: user.id, 
@@ -155,6 +158,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
         }
         return [...prev, { ...product, quantity, substitutionPreference }];
       });
+      
+      // Show success toast for guests too
+      showToast(`تمت إضافة ${product.name || product.title} إلى السلة`, 'success');
     }
     setIsCartOpen(true);
   };

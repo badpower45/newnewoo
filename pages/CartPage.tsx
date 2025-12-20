@@ -99,7 +99,7 @@ const CartPage = () => {
     }
 
     return (
-        <div className="bg-gray-50 min-h-screen pb-60 md:pb-8">
+        <div className="bg-gray-50 min-h-screen pb-48 md:pb-8">
             {/* Header */}
             <div className="bg-white p-4 sticky top-0 z-40 shadow-sm flex items-center relative md:hidden">
                 <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-primary absolute left-4">
@@ -286,8 +286,8 @@ const CartPage = () => {
                 </div>
             </div>
 
-            {/* Mobile: Fixed Bottom Summary */}
-            <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg z-50">
+            {/* Mobile: Fixed Bottom Summary - Above Taskbar */}
+            <div className="lg:hidden fixed bottom-16 left-0 right-0 bg-white border-t-2 border-gray-200 p-4 shadow-2xl z-50 rounded-t-2xl">
                 {/* Loyalty Points Banner - Mobile */}
                 {user && !user.isGuest && loyaltyPointsEarned > 0 && (
                     <div className="mb-3 p-2 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200 flex items-center justify-between">
