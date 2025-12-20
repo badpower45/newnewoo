@@ -199,7 +199,14 @@ const BrandPage = () => {
             
             const allProducts = res.data || res || [];
             
-            // Get keywords from brand
+            // If brand has ID from database, filter by brand_id
+            if (brandInfo.id && typeof brandInfo.id === 'number') {
+                const brandProducts = allProducts.filter((p: any) => p.brand_id === brandInfo.id);
+                setProducts(brandProducts);
+                return;
+            }
+            
+            // Fallback: Filter by keywords (for static brands)
             const keywords = brandInfo.keywords || [
                 brandInfo.name_en?.toLowerCase(),
                 brandInfo.name_ar?.toLowerCase(),

@@ -204,7 +204,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
                         <>
                             <div
                                 id={readerIdRef.current}
-                                className="rounded-xl overflow-hidden bg-gray-100"
+                                className="rounded-xl overflow-hidden bg-gray-100 max-w-full aspect-[4/3]"
                                 style={{ minHeight: '300px' }}
                             />
 

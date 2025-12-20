@@ -8,6 +8,7 @@ import SponsoredAds from '../components/SponsoredAds';
 import FlyerCarousel from '../components/FlyerCarousel';
 import ErrorMessage from '../components/ErrorMessage';
 import { ProductGridSkeleton, BannerSkeleton, CategoriesGridSkeleton } from '../components/Skeleton';
+import FullPageSkeleton from '../components/FullPageSkeleton';
 import BrandsCarousel from '../components/BrandsCarousel';
 import BrandOffersSection from '../components/BrandOffersSection';
 import FeaturedBrands from '../components/FeaturedBrands';
@@ -212,6 +213,13 @@ const HomePage = () => {
         // Skip branch-products API (404 on current backend)
         setBranchMap({});
     }, [selectedBranch]);
+
+    // Global loading state - show full page skeleton while all data is loading
+    const globalLoading = loading || categoriesLoading || sectionsLoading;
+
+    if (globalLoading) {
+        return <FullPageSkeleton />;
+    }
 
     return (
         <div className="bg-[#FAFAFA] min-h-screen pb-24 md:pb-8">

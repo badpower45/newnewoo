@@ -43,12 +43,14 @@ const ProductsManager = () => {
     // Dynamic data from API
     const [branches, setBranches] = useState<any[]>([]);
     const [categories, setCategories] = useState<any[]>([]);
+    const [brands, setBrands] = useState<any[]>([]);
     const [subcategories, setSubcategories] = useState<{ [key: string]: any[] }>({});
 
     useEffect(() => {
         loadProducts();
         loadBranches();
         loadCategories();
+        loadBrands();
     }, []);
 
     const loadProducts = async () => {
@@ -136,6 +138,20 @@ const ProductsManager = () => {
             console.error('❌ Failed to load categories:', error);
             // Fallback to default
             setCategories(defaultCategories.map((name, idx) => ({ id: idx + 1, name, name_ar: name, parent_id: null })));
+        }
+    };
+
+    const loadBrands = async () => {
+        try {
+            const response = await api.brands.getAll();
+            console.log('🏷️ Brands loaded:', response);
+            const brandData = response?.data || response || [];
+            if (Array.isArray(brandData)) {
+                setBrands(brandData);
+            }
+        } catch (error) {
+            console.error('❌ Failed to load brands:', error);
+            setBrands([]);
         }
     };
 
@@ -616,7 +632,29 @@ const ProductsManager = () => {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">التصنيف الفرعي</label>
+                                  
+
+                            {/* Brand Selection */}
+                            <div>
+                                <label className="block text-sm font-medium mb-1">
+                                    🏷️ البراند
+                                </label>
+                                <select
+                                    value={form.brandId || ''}
+                                    onChange={e => setForm({ ...form, brandId: e.target.value ? parseInt(e.target.value) : undefined })}
+                                    className="w-full px-3 py-2 border rounded-md"
+                                >
+                                    <option value="">بدون براند</option>
+                                    {brands.map(brand => (
+                                        <option key={brand.id} value={brand.id}>
+                                            {brand.name_ar} - {brand.name_en}
+                                        </option>
+                                    ))}
+                                </select>
+                                <p className="text-xs text-gray-500 mt-1">
+                                    💡 اختر البراند المناسب للمنتج لربطه بصفحة البراند الديناميكية
+                                </p>
+                            </div>  <label className="block text-sm font-medium mb-1">التصنيف الفرعي</label>
                                     <select
                                         value={form.subcategory}
                                         onChange={e => setForm({ ...form, subcategory: e.target.value })}
