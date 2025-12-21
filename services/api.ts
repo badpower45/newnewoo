@@ -1613,6 +1613,167 @@ export const api = {
             if (!res.ok) throw new Error('Failed to fetch home sections');
             return res.json();
         }
+    },
+
+    // Enhanced Loyalty System
+    loyaltyEnhanced: {
+        getBalance: async () => {
+            const res = await fetch(`${API_URL}/loyalty-enhanced/balance`, {
+                headers: getHeaders()
+            });
+            if (!res.ok) throw new Error('Failed to fetch loyalty balance');
+            return res.json();
+        },
+        getTransactions: async (limit = 50, offset = 0) => {
+            const res = await fetch(`${API_URL}/loyalty-enhanced/transactions?limit=${limit}&offset=${offset}`, {
+                headers: getHeaders()
+            });
+            if (!res.ok) throw new Error('Failed to fetch transactions');
+            return res.json();
+        },
+        convert: async (points: number) => {
+            const res = await fetch(`${API_URL}/loyalty-enhanced/convert`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ points })
+            });
+            if (!res.ok) throw new Error('Failed to convert points');
+            return res.json();
+        },
+        calculateOrder: async (subtotal: number, usePoints = 0, address?: any) => {
+            const res = await fetch(`${API_URL}/loyalty-enhanced/calculate-order`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ subtotal, usePoints, address })
+            });
+            if (!res.ok) throw new Error('Failed to calculate order');
+            return res.json();
+        },
+        getConfig: async () => {
+            const res = await fetch(`${API_URL}/loyalty-enhanced/config`, {
+                headers: getHeaders()
+            });
+            if (!res.ok) throw new Error('Failed to fetch config');
+            return res.json();
+        }
+    },
+
+    // Enhanced Returns System
+    returnsEnhanced: {
+        create: async (data: any) => {
+            const res = await fetch(`${API_URL}/returns-enhanced/create`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            if (!res.ok) throw new Error('Failed to create return');
+            return res.json();
+        },
+        getMyReturns: async (status?: string, limit = 20, offset = 0) => {
+            const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+            if (status) params.append('status', status);
+            const res = await fetch(`${API_URL}/returns-enhanced/my-returns?${params.toString()}`, {
+                headers: getHeaders()
+            });
+            if (!res.ok) throw new Error('Failed to fetch returns');
+            return res.json();
+        },
+        getByCode: async (returnCode: string) => {
+            const res = await fetch(`${API_URL}/returns-enhanced/${returnCode}`, {
+                headers: getHeaders()
+            });
+            if (!res.ok) throw new Error('Failed to fetch return');
+            return res.json();
+        },
+        getStats: async () => {
+            const res = await fetch(`${API_URL}/returns-enhanced/stats/overview`, {
+                headers: getHeaders()
+            });
+            if (!res.ok) throw new Error('Failed to fetch stats');
+            return res.json();
+        }
+    },
+
+    // Admin Enhanced System
+    adminEnhanced: {
+        // Notifications
+        sendNotification: async (data: any) => {
+            const res = await fetch(`${API_URL}/admin-enhanced/notifications/send`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            if (!res.ok) throw new Error('Failed to send notification');
+            return res.json();
+        },
+        getNotificationHistory: async (limit = 50, offset = 0) => {
+            const res = await fetch(`${API_URL}/admin-enhanced/notifications/history?limit=${limit}&offset=${offset}`, {
+                headers: getHeaders()
+            });
+            if (!res.ok) throw new Error('Failed to fetch history');
+            return res.json();
+        },
+        // CTAs
+        createCTA: async (data: any) => {
+            const res = await fetch(`${API_URL}/admin-enhanced/cta/create`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            if (!res.ok) throw new Error('Failed to create CTA');
+            return res.json();
+        },
+        getAllCTAs: async (position?: string, is_active?: boolean) => {
+            const params = new URLSearchParams();
+            if (position) params.append('position', position);
+            if (is_active !== undefined) params.append('is_active', String(is_active));
+            const res = await fetch(`${API_URL}/admin-enhanced/cta/all?${params.toString()}`, {
+                headers: getHeaders()
+            });
+            if (!res.ok) throw new Error('Failed to fetch CTAs');
+            return res.json();
+        },
+        getActiveCTAs: async (position = 'home_middle') => {
+            const res = await fetch(`${API_URL}/admin-enhanced/cta/active?position=${position}`, {
+                headers: getHeaders()
+            });
+            if (!res.ok) throw new Error('Failed to fetch active CTAs');
+            return res.json();
+        },
+        updateCTA: async (id: number, data: any) => {
+            const res = await fetch(`${API_URL}/admin-enhanced/cta/${id}`, {
+                method: 'PUT',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            if (!res.ok) throw new Error('Failed to update CTA');
+            return res.json();
+        },
+        deleteCTA: async (id: number) => {
+            const res = await fetch(`${API_URL}/admin-enhanced/cta/${id}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+            if (!res.ok) throw new Error('Failed to delete CTA');
+            return res.json();
+        },
+        trackCTAClick: async (id: number, userId?: number) => {
+            const res = await fetch(`${API_URL}/admin-enhanced/cta/${id}/track-click`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ user_id: userId })
+            });
+            if (!res.ok) throw new Error('Failed to track click');
+            return res.json();
+        },
+        // Dashboard
+        getDashboardOverview: async (period = '30') => {
+            const res = await fetch(`${API_URL}/admin-enhanced/dashboard/overview?period=${period}`, {
+                headers: getHeaders()
+            });
+            if (!res.ok) throw new Error('Failed to fetch dashboard');
+            return res.json();
+        }
     }
 };
 
