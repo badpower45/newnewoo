@@ -296,38 +296,6 @@ const MagazinePage: React.FC = () => {
 };
 
 export default MagazinePage;
-
-    return (
-        <div className="min-h-screen bg-[#FAFAFA] pb-20">
-            {/* Header */}
-            <div className="bg-gradient-to-br from-[#F97316] to-[#ea580c] p-4 pb-6 md:p-6 md:pb-8 relative overflow-hidden">
-                {/* Confetti Background */}
-                <div className="absolute inset-0 opacity-10">
-                    <div className="absolute top-4 right-10 w-3 h-3 bg-yellow-300 rounded-full" />
-                    <div className="absolute top-12 right-24 w-2 h-2 bg-white rounded-full" />
-                    <div className="absolute top-8 left-16 w-4 h-4 bg-red-300 rounded-full" />
-                    <div className="absolute bottom-4 right-32 w-3 h-3 bg-blue-300 rounded-full" />
-                    <div className="absolute bottom-8 left-20 w-2 h-2 bg-green-300 rounded-full" />
-                    <div className="absolute top-20 left-8 w-2 h-2 bg-pink-300 rounded-full" />
-                    <div className="absolute bottom-12 right-12 w-4 h-4 bg-purple-300 rounded-full" />
-                </div>
-
-                <div className="flex items-center gap-2 mb-3 relative">
-                    <button 
-                        onClick={() => navigate(-1)} 
-                        className="w-9 h-9 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/30 transition-colors flex-shrink-0"
-                    >
-                        <ArrowRight className="w-5 h-5 text-white" />
-                    </button>
-                    <h1 className="text-white text-base md:text-xl font-bold line-clamp-1">مجلة العروض الأسبوعية</h1>
-                </div>
-
-                <p className="text-white/90 relative text-xs md:text-sm">
-                    عروض حصرية ومتنوعة {getDateRange()}
-                </p>
-            </div>
-
-            {/* Categories */}
             <div className="px-3 md:px-4 -mt-3 md:-mt-4 mb-3 md:mb-4 relative z-10">
                 <div className="bg-white rounded-xl md:rounded-2xl shadow-lg p-2 md:p-3 overflow-x-auto scrollbar-hide">
                     <div className="flex gap-1.5 md:gap-2">
