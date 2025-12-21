@@ -421,6 +421,7 @@ const ProductsManager = () => {
                             <th className="px-4 py-4 font-semibold text-gray-600">المنتج</th>
                             <th className="px-4 py-4 font-semibold text-gray-600">الباركود</th>
                             <th className="px-4 py-4 font-semibold text-gray-600">التصنيف</th>
+                            <th className="px-4 py-4 font-semibold text-gray-600">البراند</th>
                             <th className="px-4 py-4 font-semibold text-gray-600">السعر قبل</th>
                             <th className="px-4 py-4 font-semibold text-gray-600">السعر بعد</th>
                             <th className="px-4 py-4 font-semibold text-gray-600">الكمية</th>
@@ -442,6 +443,9 @@ const ProductsManager = () => {
                                         <span>{product.category}</span>
                                         {product.subcategory && <span className="text-xs text-gray-400">{product.subcategory}</span>}
                                     </div>
+                                </td>
+                                <td className="px-4 py-4 text-gray-600">
+                                    {(product as any).brand_name || (product as any).brand_name_ar || (product as any).brand_name_en || '-'}
                                 </td>
                                 <td className="px-4 py-4 text-gray-500 line-through">
                                     {product.discount_price || product.originalPrice ? `${(Number(product.discount_price) || Number(product.originalPrice) || 0).toFixed(2)} EGP` : '-'}

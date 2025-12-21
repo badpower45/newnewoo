@@ -17,7 +17,7 @@ const CartPage = () => {
     const [isRedeeming, setIsRedeeming] = useState(false);
     
     // Constants
-    const MINIMUM_ORDER_AMOUNT = 200;
+    const MINIMUM_ORDER_AMOUNT = 0;
     const FREE_SHIPPING_THRESHOLD = 600;
 
     // Sync cart on mount (fix for task bar refresh issue)

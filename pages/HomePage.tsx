@@ -339,24 +339,8 @@ const HomePage = () => {
                         return (
                             <section key={section.id} className="relative mt-12">
                                 <div className="rounded-[28px] overflow-hidden shadow-[0_12px_30px_rgba(0,0,0,0.06)] border border-white/60 bg-white/90 backdrop-blur-[2px]">
-                                    {/* Banner with wave-like top mood */}
-                                    <div className="relative h-44 sm:h-52 md:h-56" style={{ background: `linear-gradient(135deg, ${waveColor} 0%, #ffffff 70%)` }}>
-                                        <img
-                                            src={section.banner_image}
-                                            alt={section.section_name_ar}
-                                            className="absolute inset-0 w-full h-full object-cover mix-blend-multiply"
-                                            onError={(e) => {
-                                                e.currentTarget.src = 'https://images.unsplash.com/photo-1543168256-418811576931?w=1200';
-                                            }}
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-r from-black/15 via-black/5 to-transparent" />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-white/55 via-transparent to-transparent" />
-                                        <div className="absolute bottom-4 right-4 text-white z-10 drop-shadow-[0_6px_14px_rgba(0,0,0,0.25)]">
-                                            <h3 className="text-2xl font-extrabold leading-tight">{section.section_name_ar}</h3>
-                                            <p className="text-sm opacity-95">{section.section_name}</p>
-                                        </div>
-                                    </div>
-
+                                    {/* Banner Removed as per request */}
+                                    
                                     <div className="px-3 sm:px-4 md:px-5 pb-5 pt-4 bg-white">
                                         <div className="flex items-center justify-between mb-4">
                                             <h2 className="text-xl font-bold text-gray-900">{section.section_name_ar}</h2>

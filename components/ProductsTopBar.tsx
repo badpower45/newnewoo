@@ -141,9 +141,15 @@ const ProductsTopBar: React.FC<ProductsTopBarProps> = ({ onScan }) => {
 
             {/* Barcode Scanner Modal */}
             {showScanner && (
-                <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center">
-                    <BarcodeScanner onClose={() => setShowScanner(false)} />
-                </div>
+                <BarcodeScanner 
+                    onClose={() => setShowScanner(false)} 
+                    onScan={(code) => {
+                        console.log('Scanned:', code);
+                        setSearchQuery(code);
+                        navigate(`/products?search=${encodeURIComponent(code)}`);
+                        setShowScanner(false);
+                    }}
+                />
             )}
         </>
     );

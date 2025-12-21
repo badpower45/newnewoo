@@ -7,7 +7,7 @@ import { useToast } from '../components/Toast';
 
 // Financial Constants
 const SERVICE_FEE = 7;
-const MIN_ORDER = 200;
+const MIN_ORDER = 0;
 const FREE_SHIPPING_THRESHOLD = 600;
 const LOYALTY_POINTS_RATIO = 1; // 1 EGP = 1 Point
 const REWARD_POINTS_REQUIRED = 1000; // Points needed for reward

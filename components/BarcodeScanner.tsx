@@ -228,10 +228,10 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
                         </>
                     )}
 
-                    <div className="mt-6 flex space-x-3 rtl:space-x-reverse">
+                    <div className="mt-8 pb-4 flex space-x-3 rtl:space-x-reverse">
                         <button
                             onClick={handleClose}
-                            className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors"
+                            className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium rounded-xl transition-colors shadow-sm border border-gray-200"
                         >
                             إلغاء
                         </button>
