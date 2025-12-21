@@ -72,6 +72,7 @@ import CategoryBannersManager from './pages/admin/CategoryBannersManager';
 import FacebookReelsManager from './pages/admin/FacebookReelsManager';
 import BrandOffersAdminPage from './pages/admin/BrandOffersAdminPage';
 import BrandsManager from './pages/admin/BrandsManager';
+import ReturnsManager from './pages/admin/ReturnsManager';
 import DeliveryDriverPage from './pages/DeliveryDriverPage';
 import BrandPage from './pages/BrandPage';
 import BrandsPage from './pages/BrandsPage';
@@ -163,6 +164,7 @@ function AppContent() {
               <Route path="analytics" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><CustomerAnalyticsPage /></ProtectedRoute>} />
               <Route path="products" element={<ProductsManager />} />
               <Route path="product-importer" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><ProductImporter /></ProtectedRoute>} />
+              <Route path="returns" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><ReturnsManager /></ProtectedRoute>} />
               <Route path="import" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><ProductImporter /></ProtectedRoute>} />
               <Route path="drafts/:batchId?" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><DraftProductsReview /></ProtectedRoute>} />
               <Route path="categories" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><CategoriesManager /></ProtectedRoute>} />
