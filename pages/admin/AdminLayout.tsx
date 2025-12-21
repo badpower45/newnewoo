@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingBag, Users, Settings, LogOut, Upload, MessageCircle, Store, Boxes, CalendarClock, ClipboardList, Truck, Tag, Menu, X, BookOpen, Flame, CircleDot, FolderTree, Facebook, Gift, FileSpreadsheet, LayoutGrid, Briefcase } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, Users, Settings, LogOut, Upload, MessageCircle, Store, Boxes, CalendarClock, ClipboardList, Truck, Tag, Menu, X, BookOpen, Flame, CircleDot, FolderTree, Facebook, Gift, FileSpreadsheet, LayoutGrid, Briefcase, BarChart3 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const AdminLayout = () => {
@@ -36,6 +36,7 @@ const AdminLayout = () => {
     // Define menu items with role-based access control
     const allNavItems = [
         { path: '/admin', icon: <LayoutDashboard size={20} />, label: 'لوحة التحكم', roles: ['admin', 'manager'] },
+        { path: '/admin/analytics', icon: <BarChart3 size={20} />, label: 'تحليلات العملاء', roles: ['admin', 'manager'] },
         { path: '/admin/products', icon: <Package size={20} />, label: 'المنتجات', roles: ['admin', 'manager'] },
         { path: '/admin/categories', icon: <FolderTree size={20} />, label: 'التصنيفات', roles: ['admin', 'manager'] },
         { path: '/admin/product-importer', icon: <FileSpreadsheet size={20} />, label: 'استيراد Excel', roles: ['admin', 'manager'] },

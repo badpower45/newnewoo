@@ -29,6 +29,7 @@ import ProfilePage from './pages/ProfilePage';
 import FavoritesPage from './pages/FavoritesPage';
 import OrderConfirmationPage from './pages/OrderConfirmationPage';
 import OrderTrackingPage from './pages/OrderTrackingPage';
+import OrderInvoice from './components/OrderInvoice';
 import CustomerChatPage from './pages/CustomerChatPage';
 import CustomerServiceDashboard from './pages/CustomerServiceDashboard';
 import MagazinePage from './pages/MagazinePage';
@@ -45,6 +46,7 @@ import AuthCallbackPage from './pages/AuthCallbackPage';
 
 import AdminLayout from './pages/admin/AdminLayout';
 import DashboardOverview from './pages/admin/DashboardOverview';
+import CustomerAnalyticsPage from './pages/admin/CustomerAnalyticsPage';
 import ProductsManager from './pages/admin/ProductsManager';
 import ProductUploadPage from './pages/admin/ProductUploadPage';
 import ProductImporter from './pages/admin/ProductImporter';
@@ -118,6 +120,7 @@ function AppContent() {
             <Route path="/cart" element={<CartPage />} />
             <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
             <Route path="/order-confirmation/:orderId" element={<ProtectedRoute><OrderConfirmationPage /></ProtectedRoute>} />
+            <Route path="/order-invoice/:orderId" element={<ProtectedRoute><OrderInvoice /></ProtectedRoute>} />
             <Route path="/orders/:orderId" element={<ProtectedRoute><OrderTrackingPage /></ProtectedRoute>} />
             <Route path="/deals" element={<DealsPage />} />
             <Route path="/hot-deals" element={<HotDealsPage />} />
@@ -153,6 +156,7 @@ function AppContent() {
             {/* Admin Routes - Protected with role-based access */}
             <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'distributor']}><AdminLayout /></ProtectedRoute>}>
               <Route index element={<DashboardOverview />} />
+              <Route path="analytics" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><CustomerAnalyticsPage /></ProtectedRoute>} />
               <Route path="products" element={<ProductsManager />} />
               <Route path="product-importer" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><ProductImporter /></ProtectedRoute>} />
               <Route path="import" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><ProductImporter /></ProtectedRoute>} />

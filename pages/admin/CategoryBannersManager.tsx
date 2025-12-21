@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Save, X, ImagePlus, Loader2 } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, ImagePlus, Loader2, ExternalLink, Eye } from 'lucide-react';
 import { api } from '../../services/api';
+import { pushNotificationService } from '../../services/pushNotifications';
 import ErrorMessage from '../../components/ErrorMessage';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
@@ -13,6 +14,9 @@ interface Category {
     banner_title?: string;
     banner_subtitle?: string;
     bg_color?: string;
+    banner_type?: 'display' | 'action';
+    banner_action_url?: string;
+    banner_button_text?: string;
 }
 
 const CategoryBannersManager: React.FC = () => {
@@ -48,6 +52,9 @@ const CategoryBannersManager: React.FC = () => {
             banner_title: category.banner_title || '',
             banner_subtitle: category.banner_subtitle || '',
             bg_color: category.bg_color || '',
+            banner_type: category.banner_type || 'display',
+            banner_action_url: category.banner_action_url || '',
+            banner_button_text: category.banner_button_text || 'تسوق الآن',
         });
     };
 
@@ -56,8 +63,19 @@ const CategoryBannersManager: React.FC = () => {
         try {
             await api.categories.update(categoryId, editForm);
             await fetchCategories();
+            
+            // إرسال إشعار عند حفظ بانر جديد
+            if (editForm.banner_title && editForm.banner_image) {
+                await pushNotificationService.notifyNewBanner({
+                    title: editForm.banner_title,
+                    image: editForm.banner_image,
+                    targetUrl: editForm.banner_action_url
+                });
+            }
+            
             setEditingId(null);
             setEditForm({});
+            alert('✅ تم حفظ البانر وإرسال إشعار للمستخدمين!');
         } catch (err) {
             alert('فشل حفظ التعديلات');
             console.error(err);
@@ -170,6 +188,81 @@ const CategoryBannersManager: React.FC = () => {
                         <div className="p-6">
                             {editingId === category.id ? (
                                 <div className="space-y-4">
+                                    {/* Banner Type Toggle */}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                            نوع البانر
+                                        </label>
+                                        <div className="flex gap-3">
+                                            <button
+                                                type="button"
+                                                onClick={() => setEditForm({ ...editForm, banner_type: 'display' })}
+                                                className={`flex-1 px-4 py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
+                                                    editForm.banner_type === 'display'
+                                                        ? 'bg-blue-500 text-white shadow-lg'
+                                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                }`}
+                                            >
+                                                <Eye size={20} />
+                                                <span>عرض فقط</span>
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setEditForm({ ...editForm, banner_type: 'action' })}
+                                                className={`flex-1 px-4 py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
+                                                    editForm.banner_type === 'action'
+                                                        ? 'bg-brand-orange text-white shadow-lg'
+                                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                }`}
+                                            >
+                                                <ExternalLink size={20} />
+                                                <span>بانر تفاعلي</span>
+                                            </button>
+                                        </div>
+                                        <p className="text-xs text-gray-500 mt-2">
+                                            {editForm.banner_type === 'action' 
+                                                ? '✨ سيظهر زر في البانر يوجه المستخدم لصفحة معينة'
+                                                : '👁️ البانر للعرض فقط بدون أي زر تفاعلي'
+                                            }
+                                        </p>
+                                    </div>
+
+                                    {/* Action Button Fields (only if type is action) */}
+                                    {editForm.banner_type === 'action' && (
+                                        <>
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    رابط الزر (URL)
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={editForm.banner_action_url || ''}
+                                                    onChange={(e) => setEditForm({ ...editForm, banner_action_url: e.target.value })}
+                                                    placeholder="/product/123 أو https://example.com"
+                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-orange focus:border-transparent"
+                                                    dir="ltr"
+                                                />
+                                                <p className="text-xs text-gray-500 mt-1">
+                                                    💡 يمكنك استخدام: /product/123 أو /category/ألبان أو رابط خارجي
+                                                </p>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                    نص الزر
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={editForm.banner_button_text || ''}
+                                                    onChange={(e) => setEditForm({ ...editForm, banner_button_text: e.target.value })}
+                                                    placeholder="تسوق الآن"
+                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-orange focus:border-transparent"
+                                                    dir="rtl"
+                                                />
+                                            </div>
+                                        </>
+                                    )}
+
                                     {/* Banner Title */}
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -248,6 +341,24 @@ const CategoryBannersManager: React.FC = () => {
                                                             <span className="text-4xl">{category.icon || '🛒'}</span>
                                                         </div>
                                                         <div>
+                                                            <h2 className="text-2xl font-bold text-white mb-1">
+                                                                {editForm.banner_title || category.name_ar || category.name}
+                                                            </h2>
+                                                            <p className="text-white/90 text-sm">
+                                                                {editForm.banner_subtitle || 'أفضل العروض والمنتجات'}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    {editForm.banner_type === 'action' && (
+                                                        <button className="px-6 py-3 bg-white text-gray-900 font-bold rounded-xl hover:bg-gray-100 transition-colors flex items-center gap-2 shadow-lg">
+                                                            <span>{editForm.banner_button_text || 'تسوق الآن'}</span>
+                                                            <ExternalLink size={18} />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                                             <h2 className="text-2xl font-bold text-white mb-1">
                                                                 {editForm.banner_title || category.name_ar || category.name}
                                                             </h2>

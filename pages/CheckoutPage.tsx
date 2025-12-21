@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { useBranch } from '../context/BranchContext';
-import { ArrowLeft, MapPin, Loader, CheckCircle, Tag, X } from 'lucide-react';
+import { ArrowLeft, MapPin, Loader, CheckCircle, Tag, X, Map } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import SubstitutionSelector from '../components/SubstitutionSelector';
 import SavedAddressSelector from '../components/SavedAddressSelector';
@@ -10,6 +10,7 @@ import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { PAYMENT_METHOD_LABELS } from '../src/config';
 import { useToast } from '../components/Toast';
+import { extractCoordinatesFromMapsLink, validateCoordinates, formatCoordinates } from '../utils/googleMapsHelper';
 
 // Constants
 const MINIMUM_ORDER_AMOUNT = 200;
@@ -54,7 +55,8 @@ export default function CheckoutPage() {
         floor: '',
         apartment: '',
         address: '',
-        notes: ''
+        notes: '',
+        googleMapsLink: ''
     });
 
     useEffect(() => {
@@ -109,6 +111,17 @@ export default function CheckoutPage() {
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+
+        // Auto-extract coordinates when Google Maps link is entered
+        if (name === 'googleMapsLink' && value.trim()) {
+            const coords = extractCoordinatesFromMapsLink(value);
+            if (coords && validateCoordinates(coords)) {
+                setLocationCoords(coords);
+                setLocationError('');
+            } else if (value.includes('google.com/maps') || value.includes('maps.app.goo.gl')) {
+                setLocationError('لم نتمكن من استخراج الإحداثيات من هذا الرابط');
+            }
+        }
     };
 
     const handleSubstitutionChange = (productId: string | number, value: string) => {
@@ -258,6 +271,9 @@ export default function CheckoutPage() {
                 deliveryAddress: isPickup
                     ? 'استلام من الفرع'
                     : `${formData.firstName} ${formData.lastName}, ${formData.phone}, ${formData.building}, ${formData.street}, ${formData.address}`,
+                googleMapsLink: isPickup ? null : (formData.googleMapsLink || null),
+                deliveryLatitude: isPickup ? null : (locationCoords?.lat || null),
+                deliveryLongitude: isPickup ? null : (locationCoords?.lng || null),
                 shippingDetails: {
                     firstName: formData.firstName,
                     lastName: formData.lastName,
@@ -498,6 +514,36 @@ export default function CheckoutPage() {
                                 <p className="text-xs text-green-600 flex items-center">
                                     <CheckCircle size={12} className="ml-1" /> تم حفظ الإحداثيات: {locationCoords.lat.toFixed(5)}, {locationCoords.lng.toFixed(5)}
                                 </p>
+                            )}
+                        </div>
+
+                        {/* Google Maps Link Field */}
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                                <Map size={16} className="text-blue-600" />
+                                <span>رابط جوجل مابس (اختياري)</span>
+                            </label>
+                            <input
+                                type="text"
+                                name="googleMapsLink"
+                                value={formData.googleMapsLink}
+                                onChange={handleInputChange}
+                                className={`w-full px-4 py-3 rounded-xl border ${isPickup ? 'border-dashed border-slate-200 bg-slate-50 text-slate-500' : 'border-slate-200'} focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition-all`}
+                                placeholder={isPickup ? 'غير مطلوب للاستلام من الفرع' : 'https://www.google.com/maps?q=30.0444,31.2357'}
+                                disabled={isPickup}
+                            />
+                            {!isPickup && (
+                                <p className="text-xs text-slate-500">
+                                    💡 الصق رابط موقعك من جوجل مابس ليسهل على المندوب الوصول إليك
+                                </p>
+                            )}
+                            {locationCoords && formData.googleMapsLink && (
+                                <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-xs">
+                                    <p className="text-green-700 font-medium mb-1">✓ تم استخراج الإحداثيات بنجاح</p>
+                                    <p className="text-green-600">
+                                        📍 {formatCoordinates(locationCoords)}
+                                    </p>
+                                </div>
                             )}
                         </div>
 

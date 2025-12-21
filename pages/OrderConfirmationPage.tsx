@@ -108,6 +108,13 @@ const OrderConfirmationPage: React.FC = () => {
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link 
+              to={`/order-invoice/${order?.id}`}
+              className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-medium flex items-center justify-center gap-2"
+            >
+              <CheckCircle size={18} />
+              عرض الفاتورة
+            </Link>
+            <Link 
               to={`/track-order`}
               state={{ orderCode: order?.order_code }}
               className="px-6 py-3 bg-brand-orange text-white rounded-xl hover:bg-orange-600 transition-colors font-medium flex items-center justify-center gap-2"
