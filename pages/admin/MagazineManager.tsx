@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Loader, BookOpen, Search, Filter } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader, BookOpen, Search, Filter, AlertCircle } from 'lucide-react';
 import { api } from '../../services/api';
 import { TableSkeleton } from '../../components/Skeleton';
 
@@ -27,6 +27,7 @@ const MagazineManager = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterCategory, setFilterCategory] = useState('all');
     const [saving, setSaving] = useState(false);
+    const [error, setError] = useState('');
 
     const categories = ['جميع العروض', 'طازج', 'لحوم', 'ألبان', 'مشروبات', 'معلبات', 'منظفات'];
 
@@ -51,11 +52,14 @@ const MagazineManager = () => {
 
     const loadOffers = async () => {
         setLoading(true);
+        setError('');
         try {
             const res = await api.magazine.getAll();
-            setOffers(res.data || []);
+            const data = res?.data ?? res;
+            setOffers(Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : []);
         } catch (err) {
             console.error('Failed to load magazine offers:', err);
+            setError('فشل تحميل عروض المجلة');
         } finally {
             setLoading(false);
         }
@@ -64,6 +68,7 @@ const MagazineManager = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);
+        setError('');
 
         try {
             const data = {
@@ -84,7 +89,7 @@ const MagazineManager = () => {
             loadOffers();
         } catch (err) {
             console.error('Failed to save offer:', err);
-            alert('فشل حفظ العرض');
+            setError('فشل حفظ العرض');
         } finally {
             setSaving(false);
         }
@@ -203,6 +208,12 @@ const MagazineManager = () => {
                         </select>
                     </div>
                 </div>
+                {error && (
+                    <div className="flex items-center gap-2 mt-3 text-red-700 bg-red-50 border border-red-100 px-3 py-2 rounded-lg text-sm">
+                        <AlertCircle size={16} />
+                        {error}
+                    </div>
+                )}
             </div>
 
             {/* Table */}

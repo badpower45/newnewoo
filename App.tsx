@@ -38,6 +38,7 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import TrackOrderPage from './pages/TrackOrderPage';
 import DeliveryPolicyPage from './pages/DeliveryPolicyPage';
+import SmartReturnsPage from './pages/SmartReturnsPage';
 import ReturnPolicyPage from './pages/ReturnPolicyPage';
 import FAQPage from './pages/FAQPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
@@ -85,7 +86,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import PhoneNumberGuard from './components/PhoneNumberGuard';
 import { DebugProvider } from './context/DebugLogContext';
 import DebugPanel from './components/DebugPanel';
-import LottieLoader from './components/LottieLoader';
+import SplashScreen from './pages/SplashScreen';
 
 function AppContent() {
   const [showSplash, setShowSplash] = React.useState(true);
@@ -97,7 +98,7 @@ function AppContent() {
   // Show splash screen on first load
   if (showSplash) {
     return (
-      <LottieLoader
+      <SplashScreen
         duration={2600}
         onComplete={() => {
           setShowSplash(false);
@@ -134,6 +135,7 @@ function AppContent() {
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
             <Route path="/track-order" element={<TrackOrderPage />} />
+            <Route path="/smart-returns" element={<SmartReturnsPage />} />
             <Route path="/delivery-policy" element={<DeliveryPolicyPage />} />
             <Route path="/return-policy" element={<ReturnPolicyPage />} />
             <Route path="/faq" element={<FAQPage />} />

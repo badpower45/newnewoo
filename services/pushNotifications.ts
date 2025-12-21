@@ -3,6 +3,8 @@
  * خدمة إرسال الإشعارات الفورية للمستخدمين
  */
 
+import { API_URL } from '../src/config';
+
 interface NotificationPayload {
     title: string;
     body: string;
@@ -19,13 +21,28 @@ interface NotificationOptions {
 }
 
 class PushNotificationService {
-    private apiUrl: string;
-    private apiKey: string;
+    private getAuthHeaders() {
+        // Reuse same headers shape as api helpers
+        const token = localStorage.getItem('token');
+        return {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+        };
+    }
 
-    constructor() {
-        // يمكن استخدام OneSignal, Firebase Cloud Messaging, أو أي خدمة أخرى
-        this.apiUrl = import.meta.env.VITE_PUSH_API_URL || 'https://api.onesignal.com/notifications';
-        this.apiKey = import.meta.env.VITE_PUSH_API_KEY || '';
+    private async sendNotification(payload: any): Promise<boolean> {
+        const res = await fetch(`${API_URL}/notifications/send`, {
+            method: 'POST',
+            headers: this.getAuthHeaders(),
+            body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+            const error = await res.json().catch(() => ({}));
+            throw new Error(error.error || error.message || 'Failed to send notification');
+        }
+
+        return true;
     }
 
     /**
@@ -33,15 +50,16 @@ class PushNotificationService {
      */
     async sendToAll(payload: NotificationPayload): Promise<boolean> {
         try {
-            console.log('📢 إرسال إشعار لجميع المستخدمين:', payload);
-            
-            // Mock implementation - يتم استبداله بالتنفيذ الفعلي
-            const response = await this.mockSendNotification({
-                ...payload,
-                segment: 'all'
+            const response = await this.sendNotification({
+                title: payload.title,
+                body: payload.body,
+                image_url: payload.image,
+                action_url: payload.url,
+                notification_type: 'custom',
+                target_segment: 'all',
+                metadata: payload.data || {}
             });
 
-            console.log('✅ تم إرسال الإشعار بنجاح');
             return response;
         } catch (error) {
             console.error('❌ فشل إرسال الإشعار:', error);
@@ -54,14 +72,17 @@ class PushNotificationService {
      */
     async sendToUsers(userIds: number[], payload: NotificationPayload): Promise<boolean> {
         try {
-            console.log(`📢 إرسال إشعار لـ ${userIds.length} مستخدم:`, payload);
-            
-            const response = await this.mockSendNotification({
-                ...payload,
-                userIds
+            const response = await this.sendNotification({
+                title: payload.title,
+                body: payload.body,
+                image_url: payload.image,
+                action_url: payload.url,
+                notification_type: 'custom',
+                target_segment: 'custom',
+                target_user_ids: userIds,
+                metadata: payload.data || {}
             });
 
-            console.log('✅ تم إرسال الإشعار بنجاح');
             return response;
         } catch (error) {
             console.error('❌ فشل إرسال الإشعار:', error);
@@ -189,20 +210,6 @@ class PushNotificationService {
 
         return this.sendToAll(payload);
     }
-
-    /**
-     * Mock implementation - للتطوير فقط
-     * سيتم استبداله بالتنفيذ الفعلي باستخدام OneSignal أو FCM
-     */
-    private async mockSendNotification(data: any): Promise<boolean> {
-        return new Promise((resolve) => {
-            // محاكاة تأخير الشبكة
-            setTimeout(() => {
-                console.log('🔔 Mock Notification Sent:', data);
-                
-                // عرض notification في المتصفح للتجربة
-                if ('Notification' in window && Notification.permission === 'granted') {
-                    new Notification(data.title, {
                         body: data.body,
                         icon: data.icon || '/logo.png',
                         image: data.image,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, LogOut, ChevronLeft, Package, Heart, Gift, MapPin, CreditCard, Globe, MessageSquare, MapPinned, HelpCircle, Shield, FileText, LogIn } from 'lucide-react';
+import { User, LogOut, ChevronLeft, Package, Heart, Gift, MapPin, CreditCard, Globe, MessageSquare, MapPinned, HelpCircle, Shield, FileText, LogIn, ClipboardList } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -57,6 +57,13 @@ const MorePage = () => {
             iconColor: 'text-amber-600',
             route: '/loyalty',
             requireAuth: true
+        },
+        {
+            icon: ClipboardList,
+            label: 'المرتجعات الذكية',
+            iconBg: 'bg-emerald-100',
+            iconColor: 'text-emerald-600',
+            route: '/smart-returns'
         },
         {
             icon: User,

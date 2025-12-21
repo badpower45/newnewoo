@@ -110,8 +110,11 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-0">
-            <div className="bg-white w-full h-full md:rounded-2xl md:shadow-2xl md:max-w-md md:w-full md:max-h-[90vh] md:h-auto overflow-y-auto">
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 md:p-6">
+            <div 
+                className="bg-white w-full h-full max-w-xl md:max-w-md rounded-3xl shadow-2xl overflow-hidden flex flex-col md:h-auto md:max-h-[92vh]"
+                style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+            >
                 <div className="bg-gradient-to-r from-brand-orange to-orange-600 p-4 md:p-6 text-white relative">
                     <button
                         onClick={handleClose}
@@ -126,7 +129,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
                     <p className="mt-2 text-sm md:text-base text-white/90">وجّه الكاميرا نحو الباركود</p>
                 </div>
 
-                <div className="p-4 md:p-6">
+                <div className="p-4 md:p-6 flex-1 overflow-y-auto">
                     {/* Mode Toggle */}
                     <div className="mb-4 flex gap-2">
                         <button
@@ -204,11 +207,13 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
                         </form>
                     ) : (
                         <>
-                            <div
-                                id={readerIdRef.current}
-                                className="rounded-xl overflow-hidden bg-gray-100 max-w-full aspect-[4/3]"
-                                style={{ minHeight: '300px' }}
-                            />
+                            <div className="flex justify-center">
+                                <div
+                                    id={readerIdRef.current}
+                                    className="rounded-2xl overflow-hidden bg-black/80 w-full max-w-[440px] aspect-[3/4] border border-gray-200 shadow-inner"
+                                    style={{ minHeight: '280px' }}
+                                />
+                            </div>
 
                             {scanning && (
                                 <div className="mt-4 text-center">

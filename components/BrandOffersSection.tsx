@@ -213,8 +213,8 @@ export default function BrandOffersSection() {
     const [scrollPosition, setScrollPosition] = useState(0);
     const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
-    // Backend endpoint currently returns 404; use static data to avoid network noise
-    const USE_REMOTE = false;
+    // Try backend first, fall back to static data if unavailable
+    const USE_REMOTE = true;
 
     useEffect(() => {
         if (!USE_REMOTE) {

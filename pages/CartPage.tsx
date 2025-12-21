@@ -287,7 +287,10 @@ const CartPage = () => {
             </div>
 
             {/* Mobile: Fixed Bottom Summary - Above Taskbar */}
-            <div className="lg:hidden fixed bottom-16 left-0 right-0 bg-white border-t-2 border-gray-200 p-4 shadow-2xl z-50 rounded-t-2xl">
+            <div 
+                className="lg:hidden fixed bottom-16 left-0 right-0 bg-white border-t-2 border-gray-200 p-4 shadow-2xl z-50 rounded-t-2xl"
+                style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)', willChange: 'transform' }}
+            >
                 {/* Loyalty Points Banner - Mobile */}
                 {user && !user.isGuest && loyaltyPointsEarned > 0 && (
                     <div className="mb-3 p-2 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200 flex items-center justify-between">

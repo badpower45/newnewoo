@@ -136,6 +136,25 @@ const BrandPage = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'all' | 'offers' | 'new'>('all');
 
+    const slugify = (value: string = '') =>
+        value
+            .toString()
+            .trim()
+            .toLowerCase()
+            .replace(/أ|إ|آ/g, 'ا')
+            .replace(/ة/g, 'ه')
+            .replace(/ى/g, 'ي')
+            .replace(/\s+/g, '-');
+
+    const normalize = (value: string = '') =>
+        value
+            .toString()
+            .trim()
+            .toLowerCase()
+            .replace(/أ|إ|آ/g, 'ا')
+            .replace(/ة/g, 'ه')
+            .replace(/ى/g, 'ي');
+
     useEffect(() => {
         if (brandName) {
             loadBrandData();
@@ -147,18 +166,24 @@ const BrandPage = () => {
         try {
             // Try to load from database first
             const response = await api.brands.getAll();
-            const allBrands = response.data || [];
+            const allBrands = Array.isArray(response) ? response : response.data || [];
             
             // Find brand by name (English or Arabic)
-            const foundBrand = allBrands.find((b: any) => 
-                b.name_en?.toLowerCase().replace(/\s+/g, '-') === brandName?.toLowerCase() ||
-                b.id === brandName
-            );
+            const foundBrand = allBrands.find((b: any) => {
+                const slug = slugify(brandName || '');
+                return slugify(b.name_en) === slug || slugify(b.name_ar) === slug || String(b.id) === String(brandName);
+            });
 
             if (foundBrand) {
                 // Use database brand with custom colors
                 setBrand({
                     ...foundBrand,
+                    name: foundBrand.name_ar || foundBrand.name,
+                    nameEn: foundBrand.name_en || foundBrand.nameEn,
+                    logo: foundBrand.logo_url || foundBrand.logo,
+                    banner: foundBrand.banner_url || foundBrand.banner,
+                    tagline: foundBrand.tagline_ar || foundBrand.tagline || foundBrand.slogan_ar || foundBrand.slogan_en,
+                    offerBadge: foundBrand.offer_badge || foundBrand.offerBadge,
                     primaryColor: foundBrand.primary_color || '#F97316',
                     secondaryColor: foundBrand.secondary_color || '#EA580C',
                     gradientFrom: foundBrand.primary_color || '#F97316',
@@ -198,35 +223,33 @@ const BrandPage = () => {
                 : await api.products.getAll();
             
             const allProducts = res.data || res || [];
-            
-            // If brand has ID from database, filter by brand_id
-            if (brandInfo.id && typeof brandInfo.id === 'number') {
-                const brandProducts = allProducts.filter((p: any) => p.brand_id === brandInfo.id);
-                setProducts(brandProducts);
-                return;
-            }
-            
-            // Fallback: Filter by keywords (for static brands)
+            const brandId = brandInfo.id;
             const keywords = brandInfo.keywords || [
-                brandInfo.name_en?.toLowerCase(),
-                brandInfo.name_ar?.toLowerCase(),
-                brandInfo.nameEn?.toLowerCase(),
-                brandInfo.name?.toLowerCase()
-            ].filter(Boolean);
+                brandInfo.name_en,
+                brandInfo.name_ar,
+                brandInfo.nameEn,
+                brandInfo.name,
+                brandInfo.slogan_ar,
+                brandInfo.slogan_en,
+                brandInfo.tagline
+            ].filter(Boolean).map((k: string) => normalize(k));
             
-            // Filter products by brand name/keywords
             const brandProducts = allProducts.filter((p: any) => {
-                const productName = (p.name || '').toLowerCase();
-                const productDesc = (p.description || '').toLowerCase();
-                const productCategory = (p.category || '').toLowerCase();
-                const productBrand = (p.brand || '').toLowerCase();
+                const productBrandId = p.brand_id ?? p.brandId;
+                const matchesId = brandId && productBrandId && String(productBrandId) === String(brandId);
+                const productBrandName = normalize(p.brand_name || p.brand);
+                const productName = normalize(p.name);
+                const productDesc = normalize(p.description);
+                const productCategory = normalize(p.category);
                 
-                return keywords.some((keyword: string) => 
+                const matchesKeyword = keywords.some((keyword: string) => 
                     productName.includes(keyword) ||
                     productDesc.includes(keyword) ||
                     productCategory.includes(keyword) ||
-                    productBrand.includes(keyword)
+                    productBrandName.includes(keyword)
                 );
+                
+                return matchesId || matchesKeyword;
             });
             
             setProducts(brandProducts);

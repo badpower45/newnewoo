@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight, Star, TrendingUp } from 'lucide-react';
-import api from '../services/api';
+import { api } from '../services/api';
 
 interface Brand {
     id: string;
@@ -31,7 +31,7 @@ const FeaturedBrands: React.FC<FeaturedBrandsProps> = ({ maxBrands = 6 }) => {
     const fetchFeaturedBrands = async () => {
         try {
             const response = await api.brands.getAll();
-            const allBrands = response.data || [];
+            const allBrands = (response as any)?.data || response || [];
             
             // Filter only featured brands
             const featured = allBrands

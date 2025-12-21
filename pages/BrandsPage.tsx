@@ -33,8 +33,9 @@ const BrandsPage: React.FC = () => {
     const loadBrands = async () => {
         try {
             setLoading(true);
-            const data = await api.brands.getAll();
-            setBrands(Array.isArray(data) ? data : []);
+            const payload = await api.brands.getAll();
+            const list = Array.isArray(payload) ? payload : (payload as any)?.data || [];
+            setBrands(list);
         } catch (error) {
             console.error('Error loading brands:', error);
             setBrands([]);
@@ -43,10 +44,27 @@ const BrandsPage: React.FC = () => {
         }
     };
 
+    const normalize = (value: string = '') =>
+        value
+            .toLowerCase()
+            .replace(/أ|إ|آ/g, 'ا')
+            .replace(/ة/g, 'ه')
+            .replace(/ى/g, 'ي')
+            .replace(/\s+/g, '');
+
+    const term = normalize(searchTerm);
+
     const filteredBrands = brands.filter(brand => {
-        const matchesSearch = brand.name_ar.includes(searchTerm) || 
-                            brand.name_en.toLowerCase().includes(searchTerm.toLowerCase());
-        return matchesSearch;
+        if (!term) return true;
+        const fields = [
+            brand.name_ar,
+            brand.name_en,
+            brand.slogan_ar,
+            brand.slogan_en,
+            (brand as any)?.tags,
+        ].filter(Boolean) as string[];
+
+        return fields.some(field => normalize(field).includes(term));
     });
 
     return (

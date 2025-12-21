@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, TrendingDown, DollarSign, Star, AlertTriangle, CheckCircle, Search, Filter, Download } from 'lucide-react';
+import { Users, TrendingDown, Star, AlertTriangle, CheckCircle, Search, Download, AlertCircle } from 'lucide-react';
 import { api } from '../../services/api';
 
 interface CustomerAnalytics {
@@ -21,94 +21,46 @@ const CustomerAnalyticsPage = () => {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterRating, setFilterRating] = useState<string>('all');
-    const [sortBy, setSortBy] = useState<'rejected' | 'spent' | 'orders'>('rejected');
+    const [sortBy, setSortBy] = useState<'rejected' | 'spent' | 'orders' | 'recent'>('rejected');
+    const [statsFromApi, setStatsFromApi] = useState<any>(null);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         fetchCustomerAnalytics();
-    }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchQuery, filterRating, sortBy]);
 
     const fetchCustomerAnalytics = async () => {
         setLoading(true);
+        setError('');
         try {
-            const response = await api.get('/admin/customer-analytics');
-            setCustomers(response.data || []);
-        } catch (error) {
+            const params = new URLSearchParams();
+            if (searchQuery.trim()) params.append('search', searchQuery.trim());
+            if (filterRating !== 'all') params.append('rating', filterRating);
+            if (sortBy) params.append('sortBy', sortBy);
+            params.append('limit', '200');
+
+            const [customersRes, statsRes] = await Promise.all([
+                api.get(`/admin/customer-analytics?${params.toString()}`),
+                api.get('/admin/customer-analytics/stats')
+            ]);
+
+            const customersPayload = customersRes?.data ?? customersRes;
+            const normalizedCustomers = Array.isArray(customersPayload)
+                ? customersPayload
+                : Array.isArray(customersPayload?.data)
+                    ? customersPayload.data
+                    : [];
+
+            setCustomers(normalizedCustomers);
+            setStatsFromApi(statsRes?.data ?? statsRes);
+        } catch (error: any) {
             console.error('Error fetching customer analytics:', error);
-            // Mock data for development
-            setCustomers(generateMockData());
+            setError(error?.message || 'فشل تحميل البيانات');
+            setCustomers([]);
         } finally {
             setLoading(false);
         }
-    };
-
-    const generateMockData = (): CustomerAnalytics[] => {
-        return [
-            {
-                id: 1,
-                name: 'أحمد محمد',
-                email: 'ahmed@example.com',
-                phone: '01012345678',
-                total_orders: 45,
-                rejected_orders: 12,
-                completed_orders: 33,
-                total_spent: 15420,
-                average_order_value: 467,
-                customer_rating: 'problematic',
-                last_order_date: '2025-12-19'
-            },
-            {
-                id: 2,
-                name: 'فاطمة علي',
-                email: 'fatima@example.com',
-                phone: '01123456789',
-                total_orders: 67,
-                rejected_orders: 2,
-                completed_orders: 65,
-                total_spent: 32100,
-                average_order_value: 494,
-                customer_rating: 'excellent',
-                last_order_date: '2025-12-20'
-            },
-            {
-                id: 3,
-                name: 'محمود حسن',
-                email: 'mahmoud@example.com',
-                phone: '01234567890',
-                total_orders: 23,
-                rejected_orders: 8,
-                completed_orders: 15,
-                total_spent: 7200,
-                average_order_value: 480,
-                customer_rating: 'problematic',
-                last_order_date: '2025-12-18'
-            },
-            {
-                id: 4,
-                name: 'مريم أحمد',
-                email: 'mariam@example.com',
-                phone: '01098765432',
-                total_orders: 89,
-                rejected_orders: 1,
-                completed_orders: 88,
-                total_spent: 45600,
-                average_order_value: 518,
-                customer_rating: 'excellent',
-                last_order_date: '2025-12-20'
-            },
-            {
-                id: 5,
-                name: 'عمر خالد',
-                email: 'omar@example.com',
-                phone: '01156789012',
-                total_orders: 34,
-                rejected_orders: 5,
-                completed_orders: 29,
-                total_spent: 16800,
-                average_order_value: 579,
-                customer_rating: 'good',
-                last_order_date: '2025-12-19'
-            }
-        ];
     };
 
     const getRatingBadge = (rating: string) => {
@@ -158,10 +110,10 @@ const CustomerAnalyticsPage = () => {
         });
 
     const stats = {
-        totalCustomers: customers.length,
-        problematicCustomers: customers.filter(c => c.customer_rating === 'problematic').length,
-        excellentCustomers: customers.filter(c => c.customer_rating === 'excellent').length,
-        totalRejectedOrders: customers.reduce((sum, c) => sum + c.rejected_orders, 0),
+        totalCustomers: statsFromApi?.total_customers ?? customers.length,
+        problematicCustomers: statsFromApi?.problematic_customers ?? customers.filter(c => c.customer_rating === 'problematic').length,
+        excellentCustomers: statsFromApi?.excellent_customers ?? customers.filter(c => c.customer_rating === 'excellent').length,
+        totalRejectedOrders: statsFromApi?.total_rejected_orders ?? customers.reduce((sum, c) => sum + c.rejected_orders, 0),
     };
 
     const exportToCSV = () => {
@@ -203,13 +155,21 @@ const CustomerAnalyticsPage = () => {
                     </h1>
                     <p className="text-gray-600 mt-1">راقب سلوك العملاء وحدد "المشاغبين"</p>
                 </div>
-                <button
-                    onClick={exportToCSV}
-                    className="px-4 py-2 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors flex items-center gap-2"
-                >
-                    <Download size={20} />
-                    تصدير Excel
-                </button>
+                <div className="flex items-center gap-3">
+                    {error && (
+                        <div className="flex items-center gap-2 text-red-600 bg-red-50 border border-red-100 px-3 py-2 rounded-xl text-sm">
+                            <AlertCircle size={18} />
+                            {error}
+                        </div>
+                    )}
+                    <button
+                        onClick={exportToCSV}
+                        className="px-4 py-2 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors flex items-center gap-2"
+                    >
+                        <Download size={20} />
+                        تصدير Excel
+                    </button>
+                </div>
             </div>
 
             {/* Stats Cards */}

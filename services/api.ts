@@ -261,6 +261,30 @@ export const api = {
             return res.json();
         }
     },
+    returns: {
+        create: async (payload: { order_id: number; items: any[]; return_reason: string; return_notes?: string }) => {
+            const res = await fetch(`${API_URL}/returns/create`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(payload)
+            });
+            const json = await res.json();
+            if (!res.ok) {
+                throw new Error(json.error || 'فشل في إنشاء طلب الإرجاع');
+            }
+            return json;
+        },
+        check: async (code: string) => {
+            const res = await fetch(`${API_URL}/returns/check/${code}`, {
+                headers: getHeaders()
+            });
+            const json = await res.json();
+            if (!res.ok) {
+                throw new Error(json.error || 'لم يتم العثور على الطلب');
+            }
+            return json;
+        }
+    },
     users: {
         getAll: async () => {
             const res = await fetch(`${API_URL}/users`, { headers: getHeaders() });

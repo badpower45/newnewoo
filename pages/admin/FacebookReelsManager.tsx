@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, Eye, EyeOff, Save, X, RefreshCw, Facebook, Link as LinkIcon, Video, ExternalLink, GripVertical, Play } from 'lucide-react';
+import { Plus, Trash2, Edit2, Eye, EyeOff, Save, X, RefreshCw, Facebook, Link as LinkIcon, Video, ExternalLink, GripVertical, Play, Bell } from 'lucide-react';
 import { api } from '../../services/api';
+import { pushNotificationService } from '../../services/pushNotifications';
 
 interface FacebookReel {
     id: number;
@@ -34,6 +35,7 @@ const FacebookReelsManager: React.FC = () => {
     const [form, setForm] = useState(emptyReel);
     const [saving, setSaving] = useState(false);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [sendPush, setSendPush] = useState(false);
 
     const fetchReels = async () => {
         setLoading(true);
@@ -63,6 +65,15 @@ const FacebookReelsManager: React.FC = () => {
             } else {
                 await api.facebookReels.create(form);
             }
+
+            if (sendPush) {
+                await pushNotificationService.notifyNewReel({
+                    title: form.title,
+                    thumbnail: form.thumbnail_url,
+                    url: form.video_url || form.facebook_url
+                });
+            }
+
             setShowModal(false);
             resetForm();
             fetchReels();
@@ -113,6 +124,7 @@ const FacebookReelsManager: React.FC = () => {
     const resetForm = () => {
         setEditing(null);
         setForm(emptyReel);
+        setSendPush(false);
     };
 
     // Extract video ID from Facebook URL
@@ -434,6 +446,21 @@ const FacebookReelsManager: React.FC = () => {
                                 />
                                 <label htmlFor="is_active" className="text-sm text-gray-700">
                                     نشط (يظهر في الموقع)
+                                </label>
+                            </div>
+
+                            {/* Push Notification Toggle */}
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    id="send_push_reel"
+                                    checked={sendPush}
+                                    onChange={(e) => setSendPush(e.target.checked)}
+                                    className="w-4 h-4 text-blue-600 rounded"
+                                />
+                                <label htmlFor="send_push_reel" className="text-sm text-gray-700 flex items-center gap-1">
+                                    <Bell size={16} />
+                                    إرسال إشعار عند الحفظ
                                 </label>
                             </div>
 

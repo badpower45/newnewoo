@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Loader, Flame, Search, Clock } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader, Flame, Search, Clock, Bell, AlertCircle } from 'lucide-react';
 import { api } from '../../services/api';
+import { pushNotificationService } from '../../services/pushNotifications';
 import { TableSkeleton } from '../../components/Skeleton';
 
 interface HotDeal {
@@ -26,6 +27,8 @@ const HotDealsManager = () => {
     const [editingDeal, setEditingDeal] = useState<HotDeal | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [saving, setSaving] = useState(false);
+    const [sendPush, setSendPush] = useState(false);
+    const [error, setError] = useState('');
 
     const [formData, setFormData] = useState({
         name: '',
@@ -46,11 +49,14 @@ const HotDealsManager = () => {
 
     const loadDeals = async () => {
         setLoading(true);
+        setError('');
         try {
             const res = await api.hotDeals.getAll();
-            setDeals(res.data || []);
+            const payload = res?.data ?? res;
+            setDeals(Array.isArray(payload) ? payload : Array.isArray(payload?.data) ? payload.data : []);
         } catch (err) {
             console.error('Failed to load hot deals:', err);
+            setError('فشل تحميل العروض الساخنة');
         } finally {
             setLoading(false);
         }
@@ -59,6 +65,7 @@ const HotDealsManager = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);
+        setError('');
 
         try {
             const data = {
@@ -69,10 +76,16 @@ const HotDealsManager = () => {
                 total_quantity: parseInt(formData.total_quantity)
             };
 
-            if (editingDeal) {
-                await api.hotDeals.update(editingDeal.id, data);
-            } else {
-                await api.hotDeals.create(data);
+            const op = editingDeal ? api.hotDeals.update(editingDeal.id, data) : api.hotDeals.create(data);
+            const created = await op;
+
+            if (sendPush) {
+                await pushNotificationService.notifyNewOffer({
+                    title: data.name,
+                    discount: data.discount_percentage,
+                    image: data.image,
+                    productId: created?.data?.product_id || created?.product_id || undefined
+                });
             }
 
             setShowModal(false);
@@ -80,7 +93,7 @@ const HotDealsManager = () => {
             loadDeals();
         } catch (err) {
             console.error('Failed to save deal:', err);
-            alert('فشل حفظ العرض');
+            setError('فشل حفظ العرض');
         } finally {
             setSaving(false);
         }
@@ -103,6 +116,7 @@ const HotDealsManager = () => {
             is_flash_deal: deal.is_flash_deal,
             is_active: deal.is_active
         });
+        setSendPush(false);
         setShowModal(true);
     };
 
@@ -120,6 +134,7 @@ const HotDealsManager = () => {
 
     const resetForm = () => {
         setEditingDeal(null);
+        setSendPush(false);
         setFormData({
             name: '',
             name_en: '',
@@ -186,6 +201,12 @@ const HotDealsManager = () => {
                         className="w-full pr-10 pl-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#EF4444]/20"
                     />
                 </div>
+                {error && (
+                    <div className="flex items-center gap-2 mt-3 text-red-700 bg-red-50 border border-red-100 px-3 py-2 rounded-lg text-sm">
+                        <AlertCircle size={16} />
+                        {error}
+                    </div>
+                )}
             </div>
 
             {/* Table */}
@@ -444,6 +465,20 @@ const HotDealsManager = () => {
                                         العرض نشط
                                     </label>
                                 </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    id="send_push_deal"
+                                    checked={sendPush}
+                                    onChange={(e) => setSendPush(e.target.checked)}
+                                    className="w-4 h-4 text-[#EF4444] rounded focus:ring-[#EF4444]"
+                                />
+                                <label htmlFor="send_push_deal" className="text-sm text-gray-700 flex items-center gap-1">
+                                    <Bell className="w-4 h-4" />
+                                    إرسال إشعار بالعروض الجديدة عند الحفظ
+                                </label>
                             </div>
 
                             <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
