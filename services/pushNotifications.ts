@@ -210,6 +210,15 @@ class PushNotificationService {
 
         return this.sendToAll(payload);
     }
+    
+    /**
+     * محاكاة إرسال إشعار داخل المتصفح أثناء التطوير
+     */
+    async sendBrowserMock(data: NotificationPayload): Promise<boolean> {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    new Notification(data.title, {
                         body: data.body,
                         icon: data.icon || '/logo.png',
                         image: data.image,
@@ -218,7 +227,7 @@ class PushNotificationService {
                         requireInteraction: false
                     });
                 }
-                
+
                 resolve(true);
             }, 500);
         });
