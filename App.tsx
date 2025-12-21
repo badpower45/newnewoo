@@ -33,6 +33,7 @@ import OrderInvoice from './components/OrderInvoice';
 import CustomerChatPage from './pages/CustomerChatPage';
 import CustomerServiceDashboard from './pages/CustomerServiceDashboard';
 import MagazinePage from './pages/MagazinePage';
+import SpecialOffersPage from './pages/SpecialOffersPage';
 import HotDealsPage from './pages/HotDealsPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
@@ -125,7 +126,8 @@ function AppContent() {
             <Route path="/orders/:orderId" element={<ProtectedRoute><OrderTrackingPage /></ProtectedRoute>} />
             <Route path="/deals" element={<DealsPage />} />
             <Route path="/hot-deals" element={<HotDealsPage />} />
-            <Route path="/magazine" element={<MagazinePage />} />
+            <Route path="/magazine" element={<SpecialOffersPage />} />
+            <Route path="/magazine-old" element={<MagazinePage />} />
             <Route path="/more" element={<MorePage />} />
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/login" element={<LoginPage />} />

@@ -39,6 +39,7 @@ const AdminLayout = () => {
         { path: '/admin/analytics', icon: <BarChart3 size={20} />, label: 'تحليلات العملاء', roles: ['admin', 'manager'] },
         { path: '/admin/products', icon: <Package size={20} />, label: 'المنتجات', roles: ['admin', 'manager'] },
         { path: '/admin/categories', icon: <FolderTree size={20} />, label: 'التصنيفات', roles: ['admin', 'manager'] },
+        { path: '/admin/category-banners', icon: <LayoutGrid size={20} />, label: 'بانرات التصنيفات', roles: ['admin', 'manager'] },
         { path: '/admin/product-importer', icon: <FileSpreadsheet size={20} />, label: 'استيراد Excel', roles: ['admin', 'manager'] },
         { path: '/admin/upload', icon: <Upload size={20} />, label: 'رفع منتج', roles: ['admin', 'manager'] },
         { path: '/admin/orders', icon: <ShoppingBag size={20} />, label: 'الطلبات', roles: ['admin', 'manager'] },

@@ -11,7 +11,6 @@ import { ProductGridSkeleton, BannerSkeleton, CategoriesGridSkeleton } from '../
 import FullPageSkeleton from '../components/FullPageSkeleton';
 import BrandsCarousel from '../components/BrandsCarousel';
 import BrandOffersSection from '../components/BrandOffersSection';
-import FeaturedBrands from '../components/FeaturedBrands';
 import StoriesSection from '../components/StoriesSection';
 import FacebookReelsGrid from '../components/FacebookReelsGrid';
 import HeroCarousel from '../components/HeroCarousel';
@@ -234,9 +233,6 @@ const HomePage = () => {
                     <HeroCarousel />
                 </div>
 
-                {/* Featured Brands - New Component */}
-                <FeaturedBrands maxBrands={6} />
-
                 {/* Featured Brands Carousel */}
                 <BrandsCarousel title="براندات مميزة" />
 
@@ -342,13 +338,6 @@ const HomePage = () => {
 
                         return (
                             <section key={section.id} className="relative mt-12">
-                                {/* موجة علوية بنفس لون البانر */}
-                                <div className="absolute -top-10 left-0 w-full h-12 text-[color:var(--wave-color)]" style={{ '--wave-color': waveColor } as React.CSSProperties}>
-                                    <svg viewBox="0 0 1440 120" className="w-full h-full" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M0,80 Q240,30 480,55 T960,60 T1440,80 L1440,0 L0,0 Z" fill="currentColor" />
-                                    </svg>
-                                </div>
-
                                 <div className="rounded-[28px] overflow-hidden shadow-[0_12px_30px_rgba(0,0,0,0.06)] border border-white/60 bg-white/90 backdrop-blur-[2px]">
                                     {/* Banner with wave-like top mood */}
                                     <div className="relative h-44 sm:h-52 md:h-56" style={{ background: `linear-gradient(135deg, ${waveColor} 0%, #ffffff 70%)` }}>

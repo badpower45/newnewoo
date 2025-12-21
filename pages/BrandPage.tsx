@@ -276,8 +276,8 @@ const BrandPage = () => {
                     <Sparkles size={64} className="mx-auto text-gray-300 mb-4" />
                     <h2 className="text-xl font-bold text-gray-800 mb-2">البراند غير موجود</h2>
                     <p className="text-gray-500 mb-4">لم نتمكن من العثور على هذا البراند</p>
-                    <Link to="/products" className="text-blue-600 font-medium hover:underline">
-                        العودة للمنتجات
+                    <Link to="/brands" className="text-blue-600 font-medium hover:underline">
+                        العودة للبراندات
                     </Link>
                 </div>
             </div>
@@ -311,7 +311,7 @@ const BrandPage = () => {
                     {/* Top Bar */}
                     <div className="flex items-center justify-between p-4">
                         <Link 
-                            to="/products" 
+                            to="/brands" 
                             className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition"
                         >
                             <ArrowLeft size={20} />

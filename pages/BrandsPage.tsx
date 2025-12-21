@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ChevronRight, Star, Package } from 'lucide-react';
-import TopBar from '../components/TopBar';
 import { api } from '../services/api';
 
 interface Brand {
@@ -69,8 +68,6 @@ const BrandsPage: React.FC = () => {
 
     return (
         <div className="bg-gray-50 min-h-screen pb-24 md:pb-8">
-            <TopBar />
-            
             <div className="px-4 py-4 max-w-7xl mx-auto">
                 {/* Page Header */}
                 <div className="mb-6">

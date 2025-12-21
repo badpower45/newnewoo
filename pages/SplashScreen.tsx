@@ -42,17 +42,17 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ duration = 2600, onComplete
                 fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
             }`}
         >
-            <div className="absolute inset-0 bg-gradient-to-br from-orange-50 via-white to-orange-100" />
-            <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_20%_20%,rgba(255,149,0,0.18),transparent_35%),radial-gradient(circle_at_80%_30%,rgba(255,115,29,0.15),transparent_30%),radial-gradient(circle_at_50%_70%,rgba(255,68,0,0.12),transparent_28%)]" />
+            {/* خلفية بسيطة ونظيفة */}
+            <div className="absolute inset-0 bg-white" />
 
-            <div className="w-[110vw] h-[110vh] max-w-none max-h-none flex items-center justify-center overflow-hidden">
+            <div className="w-full h-full flex items-center justify-center overflow-hidden">
                 <dotlottie-player
                     src={DOT_LOTTIE_SRC}
                     background="transparent"
                     speed="1"
                     loop
                     autoplay
-                    style={{ width: '120vw', height: '120vh', objectFit: 'cover' }}
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                 />
             </div>
         </div>

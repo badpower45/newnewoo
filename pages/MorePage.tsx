@@ -66,14 +66,6 @@ const MorePage = () => {
             route: '/smart-returns'
         },
         {
-            icon: User,
-            label: 'الصفحة الشخصية',
-            iconBg: 'bg-blue-100',
-            iconColor: 'text-blue-600',
-            route: '/profile',
-            requireAuth: true
-        },
-        {
             icon: MapPinned,
             label: 'فروعنا',
             iconBg: 'bg-teal-100',
@@ -165,6 +157,19 @@ const MorePage = () => {
                     >
                         <LogIn size={24} />
                         <span>تسجيل الدخول</span>
+                    </button>
+                </div>
+            )}
+
+            {/* Profile Button for Authenticated Users */}
+            {isAuthenticated && (
+                <div className="mx-4 mt-4">
+                    <button
+                        onClick={() => navigate('/profile')}
+                        className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-4 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3"
+                    >
+                        <User size={24} />
+                        <span>البروفايل</span>
                     </button>
                 </div>
             )}

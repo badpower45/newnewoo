@@ -10,7 +10,7 @@ import { api } from '../services/api';
 const CartPage = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
-    const { items, removeFromCart, updateQuantity, clearCart, totalPrice, serviceFee, finalTotal, loyaltyPointsEarned, meetsMinimumOrder, redeemPointsForCoupon } = useCart();
+    const { items, removeFromCart, updateQuantity, clearCart, totalPrice, serviceFee, finalTotal, loyaltyPointsEarned, meetsMinimumOrder, redeemPointsForCoupon, syncCart } = useCart();
     const { selectedBranch } = useBranch();
     const [deliveryFee, setDeliveryFee] = useState(20);
     const [freeDelivery, setFreeDelivery] = useState(false);
@@ -19,6 +19,11 @@ const CartPage = () => {
     // Constants
     const MINIMUM_ORDER_AMOUNT = 200;
     const FREE_SHIPPING_THRESHOLD = 600;
+
+    // Sync cart on mount (fix for task bar refresh issue)
+    useEffect(() => {
+        syncCart();
+    }, []);
 
     // Calculate delivery fee
     useEffect(() => {
