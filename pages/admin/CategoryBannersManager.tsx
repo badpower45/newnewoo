@@ -359,18 +359,6 @@ const CategoryBannersManager: React.FC = () => {
                                             </div>
                                         </div>
                                     )}
-                                                            <h2 className="text-2xl font-bold text-white mb-1">
-                                                                {editForm.banner_title || category.name_ar || category.name}
-                                                            </h2>
-                                                            <p className="text-white/90 text-sm">
-                                                                {editForm.banner_subtitle || 'أفضل العروض والمنتجات'}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
                             ) : (
                                 // Banner Preview (when not editing)
