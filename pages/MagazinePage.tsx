@@ -31,19 +31,25 @@ const MagazinePage: React.FC = () => {
 
     const loadMagazinePages = async () => {
         try {
+            console.log('📚 Loading magazine pages from API...');
             // Try to load from API
             const response = await api.get('/magazine/pages');
+            console.log('📚 Magazine API response:', response);
+            
             // Backend returns array directly or wrapped in {data: []}
             const pagesData = Array.isArray(response) ? response : (response.data || []);
             
+            console.log('📚 Parsed pages data:', pagesData);
+            
             if (pagesData.length > 0) {
+                console.log('✅ Found', pagesData.length, 'magazine pages from database');
                 setPages(pagesData);
                 setLoading(false);
                 return;
             }
             
             // If no data from API, use mock data
-            console.log('No magazine pages in database, using mock data');
+            console.warn('⚠️ No magazine pages in database, using mock data');
             const mockPages: MagazinePage[] = [
                 {
                     id: 1,

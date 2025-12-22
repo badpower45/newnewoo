@@ -85,6 +85,15 @@ const MyOrdersPage = () => {
         if (user && !user.isGuest) {
             loadOrders();
             checkPendingRatings();
+            
+            // Auto-refresh every 30 seconds
+            const refreshInterval = setInterval(() => {
+                console.log('🔄 Auto-refreshing orders...');
+                loadOrders();
+                checkPendingRatings();
+            }, 30000); // 30 seconds
+            
+            return () => clearInterval(refreshInterval);
         } else {
             setLoading(false);
         }
