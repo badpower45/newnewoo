@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Heart, Check, Minus, ShoppingCart } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
 
@@ -177,6 +177,19 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
 
       {/* Product Info */}
       <div className="px-1 py-1.5">
+        {/* البراند - tag صغير */}
+        {(product as any).brand_name || (product as any).brand_name_ar && (
+          <Link
+            to={`/brands/${(product as any).brand_id}`}
+            onClick={(e) => e.stopPropagation()}
+            className="inline-block mb-1"
+          >
+            <span className="text-[10px] bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-medium hover:bg-orange-200 transition-colors">
+              🏷️ {(product as any).brand_name || (product as any).brand_name_ar}
+            </span>
+          </Link>
+        )}
+        
         {/* اسم المنتج - واضح وبارز */}
         <h4 className="text-sm font-bold text-gray-900 line-clamp-2 mb-1.5 leading-snug min-h-[2.5rem]">
           {title}
