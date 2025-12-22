@@ -4,7 +4,9 @@ import {
     CheckCircle, XCircle, AlertCircle, Loader, Save, Upload, 
     Trash2, Edit2, Eye, EyeOff, Image as ImageIcon, Package
 } from 'lucide-react';
-import { API_URL } from '../../src/config';
+
+// API URL Configuration
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
 
 interface DraftProduct {
     id: number;

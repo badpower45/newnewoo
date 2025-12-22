@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { RotateCcw, Search, Filter, CheckCircle, XCircle, Clock, Package, User, Phone, Mail, Calendar, DollarSign } from 'lucide-react';
+import { RotateCcw, Search, Filter, CheckCircle, XCircle, Clock, Package, User, Phone, Mail, Calendar, DollarSign, Plus } from 'lucide-react';
 import axios from 'axios';
 
 interface ReturnItem {
@@ -27,6 +27,16 @@ const ReturnsManager = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedReturn, setSelectedReturn] = useState<ReturnItem | null>(null);
     const [showModal, setShowModal] = useState(false);
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [orderCode, setOrderCode] = useState('');
+    const [returnReason, setReturnReason] = useState('');
+    const [returnNotes, setReturnNotes] = useState('');
+    const [creatingReturn, setCreatingReturn] = useState(false);
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [orderCode, setOrderCode] = useState('');
+    const [returnReason, setReturnReason] = useState('');
+    const [returnNotes, setReturnNotes] = useState('');
+    const [creatingReturn, setCreatingReturn] = useState(false);
 
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
 
@@ -102,6 +112,47 @@ const ReturnsManager = () => {
         }
     };
 
+    const handleCreateReturn = async (e: React.FormEvent) => {
+        e.preventDefault();
+        
+        if (!orderCode.trim()) {
+            alert('من فضلك أدخل كود الطلب');
+            return;
+        }
+        
+        if (!returnReason.trim()) {
+            alert('من فضلك أدخل سبب المرتجع');
+            return;
+        }
+
+        try {
+            setCreatingReturn(true);
+            const token = localStorage.getItem('token');
+            
+            await axios.post(
+                `${API_BASE_URL}/api/admin-enhanced/returns/create-from-order`,
+                {
+                    order_code: orderCode,
+                    return_reason: returnReason,
+                    return_notes: returnNotes
+                },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            
+            alert('تم إنشاء المرتجع بنجاح');
+            setShowCreateModal(false);
+            setOrderCode('');
+            setReturnReason('');
+            setReturnNotes('');
+            fetchReturns();
+        } catch (error: any) {
+            console.error('Error creating return:', error);
+            alert(error.response?.data?.message || 'فشل إنشاء المرتجع');
+        } finally {
+            setCreatingReturn(false);
+        }
+    };
+
     const getStatusBadge = (status: string) => {
         const badges = {
             pending: { color: 'bg-yellow-100 text-yellow-800', icon: Clock, label: 'قيد المراجعة' },
@@ -144,6 +195,13 @@ const ReturnsManager = () => {
                     <RotateCcw className="text-brand-orange" />
                     إدارة المرتجعات الذكية
                 </h1>
+                <button
+                    onClick={() => setShowCreateModal(true)}
+                    className="bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-orange-600 transition-colors font-medium flex items-center gap-2"
+                >
+                    <Plus size={20} />
+                    إنشاء مرتجع جديد
+                </button>
             </div>
 
             {/* Filters & Search */}
@@ -264,6 +322,91 @@ const ReturnsManager = () => {
                             )}
                         </div>
                     ))}
+                </div>
+            )}
+
+            {/* Create Return Modal */}
+            {showCreateModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="p-6 border-b border-gray-200">
+                            <h2 className="text-2xl font-bold text-gray-900">إنشاء مرتجع جديد</h2>
+                        </div>
+                        
+                        <form onSubmit={handleCreateReturn} className="p-6">
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        كود الطلب (Order Code) *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={orderCode}
+                                        onChange={(e) => setOrderCode(e.target.value)}
+                                        placeholder="مثال: ORD-123456"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        required
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">الكود الموجود في فاتورة العميل</p>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        سبب المرتجع *
+                                    </label>
+                                    <select
+                                        value={returnReason}
+                                        onChange={(e) => setReturnReason(e.target.value)}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                        required
+                                    >
+                                        <option value="">اختر السبب</option>
+                                        <option value="منتج تالف">منتج تالف</option>
+                                        <option value="منتج خاطئ">منتج خاطئ</option>
+                                        <option value="منتج منتهي الصلاحية">منتج منتهي الصلاحية</option>
+                                        <option value="غير مطابق للمواصفات">غير مطابق للمواصفات</option>
+                                        <option value="العميل غير راض">العميل غير راض</option>
+                                        <option value="أخرى">أخرى</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                        ملاحظات إضافية
+                                    </label>
+                                    <textarea
+                                        value={returnNotes}
+                                        onChange={(e) => setReturnNotes(e.target.value)}
+                                        placeholder="تفاصيل إضافية عن المرتجع..."
+                                        rows={4}
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3 mt-6">
+                                <button
+                                    type="submit"
+                                    disabled={creatingReturn}
+                                    className="flex-1 bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-orange-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {creatingReturn ? 'جاري الإنشاء...' : 'إنشاء المرتجع'}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowCreateModal(false);
+                                        setOrderCode('');
+                                        setReturnReason('');
+                                        setReturnNotes('');
+                                    }}
+                                    className="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                                >
+                                    إلغاء
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             )}
         </div>

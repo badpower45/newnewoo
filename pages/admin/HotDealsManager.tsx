@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Loader, Flame, Search, Clock, Bell, AlertCircle } from 'lucide-react';
 import { api } from '../../services/api';
-import { pushNotificationService } from '../../services/pushNotifications';
 import { TableSkeleton } from '../../components/Skeleton';
+
+// Push Notification Service Placeholder
+const pushNotificationService = {
+    sendToAll: async (title: string, body: string) => {
+        console.log('Sending notification:', title, body);
+        // TODO: Implement actual push notification
+    }
+};
 
 interface HotDeal {
     id: number;

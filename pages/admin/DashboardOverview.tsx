@@ -1,7 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { DollarSign, ShoppingBag, Package, AlertTriangle } from 'lucide-react';
 import { api } from '../../services/api';
-import { ORDER_STATUS_LABELS } from '../../src/config';
+
+// Order Status Labels
+const ORDER_STATUS_LABELS: Record<string, string> = {
+    pending: 'بانتظار التأكيد',
+    confirmed: 'تم التأكيد',
+    preparing: 'جاري التحضير',
+    ready: 'تم التحضير بانتظار العميل',
+    out_for_delivery: 'في الطريق',
+    delivered: 'تم التوصيل',
+    cancelled: 'ملغي'
+};
 
 const DashboardOverview = () => {
     const [orders, setOrders] = useState<any[]>([]);
