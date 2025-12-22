@@ -65,10 +65,11 @@ const BranchInventory: React.FC = () => {
 
   const exportCSV = () => {
     if (!items.length) return;
-    const headers = ['product_id', 'product_name', 'branch_price', 'stock_quantity', 'reserved_quantity'];
+    const headers = ['product_id', 'product_name', 'brand_name', 'branch_price', 'stock_quantity', 'reserved_quantity'];
     const rows = items.map(i => [
       i.product_id,
       i.product_name || '',
+      (i as any).brand_name || '',
       i.branch_price ?? 0,
       i.stock_quantity ?? 0,
       i.reserved_quantity ?? 0
@@ -105,20 +106,24 @@ const BranchInventory: React.FC = () => {
   };
 
   return (
-    <div>
+    <div className="p-6">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Branch Inventory</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">إدارة المخزون</h1>
+          <p className="text-gray-600 mt-1">إدارة الفرع وعرض المخزون الحالي</p>
+        </div>
         <div className="flex items-center gap-3">
           <select value={selectedBranchId ?? ''} onChange={e=>setSelectedBranchId(Number(e.target.value))} className="border rounded-lg px-3 py-2">
+            <option value="">اختر الفرع</option>
             {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
           </select>
           <button onClick={exportCSV} disabled={!items.length} className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
             <Download size={18} />
-            Export CSV
+            تصدير CSV
           </button>
           <label className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 cursor-pointer">
             <Upload size={18} />
-            Import CSV
+            استيراد CSV
             <input type="file" accept=".csv" onChange={handleImport} className="hidden" />
           </label>
         </div>
@@ -126,39 +131,45 @@ const BranchInventory: React.FC = () => {
 
       <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-4">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-          <input value={filter} onChange={e=>setFilter(e.target.value)} placeholder="Search products..." className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none" />
+          <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+          <input value={filter} onChange={e=>setFilter(e.target.value)} placeholder="ابحث عن منتج..." className="w-full pr-10 pl-4 py-2 border border-gray-200 rounded-lg focus:outline-none text-right" />
         </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-x-auto">
-        <table className="w-full text-left min-w-[700px]">
+        <table className="w-full text-right min-w-[800px]">
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
-              <th className="px-6 py-3 text-gray-600 font-semibold">Product</th>
-              <th className="px-6 py-3 text-gray-600 font-semibold">Branch Price</th>
-              <th className="px-6 py-3 text-gray-600 font-semibold">Stock</th>
-              <th className="px-6 py-3 text-gray-600 font-semibold">Reserved</th>
-              <th className="px-6 py-3 text-gray-600 font-semibold text-right">Actions</th>
+              <th className="px-6 py-3 text-gray-600 font-semibold">المنتج</th>
+              <th className="px-6 py-3 text-gray-600 font-semibold">البراند</th>
+              <th className="px-6 py-3 text-gray-600 font-semibold">السعر</th>
+              <th className="px-6 py-3 text-gray-600 font-semibold">المخزون</th>
+              <th className="px-6 py-3 text-gray-600 font-semibold">محجوز</th>
+              <th className="px-6 py-3 text-gray-600 font-semibold">الإجراءات</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {toShow.map((bp, index) => (
               <tr key={`${bp.branch_id}-${bp.product_id}-${index}`} className="hover:bg-gray-50">
                 <td className="px-6 py-3 font-medium text-gray-900">{bp.product_name || `#${bp.product_id}`}</td>
+                <td className="px-6 py-3 text-gray-600">
+                  <span className="inline-flex items-center gap-1 px-2 py-1 bg-orange-100 text-orange-700 rounded text-sm">
+                    🏷️ {(bp as any).brand_name || 'بدون براند'}
+                  </span>
+                </td>
                 <td className="px-6 py-3">
                   <div className="flex items-center gap-2">
                     <Edit2 size={14} className="text-gray-400" />
-                    <input type="number" value={bp.branch_price ?? 0} onChange={e=>onChange(bp.product_id, 'branch_price', Number(e.target.value))} className="w-28 border rounded px-2 py-1" />
+                    <input type="number" value={bp.branch_price ?? 0} onChange={e=>onChange(bp.product_id, 'branch_price', Number(e.target.value))} className="w-28 border rounded px-2 py-1 text-right" />
                   </div>
                 </td>
                 <td className="px-6 py-3">
-                  <input type="number" value={bp.stock_quantity ?? 0} onChange={e=>onChange(bp.product_id, 'stock_quantity', Number(e.target.value))} className="w-24 border rounded px-2 py-1" />
+                  <input type="number" value={bp.stock_quantity ?? 0} onChange={e=>onChange(bp.product_id, 'stock_quantity', Number(e.target.value))} className="w-24 border rounded px-2 py-1 text-right" />
                 </td>
                 <td className="px-6 py-3 text-gray-600">{bp.reserved_quantity ?? 0}</td>
-                <td className="px-6 py-3 text-right">
+                <td className="px-6 py-3">
                   <button onClick={()=>saveItem(bp)} className="inline-flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50" disabled={saving}>
-                    <Save size={16} /> Save
+                    <Save size={16} /> حفظ
                   </button>
                 </td>
               </tr>

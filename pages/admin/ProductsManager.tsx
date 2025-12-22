@@ -648,8 +648,12 @@ const ProductsManager = () => {
                                 </label>
                                 <select
                                     value={form.brandId || ''}
-                                    onChange={e => setForm({ ...form, brandId: e.target.value ? parseInt(e.target.value) : undefined })}
-                                    className="w-full px-3 py-2 border rounded-md"
+                                    onChange={e => {
+                                        const newBrandId = e.target.value ? parseInt(e.target.value) : undefined;
+                                        console.log('🏷️ Brand selected:', newBrandId);
+                                        setForm({ ...form, brandId: newBrandId });
+                                    }}
+                                    className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                                 >
                                     <option value="">بدون براند</option>
                                     {brands.map(brand => (
@@ -658,9 +662,16 @@ const ProductsManager = () => {
                                         </option>
                                     ))}
                                 </select>
-                                <p className="text-xs text-gray-500 mt-1">
-                                    💡 اختر البراند المناسب للمنتج لربطه بصفحة البراند الديناميكية
-                                </p>
+                                {form.brandId && (
+                                    <p className="text-xs text-green-600 mt-1">
+                                        ✅ تم اختيار البراند (ID: {form.brandId})
+                                    </p>
+                                )}
+                                {!form.brandId && (
+                                    <p className="text-xs text-gray-500 mt-1">
+                                        💡 اختر البراند المناسب للمنتج لربطه بصفحة البراند الديناميكية
+                                    </p>
+                                )}
                             </div>  <label className="block text-sm font-medium mb-1">التصنيف الفرعي</label>
                                     <select
                                         value={form.subcategory}

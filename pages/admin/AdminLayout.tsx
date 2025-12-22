@@ -11,7 +11,7 @@ const AdminLayout = () => {
 
     // Check if user has access to admin panel
     useEffect(() => {
-        if (user && !['admin', 'manager', 'distributor'].includes(user.role || '')) {
+        if (user && !['admin', 'manager', 'distributor', 'returns_manager'].includes(user.role || '')) {
             // Redirect unauthorized users (delivery goes to /delivery, others to home)
             if (user.role === 'delivery') {
                 navigate('/delivery');
@@ -33,37 +33,80 @@ const AdminLayout = () => {
 
     const isActive = (path: string) => location.pathname === path;
 
-    // Define menu items with role-based access control
-    const allNavItems = [
-        { path: '/admin', icon: <LayoutDashboard size={20} />, label: 'لوحة التحكم', roles: ['admin', 'manager'] },
-        { path: '/admin/analytics', icon: <BarChart3 size={20} />, label: 'تحليلات العملاء', roles: ['admin', 'manager'] },
-        { path: '/admin/products', icon: <Package size={20} />, label: 'المنتجات', roles: ['admin', 'manager'] },
-        { path: '/admin/categories', icon: <FolderTree size={20} />, label: 'التصنيفات', roles: ['admin', 'manager'] },
-        { path: '/admin/category-banners', icon: <LayoutGrid size={20} />, label: 'بانرات التصنيفات', roles: ['admin', 'manager'] },
-        { path: '/admin/product-importer', icon: <FileSpreadsheet size={20} />, label: 'استيراد Excel', roles: ['admin', 'manager'] },
-        { path: '/admin/returns', icon: <RotateCcw size={20} />, label: 'المرتجعات الذكية', roles: ['admin', 'manager', 'returns_employee'] },
-        { path: '/admin/orders', icon: <ShoppingBag size={20} />, label: 'الطلبات', roles: ['admin', 'manager'] },
-        { path: '/admin/distribution', icon: <ClipboardList size={20} />, label: 'توزيع الطلبات', roles: ['admin', 'manager', 'distributor'] },
-        { path: '/admin/delivery-staff', icon: <Truck size={20} />, label: 'موظفي التوصيل', roles: ['admin', 'manager'] },
-        { path: '/admin/branches', icon: <Store size={20} />, label: 'الفروع', roles: ['admin', 'manager'] },
-        { path: '/admin/inventory', icon: <Boxes size={20} />, label: 'المخزون', roles: ['admin', 'manager'] },
-        { path: '/admin/slots', icon: <CalendarClock size={20} />, label: 'مواعيد التوصيل', roles: ['admin', 'manager'] },
-        { path: '/admin/coupons', icon: <Tag size={20} />, label: 'الكوبونات', roles: ['admin', 'manager'] },
-        { path: '/admin/stories', icon: <CircleDot size={20} />, label: 'الاستوريز', roles: ['admin', 'manager'] },
-        { path: '/admin/facebook-reels', icon: <Facebook size={20} />, label: 'ريلز فيسبوك', roles: ['admin', 'manager'] },
-        { path: '/admin/brand-offers', icon: <Gift size={20} />, label: 'عروض البراندات', roles: ['admin', 'manager'] },
-        { path: '/admin/brands', icon: <Briefcase size={20} />, label: 'إدارة البراندات', roles: ['admin', 'manager'] },
-        { path: '/admin/magazine', icon: <BookOpen size={20} />, label: 'مجلة العروض', roles: ['admin', 'manager'] },
-        { path: '/admin/hot-deals', icon: <Flame size={20} />, label: 'العروض الساخنة', roles: ['admin', 'manager'] },
-        { path: '/admin/home-sections', icon: <LayoutGrid size={20} />, label: 'أقسام الرئيسية', roles: ['admin', 'manager'] },
-        { path: '/admin/employees', icon: <Users size={20} />, label: 'الموظفين', roles: ['admin'] },
-        { path: '/admin/chat', icon: <MessageCircle size={20} />, label: 'الدردشة', roles: ['admin'] },
-        { path: '/admin/settings', icon: <Settings size={20} />, label: 'الإعدادات', roles: ['admin'] },
+    // Define menu sections with role-based access control
+    const menuSections = [
+        {
+            title: '📊 الإحصائيات',
+            items: [
+                { path: '/admin', icon: <LayoutDashboard size={20} />, label: 'لوحة التحكم', roles: ['admin', 'manager'] },
+                { path: '/admin/analytics', icon: <BarChart3 size={20} />, label: 'تحليلات العملاء', roles: ['admin', 'manager'] },
+            ]
+        },
+        {
+            title: '📦 إدارة المنتجات',
+            items: [
+                { path: '/admin/products', icon: <Package size={20} />, label: 'المنتجات', roles: ['admin', 'manager'] },
+                { path: '/admin/categories', icon: <FolderTree size={20} />, label: 'التصنيفات', roles: ['admin', 'manager'] },
+                { path: '/admin/brands', icon: <Briefcase size={20} />, label: 'إدارة البراندات', roles: ['admin', 'manager'] },
+                { path: '/admin/product-importer', icon: <FileSpreadsheet size={20} />, label: 'استيراد Excel', roles: ['admin', 'manager'] },
+            ]
+        },
+        {
+            title: '🛒 الطلبات والتوزيع',
+            items: [
+                { path: '/admin/orders', icon: <ShoppingBag size={20} />, label: 'الطلبات', roles: ['admin', 'manager'] },
+                { path: '/admin/distribution', icon: <ClipboardList size={20} />, label: 'توزيع الطلبات', roles: ['admin', 'manager', 'distributor'] },
+                { path: '/admin/returns', icon: <RotateCcw size={20} />, label: 'المرتجعات الذكية', roles: ['admin', 'manager', 'returns_manager'] },
+            ]
+        },
+        {
+            title: '🏪 الفروع والمخزون',
+            items: [
+                { path: '/admin/branches', icon: <Store size={20} />, label: 'الفروع', roles: ['admin', 'manager'] },
+                { path: '/admin/inventory', icon: <Boxes size={20} />, label: 'المخزون', roles: ['admin', 'manager'] },
+            ]
+        },
+        {
+            title: '🎁 العروض والتسويق',
+            items: [
+                { path: '/admin/magazine', icon: <BookOpen size={20} />, label: 'مجلة العروض', roles: ['admin', 'manager'] },
+                { path: '/admin/hot-deals', icon: <Flame size={20} />, label: 'العروض الساخنة', roles: ['admin', 'manager'] },
+                { path: '/admin/brand-offers', icon: <Gift size={20} />, label: 'عروض البراندات', roles: ['admin', 'manager'] },
+                { path: '/admin/coupons', icon: <Tag size={20} />, label: 'الكوبونات', roles: ['admin', 'manager'] },
+                { path: '/admin/category-banners', icon: <LayoutGrid size={20} />, label: 'بانرات التصنيفات', roles: ['admin', 'manager'] },
+            ]
+        },
+        {
+            title: '📱 المحتوى التفاعلي',
+            items: [
+                { path: '/admin/stories', icon: <CircleDot size={20} />, label: 'الاستوريز', roles: ['admin', 'manager'] },
+                { path: '/admin/facebook-reels', icon: <Facebook size={20} />, label: 'ريلز فيسبوك', roles: ['admin', 'manager'] },
+                { path: '/admin/home-sections', icon: <LayoutGrid size={20} />, label: 'أقسام الرئيسية', roles: ['admin', 'manager'] },
+            ]
+        },
+        {
+            title: '👥 الموظفين والتوصيل',
+            items: [
+                { path: '/admin/employees', icon: <Users size={20} />, label: 'الموظفين', roles: ['admin'] },
+                { path: '/admin/delivery-staff', icon: <Truck size={20} />, label: 'موظفي التوصيل', roles: ['admin', 'manager'] },
+                { path: '/admin/slots', icon: <CalendarClock size={20} />, label: 'مواعيد التوصيل', roles: ['admin', 'manager'] },
+            ]
+        },
+        {
+            title: '⚙️ النظام',
+            items: [
+                { path: '/admin/chat', icon: <MessageCircle size={20} />, label: 'الدردشة', roles: ['admin'] },
+                { path: '/admin/settings', icon: <Settings size={20} />, label: 'الإعدادات', roles: ['admin'] },
+            ]
+        },
     ];
 
     // Filter menu items based on user role
     const userRole = user?.role || 'customer';
-    const navItems = allNavItems.filter(item => item.roles.includes(userRole));
+    const filteredSections = menuSections.map(section => ({
+        ...section,
+        items: section.items.filter(item => item.roles.includes(userRole))
+    })).filter(section => section.items.length > 0);
 
     return (
         <div className="flex h-screen bg-gray-100">
@@ -99,18 +142,27 @@ const AdminLayout = () => {
                     <p className="text-xs lg:text-sm text-gray-500 truncate">مرحباً، {user?.name || 'Guest'}</p>
                 </div>
                 <nav className="flex-1 p-2 lg:p-4 space-y-1 lg:space-y-2 overflow-y-auto">
-                    {navItems.map((item) => (
-                        <Link
-                            key={item.path}
-                            to={item.path}
-                            className={`flex items-center gap-3 px-3 lg:px-4 py-2.5 lg:py-3 rounded-xl transition-colors ${isActive(item.path)
-                                ? 'bg-brand-orange text-white shadow-md'
-                                : 'text-gray-600 hover:bg-gray-50'
-                                }`}
-                        >
-                            {item.icon}
-                            <span className="font-medium text-sm lg:text-base">{item.label}</span>
-                        </Link>
+                    {filteredSections.map((section, idx) => (
+                        <div key={idx} className="mb-4">
+                            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-3 mb-2">
+                                {section.title}
+                            </h3>
+                            <div className="space-y-1">
+                                {section.items.map((item) => (
+                                    <Link
+                                        key={item.path}
+                                        to={item.path}
+                                        className={`flex items-center gap-3 px-3 lg:px-4 py-2.5 lg:py-3 rounded-xl transition-colors ${isActive(item.path)
+                                            ? 'bg-brand-orange text-white shadow-md'
+                                            : 'text-gray-600 hover:bg-gray-50'
+                                            }`}
+                                    >
+                                        {item.icon}
+                                        <span className="font-medium text-sm lg:text-base">{item.label}</span>
+                                    </Link>
+                                ))}
+                            </div>
+                        </div>
                     ))}
                 </nav>
                 <div className="p-2 lg:p-4 border-t">
