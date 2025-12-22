@@ -99,15 +99,34 @@ const BrandsManager: React.FC = () => {
 
     const handleImageUpload = async (file: File, type: 'logo' | 'banner') => {
         try {
-            // This would call Cloudinary upload
-            const uploadedUrl = await api.images.upload(file);
+            console.log(`📤 Uploading ${type}...`, file.name);
+            
+            // Show loading state
+            const loadingKey = type === 'logo' ? 'logo_url' : 'banner_url';
             setFormData({
                 ...formData,
-                [type === 'logo' ? 'logo_url' : 'banner_url']: uploadedUrl
+                [loadingKey]: 'uploading...'
             });
-        } catch (error) {
-            console.error('Error uploading image:', error);
-            alert('حدث خطأ أثناء رفع الصورة');
+            
+            // Upload to Cloudinary
+            const uploadedUrl = await api.images.uploadBrandImage(file, type, editingBrand?.id || formData.id);
+            
+            console.log(`✅ ${type} uploaded:`, uploadedUrl);
+            
+            setFormData({
+                ...formData,
+                [loadingKey]: uploadedUrl
+            });
+        } catch (error: any) {
+            console.error('❌ Error uploading image:', error);
+            alert(`حدث خطأ أثناء رفع ${type === 'logo' ? 'الشعار' : 'الغلاف'}: ${error.message}`);
+            
+            // Remove loading state
+            const loadingKey = type === 'logo' ? 'logo_url' : 'banner_url';
+            setFormData({
+                ...formData,
+                [loadingKey]: formData[loadingKey] === 'uploading...' ? '' : formData[loadingKey]
+            });
         }
     };
 
@@ -248,17 +267,35 @@ const BrandsManager: React.FC = () => {
                         شعار البراند (Logo)
                     </label>
                     <div className="flex items-center gap-4">
-                        {formData.logo_url && (
-                            <img 
-                                src={formData.logo_url} 
-                                alt="Logo" 
-                                className="w-20 h-20 object-contain border rounded-lg"
-                            />
+                        {formData.logo_url && formData.logo_url !== 'uploading...' && (
+                            <div className="relative">
+                                <img 
+                                    src={formData.logo_url} 
+                                    alt="Logo" 
+                                    className="w-20 h-20 object-contain border rounded-lg bg-white"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, logo_url: '' })}
+                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                                    title="حذف الصورة"
+                                >
+                                    <X size={14} />
+                                </button>
+                            </div>
+                        )}
+                        {formData.logo_url === 'uploading...' && (
+                            <div className="w-20 h-20 border rounded-lg flex items-center justify-center bg-gray-50">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                            </div>
                         )}
                         <label className="flex-1 cursor-pointer">
                             <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-orange-500 transition-colors">
                                 <Upload size={20} className="mx-auto mb-2 text-gray-400" />
-                                <span className="text-sm text-gray-600">اختر صورة الشعار</span>
+                                <span className="text-sm text-gray-600">
+                                    {formData.logo_url === 'uploading...' ? 'جاري الرفع...' : 'اختر صورة الشعار'}
+                                </span>
+                                <p className="text-xs text-gray-400 mt-1">400×400 - PNG/JPG</p>
                             </div>
                             <input
                                 type="file"
@@ -268,6 +305,7 @@ const BrandsManager: React.FC = () => {
                                     if (file) handleImageUpload(file, 'logo');
                                 }}
                                 className="hidden"
+                                disabled={formData.logo_url === 'uploading...'}
                             />
                         </label>
                     </div>
@@ -280,17 +318,35 @@ const BrandsManager: React.FC = () => {
                         صورة الغلاف (Banner)
                     </label>
                     <div className="flex items-center gap-4">
-                        {formData.banner_url && (
-                            <img 
-                                src={formData.banner_url} 
-                                alt="Banner" 
-                                className="w-32 h-20 object-cover border rounded-lg"
-                            />
+                        {formData.banner_url && formData.banner_url !== 'uploading...' && (
+                            <div className="relative">
+                                <img 
+                                    src={formData.banner_url} 
+                                    alt="Banner" 
+                                    className="w-32 h-20 object-cover border rounded-lg"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, banner_url: '' })}
+                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                                    title="حذف الصورة"
+                                >
+                                    <X size={14} />
+                                </button>
+                            </div>
+                        )}
+                        {formData.banner_url === 'uploading...' && (
+                            <div className="w-32 h-20 border rounded-lg flex items-center justify-center bg-gray-50">
+                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                            </div>
                         )}
                         <label className="flex-1 cursor-pointer">
                             <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-orange-500 transition-colors">
                                 <Upload size={20} className="mx-auto mb-2 text-gray-400" />
-                                <span className="text-sm text-gray-600">اختر صورة الغلاف</span>
+                                <span className="text-sm text-gray-600">
+                                    {formData.banner_url === 'uploading...' ? 'جاري الرفع...' : 'اختر صورة الغلاف'}
+                                </span>
+                                <p className="text-xs text-gray-400 mt-1">1200×400 - PNG/JPG</p>
                             </div>
                             <input
                                 type="file"
@@ -300,6 +356,7 @@ const BrandsManager: React.FC = () => {
                                     if (file) handleImageUpload(file, 'banner');
                                 }}
                                 className="hidden"
+                                disabled={formData.banner_url === 'uploading...'}
                             />
                         </label>
                     </div>

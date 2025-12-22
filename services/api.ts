@@ -1587,9 +1587,9 @@ export const api = {
     images: {
         upload: async (file: File) => {
             const formData = new FormData();
-            formData.append('file', file);
+            formData.append('image', file);
             
-            const res = await fetch(`${API_URL}/images/upload`, {
+            const res = await fetch(`${API_URL}/upload/single`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -1598,7 +1598,28 @@ export const api = {
             });
             if (!res.ok) throw new Error('Failed to upload image');
             const data = await res.json();
-            return data.url;
+            return data.data.url;
+        },
+        uploadBrandImage: async (file: File, type: 'logo' | 'banner', brandId?: string) => {
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('type', type);
+            if (brandId) formData.append('brandId', brandId);
+            else formData.append('brandId', `temp_${Date.now()}`);
+            
+            const res = await fetch(`${API_URL}/upload/brand`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: formData
+            });
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.error || 'Failed to upload brand image');
+            }
+            const data = await res.json();
+            return data.data.url;
         }
     },
 
