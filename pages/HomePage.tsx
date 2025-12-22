@@ -339,7 +339,21 @@ const HomePage = () => {
                         return (
                             <section key={section.id} className="relative mt-12">
                                 <div className="rounded-[28px] overflow-hidden shadow-[0_12px_30px_rgba(0,0,0,0.06)] border border-white/60 bg-white/90 backdrop-blur-[2px]">
-                                    {/* Banner Removed as per request */}
+                                    {/* Section Banner */}
+                                    {section.banner_image && (
+                                        <div className="relative h-44 md:h-48 overflow-hidden">
+                                            <img 
+                                                src={section.banner_image} 
+                                                alt={section.section_name_ar}
+                                                className="w-full h-full object-cover"
+                                            />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                                            <div className="absolute bottom-4 right-4 md:bottom-6 md:right-6 text-white">
+                                                <h2 className="text-2xl md:text-3xl font-bold drop-shadow-lg">{section.section_name_ar}</h2>
+                                                <p className="text-sm md:text-base text-white/90 mt-1">{section.section_name}</p>
+                                            </div>
+                                        </div>
+                                    )}
                                     
                                     <div className="px-3 sm:px-4 md:px-5 pb-5 pt-4 bg-white">
                                         <div className="flex items-center justify-between mb-4">

@@ -20,6 +20,27 @@ interface ReturnItem {
     user_id: number;
 }
 
+interface OrderProduct {
+    id: number;
+    name: string;
+    price: number;
+    quantity: number;
+    return_quantity: number;
+    image?: string;
+}
+
+interface OrderDetails {
+    id: number;
+    order_number: string;
+    user_id: number;
+    customer_name: string;
+    customer_phone: string;
+    customer_email: string;
+    total: number;
+    items: OrderProduct[];
+    loyalty_points_earned?: number;
+}
+
 const ReturnsManager = () => {
     const [returns, setReturns] = useState<ReturnItem[]>([]);
     const [loading, setLoading] = useState(true);
@@ -32,6 +53,10 @@ const ReturnsManager = () => {
     const [returnReason, setReturnReason] = useState('');
     const [returnNotes, setReturnNotes] = useState('');
     const [creatingReturn, setCreatingReturn] = useState(false);
+    const [orderDetails, setOrderDetails] = useState<OrderDetails | null>(null);
+    const [returnProducts, setReturnProducts] = useState<OrderProduct[]>([]);
+    const [loadingOrder, setLoadingOrder] = useState(false);
+    const [step, setStep] = useState<'code' | 'review' | 'confirm'>('code');
 
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
 
@@ -114,9 +139,67 @@ const ReturnsManager = () => {
             alert('من فضلك أدخل كود الطلب');
             return;
         }
-        
+
+        try {
+            setLoadingOrder(true);
+            const token = localStorage.getItem('token');
+            
+            // Fetch order details
+            const response = await axios.get(
+                `${API_BASE_URL}/api/admin-enhanced/orders/${orderCode}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            
+            const order = response.data.data;
+            
+            setOrderDetails(order);
+            
+            // Initialize return products with all items
+            const products = Array.isArray(order.items) ? order.items : JSON.parse(order.items || '[]');
+            setReturnProducts(products.map((item: any) => ({
+                ...item,
+                return_quantity: item.quantity // Default: return all
+            })));
+            
+            setStep('review');
+        } catch (error: any) {
+            console.error('Error fetching order:', error);
+            alert(error.response?.data?.message || 'لم يتم العثور على الطلب');
+        } finally {
+            setLoadingOrder(false);
+        }
+    };
+
+    const updateReturnQuantity = (productId: number, newQuantity: number) => {
+        setReturnProducts(prev => 
+            prev.map(p => 
+                p.id === productId 
+                    ? { ...p, return_quantity: Math.max(0, Math.min(newQuantity, p.quantity)) }
+                    : p
+            )
+        );
+    };
+
+    const removeProduct = (productId: number) => {
+        setReturnProducts(prev => 
+            prev.map(p => p.id === productId ? { ...p, return_quantity: 0 } : p)
+        );
+    };
+
+    const calculateRefund = () => {
+        return returnProducts.reduce((sum, p) => sum + (p.price * p.return_quantity), 0);
+    };
+
+    const confirmReturn = async () => {
         if (!returnReason.trim()) {
             alert('من فضلك أدخل سبب المرتجع');
+            return;
+        }
+
+        const itemsToReturn = returnProducts.filter(p => p.return_quantity > 0);
+        
+        if (itemsToReturn.length === 0) {
+            alert('من فضلك اختر منتجات للمرتجع');
             return;
         }
 
@@ -125,20 +208,26 @@ const ReturnsManager = () => {
             const token = localStorage.getItem('token');
             
             await axios.post(
-                `${API_BASE_URL}/api/admin-enhanced/returns/create-from-order`,
+                `${API_BASE_URL}/api/admin-enhanced/returns/create-full`,
                 {
                     order_code: orderCode,
                     return_reason: returnReason,
-                    return_notes: returnNotes
+                    return_notes: returnNotes,
+                    items: itemsToReturn.map(p => ({
+                        product_id: p.id,
+                        name: p.name,
+                        price: p.price,
+                        quantity: p.return_quantity
+                    })),
+                    refund_amount: calculateRefund(),
+                    update_inventory: true,
+                    update_loyalty: true
                 },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             
-            alert('تم إنشاء المرتجع بنجاح');
-            setShowCreateModal(false);
-            setOrderCode('');
-            setReturnReason('');
-            setReturnNotes('');
+            alert('تم إنشاء المرتجع بنجاح وتحديث المخزون ونقاط الولاء');
+            resetForm();
             fetchReturns();
         } catch (error: any) {
             console.error('Error creating return:', error);
@@ -146,6 +235,16 @@ const ReturnsManager = () => {
         } finally {
             setCreatingReturn(false);
         }
+    };
+
+    const resetForm = () => {
+        setShowCreateModal(false);
+        setOrderCode('');
+        setReturnReason('');
+        setReturnNotes('');
+        setOrderDetails(null);
+        setReturnProducts([]);
+        setStep('code');
     };
 
     const getStatusBadge = (status: string) => {
@@ -323,84 +422,213 @@ const ReturnsManager = () => {
             {/* Create Return Modal */}
             {showCreateModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                        <div className="p-6 border-b border-gray-200">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                        <div className="p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
                             <h2 className="text-2xl font-bold text-gray-900">إنشاء مرتجع جديد</h2>
+                            <div className="flex gap-2 mt-4">
+                                <div className={`flex-1 h-2 rounded ${step === 'code' ? 'bg-orange-500' : 'bg-gray-300'}`} />
+                                <div className={`flex-1 h-2 rounded ${step === 'review' ? 'bg-orange-500' : 'bg-gray-300'}`} />
+                                <div className={`flex-1 h-2 rounded ${step === 'confirm' ? 'bg-orange-500' : 'bg-gray-300'}`} />
+                            </div>
                         </div>
                         
-                        <form onSubmit={handleCreateReturn} className="p-6">
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        كود الطلب (Order Code) *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={orderCode}
-                                        onChange={(e) => setOrderCode(e.target.value)}
-                                        placeholder="مثال: ORD-123456"
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                        required
-                                    />
-                                    <p className="text-xs text-gray-500 mt-1">الكود الموجود في فاتورة العميل</p>
-                                </div>
+                        <div className="p-6">
+                            {/* Step 1: Enter Order Code */}
+                            {step === 'code' && (
+                                <form onSubmit={handleCreateReturn} className="space-y-4">
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                            كود الطلب (Order Code) *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={orderCode}
+                                            onChange={(e) => setOrderCode(e.target.value)}
+                                            placeholder="مثال: ORD-123456"
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent text-lg"
+                                            required
+                                            autoFocus
+                                        />
+                                        <p className="text-xs text-gray-500 mt-1">الكود الموجود في فاتورة العميل</p>
+                                    </div>
 
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        سبب المرتجع *
-                                    </label>
-                                    <select
-                                        value={returnReason}
-                                        onChange={(e) => setReturnReason(e.target.value)}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                        required
-                                    >
-                                        <option value="">اختر السبب</option>
-                                        <option value="منتج تالف">منتج تالف</option>
-                                        <option value="منتج خاطئ">منتج خاطئ</option>
-                                        <option value="منتج منتهي الصلاحية">منتج منتهي الصلاحية</option>
-                                        <option value="غير مطابق للمواصفات">غير مطابق للمواصفات</option>
-                                        <option value="العميل غير راض">العميل غير راض</option>
-                                        <option value="أخرى">أخرى</option>
-                                    </select>
-                                </div>
+                                    <div className="flex gap-3">
+                                        <button
+                                            type="submit"
+                                            disabled={loadingOrder}
+                                            className="flex-1 bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-orange-600 transition-colors font-medium disabled:opacity-50"
+                                        >
+                                            {loadingOrder ? 'جاري التحميل...' : 'عرض الطلب'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={resetForm}
+                                            className="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                                        >
+                                            إلغاء
+                                        </button>
+                                    </div>
+                                </form>
+                            )}
 
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                        ملاحظات إضافية
-                                    </label>
-                                    <textarea
-                                        value={returnNotes}
-                                        onChange={(e) => setReturnNotes(e.target.value)}
-                                        placeholder="تفاصيل إضافية عن المرتجع..."
-                                        rows={4}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                                    />
-                                </div>
-                            </div>
+                            {/* Step 2: Review & Edit Products */}
+                            {step === 'review' && orderDetails && (
+                                <div className="space-y-4">
+                                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                                        <h3 className="font-bold text-blue-900 mb-2">معلومات الطلب</h3>
+                                        <div className="grid grid-cols-2 gap-2 text-sm">
+                                            <p><span className="font-semibold">رقم الطلب:</span> {orderDetails.order_number}</p>
+                                            <p><span className="font-semibold">العميل:</span> {orderDetails.customer_name}</p>
+                                            <p><span className="font-semibold">الهاتف:</span> {orderDetails.customer_phone}</p>
+                                            <p><span className="font-semibold">الإجمالي:</span> {orderDetails.total} جنيه</p>
+                                        </div>
+                                    </div>
 
-                            <div className="flex gap-3 mt-6">
-                                <button
-                                    type="submit"
-                                    disabled={creatingReturn}
-                                    className="flex-1 bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-orange-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    {creatingReturn ? 'جاري الإنشاء...' : 'إنشاء المرتجع'}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setShowCreateModal(false);
-                                        setOrderCode('');
-                                        setReturnReason('');
-                                        setReturnNotes('');
-                                    }}
-                                    className="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition-colors font-medium"
-                                >
-                                    إلغاء
-                                </button>
-                            </div>
-                        </form>
+                                    <div>
+                                        <h3 className="font-bold text-gray-900 mb-3">المنتجات - حدد الكميات المرتجعة</h3>
+                                        <div className="space-y-3">
+                                            {returnProducts.map((product) => (
+                                                <div key={product.id} className="border border-gray-200 rounded-lg p-4">
+                                                    <div className="flex items-center gap-4">
+                                                        {product.image && (
+                                                            <img src={product.image} alt={product.name} className="w-16 h-16 object-cover rounded" />
+                                                        )}
+                                                        <div className="flex-1">
+                                                            <h4 className="font-semibold text-gray-900">{product.name}</h4>
+                                                            <p className="text-sm text-gray-600">السعر: {product.price} جنيه</p>
+                                                            <p className="text-sm text-gray-600">الكمية الأصلية: {product.quantity}</p>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <button
+                                                                onClick={() => updateReturnQuantity(product.id, product.return_quantity - 1)}
+                                                                className="w-8 h-8 bg-gray-200 rounded hover:bg-gray-300 text-gray-700 font-bold"
+                                                                disabled={product.return_quantity === 0}
+                                                            >
+                                                                -
+                                                            </button>
+                                                            <input
+                                                                type="number"
+                                                                value={product.return_quantity}
+                                                                onChange={(e) => updateReturnQuantity(product.id, parseInt(e.target.value) || 0)}
+                                                                className="w-16 px-2 py-1 border border-gray-300 rounded text-center"
+                                                                min="0"
+                                                                max={product.quantity}
+                                                            />
+                                                            <button
+                                                                onClick={() => updateReturnQuantity(product.id, product.return_quantity + 1)}
+                                                                className="w-8 h-8 bg-gray-200 rounded hover:bg-gray-300 text-gray-700 font-bold"
+                                                                disabled={product.return_quantity >= product.quantity}
+                                                            >
+                                                                +
+                                                            </button>
+                                                            <button
+                                                                onClick={() => removeProduct(product.id)}
+                                                                className="ml-2 text-red-500 hover:text-red-700"
+                                                                title="حذف من المرتجع"
+                                                            >
+                                                                <XCircle size={24} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <p className="text-sm text-orange-600 font-semibold mt-2">
+                                                        المبلغ المسترجع: {product.price * product.return_quantity} جنيه
+                                                    </p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                                        <p className="text-lg font-bold text-green-900">
+                                            إجمالي المبلغ المسترجع: {calculateRefund()} جنيه
+                                        </p>
+                                    </div>
+
+                                    <div className="flex gap-3">
+                                        <button
+                                            onClick={() => setStep('confirm')}
+                                            className="flex-1 bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-orange-600 transition-colors font-medium"
+                                        >
+                                            التالي
+                                        </button>
+                                        <button
+                                            onClick={() => setStep('code')}
+                                            className="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                                        >
+                                            رجوع
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Step 3: Confirm & Submit */}
+                            {step === 'confirm' && (
+                                <div className="space-y-4">
+                                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                                        <h3 className="font-bold text-yellow-900 mb-2">⚠️ تأكيد المرتجع</h3>
+                                        <p className="text-sm text-yellow-800">
+                                            سيتم تنفيذ التالي:
+                                        </p>
+                                        <ul className="list-disc list-inside text-sm text-yellow-800 mt-2">
+                                            <li>إضافة المنتجات المرتجعة إلى المخزون</li>
+                                            <li>تقليل نقاط الولاء من حساب العميل</li>
+                                            <li>إنشاء سجل المرتجع بمبلغ {calculateRefund()} جنيه</li>
+                                        </ul>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                            سبب المرتجع *
+                                        </label>
+                                        <select
+                                            value={returnReason}
+                                            onChange={(e) => setReturnReason(e.target.value)}
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                            required
+                                        >
+                                            <option value="">اختر السبب</option>
+                                            <option value="منتج تالف">منتج تالف</option>
+                                            <option value="منتج خاطئ">منتج خاطئ</option>
+                                            <option value="منتج منتهي الصلاحية">منتج منتهي الصلاحية</option>
+                                            <option value="غير مطابق للمواصفات">غير مطابق للمواصفات</option>
+                                            <option value="العميل غير راض">العميل غير راض</option>
+                                            <option value="تغيير في الطلب">تغيير في الطلب</option>
+                                            <option value="أخرى">أخرى</option>
+                                        </select>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                            ملاحظات إضافية
+                                        </label>
+                                        <textarea
+                                            value={returnNotes}
+                                            onChange={(e) => setReturnNotes(e.target.value)}
+                                            placeholder="تفاصيل إضافية عن المرتجع..."
+                                            rows={4}
+                                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                        />
+                                    </div>
+
+                                    <div className="flex gap-3">
+                                        <button
+                                            onClick={confirmReturn}
+                                            disabled={creatingReturn || !returnReason}
+                                            className="flex-1 bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors font-medium disabled:opacity-50 flex items-center justify-center gap-2"
+                                        >
+                                            <CheckCircle size={20} />
+                                            {creatingReturn ? 'جاري الإنشاء...' : 'تأكيد المرتجع'}
+                                        </button>
+                                        <button
+                                            onClick={() => setStep('review')}
+                                            className="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                                        >
+                                            رجوع
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}
