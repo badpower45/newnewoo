@@ -20,7 +20,8 @@ const emptyProduct = {
     weight: '',
     rating: 0,
     reviews: 0,
-    shelfLocation: ''
+    shelfLocation: '',
+    brandId: undefined as number | undefined
 };
 
 // Will be loaded from API
