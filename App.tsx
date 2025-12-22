@@ -57,7 +57,7 @@ import OrdersManager from './pages/admin/OrdersManager';
 import EmployeesManager from './pages/admin/EmployeesManager';
 import LiveChatDashboard from './pages/admin/LiveChatDashboard';
 import BranchesManager from './pages/admin/BranchesManager';
-import BranchInventory from './pages/admin/BranchInventory';
+import InventoryDashboard from './pages/admin/InventoryDashboard';
 import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 import OrderDistributorPage from './pages/admin/OrderDistributorPage';
 import DeliveryStaffManager from './pages/admin/DeliveryStaffManager';
@@ -172,7 +172,7 @@ function AppContent() {
               <Route path="upload" element={<ProductUploadPage />} />
               <Route path="orders" element={<OrdersManager />} />
               <Route path="branches" element={<BranchesManager />} />
-              <Route path="inventory" element={<BranchInventory />} />
+              <Route path="inventory" element={<InventoryDashboard />} />
               <Route path="slots" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><DeliverySlotsManager /></ProtectedRoute>} />
               <Route path="coupons" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><CouponsManager /></ProtectedRoute>} />
               <Route path="magazine" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><MagazineManager /></ProtectedRoute>} />

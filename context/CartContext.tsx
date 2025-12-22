@@ -53,9 +53,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
     } else {
       try {
         const saved = localStorage.getItem('cart_items');
-        if (saved) setItems(JSON.parse(saved));
+        const timestamp = localStorage.getItem('cart_timestamp');
+        
+        // Expire cart after 30 days
+        if (timestamp && Date.now() - parseInt(timestamp) > 30 * 24 * 60 * 60 * 1000) {
+          console.log('🗑️ Cart expired, clearing...');
+          localStorage.removeItem('cart_items');
+          localStorage.removeItem('cart_timestamp');
+          localStorage.removeItem('cart_version');
+          setItems([]);
+        } else if (saved) {
+          setItems(JSON.parse(saved));
+        }
       } catch (error) {
         console.error('Failed to load cart from storage', error);
+        // Clear corrupted cart data
+        localStorage.removeItem('cart_items');
+        setItems([]);
       }
     }
   }, [user, selectedBranch]); // Re-sync when branch changes
@@ -79,6 +93,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (!user || user.isGuest) {
       try {
         localStorage.setItem('cart_items', JSON.stringify(items));
+        localStorage.setItem('cart_timestamp', Date.now().toString());
+        localStorage.setItem('cart_version', '1.0');
       } catch (error) {
         console.error('Failed to save cart to storage', error);
       }

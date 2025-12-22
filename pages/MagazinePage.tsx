@@ -31,19 +31,19 @@ const MagazinePage: React.FC = () => {
 
     const loadMagazinePages = async () => {
         try {
-            // Try to load from API (if endpoint exists)
-            try {
-                const response = await api.get('/magazine/pages');
-                if (response.data && response.data.length > 0) {
-                    setPages(response.data);
-                    setLoading(false);
-                    return;
-                }
-            } catch (apiError) {
-                console.log('API endpoint not available, using mock data');
+            // Try to load from API
+            const response = await api.get('/magazine/pages');
+            // Backend returns array directly or wrapped in {data: []}
+            const pagesData = Array.isArray(response) ? response : (response.data || []);
+            
+            if (pagesData.length > 0) {
+                setPages(pagesData);
+                setLoading(false);
+                return;
             }
-
-            // Fallback to mock data for demo
+            
+            // If no data from API, use mock data
+            console.log('No magazine pages in database, using mock data');
             const mockPages: MagazinePage[] = [
                 {
                     id: 1,

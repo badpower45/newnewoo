@@ -106,7 +106,8 @@ const MyOrdersPage = () => {
     const loadOrders = async () => {
         setLoading(true);
         try {
-            const res = await api.orders.getAll();
+            // Use /orders/my endpoint which is specifically for logged-in users
+            const res = await api.get('/orders/my');
             const ordersList = res.data || [];
             // Sort by date descending
             ordersList.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
