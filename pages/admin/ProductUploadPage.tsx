@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Loader } from 'lucide-react';
+import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Loader, Download } from 'lucide-react';
 import { api } from '../../services/api';
+import { API_URL } from '../../src/config';
 
 const ProductUploadPage = () => {
     const [file, setFile] = useState<File | null>(null);
@@ -41,9 +42,82 @@ const ProductUploadPage = () => {
         }
     };
 
+    const downloadTemplate = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_URL}/excel/template`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (!response.ok) throw new Error('Failed to download template');
+            
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'products_template_with_brands.xlsx';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error('Error downloading template:', err);
+            setError('فشل تحميل القالب. حاول مرة أخرى.');
+        }
+    };
+
+    const exportProducts = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_URL}/excel/export`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (!response.ok) throw new Error('Failed to export products');
+            
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            const today = new Date().toISOString().split('T')[0];
+            link.download = `products_export_${today}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error('Error exporting products:', err);
+            setError('فشل تصدير المنتجات. حاول مرة أخرى.');
+        }
+    };
+
     return (
         <div className="max-w-2xl mx-auto">
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">Upload Products via Excel</h1>
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl font-bold text-gray-900">رفع المنتجات عبر Excel</h1>
+                <div className="flex gap-2">
+                    <button
+                        onClick={downloadTemplate}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                        <Download size={18} />
+                        <span>تحميل القالب</span>
+                    </button>
+                    <button
+                        onClick={exportProducts}
+                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                    >
+                        <Download size={18} />
+                        <span>تصدير المنتجات</span>
+                    </button>
+                </div>
+            </div>
 
             <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
                 <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-xl p-10 bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer relative">
@@ -105,13 +179,21 @@ const ProductUploadPage = () => {
                 )}
 
                 <div className="mt-8 pt-6 border-t border-gray-100">
-                    <h3 className="font-bold text-gray-900 mb-2">Instructions</h3>
-                    <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
-                        <li>File must be in .xlsx or .xls format.</li>
-                        <li>First row should be the header row.</li>
-                        <li>Required columns: <strong>name, price</strong>.</li>
-                        <li>Optional columns: category, image, weight, isOrganic, isNew.</li>
+                    <h3 className="font-bold text-gray-900 mb-3">📋 التعليمات</h3>
+                    <ul className="list-disc list-inside text-sm text-gray-600 space-y-2">
+                        <li>الملف يجب أن يكون بصيغة .xlsx أو .xls</li>
+                        <li>أول صف يجب أن يكون عناوين الأعمدة</li>
+                        <li><strong>الأعمدة المطلوبة:</strong> name (اسم المنتج), price (السعر)</li>
+                        <li><strong>أعمدة اختيارية:</strong> category, subcategory, image, weight, barcode, brand_id (البراند), stock_quantity</li>
+                        <li><strong>للبراند:</strong> استخدم عمود "البراند" أو "brand_id" واكتب رقم البراند من جدول المرجع</li>
+                        <li><strong>نصيحة:</strong> حمل القالب أولاً لترى الأعمدة المطلوبة، أو صدّر المنتجات الموجودة كمثال</li>
                     </ul>
+                    
+                    <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                        <p className="text-sm text-blue-800">
+                            💡 <strong>ملاحظة:</strong> القالب يحتوي على ورقتين - ورقة المنتجات وورقة مرجع البراندات لمساعدتك في اختيار البراند الصحيح
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>

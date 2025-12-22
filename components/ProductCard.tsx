@@ -178,7 +178,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
       {/* Product Info */}
       <div className="px-1 py-1.5">
         {/* البراند - tag صغير */}
-        {(product as any).brand_name || (product as any).brand_name_ar && (
+        {((product as any).brand_name || (product as any).brand_name_ar) && (
           <Link
             to={`/brands/${(product as any).brand_id}`}
             onClick={(e) => e.stopPropagation()}
