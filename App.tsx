@@ -89,6 +89,7 @@ import PhoneNumberGuard from './components/PhoneNumberGuard';
 import { DebugProvider } from './context/DebugLogContext';
 import DebugPanel from './components/DebugPanel';
 import SplashScreen from './pages/SplashScreen';
+import CartErrorBoundary from './components/CartErrorBoundary';
 
 function AppContent() {
   const [showSplash, setShowSplash] = React.useState(true);
@@ -120,7 +121,7 @@ function AppContent() {
               <Route path="/" element={<HomePage />} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/product/:id" element={<ProductDetailsPage />} />
-            <Route path="/cart" element={<CartPage />} />
+            <Route path="/cart" element={<CartErrorBoundary><CartPage /></CartErrorBoundary>} />
             <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
             <Route path="/order-confirmation/:orderId" element={<ProtectedRoute><OrderConfirmationPage /></ProtectedRoute>} />
             <Route path="/order-invoice/:orderId" element={<ProtectedRoute><OrderInvoice /></ProtectedRoute>} />
