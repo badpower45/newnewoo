@@ -144,13 +144,21 @@ const ReturnsManager = () => {
             setLoadingOrder(true);
             const token = localStorage.getItem('token');
             
+            console.log('🔍 Searching for order:', orderCode);
+            
             // Fetch order details
             const response = await axios.get(
                 `${API_BASE_URL}/api/admin-enhanced/orders/${orderCode}`,
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             
+            console.log('📦 Order response:', response.data);
+            
             const order = response.data.data;
+            
+            if (!order) {
+                throw new Error('لم يتم العثور على الطلب');
+            }
             
             setOrderDetails(order);
             
@@ -163,8 +171,9 @@ const ReturnsManager = () => {
             
             setStep('review');
         } catch (error: any) {
-            console.error('Error fetching order:', error);
-            alert(error.response?.data?.message || 'لم يتم العثور على الطلب');
+            console.error('❌ Error fetching order:', error);
+            console.error('❌ Error response:', error.response?.data);
+            alert(error.response?.data?.message || error.message || 'لم يتم العثور على الطلب');
         } finally {
             setLoadingOrder(false);
         }

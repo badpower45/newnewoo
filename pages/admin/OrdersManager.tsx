@@ -255,7 +255,7 @@ const OrdersManager = () => {
                                         <tfoot className="bg-gray-50 font-bold">
                                             <tr>
                                                 <td colSpan={4} className="px-4 py-3 text-right">Total</td>
-                                                <td className="px-4 py-3 text-right text-lg">{selectedOrder.total.toFixed(2)} EGP</td>
+                                                <td className="px-4 py-3 text-right text-lg">{(Number(selectedOrder.total) || 0).toFixed(2)} EGP</td>
                                             </tr>
                                         </tfoot>
                                     </table>

@@ -356,7 +356,7 @@ const OrderInvoice: React.FC = () => {
                             </div>
                             <div className="flex justify-between items-center text-2xl bg-green-600 text-white p-4 rounded-xl">
                                 <span className="font-bold">الإجمالي النهائي:</span>
-                                <span className="font-bold">{order.total.toFixed(2)} جنيه</span>
+                                <span className="font-bold">{(Number(order.total) || 0).toFixed(2)} جنيه</span>
                             </div>
                         </div>
                     </div>
