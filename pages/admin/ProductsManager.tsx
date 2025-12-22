@@ -189,7 +189,8 @@ const ProductsManager = () => {
             weight: p.weight,
             rating: p.rating,
             reviews: p.reviews,
-            shelfLocation: p.shelf_location || ''
+            shelfLocation: p.shelf_location || '',
+            brandId: (p as any).brand_id || undefined  // 🏷️ تحميل brand_id
         });
         setShowModal(true);
     };
@@ -221,7 +222,8 @@ const ProductsManager = () => {
                 branchId: form.branchId || 1,
                 stockQuantity: form.stockQuantity,
                 weight: form.weight,
-                shelfLocation: form.shelfLocation
+                shelfLocation: form.shelfLocation,
+                brandId: form.brandId || null  // 🏷️ إضافة brand_id
             };
             
             if (editing) {
