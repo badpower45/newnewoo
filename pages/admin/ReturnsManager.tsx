@@ -57,12 +57,28 @@ const ReturnsManager = () => {
     const [returnProducts, setReturnProducts] = useState<OrderProduct[]>([]);
     const [loadingOrder, setLoadingOrder] = useState(false);
     const [step, setStep] = useState<'code' | 'review' | 'confirm'>('code');
+    const [deliveredOrders, setDeliveredOrders] = useState<any[]>([]);
+    const [showDeliveredOrders, setShowDeliveredOrders] = useState(false);
 
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://bkaa.vercel.app';
 
     useEffect(() => {
         fetchReturns();
+        fetchDeliveredOrders();
     }, [filter]);
+    
+    const fetchDeliveredOrders = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get(
+                `${API_BASE_URL}/api/admin-enhanced/orders-delivered`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            setDeliveredOrders(response.data.data || []);
+        } catch (error) {
+            console.error('Error fetching delivered orders:', error);
+        }
+    };
 
     const fetchReturns = async () => {
         try {
@@ -158,6 +174,13 @@ const ReturnsManager = () => {
             
             if (!order) {
                 throw new Error('لم يتم العثور على الطلب');
+            }
+            
+            // ✅ Check if order is delivered
+            if (order.status !== 'delivered') {
+                alert(`⚠️ لا يمكن إرجاع هذا الطلب\n\nالطلب يجب أن يكون مُسَلَّم أولاً.\nحالة الطلب الحالية: ${order.status === 'pending' ? 'بانتظار التأكيد' : order.status === 'confirmed' ? 'تم التأكيد' : order.status === 'preparing' ? 'جاري التحضير' : order.status === 'ready' ? 'جاهز للتوصيل' : order.status === 'out_for_delivery' ? 'في الطريق' : order.status}`);
+                setLoadingOrder(false);
+                return;
             }
             
             setOrderDetails(order);
@@ -304,6 +327,13 @@ const ReturnsManager = () => {
                 >
                     <Plus size={20} />
                     إنشاء مرتجع جديد
+                </button>
+                <button
+                    onClick={() => setShowDeliveredOrders(true)}
+                    className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors font-medium flex items-center gap-2"
+                >
+                    <Package size={20} />
+                    الطلبات المُسَلَّمة ({deliveredOrders.length})
                 </button>
             </div>
 
@@ -641,6 +671,71 @@ const ReturnsManager = () => {
                     </div>
                 </div>
             )}
+            
+            {/* Delivered Orders Modal */}
+            {showDeliveredOrders && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden">
+                        <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-6">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h2 className="text-2xl font-bold">الطلبات المُسَلَّمة</h2>
+                                    <p className="text-green-100 mt-1">اختر طلب لإنشاء مرتجع</p>
+                                </div>
+                                <button
+                                    onClick={() => setShowDeliveredOrders(false)}
+                                    className="text-white hover:bg-green-700 p-2 rounded-lg transition-colors"
+                                >
+                                    <XCircle size={24} />
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div className="p-6 overflow-y-auto max-h-[calc(90vh-100px)]">
+                            {deliveredOrders.length === 0 ? (
+                                <div className="text-center py-12">
+                                    <Package size={64} className="mx-auto text-gray-300 mb-4" />
+                                    <p className="text-gray-500 text-lg">لا توجد طلبات مُسَلَّمة حالياً</p>
+                                </div>
+                            ) : (
+                                <div className="grid gap-4">
+                                    {deliveredOrders.map((order) => (
+                                        <div
+                                            key={order.id}
+                                            className="bg-white border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer"
+                                            onClick={() => {
+                                                setOrderCode(order.order_code);
+                                                setShowDeliveredOrders(false);
+                                                setShowCreateModal(true);
+                                            }}
+                                        >
+                                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                                <div>
+                                                    <p className="text-sm text-gray-500">كود الطلب</p>
+                                                    <p className="font-bold text-orange-600">{order.order_code}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm text-gray-500">اسم العميل</p>
+                                                    <p className="font-medium">{order.customer_name || 'غير متوفر'}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm text-gray-500">الإجمالي</p>
+                                                    <p className="font-medium">{(Number(order.total) || 0).toFixed(2)} جنيه</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm text-gray-500">تاريخ التوصيل</p>
+                                                    <p className="font-medium">{new Date(order.created_at).toLocaleDateString('ar-EG')}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+```
         </div>
     );
 };

@@ -56,6 +56,19 @@ const OrderDistributorPage = () => {
         } else {
             loadOrders();
         }
+        
+        // Auto-refresh every 30 seconds
+        const refreshInterval = setInterval(() => {
+            console.log('🔄 Auto-refreshing orders...');
+            if (activeTab === 'tracking') {
+                loadActiveDeliveries();
+                loadDeliveryStaffList();
+            } else {
+                loadOrders();
+            }
+        }, 30000); // 30 seconds
+        
+        return () => clearInterval(refreshInterval);
     }, [selectedBranch, activeTab]);
     
     // Update countdowns every second
