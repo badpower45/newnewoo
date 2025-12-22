@@ -11,16 +11,16 @@ export default {
         extend: {
             colors: {
                 primary: {
-                    DEFAULT: '#FFC107', // Amber 500 - Main Brand Color
-                    dark: '#FFA000',    // Amber 600
-                    light: '#FFECB3',   // Amber 100
+                    DEFAULT: '#F97316', // Orange 500 - Main Brand Color
+                    dark: '#EA580C',    // Orange 600
+                    light: '#FFEDD5',   // Orange 100
                 },
                 secondary: {
-                    DEFAULT: '#F57C00', // Orange 700 - Accents (Buttons etc)
+                    DEFAULT: '#F97316', // Orange 500 - Accents (Buttons etc)
                 },
                 brand: {
                     brown: '#3E2723', // Dark Brown for text/headings
-                    orange: '#F57C00', // Orange for accents
+                    orange: '#F97316', // Orange 500 for accents
                 },
                 dark: {
                     DEFAULT: '#1F2937', // Gray 800

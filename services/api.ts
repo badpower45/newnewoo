@@ -259,6 +259,18 @@ export const api = {
                 body: JSON.stringify({ status })
             });
             return res.json();
+        },
+        cancel: async (orderId: string, cancellation_reason?: string) => {
+            const res = await fetch(`${API_URL}/order-cancellation/cancel/${orderId}`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ cancellation_reason })
+            });
+            const json = await res.json();
+            if (!res.ok) {
+                throw new Error(json.error || 'فشل في إلغاء الطلب');
+            }
+            return json;
         }
     },
     returns: {
@@ -1558,20 +1570,26 @@ export const api = {
     },
 
     reviews: {
-        getByProduct: async (productId: string) => {
-            const res = await fetch(`${API_URL}/reviews?productId=${productId}`, {
-                headers: getHeaders()
-            });
+        getByProduct: async (productId: string, page = 1, limit = 10, sort = 'recent') => {
+            const res = await fetch(
+                `${API_URL}/reviews/product/${productId}?page=${page}&limit=${limit}&sort=${sort}`, 
+                { headers: getHeaders() }
+            );
             if (!res.ok) throw new Error('Failed to fetch reviews');
-            return res.json();
+            const data = await res.json();
+            // Return reviews array from response
+            return { data: data.reviews || [], stats: data.stats, distribution: data.distribution };
         },
-        create: async (data: { product_id: string; rating: number; comment?: string }) => {
-            const res = await fetch(`${API_URL}/reviews`, {
+        create: async (data: { product_id: string; rating: number; comment?: string; images?: string[] }) => {
+            const res = await fetch(`${API_URL}/reviews/add`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
             });
-            if (!res.ok) throw new Error('Failed to create review');
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.error || 'Failed to create review');
+            }
             return res.json();
         },
         delete: async (id: string) => {
@@ -1580,6 +1598,14 @@ export const api = {
                 headers: getHeaders()
             });
             if (!res.ok) throw new Error('Failed to delete review');
+            return res.json();
+        },
+        markHelpful: async (reviewId: string) => {
+            const res = await fetch(`${API_URL}/reviews/helpful/${reviewId}`, {
+                method: 'POST',
+                headers: getHeaders()
+            });
+            if (!res.ok) throw new Error('Failed to mark review as helpful');
             return res.json();
         }
     },

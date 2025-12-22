@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { RotateCcw, Search, Filter, CheckCircle, XCircle, Clock, Package, User, Phone, Mail, Calendar, DollarSign, Plus } from 'lucide-react';
+import { RotateCcw, Search, Filter, CheckCircle, XCircle, Clock, Package, User, Phone, Mail, Calendar, DollarSign, Plus, FileText, Download } from 'lucide-react';
 import axios from 'axios';
 
 interface ReturnItem {
@@ -145,6 +145,118 @@ const ReturnsManager = () => {
         } catch (error) {
             console.error('Error rejecting return:', error);
             alert('حدث خطأ في رفض الطلب');
+        }
+    };
+
+    const viewReturnInvoice = async (returnCode: string) => {
+        try {
+            const response = await axios.get(
+                `${API_BASE_URL}/api/returns/invoice/${returnCode}`
+            );
+            
+            const invoice = response.data.data;
+            
+            // Display invoice in a beautiful modal or open in new window
+            const invoiceHTML = `
+                <!DOCTYPE html>
+                <html dir="rtl">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>فاتورة استرجاع - ${invoice.return_code}</title>
+                    <style>
+                        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; background: #f5f5f5; }
+                        .invoice { max-width: 800px; margin: 0 auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+                        .header { text-align: center; border-bottom: 3px solid #f97316; padding-bottom: 20px; margin-bottom: 30px; }
+                        .header h1 { color: #f97316; margin: 0; font-size: 32px; }
+                        .section { margin: 20px 0; }
+                        .section-title { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 10px; border-right: 4px solid #f97316; padding-right: 10px; }
+                        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+                        .info-item { background: #f8f9fa; padding: 10px; border-radius: 5px; }
+                        .info-label { font-size: 12px; color: #666; }
+                        .info-value { font-size: 16px; font-weight: bold; color: #333; margin-top: 4px; }
+                        .financial { background: #fff7ed; border: 2px solid #f97316; border-radius: 10px; padding: 20px; margin: 20px 0; }
+                        .financial-row { display: flex; justify-content: space-between; margin: 10px 0; padding: 10px 0; border-bottom: 1px dashed #ddd; }
+                        .financial-row:last-child { border-bottom: none; font-size: 20px; font-weight: bold; color: #f97316; }
+                        .status-badge { display: inline-block; padding: 8px 16px; border-radius: 20px; background: #10b981; color: white; font-weight: bold; }
+                        @media print { body { background: white; } .invoice { box-shadow: none; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="invoice">
+                        <div class="header">
+                            <h1>🧾 فاتورة استرجاع</h1>
+                            <p style="color: #666; margin: 10px 0;">كود الإرجاع: <strong>${invoice.return_code}</strong></p>
+                            <span class="status-badge">✅ معتمد</span>
+                        </div>
+
+                        <div class="section">
+                            <div class="section-title">📋 بيانات العميل</div>
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <div class="info-label">الاسم</div>
+                                    <div class="info-value">${invoice.customer.name}</div>
+                                </div>
+                                <div class="info-item">
+                                    <div class="info-label">الهاتف</div>
+                                    <div class="info-value">${invoice.customer.phone}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <div class="section-title">📍 الفرع</div>
+                            <div class="info-value">${invoice.branch.name}</div>
+                        </div>
+
+                        <div class="section">
+                            <div class="section-title">💰 الملخص المالي</div>
+                            <div class="financial">
+                                <div class="financial-row">
+                                    <span>التوتال الأصلي</span>
+                                    <span>${invoice.financial_summary.original_total} جنيه</span>
+                                </div>
+                                <div class="financial-row">
+                                    <span>التوتال الجديد</span>
+                                    <span>${invoice.financial_summary.new_total} جنيه</span>
+                                </div>
+                                <div class="financial-row">
+                                    <span>المبلغ المسترجع</span>
+                                    <span>${invoice.financial_summary.refund_amount} جنيه</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <div class="section-title">🎯 نقاط الولاء</div>
+                            <div style="background: #fef3c7; padding: 15px; border-radius: 5px; border-right: 4px solid #f59e0b;">
+                                <p style="margin: 0;"><strong>تم خصم ${invoice.loyalty_points.points_deducted} نقطة</strong></p>
+                                <p style="margin: 5px 0 0 0; font-size: 14px; color: #92400e;">${invoice.loyalty_points.note}</p>
+                            </div>
+                        </div>
+
+                        <div class="section">
+                            <div class="section-title">📝 سبب الإرجاع</div>
+                            <p>${invoice.return_reason}</p>
+                            ${invoice.return_notes ? `<p style="color: #666;"><strong>ملاحظات:</strong> ${invoice.return_notes}</p>` : ''}
+                        </div>
+
+                        <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #e5e7eb; text-align: center; color: #666; font-size: 14px;">
+                            <p>تاريخ الاعتماد: ${new Date(invoice.approved_at).toLocaleDateString('ar-EG')}</p>
+                            <p>تمت الموافقة بواسطة: ${invoice.approved_by || 'الإدارة'}</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            const newWindow = window.open('', '_blank');
+            if (newWindow) {
+                newWindow.document.write(invoiceHTML);
+                newWindow.document.close();
+            }
+        } catch (error: any) {
+            console.error('Error fetching invoice:', error);
+            alert(error.response?.data?.error || 'فشل تحميل الفاتورة');
         }
     };
 
@@ -450,6 +562,28 @@ const ReturnsManager = () => {
                                     >
                                         <XCircle size={18} />
                                         الرفض
+                                    </button>
+                                </div>
+                            )}
+                            
+                            {returnItem.status === 'approved' && (
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => viewReturnInvoice(returnItem.return_code)}
+                                        className="flex-1 bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors font-medium flex items-center justify-center gap-2"
+                                    >
+                                        <FileText size={18} />
+                                        عرض فاتورة الاسترجاع
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            viewReturnInvoice(returnItem.return_code);
+                                            setTimeout(() => window.print(), 1000);
+                                        }}
+                                        className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors font-medium flex items-center justify-center gap-2"
+                                    >
+                                        <Download size={18} />
+                                        طباعة
                                     </button>
                                 </div>
                             )}

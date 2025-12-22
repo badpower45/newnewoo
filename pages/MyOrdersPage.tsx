@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { 
     Package, Clock, CheckCircle, Truck, XCircle, 
     ChevronLeft, ShoppingBag, MapPin, Calendar,
-    RefreshCw, Eye, Phone, Star, X, MessageSquare
+    RefreshCw, Eye, Phone, Star, X, MessageSquare, Ban
 } from 'lucide-react';
 import Footer from '../components/Footer';
 import { api } from '../services/api';
@@ -68,6 +68,10 @@ const MyOrdersPage = () => {
     const [loading, setLoading] = useState(true);
     const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'completed'>('all');
     const [selectedOrder, setSelectedOrder] = useState<any>(null);
+    const [cancellingOrder, setCancellingOrder] = useState<string | null>(null);
+    const [showCancelModal, setShowCancelModal] = useState(false);
+    const [orderToCancel, setOrderToCancel] = useState<any>(null);
+    const [cancellationReason, setCancellationReason] = useState('');
     
     // Rating modal state
     const [showRatingModal, setShowRatingModal] = useState(false);
@@ -125,6 +129,41 @@ const MyOrdersPage = () => {
             console.error('Failed to load orders:', err);
         }
         setLoading(false);
+    };
+
+    // Cancel order function
+    const handleCancelOrder = async () => {
+        if (!orderToCancel) return;
+        
+        setCancellingOrder(orderToCancel.id);
+        try {
+            const result = await api.orders.cancel(orderToCancel.id, cancellationReason);
+            
+            if (result.warning) {
+                alert(`⚠️ تم الإلغاء مع تحذير:\n${result.warning}`);
+            } else {
+                alert('✅ ' + result.message);
+            }
+            
+            // Reload orders
+            await loadOrders();
+            
+            // Close modal
+            setShowCancelModal(false);
+            setOrderToCancel(null);
+            setCancellationReason('');
+            
+        } catch (err: any) {
+            console.error('Failed to cancel order:', err);
+            alert('❌ ' + (err.message || 'فشل في إلغاء الطلب'));
+        }
+        setCancellingOrder(null);
+    };
+
+    // Check if order can be cancelled
+    const canCancelOrder = (status: string) => {
+        const allowedStatuses = ['pending', 'confirmed', 'payment_pending'];
+        return allowedStatuses.includes(status);
     };
     
     // Open rating modal
@@ -439,6 +478,22 @@ const MyOrdersPage = () => {
                                             <Eye size={18} />
                                             تفاصيل الطلب
                                         </Link>
+                                        
+                                        {/* Cancel Order Button */}
+                                        {canCancelOrder(order.status) && (
+                                            <button 
+                                                onClick={() => {
+                                                    setOrderToCancel(order);
+                                                    setShowCancelModal(true);
+                                                }}
+                                                disabled={cancellingOrder === order.id}
+                                                className="px-4 py-2.5 bg-red-100 text-red-700 rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-red-200 transition disabled:opacity-50"
+                                            >
+                                                <Ban size={18} />
+                                                {cancellingOrder === order.id ? 'جاري الإلغاء...' : 'إلغاء'}
+                                            </button>
+                                        )}
+                                        
                                         {order.status === 'delivered' && !order.rated && (
                                             <button 
                                                 onClick={() => openRatingModal(order)}
@@ -567,6 +622,72 @@ const MyOrdersPage = () => {
                 </div>
             )}
             
+            {/* Cancel Order Modal */}
+            {showCancelModal && orderToCancel && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl w-full max-w-md p-6 animate-scale-up">
+                        <div className="text-center mb-6">
+                            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <Ban size={32} className="text-red-500" />
+                            </div>
+                            <h2 className="text-xl font-bold mb-2">إلغاء الطلب</h2>
+                            <p className="text-gray-500">
+                                هل أنت متأكد من إلغاء الطلب #{orderToCancel.id}؟
+                            </p>
+                        </div>
+                        
+                        <div className="mb-6">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                سبب الإلغاء (اختياري)
+                            </label>
+                            <textarea
+                                value={cancellationReason}
+                                onChange={(e) => setCancellationReason(e.target.value)}
+                                placeholder="مثال: غيرت رأيي، وجدت سعر أفضل، تأخير في التوصيل..."
+                                className="w-full px-4 py-3 border border-gray-300 rounded-xl resize-none h-24 focus:ring-2 focus:ring-primary focus:border-primary"
+                            />
+                        </div>
+                        
+                        <div className="flex gap-3">
+                            <button
+                                onClick={handleCancelOrder}
+                                disabled={cancellingOrder === orderToCancel.id}
+                                className="flex-1 py-4 bg-red-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-red-600 transition disabled:opacity-50"
+                            >
+                                {cancellingOrder === orderToCancel.id ? (
+                                    <>
+                                        <RefreshCw className="animate-spin" size={20} />
+                                        جاري الإلغاء...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Ban size={20} />
+                                        تأكيد الإلغاء
+                                    </>
+                                )}
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setShowCancelModal(false);
+                                    setOrderToCancel(null);
+                                    setCancellationReason('');
+                                }}
+                                disabled={cancellingOrder === orderToCancel.id}
+                                className="px-6 py-4 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition disabled:opacity-50"
+                            >
+                                رجوع
+                            </button>
+                        </div>
+                        
+                        <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-xl">
+                            <p className="text-xs text-yellow-800 text-center">
+                                💡 تنبيه: الإلغاء المتكرر للطلبات قد يؤدي إلى حظر الحساب
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
+            
             <style>{`
                 @keyframes slide-up {
                     from { transform: translateY(100%); }
@@ -574,6 +695,13 @@ const MyOrdersPage = () => {
                 }
                 .animate-slide-up {
                     animation: slide-up 0.3s ease-out;
+                }
+                @keyframes scale-up {
+                    from { transform: scale(0.9); opacity: 0; }
+                    to { transform: scale(1); opacity: 1; }
+                }
+                .animate-scale-up {
+                    animation: scale-up 0.2s ease-out;
                 }
             `}</style>
             <Footer />
