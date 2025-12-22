@@ -180,6 +180,19 @@ const ProductsManager = () => {
 
     const openEdit = (p: Product) => {
         setEditing(p);
+        
+        // Check if brand exists in available brands
+        const productBrandId = (p as any).brand_id;
+        let validBrandId = productBrandId || undefined;
+        
+        if (productBrandId) {
+            const brandExists = brands.find(b => b.id === productBrandId);
+            if (!brandExists) {
+                console.warn('⚠️ Product has brand_id', productBrandId, 'but brand not found in list. Clearing it.');
+                validBrandId = undefined;
+            }
+        }
+        
         setForm({
             barcode: p.barcode || '',
             name: p.name,
@@ -195,7 +208,7 @@ const ProductsManager = () => {
             rating: p.rating,
             reviews: p.reviews,
             shelfLocation: p.shelf_location || '',
-            brandId: (p as any).brand_id || undefined  // 🏷️ تحميل brand_id
+            brandId: validBrandId  // 🏷️ تحميل brand_id بعد التحقق
         });
         setShowModal(true);
     };
@@ -214,11 +227,11 @@ const ProductsManager = () => {
             return;
         }
         
-        // Validate brand_id if selected
-        if (form.brandId) {
+        // Validate brand_id ONLY if selected
+        if (form.brandId && form.brandId > 0) {
             const brandExists = brands.find(b => b.id === form.brandId);
             if (!brandExists) {
-                alert('❌ البراند المختار غير موجود في النظام. يرجى إعادة تحميل الصفحة.');
+                alert('❌ البراند المختار (ID: ' + form.brandId + ') غير موجود في النظام. يرجى اختيار براند آخر أو إلغاء الاختيار.');
                 console.error('🚫 Brand validation failed:', {
                     selectedBrandId: form.brandId,
                     availableBrands: brands.map(b => ({ id: b.id, name: b.name_ar }))
@@ -226,6 +239,8 @@ const ProductsManager = () => {
                 return;
             }
             console.log('✅ Brand validation passed:', brandExists);
+        } else {
+            console.log('🏷️ No brand selected - saving without brand');
         }
         
         try {
@@ -675,9 +690,23 @@ const ProductsManager = () => {
 
                             {/* Brand Selection */}
                             <div className="bg-orange-50 border-2 border-orange-200 rounded-lg p-4">
-                                <label className="block text-sm font-bold mb-2 text-orange-800">
-                                    🏷️ البراند
-                                </label>
+                                <div className="flex items-center justify-between mb-2">
+                                    <label className="block text-sm font-bold text-orange-800">
+                                        🏷️ البراند
+                                    </label>
+                                    {form.brandId && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                console.log('🗑️ Clearing brand selection');
+                                                setForm({ ...form, brandId: undefined });
+                                            }}
+                                            className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
+                                        >
+                                            ✕ إلغاء البراند
+                                        </button>
+                                    )}
+                                </div>
                                 <select
                                     value={form.brandId || ''}
                                     onChange={e => {
@@ -687,7 +716,7 @@ const ProductsManager = () => {
                                     }}
                                     className="w-full px-4 py-3 border-2 border-orange-300 rounded-lg focus:ring-4 focus:ring-orange-500 focus:border-orange-500 bg-white font-medium text-gray-900"
                                 >
-                                    <option value="" className="text-gray-500">-- اختر البراند --</option>
+                                    <option value="" className="text-gray-500">بدون براند</option>
                                     {brands.map(brand => (
                                         <option key={brand.id} value={brand.id} className="font-medium">
                                             🏷️ {brand.name_ar} - {brand.name_en}
@@ -702,7 +731,7 @@ const ProductsManager = () => {
                                                 ID: {form.brandId}
                                             </span>
                                             <span className="text-xs">
-                                                ({brands.find(b => b.id === form.brandId)?.name_ar})
+                                                ({brands.find(b => b.id === form.brandId)?.name_ar || '⚠️ غير موجود'})
                                             </span>
                                         </p>
                                     </div>
