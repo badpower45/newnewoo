@@ -11,8 +11,8 @@
 // 🔒 HARDCODED URLs - NEVER USE ENV VARS IN PRODUCTION
 const PRODUCTION_API_URL = 'https://bkaa.vercel.app/api';
 const PRODUCTION_SOCKET_URL = 'https://bkaa.vercel.app';
-const LOCAL_API_URL = 'http://localhost:3001/api';
-const LOCAL_SOCKET_URL = 'http://localhost:3001';
+const LOCAL_API_URL = 'https://bkaa.vercel.app/api';
+const LOCAL_SOCKET_URL = 'https://bkaa.vercel.app';
 
 // Determine API URL - FORCE HARDCODED (ignore env vars from Vercel Dashboard)
 const getApiUrl = () => {

@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 
 // API URL Configuration
-const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api';
+const API_URL = import.meta.env.VITE_API_BASE_URL || 'https://bkaa.vercel.app/api';
 
 interface DraftProduct {
     id: number;

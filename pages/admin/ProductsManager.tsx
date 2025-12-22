@@ -366,7 +366,7 @@ const ProductsManager = () => {
                     <button
                         onClick={async ()=>{
                             try {
-                                const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/products/dev/seed-sample`, { method: 'POST' });
+                                const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://bkaa.vercel.app/api'}/products/dev/seed-sample`, { method: 'POST' });
                                 const j = await res.json();
                                 console.log('Seed result', j);
                                 loadProducts();
