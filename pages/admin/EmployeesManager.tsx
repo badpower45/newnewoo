@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, User, Mail, Shield, Phone, Building, Filter, Search, Edit2, X, Truck, Headphones, Package, Users, Star } from 'lucide-react';
+import { Plus, Trash2, User, Mail, Shield, Phone, Building, Filter, Search, Edit2, X, Truck, Headphones, Package, Users, Star, RotateCcw } from 'lucide-react';
 import { api } from '../../services/api';
 
 // تعريف الـ Roles مع الألوان والأيقونات
@@ -8,6 +8,7 @@ const ROLES: { [key: string]: { label: string; labelAr: string; color: string; b
     manager: { label: 'Manager', labelAr: 'مدير', color: 'text-blue-700', bgColor: 'bg-blue-100', icon: Users },
     employee: { label: 'Employee', labelAr: 'موظف خدمة عملاء', color: 'text-green-700', bgColor: 'bg-green-100', icon: Headphones },
     distributor: { label: 'Distributor', labelAr: 'موزع الطلبات', color: 'text-orange-700', bgColor: 'bg-orange-100', icon: Package },
+    returns_manager: { label: 'Returns Manager', labelAr: 'موظف المرتجعات', color: 'text-red-700', bgColor: 'bg-red-100', icon: RotateCcw },
     delivery: { label: 'Delivery', labelAr: 'عامل توصيل', color: 'text-cyan-700', bgColor: 'bg-cyan-100', icon: Truck },
     customer: { label: 'Customer', labelAr: 'عميل', color: 'text-gray-700', bgColor: 'bg-gray-100', icon: User },
 };
@@ -63,6 +64,7 @@ const EmployeesManager = () => {
         managers: users.filter(u => u.role === 'manager').length,
         employees: users.filter(u => u.role === 'employee').length,
         distributors: users.filter(u => u.role === 'distributor').length,
+        returns_managers: users.filter(u => u.role === 'returns_manager').length,
         delivery: users.filter(u => u.role === 'delivery').length,
         customers: users.filter(u => u.role === 'customer').length,
     };
