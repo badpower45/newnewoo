@@ -32,8 +32,8 @@ export default {
                 }
             },
             fontFamily: {
-                sans: ['"Varela Round"', 'sans-serif'], // Rounded friendly font
-                display: ['"Varela Round"', 'sans-serif'],
+                sans: ['"UXI Digital"', 'sans-serif'], // Custom UXI Digital font
+                display: ['"UXI Digital"', 'sans-serif'],
             },
             boxShadow: {
                 'card': '0 2px 8px rgba(0, 0, 0, 0.05)',
