@@ -32,11 +32,6 @@ const ReturnsManager = () => {
     const [returnReason, setReturnReason] = useState('');
     const [returnNotes, setReturnNotes] = useState('');
     const [creatingReturn, setCreatingReturn] = useState(false);
-    const [showCreateModal, setShowCreateModal] = useState(false);
-    const [orderCode, setOrderCode] = useState('');
-    const [returnReason, setReturnReason] = useState('');
-    const [returnNotes, setReturnNotes] = useState('');
-    const [creatingReturn, setCreatingReturn] = useState(false);
 
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001';
 
