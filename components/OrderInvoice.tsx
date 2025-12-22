@@ -39,9 +39,18 @@ const OrderInvoice: React.FC = () => {
     }, [orderId]);
 
     const loadOrder = async () => {
+        if (!orderId) {
+            console.error('❌ No orderId provided');
+            setLoading(false);
+            return;
+        }
+        
         try {
-            const response = await api.orders.getOne(orderId!);
+            console.log('🔍 Loading order with ID:', orderId);
+            const response = await api.orders.getOne(orderId);
             const orderData = response.data || response;
+            
+            console.log('📦 Order data received:', orderData);
             
             // Parse items if they're a string
             if (orderData.items && typeof orderData.items === 'string') {
@@ -55,7 +64,7 @@ const OrderInvoice: React.FC = () => {
             
             setOrder(orderData);
         } catch (error) {
-            console.error('Failed to load order:', error);
+            console.error('❌ Failed to load order:', error);
         } finally {
             setLoading(false);
         }

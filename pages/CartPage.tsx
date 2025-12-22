@@ -141,7 +141,7 @@ const CartPage = () => {
                                             </h3>
                                             <p className="text-sm text-gray-500">{item.weight}</p>
                                             <p className="text-xs text-gray-400 mt-1">
-                                                {item.price.toFixed(2)} جنيه للوحدة • شامل الضريبة
+                                                {(Number(item.price) || 0).toFixed(2)} جنيه للوحدة • شامل الضريبة
                                             </p>
                                         </div>
                                         <button
@@ -170,7 +170,7 @@ const CartPage = () => {
                                         </div>
                                         <div className="text-right">
                                             <p className="font-bold text-brand-orange text-lg">
-                                                {(item.price * item.quantity).toFixed(2)} 
+                                                {((Number(item.price) || 0) * item.quantity).toFixed(2)} 
                                                 <span className="text-xs text-gray-500 mr-1">جنيه</span>
                                             </p>
                                             <p className="text-xs text-gray-400">شامل الضريبة</p>

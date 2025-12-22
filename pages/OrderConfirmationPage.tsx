@@ -20,8 +20,11 @@ const OrderConfirmationPage: React.FC = () => {
       setError(null);
       try {
         const data = await api.orders.getOne(orderId);
-        setOrder(data.data || data);
+        const orderData = data.data || data;
+        console.log('📦 Order loaded:', orderData);
+        setOrder(orderData);
       } catch (err) {
+        console.error('❌ Failed to load order:', err);
         setError('تعذر تحميل تفاصيل الطلب');
       } finally {
         setLoading(false);
@@ -107,13 +110,15 @@ const OrderConfirmationPage: React.FC = () => {
 
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Link 
-              to={`/order-invoice/${order?.id}`}
-              className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-medium flex items-center justify-center gap-2"
-            >
-              <CheckCircle size={18} />
-              عرض الفاتورة
-            </Link>
+            {order?.id && (
+              <Link 
+                to={`/order-invoice/${order.id}`}
+                className="px-6 py-3 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors font-medium flex items-center justify-center gap-2"
+              >
+                <CheckCircle size={18} />
+                عرض الفاتورة
+              </Link>
+            )}
             <Link 
               to={`/track-order`}
               state={{ orderCode: order?.order_code }}

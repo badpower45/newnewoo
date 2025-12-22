@@ -63,7 +63,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
           localStorage.removeItem('cart_version');
           setItems([]);
         } else if (saved) {
-          setItems(JSON.parse(saved));
+          const parsedItems = JSON.parse(saved);
+          // Normalize prices to numbers
+          const normalizedItems = parsedItems.map((item: any) => ({
+            ...item,
+            price: Number(item.price) || 0
+          }));
+          setItems(normalizedItems);
         }
       } catch (error) {
         console.error('Failed to load cart from storage', error);
@@ -80,7 +86,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const branchId = selectedBranch?.id || 1;
       const data = await api.cart.get(user.id, branchId);
       if (data.data) {
-        setItems(data.data);
+        // Normalize prices to numbers
+        const normalizedItems = data.data.map((item: any) => ({
+          ...item,
+          price: Number(item.price) || 0
+        }));
+        setItems(normalizedItems);
       }
     } catch (err) {
       // Silent fallback: backend unavailable, use local state
@@ -102,12 +113,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [items, user]);
 
   const addToCart = async (product: Product, quantity = 1, substitutionPreference = 'none') => {
+    // Ensure price is a number
+    const normalizedProduct = {
+      ...product,
+      price: Number(product.price) || 0
+    };
+    
     // Branch availability check
     if (selectedBranch) {
       try {
         const res = await api.branchProducts.getByBranch(selectedBranch.id);
         const list = res.data || res || [];
-        const pid = product.id;
+        const pid = normalizedProduct.id;
         const bp = list.find((x: any) => String(x.product_id ?? x.productId ?? x.id) === String(pid));
         if (bp) {
           const stock = bp.available_quantity ?? bp.stock_quantity ?? bp.stockQuantity;
@@ -124,7 +141,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           // Override price if branch price exists
           const branchPrice = bp.branch_price ?? bp.branchPrice;
           if (typeof branchPrice === 'number') {
-            product = { ...product, price: branchPrice };
+            normalizedProduct.price = branchPrice;
           }
         }
       } catch (e) {
@@ -134,24 +151,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (user && !user.isGuest) {
       // Optimistic update with smooth animation
       setItems(prev => {
-        const existing = prev.find(item => String(item.id) === String(product.id));
+        const existing = prev.find(item => String(item.id) === String(normalizedProduct.id));
         if (existing) {
           return prev.map(item =>
-            String(item.id) === String(product.id)
+            String(item.id) === String(normalizedProduct.id)
               ? { ...item, quantity: item.quantity + quantity, substitutionPreference: substitutionPreference || item.substitutionPreference }
               : item
           );
         }
-        return [...prev, { ...product, quantity, substitutionPreference }];
+        return [...prev, { ...normalizedProduct, quantity, substitutionPreference }];
       });
 
       // Show success toast
-      showToast(`تمت إضافة ${product.name || product.title} إلى السلة`, 'success');
+      showToast(`تمت إضافة ${normalizedProduct.name || normalizedProduct.title} إلى السلة`, 'success');
 
       // Add to cart in background without blocking UI
       api.cart.add({ 
         userId: user.id, 
-        productId: String(product.id), 
+        productId: String(normalizedProduct.id), 
         quantity,
         substitutionPreference 
       }).then(() => {
@@ -164,19 +181,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
       });
     } else {
       setItems(prev => {
-        const existing = prev.find(item => String(item.id) === String(product.id));
+        const existing = prev.find(item => String(item.id) === String(normalizedProduct.id));
         if (existing) {
           return prev.map(item =>
-            String(item.id) === String(product.id)
+            String(item.id) === String(normalizedProduct.id)
               ? { ...item, quantity: item.quantity + quantity, substitutionPreference: substitutionPreference || item.substitutionPreference }
               : item
           );
         }
-        return [...prev, { ...product, quantity, substitutionPreference }];
+        return [...prev, { ...normalizedProduct, quantity, substitutionPreference }];
       });
       
       // Show success toast for guests too
-      showToast(`تمت إضافة ${product.name || product.title} إلى السلة`, 'success');
+      showToast(`تمت إضافة ${normalizedProduct.name || normalizedProduct.title} إلى السلة`, 'success');
     }
     setIsCartOpen(true);
   };
@@ -270,9 +287,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const toggleCart = () => setIsCartOpen(prev => !prev);
 
-  // Financial Calculations
+  // Financial Calculations - ensure price is always a number
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const totalPrice = items.reduce((sum, item) => sum + ((Number(item.price) || 0) * item.quantity), 0);
   
   // Service fee: 7 EGP if under free shipping threshold, otherwise 0
   const serviceFee = totalPrice >= FREE_SHIPPING_THRESHOLD ? 0 : SERVICE_FEE;
