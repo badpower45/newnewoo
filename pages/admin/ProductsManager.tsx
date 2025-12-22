@@ -145,10 +145,14 @@ const ProductsManager = () => {
     const loadBrands = async () => {
         try {
             const response = await api.brands.getAll();
-            console.log('🏷️ Brands loaded:', response);
+            console.log('🏷️ Brands API response:', response);
             const brandData = response?.data || response || [];
             if (Array.isArray(brandData)) {
+                console.log('✅ Loaded', brandData.length, 'brands:', brandData.map(b => ({ id: b.id, name: b.name_ar })));
                 setBrands(brandData);
+            } else {
+                console.warn('⚠️ Brands data is not array:', brandData);
+                setBrands([]);
             }
         } catch (error) {
             console.error('❌ Failed to load brands:', error);
@@ -210,6 +214,20 @@ const ProductsManager = () => {
             return;
         }
         
+        // Validate brand_id if selected
+        if (form.brandId) {
+            const brandExists = brands.find(b => b.id === form.brandId);
+            if (!brandExists) {
+                alert('❌ البراند المختار غير موجود في النظام. يرجى إعادة تحميل الصفحة.');
+                console.error('🚫 Brand validation failed:', {
+                    selectedBrandId: form.brandId,
+                    availableBrands: brands.map(b => ({ id: b.id, name: b.name_ar }))
+                });
+                return;
+            }
+            console.log('✅ Brand validation passed:', brandExists);
+        }
+        
         try {
             const productData = {
                 barcode: form.barcode,
@@ -226,6 +244,8 @@ const ProductsManager = () => {
                 shelfLocation: form.shelfLocation,
                 brandId: form.brandId || null  // 🏷️ إضافة brand_id
             };
+            
+            console.log('📦 Saving product with data:', productData);
             
             if (editing) {
                 const result = await api.products.update(editing.id, productData);
@@ -244,8 +264,20 @@ const ProductsManager = () => {
             // Force reload products after save
             await loadProducts();
         } catch (err: any) {
-            console.error('Failed to save product', err);
-            const errorMessage = err.message || 'فشل حفظ المنتج';
+            console.error('❌ Failed to save product:', err);
+            console.error('❌ Error details:', {
+                message: err.message,
+                response: err.response,
+                data: err.response?.data
+            });
+            
+            let errorMessage = err.message || 'فشل حفظ المنتج';
+            
+            // Check for foreign key constraint error
+            if (errorMessage.includes('foreign key constraint') || errorMessage.includes('brand_id_fkey')) {
+                errorMessage = '❌ البراند المختار غير موجود. يرجى اختيار براند آخر أو إلغاء الاختيار.';
+            }
+            
             alert('❌ ' + errorMessage);
         }
     };
@@ -642,8 +674,8 @@ const ProductsManager = () => {
                                   
 
                             {/* Brand Selection */}
-                            <div>
-                                <label className="block text-sm font-medium mb-1">
+                            <div className="bg-orange-50 border-2 border-orange-200 rounded-lg p-4">
+                                <label className="block text-sm font-bold mb-2 text-orange-800">
                                     🏷️ البراند
                                 </label>
                                 <select
@@ -653,24 +685,36 @@ const ProductsManager = () => {
                                         console.log('🏷️ Brand selected:', newBrandId);
                                         setForm({ ...form, brandId: newBrandId });
                                     }}
-                                    className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                                    className="w-full px-4 py-3 border-2 border-orange-300 rounded-lg focus:ring-4 focus:ring-orange-500 focus:border-orange-500 bg-white font-medium text-gray-900"
                                 >
-                                    <option value="">بدون براند</option>
+                                    <option value="" className="text-gray-500">-- اختر البراند --</option>
                                     {brands.map(brand => (
-                                        <option key={brand.id} value={brand.id}>
-                                            {brand.name_ar} - {brand.name_en}
+                                        <option key={brand.id} value={brand.id} className="font-medium">
+                                            🏷️ {brand.name_ar} - {brand.name_en}
                                         </option>
                                     ))}
                                 </select>
-                                {form.brandId && (
-                                    <p className="text-xs text-green-600 mt-1">
-                                        ✅ تم اختيار البراند (ID: {form.brandId})
-                                    </p>
-                                )}
-                                {!form.brandId && (
-                                    <p className="text-xs text-gray-500 mt-1">
+                                {form.brandId ? (
+                                    <div className="mt-2 p-2 bg-green-100 border border-green-300 rounded-lg">
+                                        <p className="text-sm text-green-800 font-bold flex items-center gap-2">
+                                            ✅ تم اختيار البراند
+                                            <span className="px-2 py-1 bg-green-200 rounded text-xs">
+                                                ID: {form.brandId}
+                                            </span>
+                                            <span className="text-xs">
+                                                ({brands.find(b => b.id === form.brandId)?.name_ar})
+                                            </span>
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <p className="text-xs text-gray-500 mt-2">
                                         💡 اختر البراند المناسب للمنتج لربطه بصفحة البراند الديناميكية
                                     </p>
+                                )}
+                                {brands.length === 0 && (
+                                    <div className="mt-2 p-2 bg-yellow-100 border border-yellow-300 rounded">
+                                        <p className="text-xs text-yellow-800">⚠️ لا توجد براندات متاحة. يرجى إضافة براندات أولاً.</p>
+                                    </div>
                                 )}
                             </div>  <label className="block text-sm font-medium mb-1">التصنيف الفرعي</label>
                                     <select
