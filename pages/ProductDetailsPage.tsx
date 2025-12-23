@@ -26,6 +26,7 @@ const ProductDetailsPage = () => {
     const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
     const [activeTab, setActiveTab] = useState<'description' | 'reviews' | 'info'>('description');
     const [reviews, setReviews] = useState<any[]>([]);
+    const [reviewStats, setReviewStats] = useState<any>(null);
     const [userReview, setUserReview] = useState({ rating: 5, comment: '' });
     const [showReviewForm, setShowReviewForm] = useState(false);
 
@@ -41,9 +42,11 @@ const ProductDetailsPage = () => {
             if (!id) return;
             const response = await api.reviews.getByProduct(id);
             setReviews(response.data || []);
+            setReviewStats(response.stats || null);
         } catch (error) {
             console.error('Error fetching reviews:', error);
             setReviews([]);
+            setReviewStats(null);
         }
     };
 
@@ -171,8 +174,14 @@ const ProductDetailsPage = () => {
     const oldPrice = Number(product.discount_price) || Number(product.originalPrice) || (displayPrice * 1.15); // 15% higher as old price if not set
     const discountPercentage = oldPrice > displayPrice ? Math.round(((oldPrice - displayPrice) / oldPrice) * 100) : 0;
     const savings = oldPrice - displayPrice;
-    const productRating = Number(product.rating) || 4.5;
-    const productReviews = Number(product.reviews) || 120;
+    
+    // Use real ratings from reviews, fallback to product rating if available
+    const productRating = reviewStats?.average_rating 
+        ? Number(reviewStats.average_rating) 
+        : (Number(product.rating) || 0);
+    const productReviews = reviewStats?.total_reviews 
+        ? Number(reviewStats.total_reviews) 
+        : (Number(product.reviews) || 0);
 
     const handleIncrement = () => setQuantity(q => q + 1);
     const handleDecrement = () => setQuantity(q => (q > 1 ? q - 1 : 1));
