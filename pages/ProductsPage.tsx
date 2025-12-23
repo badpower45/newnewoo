@@ -46,106 +46,59 @@ export default function ProductsPage() {
     const [searchParams] = useSearchParams();
     const { selectedBranch } = useBranch();
 
-    // Load categories from API
+    // Load categories from actual products (not API)
     useEffect(() => {
-        const loadCategories = async () => {
-            try {
-                const response = await api.categories.getAll();
-                const apiCategories = response.data || [];
-                
-                // If no categories from API, extract from products
-                if (apiCategories.length === 0 && allProducts.length > 0) {
-                    const uniqueCategories = Array.from(new Set(allProducts.map(p => p.category).filter(Boolean)));
-                    console.log('📦 Extracted categories from products:', uniqueCategories);
-                    
-                    const categoriesFromProducts = uniqueCategories.map((catName) => {
-                        const icons: {[key: string]: string} = {
-                            'ألبان': '🥛', 'Dairy': '🥛',
-                            'جبن': '🧀', 'Cheese': '🧀',
-                            'لحوم': '🥩', 'Meat': '🥩',
-                            'خضروات': '🥬', 'Vegetables': '🥬', 'Vegetable': '🥬',
-                            'فواكه': '🍎', 'Fruits': '🍎',
-                            'مخبوزات': '🍞', 'Bakery': '🍞',
-                            'مشروبات': '🥤', 'Beverages': '🥤',
-                            'سناكس': '🍿', 'Snacks': '🍿',
-                            'شيكولاتة': '🍫', 'Chocolate': '🍫', 'Chocolates': '🍫',
-                            'كاندي': '🍬', 'Candy': '🍬',
-                            'مجمدات': '🧊', 'Frozen': '🧊',
-                            'تنظيف': '🧹', 'Cleaning': '🧹',
-                            'عناية شخصية': '🧴', 'Personal Care': '🧴',
-                            'Grains': '🌾', 'حبوب': '🌾',
-                            'منتجات صحيه': '💪', 'healthy': '💪',
-                        };
-                        
-                        return {
-                            id: catName,
-                            name: catName,
-                            icon: icons[catName] || '📦',
-                            color: 'from-brand-orange to-amber-500'
-                        };
-                    });
-                    
-                    setCategories([
-                        { id: '', name: 'الكل', icon: '🛒', color: 'from-brand-brown to-brand-brown/80' },
-                        ...categoriesFromProducts
-                    ]);
-                    return;
-                }
-                
-                // Build categories with icons from API
-                const categoriesWithIcons = [
-                    { id: '', name: 'الكل', icon: '🛒', color: 'from-brand-brown to-brand-brown/80' },
-                    ...apiCategories.map((cat: any) => {
-                        // Dynamic icon mapping
-                        const icons: {[key: string]: string} = {
-                            'ألبان': '🥛', 'Dairy': '🥛',
-                            'جبن': '🧀', 'Cheese': '🧀',
-                            'لحوم': '🥩', 'Meat': '🥩',
-                            'خضروات': '🥬', 'Vegetables': '🥬',
-                            'فواكه': '🍎', 'Fruits': '🍎',
-                            'مخبوزات': '🍞', 'Bakery': '🍞',
-                            'مشروبات': '🥤', 'Beverages': '🥤',
-                            'سناكس': '🍿', 'Snacks': '🍿',
-                            'شيكولاتة': '🍫', 'Chocolate': '🍫',
-                            'كاندي': '🍬', 'Candy': '🍬',
-                            'مجمدات': '🧊', 'Frozen': '🧊',
-                            'تنظيف': '🧹', 'Cleaning': '🧹',
-                            'عناية شخصية': '🧴', 'Personal Care': '🧴',
-                        };
-                        
-                        const catName = cat.name || cat.name_ar || '';
-                        return {
-                            id: catName,
-                            name: catName,
-                            icon: icons[catName] || '📦',
-                            color: 'from-brand-orange to-amber-500'
-                        };
-                    })
-                ];
-                
-                setCategories(categoriesWithIcons);
-            } catch (error) {
-                console.error('Error loading categories:', error);
-                // Fallback: extract from products
-                if (allProducts.length > 0) {
-                    const uniqueCategories = Array.from(new Set(allProducts.map(p => p.category).filter(Boolean)));
-                    const categoriesFromProducts = uniqueCategories.map((catName) => ({
-                        id: catName,
-                        name: catName,
-                        icon: '📦',
-                        color: 'from-brand-orange to-amber-500'
-                    }));
-                    
-                    setCategories([
-                        { id: '', name: 'الكل', icon: '🛒', color: 'from-brand-brown to-brand-brown/80' },
-                        ...categoriesFromProducts
-                    ]);
-                } else {
-                    setCategories([
-                        { id: '', name: 'الكل', icon: '🛒', color: 'from-brand-brown to-brand-brown/80' }
-                    ]);
-                }
+        const loadCategories = () => {
+            // Always extract categories from actual products in database
+            if (allProducts.length === 0) {
+                setCategories([
+                    { id: '', name: 'الكل', icon: '🛒', color: 'from-brand-brown to-brand-brown/80' }
+                ]);
+                return;
             }
+
+            // Get unique categories with product count
+            const categoryCount: {[key: string]: number} = {};
+            allProducts.forEach(p => {
+                if (p.category) {
+                    categoryCount[p.category] = (categoryCount[p.category] || 0) + 1;
+                }
+            });
+
+            const uniqueCategories = Object.keys(categoryCount).sort((a, b) => categoryCount[b] - categoryCount[a]);
+            console.log('📦 Real categories from database:', uniqueCategories);
+            
+            const icons: {[key: string]: string} = {
+                'ألبان': '🥛', 'Dairy': '🥛',
+                'جبن': '🧀', 'Cheese': '🧀',
+                'لحوم': '🥩', 'Meat': '🥩',
+                'خضروات': '🥬', 'Vegetables': '🥬',
+                'فواكه': '🍎', 'Fruits': '🍎',
+                'مخبوزات': '🍞', 'Bakery': '🍞',
+                'مشروبات': '🥤', 'Beverages': '🥤', 'drinks': '🥤',
+                'سناكس': '🍿', 'Snacks': '🍿',
+                'شيكولاتة': '🍫', 'Chocolate': '🍫',
+                'حلويات': '🍰', 'Desserts': '🍰',
+                'كاندي': '🍬', 'Candy': '🍬',
+                'مجمدات': '🧊', 'Frozen': '🧊',
+                'تنظيف': '🧹', 'Cleaning': '🧹',
+                'تجميل': '💄', 'Cosmetics': '💄', 'Beauty': '💄',
+                'عناية شخصية': '🧴', 'Personal Care': '🧴',
+                'Grains': '🌾', 'حبوب': '🌾',
+                'منتجات صحيه': '💪', 'healthy': '💪', 'صحي': '💪',
+            };
+            
+            const categoriesFromProducts = uniqueCategories.map((catName) => ({
+                id: catName,
+                name: catName,
+                icon: icons[catName] || '📦',
+                color: 'from-brand-orange to-amber-500'
+            }));
+            
+            setCategories([
+                { id: '', name: 'الكل', icon: '🛒', color: 'from-brand-brown to-brand-brown/80' },
+                ...categoriesFromProducts
+            ]);
         };
         
         loadCategories();
@@ -175,37 +128,65 @@ export default function ProductsPage() {
 
     // Category name mapping between English and Arabic
     const categoryMapping: Record<string, string> = {
+        // Chocolate variants
         'Chocolate': 'شيكولاتة',
         'Chocolates': 'شيكولاتة', 
         'شوكولاتة': 'شيكولاتة',
+        // Dairy variants
         'Dairy': 'ألبان',
         'Milk': 'ألبان',
         'ألبان': 'ألبان',
+        // Cheese
         'Cheese': 'جبن',
         'جبن': 'جبن',
+        // Snacks
         'Snacks': 'سناكس',
         'سناكس': 'سناكس',
+        // Candy
         'Candy': 'كاندي',
         'كاندي': 'كاندي',
+        // Sweets/Desserts
+        'حلويات': 'حلويات',
+        'Desserts': 'حلويات',
+        'Sweets': 'حلويات',
+        // Beverages/Drinks
         'Beverages': 'مشروبات',
         'Drinks': 'مشروبات',
+        'drinks': 'مشروبات',
         'مشروبات': 'مشروبات',
+        // Bakery
         'Bakery': 'Bakery',
+        // Vegetables
         'Vegetables': 'Vegetables',
+        'Vegetable': 'Vegetables',
+        // Grains
         'Grains': 'Grains',
+        // Frozen
         'Frozen': 'مجمدات',
         'مجمدات': 'مجمدات',
-        'Cosmetics': 'Cosmetics',
+        // Beauty/Cosmetics
+        'Cosmetics': 'تجميل',
+        'Beauty': 'تجميل',
+        'تجميل': 'تجميل',
+        // Canned food
         'Cannedfood': 'Cannedfood',
+        // Legumes
         'Legumes': 'Legumes',
+        // Healthy products
         'healthy': 'منتجات صحيه',
+        'صحي': 'منتجات صحيه',
         'منتجات صحيه': 'منتجات صحيه',
+        // Dates
         'Dates': 'Dates',
+        // Oils
         'Oils': 'Oils',
+        // Others
         'الورقيات': 'الورقيات',
         'المساحيق': 'المساحيق',
         'بيكري': 'بيكري',
         'لحوم': 'لحوم',
+        'Meat': 'لحوم',
+        'meat': 'لحوم',
         'فواكه وخضار': 'فواكه وخضار'
     };
 
