@@ -64,6 +64,7 @@ const AdminLayout = () => {
             items: [
                 { path: '/admin/branches', icon: <Store size={20} />, label: 'الفروع', roles: ['admin', 'manager'] },
                 { path: '/admin/inventory', icon: <Boxes size={20} />, label: 'المخزون', roles: ['admin', 'manager'] },
+                { path: '/admin/inventory-analytics', icon: <BarChart3 size={20} />, label: 'تحليلات المخزون', roles: ['admin', 'manager'] },
             ]
         },
         {
