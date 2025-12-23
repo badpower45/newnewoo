@@ -1639,7 +1639,10 @@ export const api = {
             const res = await fetch(`${API_URL}/loyalty-barcode/validate/${barcode}`, {
                 headers: getHeaders()
             });
-            if (!res.ok) throw new Error('Failed to validate barcode');
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.error || 'Failed to validate barcode');
+            }
             return res.json();
         },
         getMyBarcodes: async () => {
