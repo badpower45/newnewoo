@@ -33,7 +33,7 @@ const LoyaltyPage = () => {
     const [barcodes, setBarcodes] = useState<Barcode[]>([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [pointsToRedeem, setPointsToRedeem] = useState('100');
+    const [pointsToRedeem, setPointsToRedeem] = useState('1000');
     const [creatingBarcode, setCreatingBarcode] = useState(false);
 
     useEffect(() => {
@@ -72,8 +72,13 @@ const LoyaltyPage = () => {
     const handleCreateBarcode = async () => {
         const pointsValue = parseInt(pointsToRedeem);
         
-        if (pointsValue < 50) {
-            alert('الحد الأدنى للاستبدال 50 نقطة');
+        if (pointsValue < 1000) {
+            alert('الحد الأدنى للاستبدال 1000 نقطة');
+            return;
+        }
+
+        if (pointsValue % 1000 !== 0) {
+            alert('يجب أن يكون عدد النقاط من مضاعفات 1000 (مثال: 1000، 2000، 3000)');
             return;
         }
 
@@ -82,14 +87,17 @@ const LoyaltyPage = () => {
             return;
         }
 
+        const couponsCount = pointsValue / 1000;
+        const monetaryValue = couponsCount * 35;
+
         setCreatingBarcode(true);
         try {
             const result = await api.loyaltyBarcode.createRedemption(pointsValue);
             
-            alert(`✅ ${result.message}\n💰 القيمة: ${pointsValue} جنيه\n📊 رصيدك المتبقي: ${result.remaining_points} نقطة`);
+            alert(`✅ ${result.message}\n💰 القيمة: ${monetaryValue} جنيه\n📊 رصيدك المتبقي: ${result.remaining_points} نقطة`);
             
             setShowCreateModal(false);
-            setPointsToRedeem('100');
+            setPointsToRedeem('1000');
             
             // Refresh data to show updated points and new barcode
             await fetchLoyaltyData();
@@ -172,19 +180,20 @@ const LoyaltyPage = () => {
                         {/* Quick Action: Convert to Barcode */}
                         <button
                             onClick={() => setShowCreateModal(true)}
-                            disabled={points < 50}
+                            disabled={points < 1000}
                             className="w-full bg-white text-orange-600 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-orange-50 transition-all shadow-lg mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <Ticket size={20} />
-                            {points < 50 ? 'تحتاج 50 نقطة على الأقل' : 'حوّل نقاطك لكوبون باركود'}
+                            {points < 1000 ? 'تحتاج 1000 نقطة على الأقل' : 'حوّل نقاطك لكوبون باركود'}
                         </button>
                         
                         {/* Value Display */}
                         <div className="bg-white/20 backdrop-blur rounded-xl p-4">
-                            <p className="text-white/90 text-sm mb-2">القيمة الإجمالية</p>
-                            <div className="text-3xl font-bold">{points.toLocaleString()}</div>
-                            <p className="text-white/90 text-sm">جنيه مصري</p>
-                            <p className="text-white/80 text-xs mt-2">1 نقطة = 1 جنيه</p>
+                            <p className="text-white/90 text-sm mb-2">يمكنك الحصول على</p>
+                            <div className="text-3xl font-bold">{Math.floor(points / 1000)}</div>
+                            <p className="text-white/90 text-sm">كوبون خصم</p>
+                            <p className="text-white font-bold text-xl mt-2">بقيمة {Math.floor(points / 1000) * 35} جنيه</p>
+                            <p className="text-white/80 text-xs mt-2">كل 1000 نقطة = 35 جنيه خصم</p>
                         </div>
                     </div>
                 </div>
@@ -265,7 +274,7 @@ const LoyaltyPage = () => {
                                 <p className="font-bold text-orange-900 mb-1">
                                     استبدل النقاط بكوبون باركود
                                 </p>
-                                <p className="text-gray-700">كل 1 نقطة = 1 جنيه خصم (الحد الأدنى 50 نقطة)</p>
+                                <p className="text-gray-700">كل 1000 نقطة = 35 جنيه خصم</p>
                                 <p className="text-gray-700 text-xs mt-1">الكوبون يستخدم مرة واحدة ويمكن مشاركته مع أي شخص</p>
                             </div>
                         </div>
@@ -346,32 +355,32 @@ const LoyaltyPage = () => {
                         {/* Points Input */}
                         <div className="mb-6">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                عدد النقاط للاستبدال
+                                عدد النقاط للاستبدال (مضاعفات 1000)
                             </label>
                             <input
                                 type="number"
                                 value={pointsToRedeem}
                                 onChange={(e) => setPointsToRedeem(e.target.value)}
-                                min="50"
+                                min="1000"
                                 max={points}
-                                step="10"
+                                step="1000"
                                 className="w-full px-4 py-3 border border-gray-300 rounded-xl text-lg font-bold text-center focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                             />
                             <div className="flex items-center justify-between mt-2 text-sm">
-                                <span className="text-gray-500">الحد الأدنى: 50 نقطة</span>
+                                <span className="text-gray-500">الحد الأدنى: 1000 نقطة</span>
                                 <span className="text-orange-600 font-bold">
-                                    = {pointsToRedeem} جنيه خصم
+                                    = {Math.floor(parseInt(pointsToRedeem || '0') / 1000) * 35} جنيه خصم
                                 </span>
                             </div>
                             <div className="mt-1 text-xs text-gray-500 text-center">
-                                رصيدك الحالي: {points} نقطة
+                                رصيدك الحالي: {points} نقطة (يمكنك الحصول على {Math.floor(points / 1000)} كوبون)
                             </div>
                         </div>
 
                         {/* Info Box */}
                         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
                             <p className="text-sm text-blue-900">
-                                <strong>ملاحظة:</strong> سيتم خصم {pointsToRedeem} نقطة من رصيدك فوراً. 
+                                <strong>ملاحظة:</strong> كل 1000 نقطة = كوبون بقيمة 35 جنيه. سيتم خصم {pointsToRedeem} نقطة من رصيدك فوراً. 
                                 الباركود يستخدم مرة واحدة فقط ويمكن لأي شخص استخدامه. صلاحيته 30 يوم.
                             </p>
                         </div>
