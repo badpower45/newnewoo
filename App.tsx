@@ -78,6 +78,7 @@ import BrandPage from './pages/BrandPage';
 import BrandsPage from './pages/BrandsPage';
 import MyOrdersPage from './pages/MyOrdersPage';
 import LoyaltyPage from './pages/LoyaltyPage';
+import LoyaltyBarcodePage from './pages/LoyaltyBarcodePage';
 import AddressesPage from './pages/AddressesPage';
 import BranchesPage from './pages/BranchesPage';
 import CompleteProfilePage from './pages/CompleteProfilePage';
@@ -148,6 +149,7 @@ function AppContent() {
             <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
             <Route path="/my-orders" element={<ProtectedRoute><MyOrdersPage /></ProtectedRoute>} />
             <Route path="/loyalty" element={<ProtectedRoute><LoyaltyPage /></ProtectedRoute>} />
+            <Route path="/loyalty-barcode" element={<ProtectedRoute><LoyaltyBarcodePage /></ProtectedRoute>} />
             <Route path="/addresses" element={<ProtectedRoute><AddressesPage /></ProtectedRoute>} />
             <Route path="/branches" element={<BranchesPage />} />
             <Route path="/favorites" element={<FavoritesPage />} />

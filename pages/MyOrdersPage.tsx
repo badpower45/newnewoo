@@ -145,19 +145,20 @@ const MyOrdersPage = () => {
                 alert('✅ ' + result.message);
             }
             
-            // Reload orders
-            await loadOrders();
-            
-            // Close modal
+            // Close modal first
             setShowCancelModal(false);
             setOrderToCancel(null);
             setCancellationReason('');
+            setCancellingOrder(null);
+            
+            // Reload orders after modal close
+            await loadOrders();
             
         } catch (err: any) {
             console.error('Failed to cancel order:', err);
             alert('❌ ' + (err.message || 'فشل في إلغاء الطلب'));
+            setCancellingOrder(null);
         }
-        setCancellingOrder(null);
     };
 
     // Check if order can be cancelled

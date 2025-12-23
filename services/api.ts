@@ -1610,6 +1610,58 @@ export const api = {
         }
     },
 
+    loyaltyBarcode: {
+        createRedemption: async (points_to_redeem: number) => {
+            const res = await fetch(`${API_URL}/loyalty-barcode/create-redemption`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ points_to_redeem })
+            });
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.error || 'Failed to create barcode');
+            }
+            return res.json();
+        },
+        useBarcode: async (barcode: string, order_id?: number) => {
+            const res = await fetch(`${API_URL}/loyalty-barcode/use-barcode/${barcode}`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ order_id })
+            });
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.error || 'Failed to use barcode');
+            }
+            return res.json();
+        },
+        validate: async (barcode: string) => {
+            const res = await fetch(`${API_URL}/loyalty-barcode/validate/${barcode}`, {
+                headers: getHeaders()
+            });
+            if (!res.ok) throw new Error('Failed to validate barcode');
+            return res.json();
+        },
+        getMyBarcodes: async () => {
+            const res = await fetch(`${API_URL}/loyalty-barcode/my-barcodes`, {
+                headers: getHeaders()
+            });
+            if (!res.ok) throw new Error('Failed to fetch barcodes');
+            return res.json();
+        },
+        cancel: async (barcodeId: string) => {
+            const res = await fetch(`${API_URL}/loyalty-barcode/cancel/${barcodeId}`, {
+                method: 'POST',
+                headers: getHeaders()
+            });
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.error || 'Failed to cancel barcode');
+            }
+            return res.json();
+        }
+    },
+
     images: {
         upload: async (file: File) => {
             const formData = new FormData();

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Gift, ChevronLeft, TrendingUp, CheckCircle } from 'lucide-react';
+import { Gift, ChevronLeft, TrendingUp, CheckCircle, Ticket } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
@@ -94,8 +94,17 @@ const LoyaltyPage = () => {
                         <h2 className="text-6xl font-black mb-4">{points.toLocaleString()}</h2>
                         <p className="text-white/90 text-lg mb-4">نقطة ولاء</p>
                         
+                        {/* Quick Action: Convert to Barcode */}
+                        <button
+                            onClick={() => navigate('/loyalty-barcode')}
+                            className="w-full bg-white text-orange-600 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-orange-50 transition-all shadow-lg mb-4"
+                        >
+                            <Ticket size={20} />
+                            حوّل نقاطك لكوبون باركود
+                        </button>
+                        
                         {/* Coupons Available */}
-                        <div className="bg-white/20 backdrop-blur rounded-xl p-4 mt-4">
+                        <div className="bg-white/20 backdrop-blur rounded-xl p-4">
                             <p className="text-white/90 text-sm mb-2">يمكنك استبدال</p>
                             <div className="text-3xl font-bold">{getAvailableCoupons()}</div>
                             <p className="text-white/90 text-sm">كوبون خصم</p>
@@ -134,9 +143,10 @@ const LoyaltyPage = () => {
                             <Gift size={20} className="text-orange-600 mt-0.5 flex-shrink-0" />
                             <div>
                                 <p className="font-bold text-orange-900 mb-1">
-                                    استبدل النقاط
+                                    استبدل النقاط بكوبون باركود
                                 </p>
-                                <p className="text-gray-700">كل 1000 نقطة = كوبون خصم بقيمة 35 جنيه</p>
+                                <p className="text-gray-700">كل 1 نقطة = 1 جنيه خصم (الحد الأدنى 50 نقطة)</p>
+                                <p className="text-gray-700 text-xs mt-1">الكوبون يستخدم مرة واحدة، ويمكن مشاركته مع أي شخص</p>
                             </div>
                         </div>
                         <div className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg">

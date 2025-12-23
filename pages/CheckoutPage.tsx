@@ -43,8 +43,15 @@ export default function CheckoutPage() {
     const [couponError, setCouponError] = useState('');
     const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
 
-    // Final total with coupon discount (service fee already included in cartFinalTotal)
-    const finalTotal = cartFinalTotal - couponDiscount;
+    // State for Loyalty Barcode
+    const [barcodeInput, setBarcodeInput] = useState('');
+    const [appliedBarcode, setAppliedBarcode] = useState<any>(null);
+    const [barcodeDiscount, setBarcodeDiscount] = useState(0);
+    const [barcodeError, setBarcodeError] = useState('');
+    const [isValidatingBarcode, setIsValidatingBarcode] = useState(false);
+
+    // Final total with coupon discount + barcode discount (service fee already included in cartFinalTotal)
+    const finalTotal = cartFinalTotal - couponDiscount - barcodeDiscount;
 
     const [formData, setFormData] = useState({
         firstName: '',
@@ -212,6 +219,49 @@ export default function CheckoutPage() {
         showToast('تم إزالة الكوبون', 'info');
     };
 
+    // --- Function: Validate and Apply Barcode ---
+    const handleApplyBarcode = async () => {
+        if (!barcodeInput.trim()) {
+            setBarcodeError('يرجى إدخال رمز الباركود');
+            return;
+        }
+
+        setIsValidatingBarcode(true);
+        setBarcodeError('');
+        
+        try {
+            const result = await api.loyaltyBarcode.validate(barcodeInput.trim());
+            
+            if (!result.valid) {
+                setBarcodeError(result.message || 'الباركود غير صالح');
+                setAppliedBarcode(null);
+                setBarcodeDiscount(0);
+                return;
+            }
+
+            // Apply the barcode discount
+            setAppliedBarcode(result.barcode);
+            setBarcodeDiscount(result.barcode.monetary_value);
+            showToast(`✅ تم تطبيق باركود بقيمة ${result.barcode.monetary_value} جنيه`, 'success');
+            
+        } catch (error: any) {
+            setBarcodeError(error.message || 'فشل التحقق من الباركود');
+            setAppliedBarcode(null);
+            setBarcodeDiscount(0);
+        } finally {
+            setIsValidatingBarcode(false);
+        }
+    };
+
+    // --- Function: Remove Barcode ---
+    const handleRemoveBarcode = () => {
+        setAppliedBarcode(null);
+        setBarcodeDiscount(0);
+        setBarcodeInput('');
+        setBarcodeError('');
+        showToast('تم إزالة الباركود', 'info');
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -291,6 +341,10 @@ export default function CheckoutPage() {
                 couponCode: appliedCoupon ? appliedCoupon.code : null,
                 couponId: appliedCoupon ? appliedCoupon.couponId : null,
                 couponDiscount: couponDiscount,
+                // إضافة معلومات الباركود
+                barcodeCode: appliedBarcode ? appliedBarcode.barcode : null,
+                barcodeId: appliedBarcode ? appliedBarcode.id : null,
+                barcodeDiscount: barcodeDiscount,
                 items: items.map(item => ({
                     id: item.id,
                     productId: item.id,
@@ -669,7 +723,7 @@ export default function CheckoutPage() {
                         }`}
                     >
                         {isPickup || canDeliver
-                            ? `تأكيد الطلب (${(totalPrice + deliveryFee - couponDiscount).toFixed(2)} جنيه)`
+                            ? `تأكيد الطلب (${(totalPrice + deliveryFee - couponDiscount - barcodeDiscount).toFixed(2)} جنيه)`
                             : 'لا يمكن إتمام الطلب'}
                     </button>
                 </div>
@@ -742,6 +796,67 @@ export default function CheckoutPage() {
                             )}
                         </div>
 
+                        {/* مربع الباركود */}
+                        <div className="mb-4 border-t border-slate-200 pt-4">
+                            <div className="flex items-center justify-between mb-2">
+                                <label className="text-sm font-bold text-slate-700">باركود الولاء</label>
+                                <Link 
+                                    to="/loyalty-barcode"
+                                    className="text-xs text-orange-600 hover:text-orange-700 font-medium"
+                                >
+                                    إنشاء باركود
+                                </Link>
+                            </div>
+                            {!appliedBarcode ? (
+                                <div className="space-y-2">
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={barcodeInput}
+                                            onChange={(e) => setBarcodeInput(e.target.value.toUpperCase())}
+                                            onKeyPress={(e) => e.key === 'Enter' && handleApplyBarcode()}
+                                            placeholder="أدخل رمز الباركود"
+                                            className="flex-1 px-3 py-2 rounded-lg border border-slate-200 focus:border-orange-600 focus:ring-2 focus:ring-orange-100 outline-none transition-all text-sm font-mono"
+                                        />
+                                        <button
+                                            onClick={handleApplyBarcode}
+                                            disabled={isValidatingBarcode || !barcodeInput.trim()}
+                                            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-1 text-sm font-medium"
+                                        >
+                                            {isValidatingBarcode ? (
+                                                <Loader size={16} className="animate-spin" />
+                                            ) : (
+                                                <CheckCircle size={16} />
+                                            )}
+                                            تطبيق
+                                        </button>
+                                    </div>
+                                    {barcodeError && (
+                                        <p className="text-xs text-red-600">{barcodeError}</p>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <CheckCircle size={16} className="text-orange-600" />
+                                            <div>
+                                                <p className="text-sm font-bold text-orange-900 font-mono">{appliedBarcode.barcode}</p>
+                                                <p className="text-xs text-orange-700">{appliedBarcode.monetary_value} جنيه</p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={handleRemoveBarcode}
+                                            className="text-red-500 hover:text-red-700 p-1"
+                                            title="إزالة الباركود"
+                                        >
+                                            <X size={16} />
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
                         <div className="border-t border-slate-200 pt-4 space-y-2">
                             <div className="flex justify-between items-center text-sm text-gray-600">
                                 <span>Subtotal</span>
@@ -759,9 +874,15 @@ export default function CheckoutPage() {
                                     <span>-{couponDiscount.toFixed(2)} EGP</span>
                                 </div>
                             )}
+                            {barcodeDiscount > 0 && (
+                                <div className="flex justify-between items-center text-sm text-orange-600 font-medium">
+                                    <span>Barcode Discount</span>
+                                    <span>-{barcodeDiscount.toFixed(2)} EGP</span>
+                                </div>
+                            )}
                             <div className="flex justify-between items-center pt-2 border-t border-gray-200">
                                 <span className="font-bold text-slate-800">Total</span>
-                                <span className="font-bold text-xl text-primary">{(totalPrice + deliveryFee - couponDiscount).toFixed(2)} EGP</span>
+                                <span className="font-bold text-xl text-primary">{(totalPrice + deliveryFee - couponDiscount - barcodeDiscount).toFixed(2)} EGP</span>
                             </div>
                         </div>
                     </div>
