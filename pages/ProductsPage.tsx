@@ -53,7 +53,46 @@ export default function ProductsPage() {
                 const response = await api.categories.getAll();
                 const apiCategories = response.data || [];
                 
-                // Build categories with icons
+                // If no categories from API, extract from products
+                if (apiCategories.length === 0 && allProducts.length > 0) {
+                    const uniqueCategories = Array.from(new Set(allProducts.map(p => p.category).filter(Boolean)));
+                    console.log('📦 Extracted categories from products:', uniqueCategories);
+                    
+                    const categoriesFromProducts = uniqueCategories.map((catName) => {
+                        const icons: {[key: string]: string} = {
+                            'ألبان': '🥛', 'Dairy': '🥛',
+                            'جبن': '🧀', 'Cheese': '🧀',
+                            'لحوم': '🥩', 'Meat': '🥩',
+                            'خضروات': '🥬', 'Vegetables': '🥬', 'Vegetable': '🥬',
+                            'فواكه': '🍎', 'Fruits': '🍎',
+                            'مخبوزات': '🍞', 'Bakery': '🍞',
+                            'مشروبات': '🥤', 'Beverages': '🥤',
+                            'سناكس': '🍿', 'Snacks': '🍿',
+                            'شيكولاتة': '🍫', 'Chocolate': '🍫', 'Chocolates': '🍫',
+                            'كاندي': '🍬', 'Candy': '🍬',
+                            'مجمدات': '🧊', 'Frozen': '🧊',
+                            'تنظيف': '🧹', 'Cleaning': '🧹',
+                            'عناية شخصية': '🧴', 'Personal Care': '🧴',
+                            'Grains': '🌾', 'حبوب': '🌾',
+                            'منتجات صحيه': '💪', 'healthy': '💪',
+                        };
+                        
+                        return {
+                            id: catName,
+                            name: catName,
+                            icon: icons[catName] || '📦',
+                            color: 'from-brand-orange to-amber-500'
+                        };
+                    });
+                    
+                    setCategories([
+                        { id: '', name: 'الكل', icon: '🛒', color: 'from-brand-brown to-brand-brown/80' },
+                        ...categoriesFromProducts
+                    ]);
+                    return;
+                }
+                
+                // Build categories with icons from API
                 const categoriesWithIcons = [
                     { id: '', name: 'الكل', icon: '🛒', color: 'from-brand-brown to-brand-brown/80' },
                     ...apiCategories.map((cat: any) => {
@@ -67,6 +106,8 @@ export default function ProductsPage() {
                             'مخبوزات': '🍞', 'Bakery': '🍞',
                             'مشروبات': '🥤', 'Beverages': '🥤',
                             'سناكس': '🍿', 'Snacks': '🍿',
+                            'شيكولاتة': '🍫', 'Chocolate': '🍫',
+                            'كاندي': '🍬', 'Candy': '🍬',
                             'مجمدات': '🧊', 'Frozen': '🧊',
                             'تنظيف': '🧹', 'Cleaning': '🧹',
                             'عناية شخصية': '🧴', 'Personal Care': '🧴',
@@ -85,15 +126,30 @@ export default function ProductsPage() {
                 setCategories(categoriesWithIcons);
             } catch (error) {
                 console.error('Error loading categories:', error);
-                // Fallback to default categories
-                setCategories([
-                    { id: '', name: 'الكل', icon: '🛒', color: 'from-brand-brown to-brand-brown/80' }
-                ]);
+                // Fallback: extract from products
+                if (allProducts.length > 0) {
+                    const uniqueCategories = Array.from(new Set(allProducts.map(p => p.category).filter(Boolean)));
+                    const categoriesFromProducts = uniqueCategories.map((catName) => ({
+                        id: catName,
+                        name: catName,
+                        icon: '📦',
+                        color: 'from-brand-orange to-amber-500'
+                    }));
+                    
+                    setCategories([
+                        { id: '', name: 'الكل', icon: '🛒', color: 'from-brand-brown to-brand-brown/80' },
+                        ...categoriesFromProducts
+                    ]);
+                } else {
+                    setCategories([
+                        { id: '', name: 'الكل', icon: '🛒', color: 'from-brand-brown to-brand-brown/80' }
+                    ]);
+                }
             }
         };
         
         loadCategories();
-    }, []);
+    }, [allProducts]);
 
     // Load brands
     useEffect(() => {
@@ -117,12 +173,51 @@ export default function ProductsPage() {
         loadBrands();
     }, []);
 
+    // Category name mapping between English and Arabic
+    const categoryMapping: Record<string, string> = {
+        'Chocolate': 'شيكولاتة',
+        'Chocolates': 'شيكولاتة', 
+        'شوكولاتة': 'شيكولاتة',
+        'Dairy': 'ألبان',
+        'Milk': 'ألبان',
+        'ألبان': 'ألبان',
+        'Cheese': 'جبن',
+        'جبن': 'جبن',
+        'Snacks': 'سناكس',
+        'سناكس': 'سناكس',
+        'Candy': 'كاندي',
+        'كاندي': 'كاندي',
+        'Beverages': 'مشروبات',
+        'Drinks': 'مشروبات',
+        'مشروبات': 'مشروبات',
+        'Bakery': 'Bakery',
+        'Vegetables': 'Vegetables',
+        'Grains': 'Grains',
+        'Frozen': 'مجمدات',
+        'مجمدات': 'مجمدات',
+        'Cosmetics': 'Cosmetics',
+        'Cannedfood': 'Cannedfood',
+        'Legumes': 'Legumes',
+        'healthy': 'منتجات صحيه',
+        'منتجات صحيه': 'منتجات صحيه',
+        'Dates': 'Dates',
+        'Oils': 'Oils',
+        'الورقيات': 'الورقيات',
+        'المساحيق': 'المساحيق',
+        'بيكري': 'بيكري',
+        'لحوم': 'لحوم',
+        'فواكه وخضار': 'فواكه وخضار'
+    };
+
     useEffect(() => {
         const category = searchParams.get('category');
         const barcode = searchParams.get('barcode');
         
         if (category) {
-            setSelectedCategory(category);
+            // Map the category name to match database values
+            const mappedCategory = categoryMapping[category] || category;
+            console.log('🔍 Category mapping:', category, '→', mappedCategory);
+            setSelectedCategory(mappedCategory);
         }
         
         // Handle barcode from URL (from TopBar navigation)
