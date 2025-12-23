@@ -15,7 +15,8 @@ import {
 } from 'lucide-react';
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+// Use the same API URL as the rest of the app (configured in src/config.ts)
+const API_URL = import.meta.env.VITE_API_URL || 'https://bkaa.vercel.app/api';
 
 interface DashboardStats {
   total_products: number;
@@ -102,11 +103,14 @@ const AdminInventoryDashboard: React.FC = () => {
       const token = localStorage.getItem('token');
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
+      // API_URL already includes /api, so we don't need to add it again
+      const baseUrl = API_URL.endsWith('/api') ? API_URL : `${API_URL}/api`;
+      
       const [dashboardRes, branchRes, categoryRes, demandRes] = await Promise.all([
-        axios.get(`${API_URL}/api/inventory/analytics/dashboard`, config),
-        axios.get(`${API_URL}/api/inventory/analytics/by-branch`, config),
-        axios.get(`${API_URL}/api/inventory/analytics/by-category`, config),
-        axios.get(`${API_URL}/api/inventory/analytics/high-demand?days=30&limit=20`, config)
+        axios.get(`${baseUrl}/inventory/analytics/dashboard`, config),
+        axios.get(`${baseUrl}/inventory/analytics/by-branch`, config),
+        axios.get(`${baseUrl}/inventory/analytics/by-category`, config),
+        axios.get(`${baseUrl}/inventory/analytics/high-demand?days=30&limit=20`, config)
       ]);
 
       if (dashboardRes.data.success) {
