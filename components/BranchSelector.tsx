@@ -71,7 +71,7 @@ const BranchSelector: React.FC<BranchSelectorProps> = ({ isOpen, onClose }) => {
         };
         setUserLocation(userPos);
 
-        // Calculate distances for all branches
+        // Calculate distances for all branches (for display purposes)
         const distances = new Map<number, number>();
         branches.forEach(branch => {
           if (branch.latitude && branch.longitude) {
@@ -86,53 +86,37 @@ const BranchSelector: React.FC<BranchSelectorProps> = ({ isOpen, onClose }) => {
         });
         setBranchDistances(distances);
 
-        // Find nearest branch manually
-        if (branches.length === 0) {
-          setLocError('لا توجد فروع متاحة');
-          setLocating(false);
-          return;
-        }
-
-        let nearest = branches[0];
-        let minDistance = Infinity;
-
-        branches.forEach(branch => {
-          if (branch.latitude && branch.longitude) {
-            const distance = calculateDistance(
-              userPos.lat,
-              userPos.lng,
-              branch.latitude,
-              branch.longitude
-            );
-            if (distance < minDistance) {
-              minDistance = distance;
-              nearest = branch;
-            }
+        // Use the context's autoSelectByLocation for server-side calculation
+        try {
+          const nearest = await autoSelectByLocation(userPos.lat, userPos.lng);
+          
+          if (nearest) {
+            const distance = distances.get(nearest.id);
+            
+            // Show success toast with distance
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-xl shadow-2xl z-[9999] animate-bounce flex items-center gap-3';
+            toast.innerHTML = `
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+              </svg>
+              <div>
+                <p class="font-bold">تم اختيار أقرب فرع ✓</p>
+                <p class="text-xs opacity-90">${nearest.name}${distance ? ` - ${distance.toFixed(1)} كم` : ''}</p>
+              </div>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+          
+            onClose();
+          } else {
+            setLocError('لم يتم العثور على فرع مناسب لموقعك');
           }
-        });
-
-        if (nearest) {
-          selectBranch(nearest);
-          
-          // Show success toast with distance
-          const toast = document.createElement('div');
-          toast.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-xl shadow-2xl z-[9999] animate-bounce flex items-center gap-3';
-          toast.innerHTML = `
-            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-            </svg>
-            <div>
-              <p class="font-bold">تم اختيار أقرب فرع ✓</p>
-              <p class="text-xs opacity-90">${nearest.name} - ${minDistance.toFixed(1)} كم</p>
-            </div>
-          `;
-          document.body.appendChild(toast);
-          setTimeout(() => toast.remove(), 4000);
-          
-          onClose();
-        } else {
-          setLocError('لم يتم العثور على فرع مناسب لموقعك');
+        } catch (error) {
+          console.error('Error auto-selecting branch:', error);
+          setLocError('حدث خطأ أثناء تحديد الفرع');
         }
+        
         setLocating(false);
       },
       (err) => {

@@ -122,40 +122,46 @@ export const BranchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   };
 
-  // Auto select branch using Supabase function (polygon/radius smart pick)
+  // Auto select branch using nearest branch endpoint
   const autoSelectByLocation = async (lat: number, lng: number): Promise<Branch | null> => {
     try {
-      // Try Supabase RPC first
-      const { data, error } = await supabase.rpc('select_branch_for_location', { lat, lng });
+      const apiUrl = import.meta.env.VITE_API_URL || 'https://bkaa.vercel.app/api';
+      console.log('📍 Finding nearest branch for location:', lat, lng);
       
-      if (error) {
-        console.warn('Supabase RPC failed, using fallback:', error);
-        // Fallback: Calculate nearest branch manually
+      // Use the new nearest branch endpoint
+      const response = await fetch(`${apiUrl}/branches/location/nearest?lat=${lat}&lng=${lng}`);
+      
+      if (!response.ok) {
+        console.warn('Nearest branch API failed, using fallback');
         return findNearestBranch(lat, lng);
       }
       
-      const match = Array.isArray(data) ? data[0] : null;
-      if (!match) {
-        // Fallback if no match found
+      const result = await response.json();
+      const branchData = result.data;
+      
+      if (!branchData) {
+        console.warn('No branch found from API, using fallback');
         return findNearestBranch(lat, lng);
       }
-
-      // ensure we have full branch info
-      if (branches.length === 0) {
-        await fetchBranches();
-      }
-      const full = [...branches, selectedBranch].find((b) => b && b.id === match.branch_id) as Branch | undefined;
-      const picked: Branch = full || {
-        id: match.branch_id,
-        name: match.name,
-        address: match.city || match.governorate || 'فرع قريب',
-        phone: '',
-        city: match.city,
-        governorate: match.governorate
+      
+      console.log('✅ Nearest branch found:', branchData.name, `(${result.distance_km?.toFixed(2) || '?'} km)`);
+      
+      const branch: Branch = {
+        id: branchData.id,
+        name: branchData.name,
+        address: branchData.address || branchData.city || branchData.governorate || 'فرع قريب',
+        phone: branchData.phone || '',
+        latitude: branchData.latitude,
+        longitude: branchData.longitude,
+        coverage_radius_km: branchData.coverage_radius_km || branchData.delivery_radius,
+        city: branchData.city,
+        governorate: branchData.governorate,
+        pickup_enabled: branchData.pickup_enabled,
+        is_active: branchData.is_active
       };
 
-      selectBranch(picked);
-      return picked;
+      selectBranch(branch);
+      return branch;
     } catch (err) {
       console.error('autoSelectByLocation error', err);
       // Final fallback
