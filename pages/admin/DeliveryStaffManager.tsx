@@ -35,9 +35,14 @@ const DeliveryStaffManager = () => {
     const loadBranches = async () => {
         try {
             const res = await api.branches.getAll();
-            setBranches(res.data || res || []);
+            console.log('📍 Branches loaded:', res);
+            // Fix: API returns {message: 'success', data: [...]}
+            const branchesData = res.data || res || [];
+            setBranches(branchesData);
+            console.log('📍 Set branches:', branchesData.length, 'branches');
         } catch (err) {
             console.error('Failed to load branches:', err);
+            setBranches([]);
         }
     };
 
@@ -286,22 +291,31 @@ const DeliveryStaffManager = () => {
 
                             <div>
                                 <label className="block text-sm font-medium mb-2">الفروع المُعيّن إليها</label>
-                                <div className="space-y-2 max-h-40 overflow-y-auto border rounded-lg p-3">
-                                    {branches.map(branch => (
-                                        <label 
-                                            key={branch.id} 
-                                            className="flex items-center gap-2 cursor-pointer"
-                                        >
-                                            <input
-                                                type="checkbox"
-                                                checked={form.branchIds.includes(branch.id)}
-                                                onChange={() => toggleBranch(branch.id)}
-                                                className="w-4 h-4 rounded border-gray-300 text-indigo-600"
-                                            />
-                                            <span>{branch.name}</span>
-                                        </label>
-                                    ))}
-                                </div>
+                                {branches.length === 0 ? (
+                                    <div className="text-sm text-gray-500 border rounded-lg p-3">
+                                        جاري تحميل الفروع...
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2 max-h-40 overflow-y-auto border rounded-lg p-3">
+                                        {branches.map(branch => (
+                                            <label 
+                                                key={branch.id} 
+                                                className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded"
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={form.branchIds.includes(branch.id)}
+                                                    onChange={() => toggleBranch(branch.id)}
+                                                    className="w-4 h-4 rounded border-gray-300 text-indigo-600"
+                                                />
+                                                <span className="text-sm">{branch.name || branch.name_ar}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                )}
+                                <p className="text-xs text-gray-500 mt-1">
+                                    {form.branchIds.length} فرع محدد
+                                </p>
                             </div>
 
                             {editing && (

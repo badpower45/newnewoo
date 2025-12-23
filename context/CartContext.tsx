@@ -220,10 +220,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     // Get current item
     const current = items.find(i => String(i.id) === String(productId));
     
-    // Only check stock for large quantity increases (more than 5 at once)
-    const isLargeIncrease = current && quantity > current.quantity && (quantity - current.quantity) > 5;
+    // Check stock availability for ANY quantity change
+    const isQuantityIncrease = current && quantity > current.quantity;
     
-    if (selectedBranch && isLargeIncrease) {
+    if (selectedBranch && isQuantityIncrease) {
       try {
         const res = await api.branchProducts.getByBranch(selectedBranch.id);
         const list = res.data || res || [];
@@ -234,8 +234,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
           if (typeof stock === 'number') {
             const availableCount = Math.max(0, stock - reserved);
             if (quantity > availableCount) {
-              showToast('الكمية المطلوبة غير متاحة حالياً لهذا المنتج', 'warning');
-              return;
+              showToast(`الكمية المتاحة: ${availableCount} فقط`, 'warning');
+              // Set to maximum available
+              quantity = availableCount;
+              if (quantity < 1) {
+                removeFromCart(productId);
+                return;
+              }
             }
           }
         }
