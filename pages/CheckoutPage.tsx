@@ -800,12 +800,6 @@ export default function CheckoutPage() {
                         <div className="mb-4 border-t border-slate-200 pt-4">
                             <div className="flex items-center justify-between mb-2">
                                 <label className="text-sm font-bold text-slate-700">باركود الولاء</label>
-                                <Link 
-                                    to="/loyalty-barcode"
-                                    className="text-xs text-orange-600 hover:text-orange-700 font-medium"
-                                >
-                                    إنشاء باركود
-                                </Link>
                             </div>
                             {!appliedBarcode ? (
                                 <div className="space-y-2">
@@ -842,7 +836,7 @@ export default function CheckoutPage() {
                                             <CheckCircle size={16} className="text-orange-600" />
                                             <div>
                                                 <p className="text-sm font-bold text-orange-900 font-mono">{appliedBarcode.barcode}</p>
-                                                <p className="text-xs text-orange-700">{appliedBarcode.monetary_value} جنيه</p>
+                                                <p className="text-xs text-orange-700">{appliedBarcode.monetary_value || 0} جنيه</p>
                                             </div>
                                         </div>
                                         <button

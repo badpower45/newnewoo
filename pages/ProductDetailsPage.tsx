@@ -421,7 +421,13 @@ const ProductDetailsPage = () => {
                         </div>
                         <div className="space-y-2">
                             {[5, 4, 3, 2, 1].map((stars) => {
-                                const percentage = stars === 5 ? 75 : stars === 4 ? 20 : stars === 3 ? 3 : stars === 2 ? 1 : 1;
+                                // Get actual count from reviewStats if available
+                                const starCount = reviewStats 
+                                    ? (reviewStats[`${['one', 'two', 'three', 'four', 'five'][stars - 1]}_star`] || 0)
+                                    : 0;
+                                const totalReviews = reviewStats?.total_reviews || 0;
+                                const percentage = totalReviews > 0 ? Math.round((starCount / totalReviews) * 100) : 0;
+                                
                                 return (
                                     <div key={stars} className="flex items-center gap-3">
                                         <span className="text-[#6B7280] text-sm font-semibold w-3">{stars}</span>
