@@ -58,7 +58,7 @@ import EmployeesManager from './pages/admin/EmployeesManager';
 import LiveChatDashboard from './pages/admin/LiveChatDashboard';
 import BranchesManager from './pages/admin/BranchesManager';
 import InventoryDashboard from './pages/admin/InventoryDashboard';
-import AdminInventoryDashboard from './pages/AdminInventoryDashboard';
+import AdminInventoryDashboard from './src/pages/AdminInventoryDashboard';
 import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 import OrderDistributorPage from './pages/admin/OrderDistributorPage';
 import DeliveryStaffManager from './pages/admin/DeliveryStaffManager';
