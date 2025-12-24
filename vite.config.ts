@@ -45,14 +45,8 @@ export default defineConfig(({ mode }) => {
       },
       chunkSizeWarningLimit: 1000,
       sourcemap: false,
-      // Minification options
-      minify: 'terser',
-      terserOptions: {
-        compress: {
-          drop_console: true, // Remove console.logs in production
-          drop_debugger: true
-        }
-      },
+      // Minification options - using esbuild (faster, built-in)
+      minify: 'esbuild',
       // CSS code splitting
       cssCodeSplit: true,
       // Asset inlining threshold (4KB)
