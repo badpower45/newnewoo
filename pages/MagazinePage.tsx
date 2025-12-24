@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, Loader, Percent, Tag, ShoppingBag, AlertCircle } from 'lucide-react';
+import { ArrowRight, Loader, Percent, Tag, ShoppingBag, AlertCircle, Link2, BadgePercent } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 
@@ -95,10 +95,10 @@ const MagazinePage: React.FC = () => {
                     </div>
                 ) : (
                     <>
-                        <div className="flex items-center gap-2 mb-4">
+                        <div className="flex items-center gap-2 mb-2">
                             <Percent className="w-5 h-5 text-orange-500" />
                             <p className="text-gray-700">
-                                <span className="font-bold text-orange-600">{offers.length}</span> عرض من المجلة
+                                <span className="font-bold text-orange-600">{offers.length}</span> عرض في المجلة
                             </p>
                         </div>
 
@@ -124,11 +124,21 @@ const MagazinePage: React.FC = () => {
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-xs text-white/80 mb-1">{offer.category || 'عروض'}</p>
                                                 <h3 className="text-white font-bold text-lg leading-tight line-clamp-2">{offer.name}</h3>
-                                                {offer.discount_percentage ? (
-                                                    <span className="inline-flex items-center gap-1 mt-2 px-2 py-1 text-xs font-bold text-orange-900 bg-white rounded-full shadow-sm">
-                                                        {offer.discount_percentage}% خصم
+                                                <div className="flex flex-wrap items-center gap-2 mt-2">
+                                                    {offer.discount_percentage ? (
+                                                        <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-bold text-orange-900 bg-white rounded-full shadow-sm">
+                                                            {offer.discount_percentage}% خصم
+                                                        </span>
+                                                    ) : null}
+                                                    <span className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-semibold text-white bg-black/25 rounded-full">
+                                                        <BadgePercent size={12} /> عرض المجلة
                                                     </span>
-                                                ) : null}
+                                                    {!offer.product_id && (
+                                                        <span className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-semibold text-amber-900 bg-amber-100 rounded-full">
+                                                            <Link2 size={12} /> بدون ربط منتج
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -154,7 +164,7 @@ const MagazinePage: React.FC = () => {
                                                     : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                                             }`}
                                         >
-                                            {offer.product_id ? 'عرض المنتج' : 'بدون منتج مرتبط'}
+                                            {offer.product_id ? 'عرض المنتج' : 'عرض بدون ربط'}
                                         </button>
                                     </div>
                                 </div>
