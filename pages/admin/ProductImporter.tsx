@@ -11,6 +11,8 @@ interface ImportResult {
     failed: number;
     total: number;
     batchId?: string;
+    published?: number;
+    autoPublished?: boolean;
     details: {
         imported: any[];
         validationErrors: any[];
@@ -41,6 +43,10 @@ const ProductImporter: React.FC = () => {
     const [draftProducts, setDraftProducts] = useState<DraftProduct[]>([]);
     const [loadingDrafts, setLoadingDrafts] = useState(false);
     const [publishing, setPublishing] = useState(false);
+    const [autoPublish, setAutoPublish] = useState(false);
+    const [editingId, setEditingId] = useState<number | null>(null);
+    const [editedProduct, setEditedProduct] = useState<Partial<DraftProduct>>({});
+    const [savingId, setSavingId] = useState<number | null>(null);
     const navigate = useNavigate();
 
     const setupDraftTable = async () => {
@@ -126,6 +132,7 @@ const ProductImporter: React.FC = () => {
         try {
             const formData = new FormData();
             formData.append('file', file);
+            formData.append('autoPublish', autoPublish.toString());
 
             const response = await fetch(`${API_URL}/products/bulk-import`, {
                 method: 'POST',
@@ -141,9 +148,16 @@ const ProductImporter: React.FC = () => {
                 setResult(data);
                 setFile(null);
                 
-                // Load draft products if there's a batchId
-                if (data.batchId) {
+                // Load draft products only if not auto-published
+                if (data.batchId && !data.autoPublished) {
                     await loadDraftProducts(data.batchId);
+                } else if (data.autoPublished) {
+                    // Show success message for auto-published products
+                    setTimeout(() => {
+                        if (confirm('تم نشر المنتجات بنجاح! هل تريد الانتقال إلى قائمة المنتجات؟')) {
+                            navigate('/admin/products');
+                        }
+                    }, 1000);
                 }
             } else {
                 const errorMessage = data.error || data.message || 'حدث خطأ غير معروف';
@@ -176,6 +190,60 @@ const ProductImporter: React.FC = () => {
             console.error('Error loading drafts:', err);
         } finally {
             setLoadingDrafts(false);
+        }
+    };
+
+    const startEdit = (product: DraftProduct) => {
+        setEditingId(product.id);
+        setEditedProduct({ ...product });
+    };
+
+    const cancelEdit = () => {
+        setEditingId(null);
+        setEditedProduct({});
+    };
+
+    const saveProductChanges = async (productId: number) => {
+        if (!result?.batchId) return;
+
+        setSavingId(productId);
+        try {
+            const response = await fetch(`${API_URL}/products/drafts/${productId}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: editedProduct.name,
+                    barcode: editedProduct.barcode,
+                    price: editedProduct.price_after,
+                    old_price: editedProduct.price_before,
+                    category: editedProduct.category,
+                    subcategory: editedProduct.subcategory,
+                    stock_quantity: editedProduct.quantity,
+                    image: editedProduct.image_url
+                })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                // Update local state
+                setDraftProducts(prev => prev.map(p => 
+                    p.id === productId ? { ...p, ...editedProduct } : p
+                ));
+                setEditingId(null);
+                setEditedProduct({});
+                alert('✅ تم حفظ التعديلات بنجاح');
+            } else {
+                alert(`❌ فشل حفظ التعديلات: ${data.message || 'حدث خطأ'}`);
+            }
+        } catch (err) {
+            console.error('Error saving changes:', err);
+            alert('حدث خطأ أثناء حفظ التعديلات');
+        } finally {
+            setSavingId(null);
         }
     };
 
@@ -355,24 +423,40 @@ const ProductImporter: React.FC = () => {
                 </div>
 
                 {file && (
-                    <div className="mt-6 flex justify-center">
-                        <button
-                            onClick={handleUpload}
-                            disabled={uploading}
-                            className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3"
-                        >
-                            {uploading ? (
-                                <>
-                                    <Loader className="w-5 h-5 animate-spin" />
-                                    جاري الرفع...
-                                </>
-                            ) : (
-                                <>
-                                    <Upload className="w-5 h-5" />
-                                    رفع وإضافة المنتجات
-                                </>
-                            )}
-                        </button>
+                    <div className="mt-6 space-y-4">
+                        {/* Auto Publish Checkbox */}
+                        <div className="flex items-center justify-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <input
+                                type="checkbox"
+                                id="autoPublish"
+                                checked={autoPublish}
+                                onChange={(e) => setAutoPublish(e.target.checked)}
+                                className="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                            />
+                            <label htmlFor="autoPublish" className="text-sm font-medium text-gray-700 cursor-pointer select-none">
+                                نشر المنتجات مباشرة إلى القائمة الرئيسية (بدون مراجعة)
+                            </label>
+                        </div>
+                        
+                        <div className="flex justify-center">
+                            <button
+                                onClick={handleUpload}
+                                disabled={uploading}
+                                className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3"
+                            >
+                                {uploading ? (
+                                    <>
+                                        <Loader className="w-5 h-5 animate-spin" />
+                                        جاري الرفع...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Upload className="w-5 h-5" />
+                                        {autoPublish ? 'رفع ونشر المنتجات' : 'رفع وإضافة للمسودات'}
+                                    </>
+                                )}
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>
@@ -512,56 +596,162 @@ const ProductImporter: React.FC = () => {
                                         <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">الصورة</th>
                                         <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">اسم المنتج</th>
                                         <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">الباركود</th>
-                                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">السعر</th>
+                                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">السعر قبل</th>
+                                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">السعر بعد</th>
                                         <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">التصنيف</th>
-                                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">الفرع</th>
                                         <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">الكمية</th>
+                                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">إجراءات</th>
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                    {draftProducts.map((product, index) => (
-                                        <tr key={product.id} className="hover:bg-gray-50">
-                                            <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{index + 1}</td>
-                                            <td className="px-4 py-4">
-                                                <img 
-                                                    src={product.image_url || '/placeholder.png'} 
-                                                    alt={product.name}
-                                                    className="w-12 h-12 object-cover rounded"
-                                                    onError={(e) => {
-                                                        (e.target as HTMLImageElement).src = '/placeholder.png';
-                                                    }}
-                                                />
-                                            </td>
-                                            <td className="px-4 py-4 text-sm font-medium text-gray-900">{product.name}</td>
-                                            <td className="px-4 py-4 text-sm text-gray-600">{product.barcode}</td>
-                                            <td className="px-4 py-4 text-sm">
-                                                <div>
-                                                    {product.price_before !== product.price_after && (
-                                                        <span className="line-through text-gray-400 text-xs ml-2">
-                                                            {product.price_before} ج.م
+                                    {draftProducts.map((product, index) => {
+                                        const isEditing = editingId === product.id;
+                                        const displayProduct = isEditing ? editedProduct : product;
+                                        
+                                        return (
+                                            <tr key={product.id} className={`hover:bg-gray-50 ${isEditing ? 'bg-blue-50' : ''}`}>
+                                                <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{index + 1}</td>
+                                                <td className="px-4 py-4">
+                                                    {isEditing ? (
+                                                        <input
+                                                            type="text"
+                                                            value={editedProduct.image_url || ''}
+                                                            onChange={(e) => setEditedProduct(prev => ({ ...prev, image_url: e.target.value }))}
+                                                            placeholder="رابط الصورة"
+                                                            className="w-32 px-2 py-1 text-xs border border-gray-300 rounded"
+                                                        />
+                                                    ) : (
+                                                        <img 
+                                                            src={product.image_url || '/placeholder.png'} 
+                                                            alt={product.name}
+                                                            className="w-12 h-12 object-cover rounded"
+                                                            onError={(e) => {
+                                                                (e.target as HTMLImageElement).src = '/placeholder.png';
+                                                            }}
+                                                        />
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    {isEditing ? (
+                                                        <input
+                                                            type="text"
+                                                            value={editedProduct.name || ''}
+                                                            onChange={(e) => setEditedProduct(prev => ({ ...prev, name: e.target.value }))}
+                                                            className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                                                        />
+                                                    ) : (
+                                                        <span className="text-sm font-medium text-gray-900">{product.name}</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    {isEditing ? (
+                                                        <input
+                                                            type="text"
+                                                            value={editedProduct.barcode || ''}
+                                                            onChange={(e) => setEditedProduct(prev => ({ ...prev, barcode: e.target.value }))}
+                                                            className="w-32 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                                                        />
+                                                    ) : (
+                                                        <span className="text-sm text-gray-600">{product.barcode}</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    {isEditing ? (
+                                                        <input
+                                                            type="number"
+                                                            step="0.01"
+                                                            value={editedProduct.price_before || ''}
+                                                            onChange={(e) => setEditedProduct(prev => ({ ...prev, price_before: parseFloat(e.target.value) }))}
+                                                            className="w-24 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                                                        />
+                                                    ) : (
+                                                        <span className="text-sm text-gray-600">{product.price_before} ج.م</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    {isEditing ? (
+                                                        <input
+                                                            type="number"
+                                                            step="0.01"
+                                                            value={editedProduct.price_after || ''}
+                                                            onChange={(e) => setEditedProduct(prev => ({ ...prev, price_after: parseFloat(e.target.value) }))}
+                                                            className="w-24 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                                                        />
+                                                    ) : (
+                                                        <span className="text-green-600 font-bold text-sm">{product.price_after} ج.م</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    {isEditing ? (
+                                                        <div className="space-y-1">
+                                                            <input
+                                                                type="text"
+                                                                value={editedProduct.category || ''}
+                                                                onChange={(e) => setEditedProduct(prev => ({ ...prev, category: e.target.value }))}
+                                                                placeholder="التصنيف الأساسي"
+                                                                className="w-32 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                                                            />
+                                                            <input
+                                                                type="text"
+                                                                value={editedProduct.subcategory || ''}
+                                                                onChange={(e) => setEditedProduct(prev => ({ ...prev, subcategory: e.target.value }))}
+                                                                placeholder="التصنيف الثانوي"
+                                                                className="w-32 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                                                            />
+                                                        </div>
+                                                    ) : (
+                                                        <div>
+                                                            <div className="font-medium text-sm">{product.category}</div>
+                                                            {product.subcategory && (
+                                                                <div className="text-xs text-gray-400">{product.subcategory}</div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    {isEditing ? (
+                                                        <input
+                                                            type="number"
+                                                            value={editedProduct.quantity || ''}
+                                                            onChange={(e) => setEditedProduct(prev => ({ ...prev, quantity: parseInt(e.target.value) }))}
+                                                            className="w-20 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                                                        />
+                                                    ) : (
+                                                        <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                                                            {product.quantity}
                                                         </span>
                                                     )}
-                                                    <span className="text-green-600 font-bold">
-                                                        {product.price_after} ج.م
-                                                    </span>
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-4 text-sm text-gray-600">
-                                                <div>
-                                                    <div className="font-medium">{product.category}</div>
-                                                    {product.subcategory && (
-                                                        <div className="text-xs text-gray-400">{product.subcategory}</div>
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    {isEditing ? (
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                onClick={() => saveProductChanges(product.id)}
+                                                                disabled={savingId === product.id}
+                                                                className="px-3 py-1 bg-green-600 text-white rounded text-xs hover:bg-green-700 disabled:opacity-50"
+                                                            >
+                                                                {savingId === product.id ? 'جاري الحفظ...' : 'حفظ'}
+                                                            </button>
+                                                            <button
+                                                                onClick={cancelEdit}
+                                                                disabled={savingId === product.id}
+                                                                className="px-3 py-1 bg-gray-400 text-white rounded text-xs hover:bg-gray-500 disabled:opacity-50"
+                                                            >
+                                                                إلغاء
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <button
+                                                            onClick={() => startEdit(product)}
+                                                            className="px-3 py-1 bg-blue-600 text-white rounded text-xs hover:bg-blue-700"
+                                                        >
+                                                            تعديل
+                                                        </button>
                                                     )}
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-4 text-sm text-gray-600">{product.branch_name}</td>
-                                            <td className="px-4 py-4">
-                                                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                                                    {product.quantity}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                 </tbody>
                             </table>
                         </div>
