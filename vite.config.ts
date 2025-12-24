@@ -40,8 +40,6 @@ export default defineConfig(({ mode }) => {
             'socket': ['socket.io-client'],
             // UI libraries
             'ui-libs': ['lucide-react', 'framer-motion'],
-            // Forms and validation
-            'forms': ['react-hook-form'],
           }
         }
       },
