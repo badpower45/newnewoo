@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ChevronLeft, Loader2, Facebook } from 'lucide-react';
+import { ChevronLeft, Loader2, Facebook, KeyRound } from 'lucide-react';
 import { api } from '../services/api';
 import { supabaseAuth } from '../services/supabaseAuth';
 import CompleteProfileModal from '../components/CompleteProfileModal';
