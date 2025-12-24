@@ -33,8 +33,8 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
 
     const facebookPageUrl = `https://www.facebook.com/${pageUsername}`;
     const facebookReelsUrl = `https://www.facebook.com/${pageUsername}/reels`;
-    // Backend endpoint currently 404s; use local fallback
-    const USE_REMOTE = false;
+    // Use remote API when available; fallback to local samples if it fails
+    const USE_REMOTE = true;
 
     // Default reels (fallback) - with sample MP4 videos
     const defaultReels: Reel[] = [
@@ -341,6 +341,7 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
                                 autoPlay
                                 loop
                                 muted={isMuted}
+                                poster={reelsData[activeVideo]?.thumbnail}
                                 playsInline
                                 onClick={togglePlay}
                                 onPlay={() => setIsPlaying(true)}

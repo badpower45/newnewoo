@@ -1244,6 +1244,86 @@ export const api = {
         }
     },
 
+    // Stories API
+    stories: {
+        getAll: async () => {
+            const res = await fetch(`${API_URL}/stories`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+
+        getAllAdmin: async () => {
+            const res = await fetch(`${API_URL}/stories/admin/all`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+
+        getById: async (id: number) => {
+            const res = await fetch(`${API_URL}/stories/${id}`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+
+        create: async (data: {
+            title: string;
+            media_url: string;
+            media_type?: 'image' | 'video';
+            duration?: number;
+            link_url?: string;
+            link_text?: string;
+            expires_in_hours?: number;
+            priority?: number;
+            branch_id?: number;
+        }) => {
+            const res = await fetch(`${API_URL}/stories`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+
+        update: async (id: number, data: Partial<{
+            title: string;
+            media_url: string;
+            media_type: 'image' | 'video';
+            duration: number;
+            link_url: string;
+            link_text: string;
+            expires_in_hours: number;
+            priority: number;
+            is_active: boolean;
+            branch_id: number;
+        }>) => {
+            const res = await fetch(`${API_URL}/stories/${id}`, {
+                method: 'PUT',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+
+        delete: async (id: number) => {
+            const res = await fetch(`${API_URL}/stories/${id}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+
+        recordView: async (id: number, userId?: number) => {
+            const res = await fetch(`${API_URL}/stories/${id}/view`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ userId })
+            });
+            return res.json();
+        }
+    },
+
     // Facebook Reels API
     facebookReels: {
         getAll: async () => {

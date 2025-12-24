@@ -41,6 +41,7 @@ export default function ProductsPage() {
     const [showOnlyOffers, setShowOnlyOffers] = useState(false);
     const [showSortDropdown, setShowSortDropdown] = useState(false);
     const [isSearchFocused, setIsSearchFocused] = useState(false);
+    const [categoryBanner, setCategoryBanner] = useState<any>(null);
     
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
@@ -125,6 +126,39 @@ export default function ProductsPage() {
         
         loadBrands();
     }, []);
+
+    // Load category banner when category is selected
+    useEffect(() => {
+        const fetchCategoryBanner = async () => {
+            if (!selectedCategory || selectedCategory === '') {
+                setCategoryBanner(null);
+                return;
+            }
+            
+            try {
+                console.log('🎨 Fetching banner for category:', selectedCategory);
+                const response = await api.categories.getByName(selectedCategory);
+                console.log('🎨 Category data:', response);
+                
+                if (response.success && response.data) {
+                    const cat = response.data;
+                    // Only show banner if it has banner_image
+                    if (cat.banner_image || cat.banner_title) {
+                        setCategoryBanner(cat);
+                    } else {
+                        setCategoryBanner(null);
+                    }
+                } else {
+                    setCategoryBanner(null);
+                }
+            } catch (error) {
+                console.error('Error fetching category banner:', error);
+                setCategoryBanner(null);
+            }
+        };
+        
+        fetchCategoryBanner();
+    }, [selectedCategory]);
 
     // Category name mapping between English and Arabic
     const categoryMapping: Record<string, string> = {
@@ -391,6 +425,49 @@ export default function ProductsPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Category Banner */}
+            {categoryBanner && categoryBanner.banner_image && (
+                <div className="max-w-7xl mx-auto px-4 pt-4">
+                    <div className="relative rounded-2xl overflow-hidden shadow-lg mb-4 group">
+                        <img 
+                            src={categoryBanner.banner_image} 
+                            alt={categoryBanner.banner_title || categoryBanner.name_ar || categoryBanner.name}
+                            className="w-full h-48 md:h-64 object-cover"
+                        />
+                        {categoryBanner.banner_title && (
+                            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent flex items-center">
+                                <div className="px-8 max-w-2xl">
+                                    <h2 className="text-white text-3xl md:text-4xl font-bold mb-2">
+                                        {categoryBanner.banner_title}
+                                    </h2>
+                                    {categoryBanner.banner_subtitle && (
+                                        <p className="text-white/90 text-lg md:text-xl">
+                                            {categoryBanner.banner_subtitle}
+                                        </p>
+                                    )}
+                                    {categoryBanner.banner_button_text && categoryBanner.banner_action_url && (
+                                        <button
+                                            onClick={() => {
+                                                if (categoryBanner.banner_action_url) {
+                                                    if (categoryBanner.banner_action_url.startsWith('http')) {
+                                                        window.open(categoryBanner.banner_action_url, '_blank');
+                                                    } else {
+                                                        navigate(categoryBanner.banner_action_url);
+                                                    }
+                                                }
+                                            }}
+                                            className="mt-4 px-6 py-3 bg-white text-brand-orange font-bold rounded-full hover:bg-orange-50 transition-colors shadow-lg"
+                                        >
+                                            {categoryBanner.banner_button_text}
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
 
             <div className="max-w-7xl mx-auto px-4 py-6">
                 {/* Toolbar */}
