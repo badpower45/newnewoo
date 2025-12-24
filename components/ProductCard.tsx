@@ -74,11 +74,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
       >
         <div className="w-20 h-20 flex-shrink-0 bg-white rounded-lg p-2 relative shadow-sm">
           {hasDiscount && (
-            <span className="absolute -top-1 -right-1 text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded-full font-bold">
+            <span className="absolute -top-1 -right-1 text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded-full font-bold z-10">
               -{discountPercent}%
             </span>
           )}
-          <img src={image || "https://placehold.co/100x100?text=Product"} alt={title} className="w-full h-full object-contain mix-blend-multiply" />
+          <img 
+            src={image || "https://placehold.co/100x100?text=Product"} 
+            alt={title} 
+            loading="lazy"
+            decoding="async"
+            className="w-full h-full object-contain mix-blend-multiply" 
+          />
         </div>
         <div className="flex-grow">
           <h4 className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">{title}</h4>
@@ -132,11 +138,13 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
           </div>
         )}
 
-        {/* Product Image */}
+        {/* Product Image - Lazy Loaded */}
         <div className="w-full h-full p-2 flex items-center justify-center">
           <img 
             src={image || "https://placehold.co/150x150?text=Product"} 
-            alt={title} 
+            alt={title}
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" 
           />
         </div>

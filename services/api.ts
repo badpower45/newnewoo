@@ -55,7 +55,16 @@ export const api = {
             if (!res.ok) throw new Error(data.error);
             return data;
         },
-        googleLogin: async (googleData: { googleId: string; email: string; name: string; picture?: string }) => {
+        googleLogin: async (googleData: { 
+            googleId: string; 
+            email: string; 
+            name: string; 
+            picture?: string;
+            phone?: string;
+            birthDate?: string;
+            givenName?: string;
+            familyName?: string;
+        }) => {
             const res = await fetch(`${API_URL}/auth/google`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -63,13 +72,44 @@ export const api = {
             });
             return res.json();
         },
-        facebookLogin: async (fbData: { facebookId: string; email?: string; name: string; picture?: string }) => {
+        facebookLogin: async (fbData: { 
+            facebookId: string; 
+            email?: string; 
+            name: string; 
+            picture?: string;
+            phone?: string;
+            birthDate?: string;
+            firstName?: string;
+            lastName?: string;
+        }) => {
             const res = await fetch(`${API_URL}/auth/facebook`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(fbData)
             });
             return res.json();
+        },
+        completeProfile: async (profileData: {
+            phone?: string;
+            birthDate?: string;
+            firstName?: string;
+            lastName?: string;
+            email?: string;
+        }) => {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/auth/complete-profile`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(profileData)
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.error || 'Failed to complete profile');
+            }
+            return data;
         }
     },
     products: {

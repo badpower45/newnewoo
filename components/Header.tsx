@@ -117,23 +117,27 @@ export default function Header() {
             ))}
           </nav>
 
-          {/* Semantic AI Search Bar */}
+          {/* Semantic AI Search Bar - Responsive */}
           <div className="hidden md:flex flex-1 max-w-xl relative group font-body">
             <div className={`flex items-center w-full bg-slate-50 rounded-full px-4 py-2.5 transition-all duration-300 border-2 ${searchQuery ? 'border-brand-orange bg-white shadow-lg' : 'border-slate-200 group-hover:border-brand-orange/50 group-hover:bg-white'}`}>
-              <Search className="text-slate-400 w-5 h-5 ml-3" />
+              <Search className="text-slate-400 w-5 h-5 ml-3 flex-shrink-0" />
               <input
                 type="text"
-                placeholder="عايز تطبخ إيه النهاردة؟ رز، لحمة، زيت..."
+                placeholder="عايز تطبخ إيه النهاردة؟"
                 className="bg-transparent border-none outline-none w-full text-sm text-slate-700 placeholder:text-slate-400 font-medium"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
               {searchQuery.length > 0 ? (
-                <button onClick={() => setSearchQuery('')} className="text-slate-400 hover:text-slate-600">
+                <button 
+                  onClick={() => setSearchQuery('')} 
+                  className="text-slate-400 hover:text-slate-600 p-1 flex-shrink-0"
+                  aria-label="مسح البحث"
+                >
                   <X size={16} />
                 </button>
               ) : (
-                <div className="flex items-center justify-center w-6 h-6 bg-orange-100 rounded-full">
+                <div className="flex items-center justify-center w-6 h-6 bg-orange-100 rounded-full flex-shrink-0">
                   <Sparkles size={12} className="text-brand-orange" />
                 </div>
               )}
@@ -150,58 +154,185 @@ export default function Header() {
                 >
                   <div className="p-2">
                     <p className="text-xs font-semibold text-slate-400 mb-2">مقترحات</p>
-                    <div className="flex items-center p-2 hover:bg-orange-50 rounded-lg cursor-pointer transition-colors">
+                    <Link 
+                      to={`/products?search=${encodeURIComponent(searchQuery)}`}
+                      className="flex items-center p-2 hover:bg-orange-50 rounded-lg cursor-pointer transition-colors"
+                      onClick={() => setSearchQuery('')}
+                    >
                       <Search size={14} className="text-brand-orange ml-2" />
                       <span className="text-sm text-slate-700">بحث عن <span className="font-bold">"{searchQuery}"</span></span>
-                    </div>
+                    </Link>
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
 
-          {/* Right Actions */}
-          <div className="flex items-center space-x-6 space-x-reverse">
-            <div className="hidden md:flex flex-col items-start cursor-pointer group">
+          {/* Mobile Search Icon - Opens search bar */}
+          <button 
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="md:hidden text-slate-700 p-2 -m-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
+            aria-label="فتح البحث"
+          >
+            <Search size={22} />
+          </button>
+
+          {/* Right Actions - Mobile Optimized */}
+          <div className="flex items-center space-x-3 md:space-x-6 space-x-reverse">
+            {/* Login - Hidden on mobile, shown on tablet+ */}
+            <Link to="/login" className="hidden md:flex flex-col items-start cursor-pointer group">
               <span className="text-xs text-slate-500 font-body">أهلاً بك</span>
               <span className="text-sm font-bold text-slate-700 group-hover:text-brand-orange flex items-center transition-colors">
                 تسجيل دخول <User size={14} className="mr-1" />
               </span>
-            </div>
-            <button className="relative text-slate-700 hover:text-brand-orange transition-colors">
-              <Heart size={24} />
-              {/* Badge */}
-            </button>
-            <Link to="/cart" className="relative text-brand-brown hover:text-brand-orange transition-colors flex items-center">
+            </Link>
+            
+            {/* Favorites - Larger touch target */}
+            <Link to="/favorites" className="relative text-slate-700 hover:text-brand-orange transition-colors p-2 -m-2">
+              <Heart size={22} className="md:w-6 md:h-6" />
+            </Link>
+            
+            {/* Cart - Mobile optimized */}
+            <Link to="/cart" className="relative text-brand-brown hover:text-brand-orange transition-colors flex items-center p-2 -m-2 min-h-[44px]">
               <div className="relative">
-                <ShoppingCart size={24} />
+                <ShoppingCart size={22} className="md:w-6 md:h-6" />
                 {totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-brand-orange rounded-full text-[10px] flex items-center justify-center text-white font-bold border border-white">{totalItems}</span>
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-brand-orange rounded-full text-[10px] flex items-center justify-center text-white font-bold border-2 border-white px-1">
+                    {totalItems}
+                  </span>
                 )}
               </div>
-              <span className="hidden xl:block mr-2 font-bold text-sm">{totalPrice} ج.م</span>
+              <span className="hidden xl:block mr-2 font-bold text-sm whitespace-nowrap">{totalPrice.toFixed(0)} ج.م</span>
             </Link>
+            
+            {/* Mobile Menu Toggle - Larger touch target */}
             <button
-              className="lg:hidden text-slate-700"
+              className="lg:hidden text-slate-700 p-2 -m-2 min-h-[44px] min-w-[44px] flex items-center justify-center"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="فتح القائمة"
             >
-              <Menu size={24} />
+              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Menu Overlay */}
-      {isMobileMenuOpen && (
-        <div className="lg:hidden absolute top-full right-0 w-full bg-white border-t border-slate-100 shadow-xl p-4 flex flex-col space-y-4 h-screen z-40 font-header">
-          {NAV_ITEMS.map(item => (
-            <Link key={item.label} to={item.href.startsWith('#') ? '/' : item.href} className="text-lg font-medium text-brand-brown py-2 border-b border-slate-50 flex justify-between items-center">
-              {item.label}
-              <ChevronLeft size={16} className="text-brand-orange" />
-            </Link>
-          ))}
-        </div>
-      )}
+      {/* Enhanced Mobile Menu with Animation */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40 top-[80px]"
+            />
+            
+            {/* Slide-in Menu */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="lg:hidden fixed top-[80px] right-0 w-[85%] max-w-sm bg-white shadow-2xl z-50 h-[calc(100vh-80px)] overflow-y-auto"
+            >
+              <div className="p-6 space-y-6 font-header">
+                {/* Mobile Search Bar */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="ابحث عن منتجات..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full px-4 py-3 pr-12 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-brand-orange focus:bg-white outline-none transition-all text-sm"
+                  />
+                  <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
+                  {searchQuery && (
+                    <Link
+                      to={`/products?search=${encodeURIComponent(searchQuery)}`}
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        setSearchQuery('');
+                      }}
+                      className="absolute left-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-brand-orange text-white text-xs rounded-lg font-bold"
+                    >
+                      بحث
+                    </Link>
+                  )}
+                </div>
+
+                {/* User Section */}
+                <Link 
+                  to="/login" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 p-4 bg-gradient-to-r from-brand-brown to-brand-orange rounded-xl text-white"
+                >
+                  <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                    <User size={24} />
+                  </div>
+                  <div>
+                    <p className="font-bold">تسجيل الدخول</p>
+                    <p className="text-xs opacity-90">احصل على نقاط ومكافآت</p>
+                  </div>
+                </Link>
+
+                {/* Branch Selector */}
+                <button
+                  onClick={() => {
+                    setIsBranchSelectorOpen(true);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors"
+                >
+                  <MapPin size={20} className="text-brand-orange" />
+                  <div className="flex-1 text-right">
+                    <p className="text-xs text-slate-500">التوصيل إلى</p>
+                    <p className="font-bold text-sm text-slate-700">{selectedBranch?.address || 'اختر الفرع'}</p>
+                  </div>
+                </button>
+
+                {/* Navigation Links */}
+                <nav className="space-y-2">
+                  {NAV_ITEMS.map(item => (
+                    <Link 
+                      key={item.label} 
+                      to={item.href.startsWith('#') ? '/' : item.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center justify-between p-4 hover:bg-orange-50 rounded-xl transition-colors group"
+                    >
+                      <span className="text-lg font-bold text-slate-700 group-hover:text-brand-orange">
+                        {item.label}
+                      </span>
+                      <ChevronLeft size={20} className="text-slate-400 group-hover:text-brand-orange group-hover:translate-x-1 transition-transform" />
+                    </Link>
+                  ))}
+                </nav>
+
+                {/* Quick Links */}
+                <div className="pt-4 border-t border-slate-100 space-y-2">
+                  <Link 
+                    to="/profile?tab=rewards"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-3 p-3 text-slate-600 hover:text-brand-orange transition-colors"
+                  >
+                    <Sparkles size={18} />
+                    <span>مكافآت علوش</span>
+                  </Link>
+                  <a 
+                    href="tel:19999"
+                    className="flex items-center gap-3 p-3 text-slate-600 hover:text-brand-orange transition-colors"
+                  >
+                    <Clock size={18} />
+                    <span>الخط الساخن: 19999</span>
+                  </a>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Branch Selector Modal */}
       <BranchSelector 

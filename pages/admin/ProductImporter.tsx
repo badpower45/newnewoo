@@ -10,11 +10,26 @@ interface ImportResult {
     imported: number;
     failed: number;
     total: number;
+    batchId?: string;
     details: {
         imported: any[];
         validationErrors: any[];
         importErrors: any[];
     };
+}
+
+interface DraftProduct {
+    id: number;
+    name: string;
+    barcode: string;
+    price_before: number;
+    price_after: number;
+    category: string;
+    subcategory: string;
+    branch_name: string;
+    quantity: number;
+    image_url: string;
+    expiry_date: string;
 }
 
 const ProductImporter: React.FC = () => {
@@ -23,6 +38,9 @@ const ProductImporter: React.FC = () => {
     const [result, setResult] = useState<ImportResult | null>(null);
     const [dragActive, setDragActive] = useState(false);
     const [settingUp, setSettingUp] = useState(false);
+    const [draftProducts, setDraftProducts] = useState<DraftProduct[]>([]);
+    const [loadingDrafts, setLoadingDrafts] = useState(false);
+    const [publishing, setPublishing] = useState(false);
     const navigate = useNavigate();
 
     const setupDraftTable = async () => {
@@ -102,6 +120,9 @@ const ProductImporter: React.FC = () => {
         if (!file) return;
 
         setUploading(true);
+        setResult(null);
+        setDraftProducts([]);
+        
         try {
             const formData = new FormData();
             formData.append('file', file);
@@ -120,11 +141,9 @@ const ProductImporter: React.FC = () => {
                 setResult(data);
                 setFile(null);
                 
-                // Redirect to draft review page if there's a batchId
+                // Load draft products if there's a batchId
                 if (data.batchId) {
-                    setTimeout(() => {
-                        navigate(`/admin/drafts/${data.batchId}`);
-                    }, 2000);
+                    await loadDraftProducts(data.batchId);
                 }
             } else {
                 const errorMessage = data.error || data.message || 'حدث خطأ غير معروف';
@@ -137,6 +156,65 @@ const ProductImporter: React.FC = () => {
             alert('حدث خطأ أثناء رفع الملف');
         } finally {
             setUploading(false);
+        }
+    };
+
+    const loadDraftProducts = async (batchId: string) => {
+        setLoadingDrafts(true);
+        try {
+            const response = await fetch(`${API_URL}/products/drafts/${batchId}`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            const data = await response.json();
+            if (response.ok && data.success) {
+                setDraftProducts(data.data);
+            }
+        } catch (err) {
+            console.error('Error loading drafts:', err);
+        } finally {
+            setLoadingDrafts(false);
+        }
+    };
+
+    const publishAllProducts = async () => {
+        if (!result?.batchId) return;
+
+        if (!confirm(`هل أنت متأكد من نشر ${draftProducts.length} منتج إلى القائمة الرئيسية؟`)) {
+            return;
+        }
+
+        setPublishing(true);
+        try {
+            const response = await fetch(`${API_URL}/products/drafts/${result.batchId}/publish-all`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                alert(`✅ ${data.message || `تم نشر ${data.publishedCount} منتج بنجاح!`}`);
+                setResult(null);
+                setDraftProducts([]);
+                setFile(null);
+                // Optionally navigate to products page
+                if (confirm('هل تريد الانتقال إلى صفحة المنتجات؟')) {
+                    navigate('/admin/products');
+                }
+            } else {
+                alert(`❌ فشل النشر: ${data.message || 'حدث خطأ'}`);
+            }
+        } catch (err) {
+            console.error('Publishing error:', err);
+            alert('حدث خطأ أثناء نشر المنتجات');
+        } finally {
+            setPublishing(false);
         }
     };
 
@@ -340,17 +418,6 @@ const ProductImporter: React.FC = () => {
                     {/* Success Message */}
                     <div className={`p-4 rounded-lg mb-6 ${result.success ? 'bg-green-50 text-green-800' : 'bg-yellow-50 text-yellow-800'}`}>
                         <p className="font-medium">{result.message}</p>
-                        {(result as any).batchId && (
-                            <div className="mt-3">
-                                <button
-                                    onClick={() => navigate(`/admin/drafts/${(result as any).batchId}`)}
-                                    className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2"
-                                >
-                                    <Eye className="w-5 h-5" />
-                                    مراجعة المنتجات المستوردة ({result.imported})
-                                </button>
-                            </div>
-                        )}
                     </div>
 
                     {/* Errors Details */}
@@ -402,6 +469,123 @@ const ProductImporter: React.FC = () => {
                             </div>
                         </div>
                     )}
+                </div>
+            )}
+
+            {/* Draft Products Preview */}
+            {draftProducts.length > 0 && (
+                <div className="bg-white rounded-xl shadow-md p-6 mt-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-xl font-bold text-gray-900">
+                            معاينة المنتجات المستوردة ({draftProducts.length})
+                        </h3>
+                        <button
+                            onClick={publishAllProducts}
+                            disabled={publishing}
+                            className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 text-lg shadow-lg"
+                        >
+                            {publishing ? (
+                                <>
+                                    <Loader className="w-6 h-6 animate-spin" />
+                                    جاري النشر...
+                                </>
+                            ) : (
+                                <>
+                                    <CheckCircle className="w-6 h-6" />
+                                    نشر جميع المنتجات ({draftProducts.length})
+                                </>
+                            )}
+                        </button>
+                    </div>
+
+                    {loadingDrafts ? (
+                        <div className="flex items-center justify-center py-12">
+                            <Loader className="w-8 h-8 animate-spin text-orange-600" />
+                            <span className="mr-3 text-gray-600">جاري تحميل المنتجات...</span>
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-50">
+                                    <tr>
+                                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">#</th>
+                                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">الصورة</th>
+                                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">اسم المنتج</th>
+                                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">الباركود</th>
+                                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">السعر</th>
+                                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">التصنيف</th>
+                                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">الفرع</th>
+                                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">الكمية</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {draftProducts.map((product, index) => (
+                                        <tr key={product.id} className="hover:bg-gray-50">
+                                            <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">{index + 1}</td>
+                                            <td className="px-4 py-4">
+                                                <img 
+                                                    src={product.image_url || '/placeholder.png'} 
+                                                    alt={product.name}
+                                                    className="w-12 h-12 object-cover rounded"
+                                                    onError={(e) => {
+                                                        (e.target as HTMLImageElement).src = '/placeholder.png';
+                                                    }}
+                                                />
+                                            </td>
+                                            <td className="px-4 py-4 text-sm font-medium text-gray-900">{product.name}</td>
+                                            <td className="px-4 py-4 text-sm text-gray-600">{product.barcode}</td>
+                                            <td className="px-4 py-4 text-sm">
+                                                <div>
+                                                    {product.price_before !== product.price_after && (
+                                                        <span className="line-through text-gray-400 text-xs ml-2">
+                                                            {product.price_before} ج.م
+                                                        </span>
+                                                    )}
+                                                    <span className="text-green-600 font-bold">
+                                                        {product.price_after} ج.م
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-4 text-sm text-gray-600">
+                                                <div>
+                                                    <div className="font-medium">{product.category}</div>
+                                                    {product.subcategory && (
+                                                        <div className="text-xs text-gray-400">{product.subcategory}</div>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-4 text-sm text-gray-600">{product.branch_name}</td>
+                                            <td className="px-4 py-4">
+                                                <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                                                    {product.quantity}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+
+                    <div className="mt-6 flex justify-center">
+                        <button
+                            onClick={publishAllProducts}
+                            disabled={publishing}
+                            className="px-10 py-4 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 transition-all font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 text-xl shadow-xl transform hover:scale-105"
+                        >
+                            {publishing ? (
+                                <>
+                                    <Loader className="w-7 h-7 animate-spin" />
+                                    جاري النشر...
+                                </>
+                            ) : (
+                                <>
+                                    <CheckCircle className="w-7 h-7" />
+                                    نشر {draftProducts.length} منتج إلى القائمة الرئيسية
+                                </>
+                            )}
+                        </button>
+                    </div>
                 </div>
             )}
 

@@ -32,14 +32,33 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         output: {
           manualChunks: {
-            'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+            // React core
+            'react-vendor': ['react', 'react-dom'],
+            // Routing
+            'router': ['react-router-dom'],
+            // Real-time communication
             'socket': ['socket.io-client'],
-            'utils': ['lucide-react', 'framer-motion']
+            // UI libraries
+            'ui-libs': ['lucide-react', 'framer-motion'],
+            // Forms and validation
+            'forms': ['react-hook-form'],
           }
         }
       },
       chunkSizeWarningLimit: 1000,
-      sourcemap: false
+      sourcemap: false,
+      // Minification options
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: true, // Remove console.logs in production
+          drop_debugger: true
+        }
+      },
+      // CSS code splitting
+      cssCodeSplit: true,
+      // Asset inlining threshold (4KB)
+      assetsInlineLimit: 4096,
     },
     optimizeDeps: {
       exclude: ['lucide-react']

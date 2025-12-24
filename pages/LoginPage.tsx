@@ -1,29 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ChevronLeft, Facebook, Mail, Loader2, Phone, X, KeyRound } from 'lucide-react';
+import { ChevronLeft, Loader2 } from 'lucide-react';
 import { api } from '../services/api';
 import { supabaseAuth } from '../services/supabaseAuth';
-
-// Declare Google types
-declare global {
-    interface Window {
-        google?: {
-            accounts: {
-                id: {
-                    initialize: (config: any) => void;
-                    renderButton: (element: HTMLElement, config: any) => void;
-                    prompt: () => void;
-                };
-            };
-        };
-        FB?: {
-            init: (config: any) => void;
-            login: (callback: (response: any) => void, options?: any) => void;
-            api: (path: string, callback: (response: any) => void) => void;
-        };
-    }
-}
+import CompleteProfileModal from '../components/CompleteProfileModal';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
@@ -31,14 +12,13 @@ const LoginPage = () => {
     const [error, setError] = useState('');
     const [socialLoading, setSocialLoading] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [pendingSocial, setPendingSocial] = useState<null | { provider: 'google' | 'facebook'; profile: any }>(null);
-    const [completionData, setCompletionData] = useState({ name: '', email: '', phone: '' });
     const [showCompletion, setShowCompletion] = useState(false);
+    const [profileData, setProfileData] = useState<any>({});
     const [otpEmail, setOtpEmail] = useState('');
     const [otpToken, setOtpToken] = useState('');
     const [otpStatus, setOtpStatus] = useState<'idle' | 'sending' | 'sent' | 'verifying' | 'done'>('idle');
     const [otpError, setOtpError] = useState('');
-    const { login, loginAsGuest } = useAuth();
+    const { login, loginAsGuest, updateUser } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -74,21 +54,29 @@ const LoginPage = () => {
         const response = provider === 'google' 
             ? await api.auth.googleLogin(profile)
             : await api.auth.facebookLogin(profile);
+        
         if (response.token && response.user) {
             localStorage.setItem('token', response.token);
             localStorage.setItem('user', JSON.stringify({ ...response.user, isGuest: false }));
-            window.location.href = '/';
+            
+            // Check if profile needs completion
+            if (response.needsCompletion) {
+                promptCompletion(provider, response.user);
+            } else {
+                window.location.href = '/';
+            }
         } else {
             throw new Error('فشل تسجيل الدخول الاجتماعي');
         }
     };
 
-    const promptCompletion = (provider: 'google' | 'facebook', profile: any) => {
-        setPendingSocial({ provider, profile });
-        setCompletionData({
-            name: profile?.name || '',
-            email: profile?.email || '',
-            phone: ''
+    const promptCompletion = (provider: 'google' | 'facebook', userData: any) => {
+        setProfileData({
+            firstName: userData.firstName || userData.name?.split(' ')[0] || '',
+            lastName: userData.lastName || userData.name?.split(' ').slice(1).join(' ') || '',
+            email: userData.email || '',
+            phone: userData.phone || '',
+            birthDate: userData.birthDate || ''
         });
         setShowCompletion(true);
     };
@@ -135,22 +123,12 @@ const LoginPage = () => {
         }
     };
 
-    const handleCompleteProfile = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!pendingSocial) return;
-
-        try {
-            setSocialLoading(pendingSocial.provider);
-            const mergedProfile = {
-                ...pendingSocial.profile,
-                ...completionData,
-                phone: completionData.phone
-            };
-            await finalizeSocialLogin(pendingSocial.provider, mergedProfile);
-            setShowCompletion(false);
-            setPendingSocial(null);
-        } catch (err: any) {
-            setError(err.message || 'برجاء إعادة المحاولة');
+    const handleCompleteProfile = (userData: any) => {
+        // Update user in AuthContext
+        updateUser(userData);
+        setShowCompletion(false);
+        navigate('/');
+    };
         } finally {
             setSocialLoading(null);
         }
@@ -386,64 +364,13 @@ const LoginPage = () => {
                 </p>
             </div>
 
-            {showCompletion && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 relative">
-                        <button
-                            onClick={() => setShowCompletion(false)}
-                            className="absolute top-3 right-3 p-2 rounded-full hover:bg-gray-100"
-                            aria-label="إغلاق"
-                        >
-                            <X size={18} />
-                        </button>
-                        <h3 className="text-xl font-bold text-gray-900 mb-2">أكمل بياناتك</h3>
-                        <p className="text-sm text-gray-500 mb-4">بعض البيانات غير موجودة من مزود الدخول. يرجى استكمالها.</p>
-                        <form onSubmit={handleCompleteProfile} className="space-y-3">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">الاسم الكامل</label>
-                                <input
-                                    type="text"
-                                    value={completionData.name}
-                                    onChange={(e) => setCompletionData({ ...completionData, name: e.target.value })}
-                                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary text-sm"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">البريد الإلكتروني</label>
-                                <input
-                                    type="email"
-                                    value={completionData.email}
-                                    onChange={(e) => setCompletionData({ ...completionData, email: e.target.value })}
-                                    className="w-full px-4 py-2.5 rounded-lg border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary text-sm"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">رقم الموبايل</label>
-                                <div className="relative">
-                                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                    <input
-                                        type="tel"
-                                        value={completionData.phone}
-                                        onChange={(e) => setCompletionData({ ...completionData, phone: e.target.value })}
-                                        className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary text-sm"
-                                        placeholder="01XXXXXXXXX"
-                                        required
-                                    />
-                                </div>
-                            </div>
-                            <button
-                                type="submit"
-                                disabled={!!socialLoading}
-                                className="w-full bg-primary text-white font-semibold py-3 rounded-lg hover:bg-primary/90 disabled:opacity-70"
-                            >
-                                {socialLoading ? 'جارٍ الحفظ...' : 'حفظ وإكمال التسجيل'}
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            )}
+            {/* Complete Profile Modal */}
+            <CompleteProfileModal
+                isOpen={showCompletion}
+                onClose={() => setShowCompletion(false)}
+                onComplete={handleCompleteProfile}
+                initialData={profileData}
+            />
         </div>
     );
 };

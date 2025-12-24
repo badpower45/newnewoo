@@ -1,8 +1,8 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import React from 'react';
 import { ShoppingCart, RefreshCw } from 'lucide-react';
 
 interface Props {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 interface State {
@@ -10,7 +10,7 @@ interface State {
   error?: Error;
 }
 
-class CartErrorBoundary extends Component<Props, State> {
+export default class CartErrorBoundary extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = { hasError: false };
@@ -20,13 +20,11 @@ class CartErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('Cart Error:', error, errorInfo);
-    // Log to error tracking service here if needed
   }
 
   handleReset = () => {
-    // Clear cart from localStorage
     try {
       localStorage.removeItem('cart_items');
       localStorage.removeItem('cart_timestamp');
@@ -35,7 +33,6 @@ class CartErrorBoundary extends Component<Props, State> {
       console.error('Failed to clear cart:', e);
     }
     
-    // Reset error state and reload
     this.setState({ hasError: false });
     window.location.href = '/';
   };
@@ -89,5 +86,3 @@ class CartErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
-
-export default CartErrorBoundary;

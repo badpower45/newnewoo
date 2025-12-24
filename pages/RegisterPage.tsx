@@ -5,10 +5,14 @@ import { ChevronLeft, Loader2 } from 'lucide-react';
 import { supabaseAuth } from '../services/supabaseAuth';
 
 const RegisterPage = () => {
-    const [name, setName] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [phone, setPhone] = useState('');
+    const [birthDate, setBirthDate] = useState('');
     const [error, setError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
     const [socialLoading, setSocialLoading] = useState<string | null>(null);
     const { register } = useAuth();
     const navigate = useNavigate();
@@ -16,11 +20,22 @@ const RegisterPage = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setIsSubmitting(true);
+        
         try {
-            await register({ name, email, password });
+            await register({ 
+                firstName, 
+                lastName, 
+                email, 
+                password, 
+                phone,
+                birthDate: birthDate || undefined
+            });
             navigate('/');
-        } catch (err) {
-            setError('Registration failed. Please try again.');
+        } catch (err: any) {
+            setError(err?.message || 'فشل التسجيل. برجاء المحاولة مرة أخرى');
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -43,13 +58,13 @@ const RegisterPage = () => {
                 <button onClick={() => navigate('/login')} className="p-2 hover:bg-gray-100 rounded-full">
                     <ChevronLeft size={24} />
                 </button>
-                <h1 className="text-xl font-bold ml-2">Sign Up</h1>
+                <h1 className="text-xl font-bold ml-2">إنشاء حساب</h1>
             </div>
 
             <div className="flex-1 px-6 py-8 max-w-md mx-auto w-full flex flex-col justify-center">
                 <div className="mb-8 text-center">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h2>
-                    <p className="text-gray-500">Join Lumina Fresh Market today</p>
+                    <h2 className="text-3xl font-bold text-gray-900 mb-2">مرحباً بك</h2>
+                    <p className="text-gray-500">سجل معنا في علوش سوبر ماركت</p>
                 </div>
 
                 {error && (
@@ -59,45 +74,91 @@ const RegisterPage = () => {
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors"
-                            placeholder="Enter your full name"
-                            required
-                        />
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">الاسم الأول *</label>
+                            <input
+                                type="text"
+                                value={firstName}
+                                onChange={(e) => setFirstName(e.target.value)}
+                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors"
+                                placeholder="أحمد"
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">الاسم الأخير *</label>
+                            <input
+                                type="text"
+                                value={lastName}
+                                onChange={(e) => setLastName(e.target.value)}
+                                className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors"
+                                placeholder="محمد"
+                                required
+                            />
+                        </div>
                     </div>
+                    
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">البريد الإلكتروني *</label>
                         <input
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors"
-                            placeholder="Enter your email"
+                            placeholder="example@email.com"
                             required
                         />
                     </div>
+                    
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">رقم الهاتف *</label>
+                        <input
+                            type="tel"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors"
+                            placeholder="01xxxxxxxxx"
+                            required
+                        />
+                    </div>
+                    
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">تاريخ الميلاد (اختياري)</label>
+                        <input
+                            type="date"
+                            value={birthDate}
+                            onChange={(e) => setBirthDate(e.target.value)}
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors"
+                        />
+                    </div>
+                    
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">كلمة المرور *</label>
                         <input
                             type="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors"
-                            placeholder="Create a password"
+                            placeholder="••••••••"
                             required
+                            minLength={6}
                         />
                     </div>
 
                     <button
                         type="submit"
-                        className="w-full bg-primary text-white font-bold py-3.5 rounded-xl hover:bg-primary/90 transition-colors shadow-lg shadow-primary/30 mt-4"
+                        disabled={isSubmitting}
+                        className="w-full bg-primary text-white font-bold py-3.5 rounded-xl hover:bg-primary/90 transition-colors shadow-lg shadow-primary/30 mt-4 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
-                        Create Account
+                        {isSubmitting ? (
+                            <>
+                                <Loader2 size={20} className="animate-spin" />
+                                جاري التسجيل...
+                            </>
+                        ) : (
+                            'إنشاء الحساب'
+                        )}
                     </button>
                 </form>
 

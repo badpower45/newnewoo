@@ -8,10 +8,14 @@ interface User {
     name: string;
     email: string;
     phone?: string;
+    firstName?: string;
+    lastName?: string;
+    birthDate?: string;
+    avatar?: string;
     role?: string;
     isGuest?: boolean;
     loyaltyPoints?: number;
-    avatar?: string;
+    profileCompleted?: boolean;
 }
 
 interface AuthContextType {
