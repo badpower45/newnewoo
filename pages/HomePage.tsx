@@ -20,6 +20,7 @@ import { api } from '../services/api';
 import { Product } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { useBranch } from '../context/BranchContext';
+import { useLanguage } from '../context/LanguageContext';
 import { DEFAULT_BRANCH_ID } from '../src/config';
 
 interface Category {
@@ -55,6 +56,7 @@ const HomePage = () => {
     const [error, setError] = useState<string | null>(null);
     const { isAuthenticated } = useAuth();
     const { selectedBranch } = useBranch();
+    const { t, isRTL } = useLanguage();
     const wavePalette = ['#FDF2E9', '#EEF2FF', '#ECFDF3', '#FFF7ED', '#E0F2FE'];
 
     // Fetch categories from API
@@ -234,7 +236,7 @@ const HomePage = () => {
                 </div>
 
                 {/* Featured Brands Carousel */}
-                <BrandsCarousel title="براندات مميزة" />
+                <BrandsCarousel title={t('home.featuredBrands')} />
 
                 {/* Brand Offers Section */}
                 <BrandOffersSection />
@@ -272,8 +274,8 @@ const HomePage = () => {
                                     <span className="text-white/90 text-[10px] font-bold bg-red-600 px-2 py-0.5 rounded-full animate-pulse">🔥 HOT</span>
                                 </div>
                                 <div>
-                                    <h3 className="text-white font-black text-lg leading-tight">العروض الساخنة</h3>
-                                    <p className="text-white/80 text-xs">عروض نارية لفترة محدودة!</p>
+                                    <h3 className="text-white font-black text-lg leading-tight">{t('home.hotDeals')}</h3>
+                                    <p className="text-white/80 text-xs">{t('home.hotDealsDescription')}</p>
                                 </div>
                             </div>
                         </div>
@@ -309,8 +311,8 @@ const HomePage = () => {
                                     <span className="text-white/90 text-[10px] font-bold bg-orange-600 px-2 py-0.5 rounded-full">📖 جديد</span>
                                 </div>
                                 <div>
-                                    <h3 className="text-white font-black text-lg leading-tight">مجلة العروض</h3>
-                                    <p className="text-white/80 text-xs">تصفح عروض هذا الأسبوع</p>
+                                    <h3 className="text-white font-black text-lg leading-tight">{t('home.magazine')}</h3>
+                                    <p className="text-white/80 text-xs">{t('home.magazineDescription')}</p>
                                 </div>
                             </div>
                         </div>

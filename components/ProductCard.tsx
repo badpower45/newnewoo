@@ -3,6 +3,8 @@ import { Plus, Heart, Check, Minus, ShoppingCart } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
+import { useLanguage } from '../context/LanguageContext';
+import { useLocalization } from '../utils/localization';
 
 import { Product } from '../types';
 
@@ -17,6 +19,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
   const navigate = useNavigate();
   const { addToCart, items, updateQuantity, removeFromCart } = useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
+  const { t } = useLanguage();
+  const { getProductName, formatPrice } = useLocalization();
   const [isAdding, setIsAdding] = useState(false);
 
   // Get quantity in cart - safely handle undefined items
@@ -134,7 +138,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
         {/* Out of Stock Badge */}
         {!available && (
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-10">
-            <span className="text-xs bg-white text-gray-700 px-3 py-1 rounded-full font-medium">غير متوفر</span>
+            <span className="text-xs bg-white text-gray-700 px-3 py-1 rounded-full font-medium">{t('product.outOfStock')}</span>
           </div>
         )}
 
@@ -200,7 +204,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
         
         {/* اسم المنتج - واضح وبارز */}
         <h4 className="text-sm font-bold text-gray-900 line-clamp-2 mb-1.5 leading-snug min-h-[2.5rem]">
-          {title}
+          {getProductName(product)}
         </h4>
         
         {/* الوزن/الحجم */}
@@ -219,8 +223,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
         <div className="mt-auto">
           <div className="flex items-center gap-1.5 flex-wrap">
             <span className="font-bold text-base text-gray-900">{currentPrice.toFixed(2)}</span>
-            <span className="text-xs text-gray-500">ج.م</span>
-            <span className="text-[10px] text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">شامل ضريبة القيمة المضافة</span>
+            <span className="text-xs text-gray-500">{t('common.currency')}</span>
+            <span className="text-[10px] text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">{t('product.vatIncluded')}</span>
             {hasDiscount && (
               <span className="text-xs text-gray-400 line-through">{priceBeforeDiscount.toFixed(2)}</span>
             )}
