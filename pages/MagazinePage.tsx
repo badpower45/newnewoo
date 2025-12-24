@@ -33,7 +33,7 @@ const MagazinePage: React.FC = () => {
         try {
             console.log('📚 Loading magazine pages from API...');
             // Try to load from API
-            const response = await api.get('/magazine/pages');
+            const response = await api.magazinePages.getAll();
             console.log('📚 Magazine API response:', response);
             
             // Backend returns array directly or wrapped in {data: []}

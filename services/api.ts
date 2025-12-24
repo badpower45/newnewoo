@@ -965,6 +965,18 @@ export const api = {
         }
     },
 
+    // Magazine Pages API
+    magazinePages: {
+        getAll: async () => {
+            const res = await fetch(`${API_URL}/magazine/pages`, { headers: getHeaders() });
+            return res.json();
+        },
+        getOne: async (id: number) => {
+            const res = await fetch(`${API_URL}/magazine/pages/${id}`, { headers: getHeaders() });
+            return res.json();
+        }
+    },
+
     // Hot Deals API
     hotDeals: {
         // جلب جميع العروض الساخنة

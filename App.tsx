@@ -62,7 +62,6 @@ import AdminInventoryDashboard from './src/pages/AdminInventoryDashboard';
 import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 import OrderDistributorPage from './pages/admin/OrderDistributorPage';
 import DeliveryStaffManager from './pages/admin/DeliveryStaffManager';
-import DeliverySlotsManager from './pages/admin/DeliverySlotsManager';
 import CouponsManager from './pages/admin/CouponsManager';
 import MagazineManager from './pages/admin/MagazineManager';
 import HotDealsManager from './pages/admin/HotDealsManager';
@@ -130,8 +129,8 @@ function AppContent() {
             <Route path="/orders/:orderId" element={<ProtectedRoute><OrderTrackingPage /></ProtectedRoute>} />
             <Route path="/deals" element={<DealsPage />} />
             <Route path="/hot-deals" element={<HotDealsPage />} />
-            <Route path="/magazine" element={<SpecialOffersPage />} />
-            <Route path="/magazine-old" element={<MagazinePage />} />
+            <Route path="/magazine" element={<MagazinePage />} />
+            <Route path="/special-offers" element={<SpecialOffersPage />} />
             <Route path="/more" element={<MorePage />} />
             <Route path="/categories" element={<CategoriesPage />} />
             <Route path="/login" element={<LoginPage />} />
@@ -178,7 +177,6 @@ function AppContent() {
               <Route path="branches" element={<BranchesManager />} />
               <Route path="inventory" element={<InventoryDashboard />} />
               <Route path="inventory-analytics" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><AdminInventoryDashboard /></ProtectedRoute>} />
-              <Route path="slots" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><DeliverySlotsManager /></ProtectedRoute>} />
               <Route path="coupons" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><CouponsManager /></ProtectedRoute>} />
               <Route path="magazine" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><MagazineManager /></ProtectedRoute>} />
               <Route path="hot-deals" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><HotDealsManager /></ProtectedRoute>} />

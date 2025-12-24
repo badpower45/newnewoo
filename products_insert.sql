@@ -39,7 +39,7 @@ INSERT INTO products (name, category, subcategory, price, discount_price, image,
 ('زبدة لورباك 200 جم', 'ألبان', 'زبدة', 45.00, 55.00, 'https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?w=400', '5760466935180', '200g', true, NOW(), NOW()),
 ('كريمة المراعي للطبخ 500 مل', 'ألبان', 'كريمة', 18.00, 22.00, 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=400', '6281007000056', '500ml', true, NOW(), NOW()),
 ('حليب نادك طويل الأجل 1 لتر', 'ألبان', 'حليب', 20.00, 23.00, 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400', '6281007100019', '1L', true, NOW(), NOW()),
-('زبادي أكتيفيا بالفراولة 120 جم', 'ألبان', 'زبادي', 7.50, 9.00, 'https://images.unsplash.com/photo-1571212515416-fca2ce42c177?w=400', '6281007000063', '120g', true, NOW(), NOW());
+('زبادي أكتيفيا بالفراولة 120 جم', 'ألبان', 'زبادي', 7.50, 9.00, 'https://images.unsplash.com/photo-1580910051074-2c39e0cdf019?auto=format&fit=crop&w=400&q=80', '6281007000063', '120g', true, NOW(), NOW());
 
 -- ======================
 -- قسم المنتجات الصحية (Healthy)

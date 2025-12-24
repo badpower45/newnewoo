@@ -129,7 +129,7 @@ const StoriesSection: React.FC = () => {
                     groups.push({
                         id: 2,
                         name: 'Nescafé',
-                        avatar: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Nescafe_logo.svg/200px-Nescafe_logo.svg.png',
+                        avatar: 'https://ui-avatars.com/api/?name=Nescafe&background=7f1d1d&color=fff&size=128',
                         stories: [
                             {
                                 id: 5,

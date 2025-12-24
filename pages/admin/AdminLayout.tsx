@@ -90,7 +90,6 @@ const AdminLayout = () => {
             items: [
                 { path: '/admin/employees', icon: <Users size={20} />, label: 'الموظفين', roles: ['admin'] },
                 { path: '/admin/delivery-staff', icon: <Truck size={20} />, label: 'موظفي التوصيل', roles: ['admin', 'manager'] },
-                { path: '/admin/slots', icon: <CalendarClock size={20} />, label: 'مواعيد التوصيل', roles: ['admin', 'manager'] },
             ]
         },
         {

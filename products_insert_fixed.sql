@@ -26,7 +26,7 @@ INSERT INTO products (id, name, category, subcategory, image, barcode, weight) V
 ('DAIRY-005', 'زبدة لورباك 200 جم', 'ألبان', 'زبدة', 'https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?w=400', '5760466935180', '200g'),
 ('DAIRY-006', 'كريمة المراعي للطبخ 500 مل', 'ألبان', 'كريمة', 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=400', '6281007000056', '500ml'),
 ('DAIRY-007', 'حليب نادك طويل الأجل 1 لتر', 'ألبان', 'حليب', 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400', '6281007100019', '1L'),
-('DAIRY-008', 'زبادي أكتيفيا بالفراولة 120 جم', 'ألبان', 'زبادي', 'https://images.unsplash.com/photo-1571212515416-fca2ce42c177?w=400', '6281007000063', '120g');
+('DAIRY-008', 'زبادي أكتيفيا بالفراولة 120 جم', 'ألبان', 'زبادي', 'https://images.unsplash.com/photo-1580910051074-2c39e0cdf019?auto=format&fit=crop&w=400&q=80', '6281007000063', '120g');
 
 -- ======================
 -- قسم المنتجات الصحية (Healthy)
