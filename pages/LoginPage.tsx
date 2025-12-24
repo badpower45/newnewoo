@@ -129,10 +129,6 @@ const LoginPage = () => {
         setShowCompletion(false);
         navigate('/');
     };
-        } finally {
-            setSocialLoading(null);
-        }
-    };
 
     const handleSendOtp = async () => {
         if (!otpEmail) {
