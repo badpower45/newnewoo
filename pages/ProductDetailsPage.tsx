@@ -213,7 +213,7 @@ const ProductDetailsPage = () => {
     const tags = [product.weight, product.category, available ? 'متوفر' : 'غير متوفر'].filter(Boolean);
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-[#FAFAFA] to-white flex flex-col">
+        <div className="min-h-screen bg-white flex flex-col">
             {/* Success Animation Overlay */}
             {showSuccessAnimation && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm animate-fade-in">
@@ -258,7 +258,7 @@ const ProductDetailsPage = () => {
             </div>
 
             {/* Hero Image */}
-            <div className="bg-gradient-to-b from-[#FFF4E6] via-white to-white px-5 pt-16 pb-10">
+            <div className="bg-white px-5 pt-16 pb-10">
                 <div className="relative flex flex-col items-center gap-4">
                     <div className="relative flex items-center justify-center">
                         {/* Discount Badge */}
@@ -283,7 +283,7 @@ const ProductDetailsPage = () => {
                         <img
                             src={product.image}
                             alt={product.name}
-                            className="w-64 h-64 sm:w-80 sm:h-80 object-contain drop-shadow-2xl"
+                            className="w-80 h-80 sm:w-96 sm:h-96 object-contain drop-shadow-2xl bg-white"
                             onError={(e) => {
                                 (e.target as HTMLImageElement).src = 'https://placehold.co/400x400?text=Product';
                             }}

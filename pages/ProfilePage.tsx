@@ -5,7 +5,7 @@ import { User, Mail, LogOut, ChevronLeft, Edit2, Phone, Save, X, Camera, LayoutD
 import { api } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Footer from '../components/Footer';
-import { API_URL } from '../src/config';
+import { API_URL, CLOUDINARY_CONFIG } from '../src/config';
 
 const ProfilePage = () => {
     const { user, logout, updateUser } = useAuth();

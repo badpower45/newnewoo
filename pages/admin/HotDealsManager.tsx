@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Plus, Edit2, Trash2, Loader, Flame, Search, Clock, Bell, AlertCircle } from 'lucide-react';
 import { api } from '../../services/api';
 import { TableSkeleton } from '../../components/Skeleton';
+import { API_URL, CLOUDINARY_CONFIG } from '../../src/config';
 
 // Push Notification Service Placeholder
 const pushNotificationService = {
@@ -34,8 +35,10 @@ const HotDealsManager = () => {
     const [editingDeal, setEditingDeal] = useState<HotDeal | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [saving, setSaving] = useState(false);
+    const [uploadingImage, setUploadingImage] = useState(false);
     const [sendPush, setSendPush] = useState(false);
     const [error, setError] = useState('');
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -154,6 +157,59 @@ const HotDealsManager = () => {
             is_flash_deal: false,
             is_active: true
         });
+    };
+
+    const uploadImage = async (file: File) => {
+        if (!file.type.startsWith('image/')) throw new Error('الرجاء اختيار صورة صحيحة');
+        if (file.size > 5 * 1024 * 1024) throw new Error('الحد الأقصى لحجم الصورة 5MB');
+
+        const form = new FormData();
+        form.append('image', file);
+        form.append('productId', `hotdeal_${Date.now()}`);
+
+        const res = await fetch(`${API_URL}/upload/image`, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${localStorage.getItem('token') || ''}`
+            },
+            body: form
+        });
+
+        if (res.ok) {
+            const data = await res.json();
+            return data?.data?.url;
+        }
+
+        // fallback to Cloudinary
+        const cloudForm = new FormData();
+        cloudForm.append('file', file);
+        cloudForm.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
+        cloudForm.append('folder', 'hot-deals');
+
+        const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/image/upload`, {
+            method: 'POST',
+            body: cloudForm
+        });
+        if (!cloudRes.ok) {
+            const txt = await cloudRes.text();
+            throw new Error(txt || 'فشل رفع الصورة');
+        }
+        const cloudData = await cloudRes.json();
+        return cloudData.secure_url;
+    };
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setUploadingImage(true);
+        try {
+            const url = await uploadImage(file);
+            setFormData((prev) => ({ ...prev, image: url || '' }));
+        } catch (err: any) {
+            alert(err?.message || 'فشل رفع الصورة');
+        } finally {
+            setUploadingImage(false);
+        }
     };
 
     const filteredDeals = deals.filter(deal =>
@@ -435,15 +491,42 @@ const HotDealsManager = () => {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    رابط الصورة
+                                    صورة العرض
                                 </label>
-                                <input
-                                    type="url"
-                                    value={formData.image}
-                                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                                    placeholder="https://..."
-                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#EF4444]/20"
-                                />
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="url"
+                                        value={formData.image}
+                                        onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                                        placeholder="https://..."
+                                        className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#EF4444]/20"
+                                    />
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        className="hidden"
+                                        onChange={handleImageUpload}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={uploadingImage}
+                                        className="px-3 py-2 bg-gray-100 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-200 transition disabled:opacity-50"
+                                    >
+                                        {uploadingImage ? 'جارٍ الرفع...' : 'رفع صورة'}
+                                    </button>
+                                </div>
+                                {formData.image && (
+                                    <div className="mt-3">
+                                        <p className="text-xs text-gray-500 mb-1">معاينة:</p>
+                                        <img
+                                            src={formData.image}
+                                            alt="preview"
+                                            className="w-24 h-24 rounded-lg object-cover border"
+                                        />
+                                    </div>
+                                )}
                             </div>
 
                             <div className="flex items-center gap-6">

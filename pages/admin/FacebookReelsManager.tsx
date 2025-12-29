@@ -402,6 +402,25 @@ const FacebookReelsManager: React.FC = () => {
                                     />
                                 </div>
                                 <p className="text-xs text-gray-500 mt-1">نحوّل YouTube/Vimeo تلقائياً إلى رابط تشغيل داخل الموقع.</p>
+                                {form.video_url && (
+                                    <div className="mt-3 rounded-xl overflow-hidden border">
+                                        {/youtube\\.com|youtu\\.be|vimeo\\.com/.test(form.video_url) ? (
+                                            <iframe
+                                                src={form.video_url}
+                                                className="w-full aspect-video"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                allowFullScreen
+                                                title="preview"
+                                            />
+                                        ) : (
+                                            <video
+                                                src={form.video_url}
+                                                className="w-full aspect-video object-cover"
+                                                controls
+                                            />
+                                        )}
+                                    </div>
+                                )}
                             </div>
 
                             {/* Title */}
