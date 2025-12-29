@@ -175,17 +175,24 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
                             </button>
                         </form>
                     ) : (
-                        <div className="relative w-full max-w-md flex-1 rounded-3xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.45)] bg-black/70">
+                        <div className="relative w-full max-w-lg flex-1 rounded-3xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.45)] bg-black/70">
                             <div
                                 id={readerIdRef.current}
                                 className="absolute inset-0 w-full h-full"
-                                style={{ minHeight: '360px' }}
+                                style={{ minHeight: '320px' }}
                             />
                             <div className="absolute inset-0 bg-black/25" />
 
-                            {/* Framing corners */}
+                            {/* Framing corners - rectangular */}
                             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                                <div className="relative w-[78%] max-w-[340px] aspect-square">
+                                <div
+                                    className="relative"
+                                    style={{
+                                        width: '88%',
+                                        maxWidth: 520,
+                                        aspectRatio: '4 / 3'
+                                    }}
+                                >
                                     <span className="absolute -top-2 -left-2 w-16 h-16 border-t-4 border-l-4 border-white rounded-lg shadow-[0_0_20px_rgba(0,0,0,0.45)]"></span>
                                     <span className="absolute -top-2 -right-2 w-16 h-16 border-t-4 border-r-4 border-white rounded-lg shadow-[0_0_20px_rgba(0,0,0,0.45)]"></span>
                                     <span className="absolute -bottom-2 -left-2 w-16 h-16 border-b-4 border-l-4 border-white rounded-lg shadow-[0_0_20px_rgba(0,0,0,0.45)]"></span>

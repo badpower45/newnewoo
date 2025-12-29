@@ -289,23 +289,23 @@ const CustomerChatPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F6F7FB] flex flex-col pb-4" dir="rtl">
-      <header className="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-gray-200">
-        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+    <div className="min-h-screen bg-[#F6F7FB] flex flex-col pb-3" dir="rtl">
+      <header className="sticky top-0 z-20 bg-white/95 backdrop-blur border-b border-gray-200">
+        <div className="max-w-3xl mx-auto px-3 py-2.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={() => navigate(-1)}
-              className="w-10 h-10 rounded-xl border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
+              className="w-9 h-9 rounded-xl border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
               aria-label="رجوع"
             >
-              <ArrowRight size={18} className="text-gray-700" />
+              <ArrowRight size={16} className="text-gray-700" />
             </button>
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 text-white flex items-center justify-center shadow-sm">
-                <MessageCircle size={22} />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white flex items-center justify-center shadow-sm">
+                <MessageCircle size={20} />
               </div>
               <div>
-                <p className="text-xs text-gray-500">محادثة خدمة العملاء</p>
+                <p className="text-[11px] text-gray-500">محادثة خدمة العملاء</p>
                 <div className="flex items-center gap-2">
                   <span
                     className={`w-2 h-2 rounded-full ${
@@ -321,34 +321,18 @@ const CustomerChatPage: React.FC = () => {
           </div>
           <a
             href="tel:+201234567890"
-            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 text-xs text-gray-700 hover:bg-gray-50 transition-colors"
           >
-            <Phone size={16} />
+            <Phone size={14} />
             <span className="hidden sm:inline">اتصل بنا</span>
           </a>
         </div>
       </header>
 
-      <main className="flex-1 w-full px-3 sm:px-4 py-5 pb-12">
-        <div className="max-w-3xl mx-auto h-full flex flex-col gap-4">
-          <div className="bg-white border border-gray-200 rounded-2xl shadow-sm px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 text-white flex items-center justify-center shadow-sm">
-                <MessageCircle size={20} />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">رد أسرع</p>
-                <p className="text-base font-semibold text-gray-900">نرد عادة في أقل من دقيقتين</p>
-              </div>
-            </div>
-            <div className="hidden sm:flex items-center gap-2 text-xs text-gray-500">
-              <Clock size={12} />
-              <span>يوميًا 9 ص - 10 م</span>
-            </div>
-          </div>
-
+      <main className="flex-1 w-full px-3 sm:px-4 py-3 pb-6">
+        <div className="max-w-3xl mx-auto h-full flex flex-col gap-3">
           <div className="bg-white border border-gray-200 rounded-2xl shadow-sm flex-1 flex flex-col overflow-hidden">
-            <div className="px-4 pt-4 pb-3 sticky top-0 bg-white/95 backdrop-blur supports-[backdrop-filter]:backdrop-blur-md border-b border-gray-100 z-10">
+            <div className="px-4 pt-3 pb-2 sticky top-0 bg-white/95 backdrop-blur supports-[backdrop-filter]:backdrop-blur-md border-b border-gray-100 z-10">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-sm font-semibold text-gray-900">ردود سريعة</p>
                 <p className="text-xs text-gray-400">اختصار للردود الشائعة</p>
@@ -367,7 +351,7 @@ const CustomerChatPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-gradient-to-b from-white to-gray-50 min-h-[62vh]">
+            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-gradient-to-b from-white to-gray-50 min-h-[50vh]">
               {messages.map((message) => (
                 <div
                   key={message.id}
@@ -412,10 +396,10 @@ const CustomerChatPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="sticky bottom-4">
+          <div className="sticky bottom-3">
             <form
               onSubmit={handleSubmit}
-              className="bg-white border border-gray-200 rounded-2xl shadow-lg px-3 py-2 flex items-center gap-2"
+              className="bg-white border border-gray-200 rounded-2xl shadow-md px-3 py-2 flex items-center gap-2"
             >
               <input
                 type="text"
