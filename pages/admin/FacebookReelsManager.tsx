@@ -162,6 +162,14 @@ const FacebookReelsManager: React.FC = () => {
         return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : '';
     };
 
+    const ensureHttps = (url: string) => {
+        if (!url) return '';
+        if (url.startsWith('//')) return 'https:' + url;
+        if (url.startsWith('/embed/')) return `https://www.youtube.com${url}`;
+        if (!/^https?:\/\//i.test(url) && url.startsWith('www.')) return `https://${url}`;
+        return url;
+    };
+
     const normalizeVideoUrl = (url: string) => {
         if (!url) return '';
         // If user pasted embed code, extract src
@@ -169,11 +177,20 @@ const FacebookReelsManager: React.FC = () => {
         if (srcMatch && srcMatch[1]) {
             url = srcMatch[1];
         }
+        url = ensureHttps(url);
 
         // YouTube formats
         const ytId = extractYoutubeId(url);
         if (ytId) {
             return `https://www.youtube.com/embed/${ytId}?rel=0&autoplay=1&modestbranding=1`;
+        }
+
+        // Facebook video/reel/share -> convert to plugin embed
+        if (/facebook\.com/.test(url) && !/plugins\/video\.php/.test(url)) {
+            return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&autoplay=1`;
+        }
+        if (/facebook\.com\/plugins\/video\.php/.test(url)) {
+            return ensureHttps(url);
         }
 
         // Vimeo
@@ -204,9 +221,12 @@ const FacebookReelsManager: React.FC = () => {
     };
 
     const handleVideoUrlChange = (url: string) => {
+        const normalized = normalizeVideoUrl(url);
+        const thumb = getYoutubeThumb(normalized);
         setForm(prev => ({
             ...prev,
-            video_url: normalizeVideoUrl(url)
+            video_url: normalized,
+            thumbnail_url: thumb || prev.thumbnail_url
         }));
     };
 
@@ -458,7 +478,7 @@ const FacebookReelsManager: React.FC = () => {
                             {/* Thumbnail URL */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    صورة مصغرة (Thumbnail) *
+                                    صورة مصغرة (Thumbnail)
                                 </label>
                                 <input
                                     type="url"
@@ -466,8 +486,8 @@ const FacebookReelsManager: React.FC = () => {
                                     onChange={(e) => setForm({ ...form, thumbnail_url: e.target.value })}
                                     placeholder="https://..."
                                     className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                                    required
                                 />
+                                <p className="text-xs text-gray-500 mt-1">نملأها تلقائياً من YouTube عند الإمكان. يمكنك تركها فارغة.</p>
                                 {form.thumbnail_url && (
                                     <div className="mt-2 w-24 aspect-[9/16] bg-gray-100 rounded-lg overflow-hidden">
                                         <img 

@@ -27,10 +27,21 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
         if (!url) return '';
         const srcMatch = url.match(/src=["']([^"']+)["']/);
         if (srcMatch?.[1]) url = srcMatch[1];
+        // Ensure https
+        if (url.startsWith('//')) url = 'https:' + url;
+        if (url.startsWith('/embed/')) url = `https://www.youtube.com${url}`;
+        if (!/^https?:\/\//i.test(url) && url.startsWith('www.')) url = `https://${url}`;
+
         const ytId = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]+)/)?.[1];
         if (ytId) return `https://www.youtube.com/embed/${ytId}?rel=0&autoplay=1&modestbranding=1`;
         const vimeoMatch = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
         if (vimeoMatch?.[1]) return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`;
+        if (/facebook\.com/.test(url) && !/plugins\/video\.php/.test(url)) {
+            return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&autoplay=1`;
+        }
+        if (/facebook\.com\/plugins\/video\.php/.test(url)) {
+            return url.startsWith('http') ? url : `https:${url}`;
+        }
         return url;
     };
 
@@ -139,9 +150,10 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
 
     const openVideoModal = (index: number) => {
         const reel = reelsData[index];
-        // إذا كان فيه video_url صالح (MP4) - افتح المودال
-        // لو مفيش - افتح فيسبوك مباشرة
-        if (reel?.video_url && !reel.video_url.includes('facebook.com')) {
+        const playable = normalizeVideoUrl(reel?.video_url || reel?.facebook_url);
+        if (playable) {
+            // cache normalized url
+            reelsData[index].video_url = playable;
             setActiveVideo(index);
             setIsPlaying(true);
         } else if (reel?.facebook_url) {
@@ -355,10 +367,10 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
                                     )}
 
                                     {/* Video Content */}
-                                    {current?.video_url ? (
+                                    {playableUrl ? (
                                         isEmbedSource ? (
                                             <iframe
-                                                src={current.video_url}
+                                                src={playableUrl}
                                                 className="w-full h-full"
                                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                 allowFullScreen
@@ -367,7 +379,7 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
                                         ) : (
                                             <video
                                                 ref={videoRef}
-                                                src={current.video_url}
+                                                src={playableUrl}
                                                 className="w-full h-full object-cover"
                                                 autoPlay
                                                 loop
