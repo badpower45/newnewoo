@@ -59,13 +59,6 @@ const MorePage = () => {
             requireAuth: true
         },
         {
-            icon: ClipboardList,
-            label: 'المرتجعات الذكية',
-            iconBg: 'bg-emerald-100',
-            iconColor: 'text-emerald-600',
-            route: '/smart-returns'
-        },
-        {
             icon: MapPinned,
             label: 'فروعنا',
             iconBg: 'bg-teal-100',

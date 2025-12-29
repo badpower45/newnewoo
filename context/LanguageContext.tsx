@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { translations as nestedTranslations } from '../constants';
 
 type Language = 'ar' | 'en';
 
@@ -54,8 +55,18 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
         applyLanguage(lang);
     };
 
+    const resolveNestedTranslation = (lang: Language, key: string) => {
+        return key.split('.').reduce<any>((acc, part) => (acc && typeof acc === 'object' ? acc[part] : undefined), nestedTranslations[lang]);
+    };
+
     const t = (key: string): string => {
-        return translations[language]?.[key] || key;
+        const flatValue = flatTranslations[language]?.[key];
+        if (typeof flatValue === 'string') return flatValue;
+
+        const nestedValue = resolveNestedTranslation(language, key);
+        if (typeof nestedValue === 'string') return nestedValue;
+
+        return key;
     };
 
     const value: LanguageContextType = {
@@ -73,7 +84,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
 };
 
 // Translations Object
-const translations: Record<Language, Record<string, string>> = {
+const flatTranslations: Record<Language, Record<string, string>> = {
     ar: {
         // Navigation & Common
         'home': 'الرئيسية',

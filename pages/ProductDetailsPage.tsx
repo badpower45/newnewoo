@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, Heart, Share2, Star, Minus, Plus, ShoppingCart, CheckCircle2, Clock, Truck, Shield, Package, Award, ThumbsUp, Zap, Info } from 'lucide-react';
+import { ArrowRight, Heart, Share2, Star, Minus, Plus, ShoppingCart, CheckCircle2, Clock, Truck, Shield, Package, Award, ThumbsUp, Zap, Info, Search } from 'lucide-react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { Product } from '../types';
@@ -15,6 +15,7 @@ const ProductDetailsPage = () => {
     const [product, setProduct] = useState<Product | null>(null);
     const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
     const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
+    const [quickSearch, setQuickSearch] = useState('');
     const { addToCart } = useCart();
     const { isFavorite, toggleFavorite } = useFavorites();
     const [quantity, setQuantity] = useState(1);
@@ -212,6 +213,12 @@ const ProductDetailsPage = () => {
 
     const tags = [product.weight, product.category, available ? 'متوفر' : 'غير متوفر'].filter(Boolean);
 
+    const handleQuickSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        const term = quickSearch.trim();
+        navigate(term ? `/products?search=${encodeURIComponent(term)}` : '/products');
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-b from-[#FAFAFA] to-white flex flex-col">
             {/* Success Animation Overlay */}
@@ -257,46 +264,67 @@ const ProductDetailsPage = () => {
                 </div>
             </div>
 
-            {/* Image Area with Enhanced Gradient & Animations */}
-            <div className="h-[36vh] min-h-[240px] max-h-[320px] bg-gradient-to-br from-[#FFF7ED] via-[#FEF3C7] to-[#F3F4F6] flex items-center justify-center relative overflow-hidden pt-14">
-                {/* Animated Background Elements */}
-                <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-[#F97316]/10 to-transparent rounded-full blur-3xl animate-float" />
-                <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-[#EA580C]/10 to-transparent rounded-full blur-3xl animate-float-delayed" />
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-radial from-[#F97316]/5 to-transparent rounded-full blur-2xl" />
-                
-                {/* Product Image with Hover Effect */}
-                <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-48 h-48 sm:w-56 sm:h-56 object-contain relative z-10 drop-shadow-2xl transform transition-transform duration-300 hover:scale-110"
-                    onError={(e) => {
-                        (e.target as HTMLImageElement).src = 'https://placehold.co/400x400?text=Product';
-                    }}
-                />
+            {/* Hero Image */}
+            <div className="bg-gradient-to-b from-[#FFF4E6] via-white to-white px-5 pt-16 pb-10">
+                <div className="relative flex flex-col items-center gap-4">
+                    <div className="relative bg-white/90 border border-orange-100 rounded-3xl shadow-lg p-4">
+                        {/* Discount Badge */}
+                        {discountPercentage > 0 && (
+                            <div className="absolute -top-3 -left-3 z-20">
+                                <div className="bg-[#EF4444] text-white px-3 py-1 rounded-full shadow-md font-bold">
+                                    -{discountPercentage}%
+                                </div>
+                            </div>
+                        )}
 
-                {/* Enhanced Discount Badge */}
-                {discountPercentage > 0 && (
-                    <div className="absolute top-20 left-4 z-20">
-                        <div className="bg-gradient-to-br from-[#EF4444] via-[#DC2626] to-[#B91C1C] text-white px-4 py-2 rounded-2xl shadow-xl transform -rotate-12 animate-wiggle">
-                            <p className="text-xs font-semibold">خصم</p>
-                            <p className="text-2xl font-black leading-none">{discountPercentage}%</p>
-                        </div>
-                    </div>
-                )}
+                        {/* New Badge */}
+                        {product.is_new && (
+                            <div className="absolute -top-3 -right-3 z-20">
+                                <div className="bg-[#10B981] text-white px-3 py-1 rounded-full shadow-md font-bold flex items-center gap-1">
+                                    <Zap className="w-4 h-4" />
+                                    <span className="text-xs">جديد</span>
+                                </div>
+                            </div>
+                        )}
 
-                {/* New Badge */}
-                {product.is_new && (
-                    <div className="absolute top-20 right-4 z-20">
-                        <div className="bg-gradient-to-br from-[#10B981] to-[#059669] text-white px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1 animate-pulse">
-                            <Zap className="w-4 h-4" />
-                            <span className="text-xs font-bold">جديد</span>
-                        </div>
+                        <img
+                            src={product.image}
+                            alt={product.name}
+                            className="w-64 h-64 sm:w-80 sm:h-80 object-contain drop-shadow-2xl"
+                            onError={(e) => {
+                                (e.target as HTMLImageElement).src = 'https://placehold.co/400x400?text=Product';
+                            }}
+                        />
                     </div>
-                )}
+
+                    <div className="flex items-center gap-2 text-xs text-gray-600 bg-white/80 px-3 py-1.5 rounded-full shadow-sm border border-gray-100">
+                        <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
+                        <span>شامل ضريبة القيمة المضافة</span>
+                    </div>
+                </div>
+
+                {/* Quick Search */}
+                <form onSubmit={handleQuickSearch} className="mt-6 max-w-xl mx-auto">
+                    <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-2xl px-3 py-2 shadow-sm">
+                        <Search className="w-5 h-5 text-gray-500" />
+                        <input
+                            value={quickSearch}
+                            onChange={(e) => setQuickSearch(e.target.value)}
+                            placeholder="ابحث عن منتج آخر بسرعة"
+                            className="flex-1 bg-transparent outline-none text-sm text-gray-700"
+                        />
+                        <button
+                            type="submit"
+                            className="bg-[#F97316] text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-[#ea580c] transition-colors"
+                        >
+                            بحث
+                        </button>
+                    </div>
+                </form>
             </div>
 
             {/* Main Content Container with Enhanced Shadow */}
-            <div className="flex-1 bg-white rounded-t-[32px] -mt-8 relative shadow-[0_-8px_40px_rgba(0,0,0,0.12)]">
+            <div className="flex-1 bg-white rounded-t-[32px] -mt-6 relative shadow-[0_-8px_30px_rgba(0,0,0,0.08)]">
                 {/* Decorative Top Bar */}
                 <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mt-3 mb-4"></div>
                 
@@ -329,7 +357,7 @@ const ProductDetailsPage = () => {
                     </div>
 
                     {/* Enhanced Price Section with Gradient */}
-                    <div className="bg-gradient-to-br from-[#FFF7ED] via-[#FEF3C7] to-[#FED7AA] rounded-2xl p-4 mb-5 border-2 border-[#F97316]/20 shadow-lg animate-slide-up" style={{animationDelay: '0.1s'}}>
+                    <div className="bg-gray-50 rounded-2xl p-4 mb-5 border border-orange-100 shadow-sm animate-slide-up" style={{animationDelay: '0.1s'}}>
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-[#6B7280] text-xs mb-1 font-semibold uppercase tracking-wide">السعر الحالي</p>
@@ -719,7 +747,7 @@ const ProductDetailsPage = () => {
                                     <ArrowRight size={14} />
                                 </button>
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide">
                                 {similarProducts.map((item) => {
                                     const itemPrice = Number(item.price) || 0;
                                     const itemOldPrice = Number(item.discount_price) || Number(item.originalPrice) || (itemPrice * 1.15);
@@ -729,7 +757,7 @@ const ProductDetailsPage = () => {
                                         <Link
                                             key={item.id}
                                             to={`/product/${item.id}`}
-                                            className="bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden hover:shadow-lg transition-all cursor-pointer relative"
+                                            className="min-w-[180px] max-w-[200px] snap-start bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden hover:shadow-lg transition-all cursor-pointer relative"
                                         >
                                             {/* Discount Badge */}
                                             {itemDiscount > 0 && (
@@ -744,7 +772,7 @@ const ProductDetailsPage = () => {
                                                 <img
                                                     src={item.image}
                                                     alt={item.name}
-                                                    className="w-full h-28 object-contain"
+                                                    className="w-full h-36 object-contain"
                                                     onError={(e) => {
                                                         (e.target as HTMLImageElement).src = 'https://placehold.co/200x200?text=Product';
                                                     }}
