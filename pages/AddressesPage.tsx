@@ -59,16 +59,20 @@ const AddressesPage = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
+            console.log('💾 جاري حفظ العنوان:', formData);
+            let response;
             if (editingAddress) {
-                await api.addresses.update(editingAddress.id, formData);
+                response = await api.addresses.update(editingAddress.id, formData);
+                console.log('✅ تم تحديث العنوان:', response);
             } else {
-                await api.addresses.create({ ...formData, user_id: user?.id });
+                response = await api.addresses.create({ ...formData, user_id: user?.id });
+                console.log('✅ تم إنشاء العنوان:', response);
             }
-            fetchAddresses();
+            await fetchAddresses();
             resetForm();
         } catch (error) {
-            console.error('Error saving address:', error);
-            alert('فشل حفظ العنوان');
+            console.error('❌ فشل حفظ العنوان:', error);
+            alert('فشل حفظ العنوان: ' + (error as any).message);
         }
     };
 

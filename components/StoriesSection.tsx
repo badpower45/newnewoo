@@ -341,12 +341,16 @@ const StoriesSection: React.FC = () => {
     return (
         <>
             {/* Stories Circles */}
-            <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar -mx-4 px-4">
+            <div className="flex gap-3 overflow-x-scroll pb-2 -mx-4 px-4 scrollbar-hide" style={{ 
+                WebkitOverflowScrolling: 'touch',
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none'
+            }}>
                 {/* Story Groups */}
                 {storyGroups.map((group, index) => (
                     <div 
                         key={group.id}
-                        className="flex flex-col items-center gap-1.5 flex-shrink-0 cursor-pointer"
+                        className="flex flex-col items-center gap-1.5 flex-shrink-0 cursor-pointer active:scale-95 transition-transform"
                         onClick={() => openStoryViewer(index)}
                     >
                         <div className="relative">
@@ -361,6 +365,7 @@ const StoriesSection: React.FC = () => {
                                         src={group.avatar} 
                                         alt={group.name}
                                         className="w-full h-full rounded-full object-cover"
+                                        loading="lazy"
                                     />
                                 </div>
                             </div>
@@ -457,22 +462,25 @@ const StoriesSection: React.FC = () => {
                         </div>
 
                         {/* Story Content */}
-                        <div className="flex-1 flex items-center justify-center">
+                        <div className="flex-1 flex items-center justify-center px-2">
                             {currentStory.media_type === 'video' ? (
                                 <video
                                     ref={videoRef}
                                     src={currentStory.media_url}
-                                    className="w-full h-full object-contain"
+                                    className="max-w-full max-h-full object-contain"
                                     autoPlay
                                     muted={isMuted}
                                     playsInline
                                     loop={false}
+                                    onLoadStart={() => setIsPaused(true)}
+                                    onCanPlay={() => setIsPaused(false)}
                                 />
                             ) : (
                                 <img 
                                     src={currentStory.media_url}
                                     alt={currentStory.title}
-                                    className="w-full h-full object-contain"
+                                    className="max-w-full max-h-full object-contain"
+                                    loading="eager"
                                 />
                             )}
                         </div>
@@ -513,6 +521,16 @@ const StoriesSection: React.FC = () => {
                     </div>
                 </div>
             )}
+
+            <style>{`
+                .scrollbar-hide::-webkit-scrollbar {
+                    display: none;
+                }
+                .scrollbar-hide {
+                    -ms-overflow-style: none;
+                    scrollbar-width: none;
+                }
+            `}</style>
         </>
     );
 };

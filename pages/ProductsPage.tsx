@@ -1,17 +1,15 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import ProductCard from '../components/ProductCard';
 import BarcodeScanner from '../components/BarcodeScanner';
 import ProductModal from '../components/ProductModal';
 import { ProductGridSkeleton } from '../components/Skeleton';
-import ProductsTopBar from '../components/ProductsTopBar';
 import { 
-    Filter, Scan, Search, X, Grid3X3, LayoutList, 
-    SlidersHorizontal, ChevronDown, ChevronUp, Sparkles,
-    TrendingUp, Clock, Tag, Check, ArrowUpDown
+    Scan, Search, X, 
+    SlidersHorizontal, Sparkles,
+    TrendingUp, Clock, Tag, ArrowUpDown
 } from 'lucide-react';
 import { api } from '../services/api';
 import { Product } from '../types';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useBranch } from '../context/BranchContext';
 
 const SORT_OPTIONS = [
@@ -36,11 +34,8 @@ export default function ProductsPage() {
     const [sortBy, setSortBy] = useState<string>('newest');
     const [currentPage, setCurrentPage] = useState(1);
     const [showFilters, setShowFilters] = useState(false);
-    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
     const [showOnlyOffers, setShowOnlyOffers] = useState(false);
-    const [showSortDropdown, setShowSortDropdown] = useState(false);
-    const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [categoryBanner, setCategoryBanner] = useState<any>(null);
     
     const navigate = useNavigate();
@@ -399,160 +394,251 @@ export default function ProductsPage() {
 
     const hasActiveFilters = selectedCategory || selectedBrand || showOnlyOffers || priceRange[0] > 0 || priceRange[1] < 1000;
 
-    return (
-        <div className="min-h-screen bg-gradient-to-b from-orange-50/30 to-white">
-            {/* Categories Slider */}
-            <div className="bg-white shadow-sm sticky top-0 z-40">
-                <div className="max-w-7xl mx-auto">
-                    <div className="flex gap-2 py-4 px-4 overflow-x-auto scrollbar-hide">
-                        {categories.map((cat) => (
-                            <button
-                                key={cat.id}
-                                onClick={() => {
-                                    setSelectedCategory(cat.id);
-                                    setCurrentPage(1);
-                                }}
-                                className={`flex items-center gap-2 px-4 py-2.5 rounded-full whitespace-nowrap transition-all duration-300 ${
-                                    selectedCategory === cat.id
-                                        ? `bg-gradient-to-r ${cat.color} text-white shadow-lg scale-105`
-                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                }`}
-                            >
-                                <span className="text-lg">{cat.icon}</span>
-                                <span className="font-medium">{cat.name}</span>
-                            </button>
-                        ))}
+    const FlatProductRow = ({ product, available }: { product: Product; available: boolean }) => {
+        const price = Number(product.price) || 0;
+        const oldPrice = Number(product.discount_price) || Number(product.originalPrice) || 0;
+        const discount = oldPrice > price ? Math.round(((oldPrice - price) / oldPrice) * 100) : 0;
+
+        return (
+            <Link
+                to={`/product/${product.id}`}
+                className="flex gap-4 py-4 px-3 hover:bg-gray-50 transition rounded-2xl"
+            >
+                <div className="w-24 h-24 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden">
+                    <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-full h-full object-contain"
+                        onError={(e) => {
+                            (e.target as HTMLImageElement).src = 'https://placehold.co/200x200?text=Product';
+                        }}
+                    />
+                </div>
+                <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-800 line-clamp-2">{product.name}</p>
+                    <p className="text-xs text-gray-500 mt-1">{product.category}</p>
+                    <div className="flex items-center gap-2 mt-2">
+                        <span className="text-lg font-bold text-brand-orange">{price.toFixed(0)} ج.م</span>
+                        {oldPrice > price && (
+                            <span className="text-xs line-through text-gray-400">{oldPrice.toFixed(0)}</span>
+                        )}
+                        {discount > 0 && (
+                            <span className="text-[11px] text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
+                                -{discount}%
+                            </span>
+                        )}
                     </div>
+                    <div className="flex items-center gap-2 mt-2">
+                        <span
+                            className={`text-[11px] px-2 py-1 rounded-full ${
+                                available ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'
+                            }`}
+                        >
+                            {available ? 'متوفر' : 'غير متوفر'}
+                        </span>
+                        {product.weight && (
+                            <span className="text-[11px] text-gray-500">{product.weight}</span>
+                        )}
+                    </div>
+                </div>
+            </Link>
+        );
+    };
+
+    return (
+        <div className="min-h-screen bg-white">
+            <div className="sticky top-0 z-40 bg-white border-b">
+                <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center gap-3">
+                    <button
+                        onClick={() => setShowFilters(!showFilters)}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm ${
+                            showFilters ? 'border-brand-orange text-brand-orange' : 'border-gray-200 text-gray-700'
+                        }`}
+                    >
+                        <SlidersHorizontal size={16} />
+                        <span>فلاتر</span>
+                        {hasActiveFilters && <span className="text-brand-orange text-xs">•</span>}
+                    </button>
+                    <div className="flex-1 min-w-[240px] flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+                        <Search size={16} className="text-gray-400" />
+                        <input
+                            value={searchQuery}
+                            onChange={(e) => handleSearch(e.target.value)}
+                            placeholder="ابحث عن منتج..."
+                            className="flex-1 bg-transparent outline-none text-sm text-gray-800"
+                        />
+                        {searchQuery && (
+                            <button onClick={() => handleSearch('')} className="text-gray-400 hover:text-gray-600">
+                                <X size={16} />
+                            </button>
+                        )}
+                    </div>
+                    <select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        className="px-3 py-2 border border-gray-200 rounded-xl text-sm text-gray-700 bg-white"
+                    >
+                        {SORT_OPTIONS.map((option) => (
+                            <option key={option.id} value={option.id}>
+                                {option.name}
+                            </option>
+                        ))}
+                    </select>
+                    <button
+                        onClick={() => setShowScanner(true)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-700"
+                    >
+                        <Scan size={16} />
+                        مسح باركود
+                    </button>
+                    <div className="hidden sm:flex items-center gap-2 text-gray-500 text-sm">
+                        <Sparkles size={16} className="text-amber-500" />
+                        <span>{filteredAndSortedProducts.length} منتج</span>
+                    </div>
+                </div>
+                <div className="max-w-7xl mx-auto px-4 pb-3 overflow-x-auto scrollbar-hide flex gap-2">
+                    {categories.map((cat) => (
+                        <button
+                            key={cat.id}
+                            onClick={() => {
+                                setSelectedCategory(cat.id);
+                                setCurrentPage(1);
+                            }}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-full whitespace-nowrap border text-sm ${
+                                selectedCategory === cat.id
+                                    ? 'bg-brand-orange text-white border-brand-orange'
+                                    : 'border-gray-200 text-gray-700'
+                            }`}
+                        >
+                            <span>{cat.icon}</span>
+                            <span>{cat.name}</span>
+                        </button>
+                    ))}
                 </div>
             </div>
 
-            {/* Category Banner */}
             {categoryBanner && categoryBanner.banner_image && (
                 <div className="max-w-7xl mx-auto px-4 pt-4">
-                    <div className="relative rounded-2xl overflow-hidden shadow-lg mb-4 group">
-                        <img 
-                            src={categoryBanner.banner_image} 
+                    <div className="rounded-2xl overflow-hidden border">
+                        <img
+                            src={categoryBanner.banner_image}
                             alt={categoryBanner.banner_title || categoryBanner.name_ar || categoryBanner.name}
-                            className="w-full h-48 md:h-64 object-cover"
+                            className="w-full h-44 object-cover"
                         />
-                        {categoryBanner.banner_title && (
-                            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent flex items-center">
-                                <div className="px-8 max-w-2xl">
-                                    <h2 className="text-white text-3xl md:text-4xl font-bold mb-2">
-                                        {categoryBanner.banner_title}
-                                    </h2>
-                                    {categoryBanner.banner_subtitle && (
-                                        <p className="text-white/90 text-lg md:text-xl">
-                                            {categoryBanner.banner_subtitle}
-                                        </p>
-                                    )}
-                                    {categoryBanner.banner_button_text && categoryBanner.banner_action_url && (
-                                        <button
-                                            onClick={() => {
-                                                if (categoryBanner.banner_action_url) {
-                                                    if (categoryBanner.banner_action_url.startsWith('http')) {
-                                                        window.open(categoryBanner.banner_action_url, '_blank');
-                                                    } else {
-                                                        navigate(categoryBanner.banner_action_url);
-                                                    }
-                                                }
-                                            }}
-                                            className="mt-4 px-6 py-3 bg-white text-brand-orange font-bold rounded-full hover:bg-orange-50 transition-colors shadow-lg"
-                                        >
-                                            {categoryBanner.banner_button_text}
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-                        )}
                     </div>
                 </div>
             )}
 
-            <div className="max-w-7xl mx-auto px-4 py-6">
-                {/* Toolbar */}
-                <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-                    {/* Left Side */}
-                    <div className="flex items-center gap-3">
-                        {/* Filter Button */}
+            <div className="max-w-7xl mx-auto px-4 py-6 space-y-4">
+                {/* Active Filters */}
+                {hasActiveFilters && (
+                    <div className="flex flex-wrap items-center gap-2">
+                        {selectedCategory && (
+                            <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-50 text-brand-orange rounded-full text-sm border border-orange-100">
+                                {categories.find(c => c.id === selectedCategory)?.icon}
+                                {categories.find(c => c.id === selectedCategory)?.name}
+                                <button onClick={() => setSelectedCategory('')} className="hover:text-orange-700">
+                                    <X size={14} />
+                                </button>
+                            </span>
+                        )}
+                        {selectedBrand && (
+                            <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-sm border border-blue-100">
+                                <Tag size={14} />
+                                {brands.find(b => b.id === selectedBrand)?.name}
+                                <button onClick={() => setSelectedBrand('')} className="hover:text-blue-800">
+                                    <X size={14} />
+                                </button>
+                            </span>
+                        )}
+                        {showOnlyOffers && (
+                            <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-50 text-green-700 rounded-full text-sm border border-green-100">
+                                <Sparkles size={14} />
+                                عروض فقط
+                                <button onClick={() => setShowOnlyOffers(false)} className="hover:text-green-800">
+                                    <X size={14} />
+                                </button>
+                            </span>
+                        )}
                         <button
-                            onClick={() => setShowFilters(!showFilters)}
-                            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all ${
-                                showFilters || hasActiveFilters
-                                    ? 'bg-brand-brown text-white shadow-lg'
-                                    : 'bg-white text-gray-700 border border-gray-200 hover:border-brand-orange'
-                            }`}
+                            onClick={clearFilters}
+                            className="text-gray-500 hover:text-gray-700 text-sm underline"
                         >
-                            <SlidersHorizontal size={18} />
-                            <span>الفلاتر</span>
-                            {hasActiveFilters && (
-                                <span className="w-5 h-5 bg-white text-brand-brown rounded-full text-xs flex items-center justify-center font-bold">
-                                    !
-                                </span>
-                            )}
+                            مسح الكل
                         </button>
+                    </div>
+                )}
 
-                        {/* Sort Dropdown */}
-                        <div className="relative">
-                            <button
-                                onClick={() => setShowSortDropdown(!showSortDropdown)}
-                                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-gray-200 hover:border-brand-orange transition-all"
-                            >
-                                <ArrowUpDown size={18} className="text-gray-500" />
-                                <span className="text-gray-700">
-                                    {SORT_OPTIONS.find(s => s.id === sortBy)?.name}
-                                </span>
-                                <ChevronDown size={16} className={`text-gray-400 transition-transform ${showSortDropdown ? 'rotate-180' : ''}`} />
-                            </button>
-                            
-                            {showSortDropdown && (
-                                <>
-                                    <div className="fixed inset-0 z-40" onClick={() => setShowSortDropdown(false)} />
-                                    <div className="absolute top-full left-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 py-2 min-w-[200px] z-50">
-                                        {SORT_OPTIONS.map((option) => (
+                {/* Filters Panel */}
+                {showFilters && (
+                    <div className="bg-white border rounded-2xl p-4 space-y-4">
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            <div className="flex-1">
+                                <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                                    <Tag size={16} className="text-brand-orange" />
+                                    نطاق السعر
+                                </h3>
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="number"
+                                        value={priceRange[0]}
+                                        onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
+                                        className="w-24 px-3 py-2 border border-gray-200 rounded-lg text-center text-sm"
+                                        placeholder="من"
+                                    />
+                                    <span className="text-gray-400">—</span>
+                                    <input
+                                        type="number"
+                                        value={priceRange[1]}
+                                        onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
+                                        className="w-24 px-3 py-2 border border-gray-200 rounded-lg text-center text-sm"
+                                        placeholder="إلى"
+                                    />
+                                    <span className="text-gray-500 text-sm">جنيه</span>
+                                </div>
+                            </div>
+
+                            <div className="flex-1">
+                                <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                                    <Sparkles size={16} className="text-orange-500" />
+                                    عروض
+                                </h3>
+                                <button
+                                    onClick={() => setShowOnlyOffers(!showOnlyOffers)}
+                                    className={`px-4 py-2 rounded-xl border text-sm w-full text-right ${
+                                        showOnlyOffers ? 'border-orange-500 text-orange-700 bg-orange-50' : 'border-gray-200 text-gray-700'
+                                    }`}
+                                >
+                                    عرض المنتجات بخصم فقط
+                                </button>
+                            </div>
+
+                            {brands.length > 1 && (
+                                <div className="flex-1">
+                                    <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                                        <Tag size={16} className="text-orange-500" />
+                                        البراند
+                                    </h3>
+                                    <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+                                        {brands.map((brand) => (
                                             <button
-                                                key={option.id}
-                                                onClick={() => {
-                                                    setSortBy(option.id);
-                                                    setShowSortDropdown(false);
-                                                }}
-                                                className={`w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition ${
-                                                    sortBy === option.id ? 'text-brand-orange bg-orange-50' : 'text-gray-700'
+                                                key={brand.id}
+                                                onClick={() => setSelectedBrand(brand.id)}
+                                                className={`w-full text-right px-4 py-2 rounded-xl border text-sm ${
+                                                    selectedBrand === brand.id
+                                                        ? 'border-orange-500 text-orange-700 bg-orange-50'
+                                                        : 'border-gray-200 text-gray-700'
                                                 }`}
                                             >
-                                                <option.icon size={18} />
-                                                <span>{option.name}</span>
-                                                {sortBy === option.id && <Check size={16} className="mr-auto" />}
+                                                {brand.name}
                                             </button>
                                         ))}
                                     </div>
-                                </>
+                                </div>
                             )}
                         </div>
-
-                        {/* Products Count */}
-                        <div className="hidden sm:flex items-center gap-2 text-gray-500">
-                            <Sparkles size={16} className="text-amber-500" />
-                            <span>{filteredAndSortedProducts.length} منتج</span>
-                        </div>
                     </div>
-
-                    {/* Right Side - View Toggle */}
-                    <div className="flex items-center gap-2 bg-gray-100 p-1 rounded-xl">
-                        <button
-                            onClick={() => setViewMode('grid')}
-                            className={`p-2 rounded-lg transition ${viewMode === 'grid' ? 'bg-white shadow-sm text-brand-orange' : 'text-gray-500'}`}
-                        >
-                            <Grid3X3 size={20} />
-                        </button>
-                        <button
-                            onClick={() => setViewMode('list')}
-                            className={`p-2 rounded-lg transition ${viewMode === 'list' ? 'bg-white shadow-sm text-brand-orange' : 'text-gray-500'}`}
-                        >
-                            <LayoutList size={20} />
-                        </button>
-                    </div>
-                </div>
+                )}
 
                 {/* Active Filters */}
                 {hasActiveFilters && (
@@ -702,7 +788,7 @@ export default function ProductsPage() {
                     </div>
                 )}
 
-                {/* Products Grid */}
+                {/* Products List */}
                 {loading ? (
                     <ProductGridSkeleton count={12} />
                 ) : paginatedProducts.length === 0 ? (
@@ -719,20 +805,15 @@ export default function ProductsPage() {
                     </div>
                 ) : (
                     <>
-                        <div className={`grid gap-4 ${
-                            viewMode === 'grid' 
-                                ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5' 
-                                : 'grid-cols-1 md:grid-cols-2'
-                        }`}>
+                        <div className="bg-white border rounded-2xl divide-y">
                             {paginatedProducts.map((product) => {
                                 const reserved = product.reserved_quantity || 0;
                                 const stock = product.stock_quantity;
                                 const available = typeof stock === 'number' ? (stock - reserved) > 0 : true;
                                 return (
-                                    <ProductCard 
+                                    <FlatProductRow
                                         key={product.id}
-                                        product={product} 
-                                        variant={viewMode === 'list' ? 'horizontal' : 'vertical'}
+                                        product={product}
                                         available={available}
                                     />
                                 );

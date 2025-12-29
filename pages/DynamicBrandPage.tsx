@@ -126,26 +126,49 @@ const DynamicBrandPage = () => {
         { value: 'popular', label: 'الأكثر شعبية' }
     ];
 
-    if (loading) {
+    if (loading || !brand) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600">جاري التحميل...</p>
+            <div className="min-h-screen bg-gray-50">
+                {/* Header Skeleton */}
+                <div className="bg-white p-4 border-b">
+                    <div className="h-6 w-32 bg-gray-200 rounded animate-pulse"></div>
                 </div>
-            </div>
-        );
-    }
+                
+                {/* Brand Header Skeleton */}
+                <div className="bg-white border-b p-6">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="flex items-center gap-4 mb-4">
+                            <div className="w-20 h-20 bg-gray-200 rounded-xl animate-pulse"></div>
+                            <div className="flex-1">
+                                <div className="h-6 w-48 bg-gray-200 rounded mb-2 animate-pulse"></div>
+                                <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-    if (!brand) {
-        return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <Sparkles size={64} className="mx-auto text-gray-300 mb-4" />
-                    <h2 className="text-xl font-bold text-gray-800 mb-2">البراند غير موجود</h2>
-                    <Link to="/brands" className="text-orange-600 font-medium hover:underline">
-                        العودة للبراندات
-                    </Link>
+                {/* Filters Skeleton */}
+                <div className="bg-white border-b p-4">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="flex gap-3 overflow-x-auto pb-2">
+                            {[1, 2, 3, 4].map(i => (
+                                <div key={i} className="h-10 w-24 bg-gray-200 rounded-lg animate-pulse flex-shrink-0"></div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Products Grid Skeleton */}
+                <div className="max-w-7xl mx-auto px-4 py-6">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {[...Array(8)].map((_, i) => (
+                            <div key={i} className="bg-white rounded-2xl p-4 animate-pulse">
+                                <div className="aspect-square bg-gray-200 rounded-xl mb-3"></div>
+                                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         );

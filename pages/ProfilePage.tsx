@@ -182,7 +182,7 @@ const ProfilePage = () => {
                                 {user?.name ? user.name.charAt(0).toUpperCase() : <User size={32} />}
                             </div>
                         )}
-                        {!editMode && (
+                        {editMode && (
                             <>
                                 <input
                                     ref={fileInputRef}

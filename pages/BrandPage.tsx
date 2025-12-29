@@ -269,16 +269,42 @@ const BrandPage = () => {
         return true;
     });
 
-    if (!brand) {
+    // Loading skeleton while fetching brand data
+    if (loading || !brand) {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <Sparkles size={64} className="mx-auto text-gray-300 mb-4" />
-                    <h2 className="text-xl font-bold text-gray-800 mb-2">البراند غير موجود</h2>
-                    <p className="text-gray-500 mb-4">لم نتمكن من العثور على هذا البراند</p>
-                    <Link to="/brands" className="text-blue-600 font-medium hover:underline">
-                        العودة للبراندات
-                    </Link>
+            <div className="min-h-screen bg-gray-50">
+                {/* Header Skeleton */}
+                <div className="bg-white p-4 border-b">
+                    <div className="h-6 w-32 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+                
+                {/* Hero Banner Skeleton */}
+                <div className="relative h-96 bg-gradient-to-br from-gray-200 to-gray-300 animate-pulse">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-32 h-32 bg-gray-300 rounded-full animate-pulse"></div>
+                    </div>
+                </div>
+
+                {/* Tabs Skeleton */}
+                <div className="bg-white border-b p-4">
+                    <div className="flex gap-3 justify-center">
+                        {[1, 2, 3].map(i => (
+                            <div key={i} className="h-10 w-24 bg-gray-200 rounded-full animate-pulse"></div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Products Grid Skeleton */}
+                <div className="max-w-7xl mx-auto px-4 py-6">
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {[...Array(8)].map((_, i) => (
+                            <div key={i} className="bg-white rounded-2xl p-4 animate-pulse">
+                                <div className="aspect-square bg-gray-200 rounded-xl mb-3"></div>
+                                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         );
