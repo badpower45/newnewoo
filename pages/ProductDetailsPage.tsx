@@ -299,7 +299,7 @@ const ProductDetailsPage = () => {
 
                     <div className="flex items-center gap-2 text-xs text-gray-600 bg-white/80 px-3 py-1.5 rounded-full shadow-sm border border-gray-100">
                         <CheckCircle2 className="w-4 h-4 text-[#10B981]" />
-                        <span>شامل ضريبة القيمة المضافة</span>
+                        <span>شامل الضريبة</span>
                     </div>
                 </div>
 
@@ -367,7 +367,7 @@ const ProductDetailsPage = () => {
                                     </span>
                                     <span className="text-[#23110C] text-base font-semibold">جنيه</span>
                                 </div>
-                                <p className="text-xs text-gray-500 mt-1">شامل ضريبة القيمة المضافة</p>
+                                <p className="text-xs text-gray-500 mt-1">شامل الضريبة</p>
                                 {oldPrice > displayPrice && (
                                     <div className="flex items-center gap-2 mt-1">
                                         <span className="text-[#9CA3AF] line-through text-base font-semibold">

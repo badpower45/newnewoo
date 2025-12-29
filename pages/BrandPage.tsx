@@ -135,6 +135,40 @@ const BrandPage = () => {
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'all' | 'offers' | 'new'>('all');
+    const [isFavorite, setIsFavorite] = useState(false);
+
+    // Handle Favorite Toggle
+    const handleFavoriteToggle = () => {
+        setIsFavorite(!isFavorite);
+        // يمكن إضافة API call هنا لحفظ في قاعدة البيانات
+        const message = !isFavorite ? 'تم إضافة البراند للمفضلة! ❤️' : 'تم إزالة البراند من المفضلة';
+        if (typeof window !== 'undefined' && 'toast' in window) {
+            (window as any).toast?.success?.(message);
+        }
+    };
+
+    // Handle Share
+    const handleShare = async () => {
+        const shareData = {
+            title: brand.name,
+            text: `${brand.name} - ${brand.tagline}\n${brand.description}`,
+            url: window.location.href
+        };
+
+        try {
+            if (navigator.share) {
+                await navigator.share(shareData);
+            } else {
+                // Fallback: Copy to clipboard
+                await navigator.clipboard.writeText(window.location.href);
+                if (typeof window !== 'undefined' && 'toast' in window) {
+                    (window as any).toast?.success?.('تم نسخ الرابط! 🔗');
+                }
+            }
+        } catch (err) {
+            console.error('Error sharing:', err);
+        }
+    };
 
     const slugify = (value: string = '') =>
         value
@@ -343,10 +377,20 @@ const BrandPage = () => {
                             <ArrowLeft size={20} />
                         </Link>
                         <div className="flex gap-2">
-                            <button className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition">
-                                <Heart size={20} />
+                            <button 
+                                onClick={handleFavoriteToggle}
+                                className={`w-10 h-10 backdrop-blur-sm rounded-full flex items-center justify-center transition-all ${
+                                    isFavorite 
+                                        ? 'bg-red-500 text-white' 
+                                        : 'bg-white/20 text-white hover:bg-white/30'
+                                }`}
+                            >
+                                <Heart size={20} className={isFavorite ? 'fill-current' : ''} />
                             </button>
-                            <button className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition">
+                            <button 
+                                onClick={handleShare}
+                                className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition"
+                            >
                                 <Share2 size={20} />
                             </button>
                         </div>

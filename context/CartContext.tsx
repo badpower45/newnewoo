@@ -6,8 +6,8 @@ import { useBranch } from './BranchContext';
 import { useToast } from '../components/Toast';
 
 // Financial Constants
-const SERVICE_FEE = 7;
-const MIN_ORDER = 0;
+const SERVICE_FEE = 25;
+const MIN_ORDER = 200;
 const FREE_SHIPPING_THRESHOLD = 600;
 const LOYALTY_POINTS_RATIO = 1; // 1 EGP = 1 Point
 const REWARD_POINTS_REQUIRED = 1000; // Points needed for reward
@@ -119,40 +119,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
       price: Number(product.price) || 0
     };
     
-    // Branch availability check
-    if (selectedBranch) {
-      try {
-        const res = await api.branchProducts.getByBranch(selectedBranch.id);
-        const list = res.data || res || [];
-        const pid = normalizedProduct.id;
-        const bp = list.find((x: any) => String(x.product_id ?? x.productId ?? x.id) === String(pid));
-        if (bp) {
-          const stock = bp.available_quantity ?? bp.stock_quantity ?? bp.stockQuantity;
-          const reserved = bp.reserved_quantity ?? bp.reservedQuantity ?? 0;
-          if (typeof stock === 'number') {
-            const availableCount = Math.max(0, stock - reserved);
-            const existing = items.find(i => String(i.id) === String(pid));
-            const desired = (existing?.quantity || 0) + quantity;
-            if (desired > availableCount) {
-              showToast('هذا المنتج غير متوفر بالكمية المطلوبة في هذا الفرع', 'warning');
-              return;
-            }
-          }
-          // Override price if branch price exists
-          const branchPrice = bp.branch_price ?? bp.branchPrice;
-          if (typeof branchPrice === 'number') {
-            normalizedProduct.price = branchPrice;
-          }
-        }
-      } catch (e) {
-        console.error('Failed to verify branch availability', e);
+    // Quick client-side availability check (no blocking API calls)
+    const existing = items.find(i => String(i.id) === String(normalizedProduct.id));
+    const stock = normalizedProduct.stock_quantity ?? normalizedProduct.stockQuantity;
+    const reserved = normalizedProduct.reserved_quantity ?? normalizedProduct.reservedQuantity ?? 0;
+    if (typeof stock === 'number') {
+      const availableCount = Math.max(0, stock - reserved);
+      const desired = (existing?.quantity || 0) + quantity;
+      if (desired > availableCount) {
+        showToast('هذا المنتج غير متوفر بالكمية المطلوبة', 'warning');
+        return;
       }
     }
     if (user && !user.isGuest) {
       // Optimistic update with smooth animation
       setItems(prev => {
-        const existing = prev.find(item => String(item.id) === String(normalizedProduct.id));
-        if (existing) {
+        const existingItem = prev.find(item => String(item.id) === String(normalizedProduct.id));
+        if (existingItem) {
           return prev.map(item =>
             String(item.id) === String(normalizedProduct.id)
               ? { ...item, quantity: item.quantity + quantity, substitutionPreference: substitutionPreference || item.substitutionPreference }
@@ -181,8 +164,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       });
     } else {
       setItems(prev => {
-        const existing = prev.find(item => String(item.id) === String(normalizedProduct.id));
-        if (existing) {
+        const existingItem = prev.find(item => String(item.id) === String(normalizedProduct.id));
+        if (existingItem) {
           return prev.map(item =>
             String(item.id) === String(normalizedProduct.id)
               ? { ...item, quantity: item.quantity + quantity, substitutionPreference: substitutionPreference || item.substitutionPreference }
@@ -220,32 +203,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
     // Get current item
     const current = items.find(i => String(i.id) === String(productId));
     
-    // Check stock availability for ANY quantity change
+    // Check stock availability using cached item data only (no blocking calls)
     const isQuantityIncrease = current && quantity > current.quantity;
-    
-    if (selectedBranch && isQuantityIncrease) {
-      try {
-        const res = await api.branchProducts.getByBranch(selectedBranch.id);
-        const list = res.data || res || [];
-        const bp = list.find((x: any) => String(x.product_id ?? x.productId ?? x.id) === String(productId));
-        if (bp) {
-          const stock = bp.available_quantity ?? bp.stock_quantity ?? bp.stockQuantity;
-          const reserved = bp.reserved_quantity ?? bp.reservedQuantity ?? 0;
-          if (typeof stock === 'number') {
-            const availableCount = Math.max(0, stock - reserved);
-            if (quantity > availableCount) {
-              showToast(`الكمية المتاحة: ${availableCount} فقط`, 'warning');
-              // Set to maximum available
-              quantity = availableCount;
-              if (quantity < 1) {
-                removeFromCart(productId);
-                return;
-              }
-            }
+    if (current && isQuantityIncrease) {
+      const stock = current.stock_quantity ?? current.stockQuantity;
+      const reserved = current.reserved_quantity ?? current.reservedQuantity ?? 0;
+      if (typeof stock === 'number') {
+        const availableCount = Math.max(0, stock - reserved);
+        if (quantity > availableCount) {
+          showToast(`الكمية المتاحة: ${availableCount} فقط`, 'warning');
+          quantity = availableCount;
+          if (quantity < 1) {
+            removeFromCart(productId);
+            return;
           }
         }
-      } catch (e) {
-        console.error('Failed to verify branch availability on update', e);
       }
     }
 

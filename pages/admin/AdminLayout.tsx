@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingBag, Users, Settings, LogOut, Upload, MessageCircle, Store, Boxes, CalendarClock, ClipboardList, Truck, Tag, Menu, X, BookOpen, Flame, CircleDot, FolderTree, Facebook, Gift, FileSpreadsheet, LayoutGrid, Briefcase, BarChart3, RotateCcw } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, Users, Settings, LogOut, Upload, MessageCircle, Store, CalendarClock, ClipboardList, Truck, Tag, Menu, X, BookOpen, Flame, CircleDot, FolderTree, Facebook, Gift, FileSpreadsheet, LayoutGrid, Briefcase, BarChart3, RotateCcw } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const AdminLayout = () => {
@@ -63,8 +63,6 @@ const AdminLayout = () => {
             title: '🏪 الفروع والمخزون',
             items: [
                 { path: '/admin/branches', icon: <Store size={20} />, label: 'الفروع', roles: ['admin', 'manager'] },
-                { path: '/admin/inventory', icon: <Boxes size={20} />, label: 'المخزون', roles: ['admin', 'manager'] },
-                { path: '/admin/inventory-analytics', icon: <BarChart3 size={20} />, label: 'تحليلات المخزون', roles: ['admin', 'manager'] },
             ]
         },
         {

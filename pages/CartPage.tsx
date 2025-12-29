@@ -12,12 +12,12 @@ const CartPage = () => {
     const { user } = useAuth();
     const { items, removeFromCart, updateQuantity, clearCart, totalPrice, serviceFee, finalTotal, loyaltyPointsEarned, meetsMinimumOrder, redeemPointsForCoupon, syncCart } = useCart();
     const { selectedBranch } = useBranch();
-    const [deliveryFee, setDeliveryFee] = useState(20);
+    const [deliveryFee, setDeliveryFee] = useState(25);
     const [freeDelivery, setFreeDelivery] = useState(false);
     const [isRedeeming, setIsRedeeming] = useState(false);
     
     // Constants
-    const MINIMUM_ORDER_AMOUNT = 0;
+    const MINIMUM_ORDER_AMOUNT = 200;
     const FREE_SHIPPING_THRESHOLD = 600;
 
     // Sync cart on mount (fix for task bar refresh issue)
@@ -31,14 +31,15 @@ const CartPage = () => {
             if (!selectedBranch) return;
 
             try {
-                const result = await api.deliveryFees.calculate(selectedBranch.id, totalPrice);
-                if (result.deliveryFee !== undefined) {
-                    setDeliveryFee(result.deliveryFee);
-                    setFreeDelivery(result.freeDelivery || false);
-                }
+                // قاعدة: فوق 600 شحن مجاني، غير كده 25 جنيه
+                const baseFee = totalPrice >= FREE_SHIPPING_THRESHOLD ? 0 : 25;
+                setDeliveryFee(baseFee);
+                setFreeDelivery(baseFee === 0);
             } catch (err) {
                 console.error('Failed to calculate delivery fee:', err);
-                setDeliveryFee(20);
+                const fallback = totalPrice >= FREE_SHIPPING_THRESHOLD ? 0 : 25;
+                setDeliveryFee(fallback);
+                setFreeDelivery(fallback === 0);
             }
         };
 
@@ -243,6 +244,17 @@ const CartPage = () => {
                                             لديك {user.loyalty_points || 0} نقطة. تحتاج {1000 - (user.loyalty_points || 0)} نقطة للحصول على كوبون 35 جنيه
                                         </div>
                                     )}
+                                </div>
+                            )}
+                            {(!user || user.isGuest) && (
+                                <div className="mb-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-xl border border-purple-200">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <Gift className="text-purple-600" size={20} />
+                                        <span className="font-bold text-purple-900">برنامج النقاط</span>
+                                    </div>
+                                    <p className="text-xs text-purple-700">
+                                        سجّل دخولك لتكسب نقاط على كل طلب (1 نقطة لكل جنيه) وتستبدلها بكوبونات خصم.
+                                    </p>
                                 </div>
                             )}
 

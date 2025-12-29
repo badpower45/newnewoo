@@ -384,7 +384,7 @@ export const translations = {
       specifications: 'المواصفات',
       relatedProducts: 'منتجات مشابهة',
       viewDetails: 'عرض التفاصيل',
-      vatIncluded: 'شامل ضريبة القيمة المضافة',
+      vatIncluded: 'شامل الضريبة',
     },
     
     // Cart
@@ -612,7 +612,7 @@ export const translations = {
       specifications: 'Specifications',
       relatedProducts: 'Related Products',
       viewDetails: 'View Details',
-      vatIncluded: 'VAT Included',
+      vatIncluded: 'Tax Included',
     },
     
     // Cart

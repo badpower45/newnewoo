@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { X, Camera, CheckCircle2, AlertCircle, Keyboard } from 'lucide-react';
+import { X, ScanLine, CheckCircle2, AlertCircle, Keyboard } from 'lucide-react';
 
 interface BarcodeScannerProps {
     onScan: (barcode: string) => void;
@@ -36,7 +36,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
                 { facingMode: 'environment' },
                 {
                     fps: 10,
-                    qrbox: { width: 250, height: 250 }
+                    qrbox: { width: 240, height: 150 }
                 },
                 (decodedText) => {
                     // Success callback
@@ -112,21 +112,21 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
     return (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 md:p-6">
             <div 
-                className="bg-white w-full h-full max-w-xl md:max-w-md rounded-3xl shadow-2xl overflow-hidden flex flex-col md:h-auto md:max-h-[92vh]"
+                className="bg-white w-full h-full max-w-lg md:max-w-md rounded-3xl shadow-2xl overflow-hidden flex flex-col md:h-auto md:max-h-[92vh]"
                 style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
             >
                 <div className="bg-gradient-to-r from-brand-orange to-orange-600 p-4 md:p-6 text-white relative">
                     <button
                         onClick={handleClose}
-                        className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-lg transition-colors z-10"
+                        className="absolute top-4 left-4 p-2 hover:bg-white/20 rounded-lg transition-colors z-10"
                     >
                         <X size={24} />
                     </button>
                     <div className="flex items-center space-x-3 rtl:space-x-reverse">
-                        <Camera size={24} className="md:w-7 md:h-7" />
+                        <ScanLine size={24} className="md:w-7 md:h-7" />
                         <h2 className="text-xl md:text-2xl font-bold">مسح الباركود</h2>
                     </div>
-                    <p className="mt-2 text-sm md:text-base text-white/90">وجّه الكاميرا نحو الباركود</p>
+                    <p className="mt-2 text-sm md:text-base text-white/90">وجّه الكاميرا نحو الباركود (خطّي)</p>
                 </div>
 
                 <div className="p-4 md:p-6 flex-1 overflow-y-auto">
@@ -140,7 +140,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
                                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                             }`}
                         >
-                            <Camera size={20} />
+                            <ScanLine size={20} />
                             <span>مسح ضوئي</span>
                         </button>
                         <button
@@ -210,8 +210,8 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
                             <div className="flex justify-center">
                                 <div
                                     id={readerIdRef.current}
-                                    className="rounded-2xl overflow-hidden bg-black/80 w-full max-w-[440px] aspect-[3/4] border border-gray-200 shadow-inner"
-                                    style={{ minHeight: '280px' }}
+                                    className="rounded-2xl overflow-hidden bg-black/80 w-full max-w-[360px] aspect-video border border-gray-200 shadow-inner"
+                                    style={{ minHeight: '200px' }}
                                 />
                             </div>
 

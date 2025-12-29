@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { useBranch } from '../context/BranchContext';
-import { ArrowLeft, MapPin, Loader, CheckCircle, Tag, X, Map } from 'lucide-react';
+import { ArrowLeft, MapPin, Loader, CheckCircle, Tag, X, Map, Gift } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import SubstitutionSelector from '../components/SubstitutionSelector';
 import SavedAddressSelector from '../components/SavedAddressSelector';
@@ -91,23 +91,18 @@ export default function CheckoutPage() {
             }
 
             try {
-                const result = await api.deliveryFees.calculate(
-                    selectedBranch.id,
-                    totalPrice,
-                    locationCoords?.lat,
-                    locationCoords?.lng
-                );
-
-                if (result.deliveryFee !== undefined) {
-                    setDeliveryFee(result.deliveryFee);
-                    setFreeDelivery(result.freeDelivery || false);
-                    setDeliveryMessage(result.message || null);
-                    setCanDeliver(result.canDeliver !== false);
-                }
+                // قاعدة ثابتة: فوق 600 شحن مجاني، غير كده 25 جنيه
+                const baseFee = totalPrice >= 600 ? 0 : 25;
+                setDeliveryFee(baseFee);
+                setFreeDelivery(baseFee === 0);
+                setDeliveryMessage(baseFee === 0 ? 'الشحن مجاني للطلبات فوق 600 جنيه' : 'رسوم التوصيل 25 جنيه للطلبات أقل من 600');
+                setCanDeliver(true);
             } catch (err) {
                 console.error('Failed to calculate delivery fee:', err);
-                // Fallback to default
-                setDeliveryFee(20);
+                const fallback = totalPrice >= 600 ? 0 : 25;
+                setDeliveryFee(fallback);
+                setFreeDelivery(fallback === 0);
+                setDeliveryMessage(fallback === 0 ? 'الشحن مجاني للطلبات فوق 600 جنيه' : 'رسوم التوصيل 25 جنيه');
                 setCanDeliver(true);
             }
         };
@@ -715,16 +710,17 @@ export default function CheckoutPage() {
 
                     <button
                         onClick={handleSubmit}
-                        disabled={!isPickup && !canDeliver}
+                        disabled={(!isPickup && !canDeliver) || !meetsMinimumOrder}
                         className={`w-full font-bold py-4 rounded-xl transition-colors shadow-lg ${
-                            isPickup || canDeliver
-                                ? 'bg-green-600 text-white hover:bg-green-700'
-                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            (!isPickup && !canDeliver) || !meetsMinimumOrder
+                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                : 'bg-green-600 text-white hover:bg-green-700'
                         }`}
                     >
-                        {isPickup || canDeliver
-                            ? `تأكيد الطلب (${(totalPrice + deliveryFee - couponDiscount - barcodeDiscount).toFixed(2)} جنيه)`
-                            : 'لا يمكن إتمام الطلب'}
+                        {(!isPickup && !canDeliver) ? 'لا يمكن إتمام الطلب' 
+                            : !meetsMinimumOrder 
+                                ? 'الحد الأدنى 200 جنيه' 
+                                : `تأكيد الطلب (${(totalPrice + deliveryFee - couponDiscount - barcodeDiscount).toFixed(2)} جنيه)`}
                     </button>
                 </div>
 
@@ -739,6 +735,16 @@ export default function CheckoutPage() {
                                     <span className="font-bold text-slate-800">{((item.price || 0) * item.quantity).toFixed(2)} EGP</span>
                                 </div>
                             ))}
+                        </div>
+
+                        <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-xl">
+                            <div className="flex items-center justify-between">
+                                <div className="text-sm text-purple-800 font-semibold">ستربح {loyaltyPointsEarned} نقطة من هذا الطلب</div>
+                                <Gift size={18} className="text-purple-600" />
+                            </div>
+                            {(!user || user.isGuest) && (
+                                <p className="text-xs text-purple-700 mt-2">سجّل دخولك ليتم حفظ نقاطك تلقائياً واستخدامها كخصومات لاحقاً.</p>
+                            )}
                         </div>
 
                         {/* مربع الكوبون */}
@@ -878,6 +884,9 @@ export default function CheckoutPage() {
                                 <span className="font-bold text-slate-800">Total</span>
                                 <span className="font-bold text-xl text-primary">{(totalPrice + deliveryFee - couponDiscount - barcodeDiscount).toFixed(2)} EGP</span>
                             </div>
+                            {!meetsMinimumOrder && (
+                                <p className="text-xs text-red-600 pt-1">الحد الأدنى للطلب 200 جنيه - أضف منتجات أكثر لإكمال الطلب</p>
+                            )}
                         </div>
                     </div>
                 </div>

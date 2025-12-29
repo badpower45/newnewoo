@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ChevronLeft, Loader2, Facebook, KeyRound } from 'lucide-react';
+import { ChevronLeft, Loader2, Facebook, KeyRound, Eye, EyeOff, Mail, Lock, LogIn } from 'lucide-react';
 import { api } from '../services/api';
 import { supabaseAuth } from '../services/supabaseAuth';
 import CompleteProfileModal from '../components/CompleteProfileModal';
@@ -9,6 +9,7 @@ import CompleteProfileModal from '../components/CompleteProfileModal';
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [socialLoading, setSocialLoading] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -176,98 +177,137 @@ const LoginPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-white flex flex-col">
+        <div className="min-h-screen relative overflow-hidden">
+            {/* Background with gradient */}
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-purple-50 to-pink-50"></div>
+            
+            {/* Animated circles */}
+            <div className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-300/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+            
             {/* Header */}
-            <div className="p-4 flex items-center">
-                <button onClick={() => navigate('/')} className="p-2 hover:bg-gray-100 rounded-full">
-                    <ChevronLeft size={24} />
+            <div className="relative p-4 flex items-center z-10">
+                <button onClick={() => navigate('/')} className="p-2 hover:bg-white/50 backdrop-blur-sm rounded-full transition">
+                    <ChevronLeft size={24} className="text-gray-700" />
                 </button>
-                <h1 className="text-xl font-bold ml-2">Login</h1>
+                <h1 className="text-xl font-bold ml-2 text-gray-800">تسجيل الدخول</h1>
             </div>
 
-            <div className="flex-1 px-6 py-8 max-w-md mx-auto w-full flex flex-col justify-center">
-                <div className="mb-8 text-center">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h2>
-                    <p className="text-gray-500">Sign in to continue to Lumina Fresh Market</p>
-                </div>
-
-                {error && (
-                    <div className="bg-red-50 text-red-500 p-3 rounded-lg mb-4 text-sm text-center">
-                        {error}
+            {/* Main Content */}
+            <div className="relative flex-1 px-6 py-8 max-w-md mx-auto w-full flex flex-col justify-center z-10">
+                {/* Glass Card */}
+                <div className="backdrop-blur-xl bg-white/80 rounded-3xl shadow-2xl p-8 border border-white/20">
+                    <div className="mb-8 text-center">
+                        <div className="w-20 h-20 bg-gradient-to-br from-primary to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg rotate-6 hover:rotate-0 transition-transform">
+                            <LogIn size={32} className="text-white" />
+                        </div>
+                        <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent mb-2">
+                            أهلاً بعودتك
+                        </h2>
+                        <p className="text-gray-600">سجل دخولك للمتابعة إلى Lumina Fresh Market</p>
                     </div>
-                )}
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                    {error && (
+                        <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-sm text-center border border-red-100 animate-shake">
+                            {error}
+                        </div>
+                    )}
+
+                <form onSubmit={handleSubmit} className="space-y-5">
+                    <div className="relative">
+                        <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                            <Mail size={16} className="text-primary" />
+                            البريد الإلكتروني
+                        </label>
                         <input
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors"
-                            placeholder="Enter your email"
+                            className="w-full px-5 py-4 rounded-2xl border-2 border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all bg-white/50 backdrop-blur-sm"
+                            placeholder="your@email.com"
                             required
                         />
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                        <input
-                            type="password"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-colors"
-                            placeholder="Enter your password"
-                            required
-                        />
+                    
+                    <div className="relative">
+                        <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                            <Lock size={16} className="text-primary" />
+                            كلمة المرور
+                        </label>
+                        <div className="relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="w-full px-5 py-4 rounded-2xl border-2 border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none transition-all bg-white/50 backdrop-blur-sm pr-12"
+                                placeholder="••••••••"
+                                required
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary transition"
+                            >
+                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
+                        </div>
                     </div>
 
                     <div className="flex justify-end">
-                        <Link to="/forgot-password" className="text-sm text-primary font-medium hover:underline">
-                            Forgot Password?
+                        <Link to="/forgot-password" className="text-sm text-primary font-semibold hover:underline flex items-center gap-1">
+                            نسيت كلمة المرور؟
                         </Link>
                     </div>
 
                     <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="w-full bg-primary text-white font-bold py-3.5 rounded-xl hover:bg-primary/90 transition-colors shadow-lg shadow-primary/30 disabled:opacity-70 disabled:cursor-not-allowed"
+                        className="w-full bg-gradient-to-r from-primary to-purple-600 text-white font-bold py-4 rounded-2xl hover:shadow-2xl hover:shadow-primary/30 transition-all transform hover:-translate-y-1 disabled:opacity-70 disabled:cursor-not-allowed disabled:transform-none"
                     >
                         {isSubmitting ? (
-                            <span className="flex items-center justify-center gap-2"><Loader2 className="animate-spin" size={18} /> Signing In...</span>
+                            <span className="flex items-center justify-center gap-2">
+                                <Loader2 className="animate-spin" size={20} /> 
+                                جاري تسجيل الدخول...
+                            </span>
                         ) : (
-                            'Log In'
+                            <span className="flex items-center justify-center gap-2">
+                                <LogIn size={20} />
+                                تسجيل الدخول
+                            </span>
                         )}
                     </button>
                 </form>
 
                 <div className="my-8 flex items-center">
-                    <div className="flex-1 border-t border-gray-200"></div>
-                    <span className="px-4 text-sm text-gray-500">Or continue with</span>
-                    <div className="flex-1 border-t border-gray-200"></div>
+                    <div className="flex-1 border-t border-gray-300"></div>
+                    <span className="px-4 text-sm text-gray-600 font-medium">أو تابع مع</span>
+                    <div className="flex-1 border-t border-gray-300"></div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mb-6">
                     <button
                         onClick={handleFacebookLogin}
                         disabled={socialLoading !== null}
-                        className="flex items-center justify-center space-x-2 py-3 border border-gray-200 rounded-xl hover:bg-blue-50 hover:border-blue-300 transition-colors disabled:opacity-50 text-gray-900 font-semibold"
+                        className="group relative overflow-hidden flex items-center justify-center gap-2 py-4 border-2 border-gray-200 rounded-2xl hover:border-blue-400 hover:bg-blue-50 transition-all disabled:opacity-50 bg-white/50 backdrop-blur-sm"
                     >
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/0 to-blue-600/0 group-hover:from-blue-600/10 group-hover:to-blue-400/10 transition-all"></div>
                         {socialLoading === 'facebook' ? (
-                            <Loader2 size={20} className="animate-spin text-blue-600" />
+                            <Loader2 size={22} className="animate-spin text-blue-600" />
                         ) : (
-                            <Facebook size={20} className="text-blue-600" />
+                            <Facebook size={22} className="text-blue-600" />
                         )}
-                        <span className="font-medium text-gray-700">Facebook</span>
+                        <span className="font-semibold text-gray-700 relative z-10">Facebook</span>
                     </button>
                     <button
                         onClick={handleGoogleLogin}
                         disabled={socialLoading !== null}
-                        className="flex items-center justify-center space-x-2 py-3 border border-gray-200 rounded-xl hover:bg-red-50 hover:border-red-300 transition-colors disabled:opacity-50 text-gray-900 font-semibold"
+                        className="group relative overflow-hidden flex items-center justify-center gap-2 py-4 border-2 border-gray-200 rounded-2xl hover:border-red-400 hover:bg-red-50 transition-all disabled:opacity-50 bg-white/50 backdrop-blur-sm"
                     >
+                        <div className="absolute inset-0 bg-gradient-to-r from-red-600/0 to-red-600/0 group-hover:from-red-600/10 group-hover:to-red-400/10 transition-all"></div>
                         {socialLoading === 'google' ? (
-                            <Loader2 size={20} className="animate-spin text-red-500" />
+                            <Loader2 size={22} className="animate-spin text-red-500" />
                         ) : (
-                            <svg className="w-5 h-5" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5 relative z-10" viewBox="0 0 24 24">
                                 <path
                                     fill="#4285F4"
                                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -286,79 +326,83 @@ const LoginPage = () => {
                                 />
                             </svg>
                         )}
-                        <span className="font-medium text-gray-700">Google</span>
+                        <span className="font-semibold text-gray-700 relative z-10">Google</span>
                     </button>
                 </div>
 
-                <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 space-y-3 mb-6">
+                <div className="bg-gradient-to-br from-primary/10 to-purple-100 border-2 border-primary/20 rounded-2xl p-5 space-y-4 mb-6 backdrop-blur-sm">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-semibold text-gray-800">تسجيل برمز OTP (Supabase)</p>
-                            <p className="text-xs text-gray-500">أرسل رمز إلى بريدك ثم أدخله للتسجيل السريع.</p>
+                            <p className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                                <KeyRound size={18} className="text-primary" />
+                                تسجيل برمز OTP
+                            </p>
+                            <p className="text-xs text-gray-600 mt-1">سجل دخولك بسرعة باستخدام رمز التحقق</p>
                         </div>
-                        <KeyRound size={18} className="text-primary" />
                     </div>
 
                     {otpError && (
-                        <div className="text-xs text-red-600 bg-red-50 border border-red-100 px-3 py-2 rounded-lg">{otpError}</div>
+                        <div className="text-xs text-red-600 bg-red-50 border border-red-200 px-3 py-2 rounded-xl animate-shake">{otpError}</div>
                     )}
 
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                         <input
                             type="email"
                             value={otpEmail}
                             onChange={(e) => setOtpEmail(e.target.value)}
-                            placeholder="you@example.com"
-                            className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary text-sm"
+                            placeholder="بريدك الإلكتروني"
+                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/10 text-sm bg-white/80 backdrop-blur-sm"
                         />
                         {otpStatus !== 'idle' && (
                             <input
                                 type="text"
                                 value={otpToken}
                                 onChange={(e) => setOtpToken(e.target.value)}
-                                placeholder="أدخل رمز التحقق"
-                                className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-primary focus:ring-1 focus:ring-primary text-sm"
+                                placeholder="أدخل رمز التحقق المكون من 6 أرقام"
+                                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/10 text-sm bg-white/80 backdrop-blur-sm tracking-widest text-center text-lg font-bold"
+                                maxLength={6}
                             />
                         )}
                     </div>
 
-                    <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="flex flex-col sm:flex-row gap-3">
                         <button
                             type="button"
                             onClick={handleSendOtp}
                             disabled={otpStatus === 'sending' || otpStatus === 'sent' || otpStatus === 'verifying'}
-                            className="flex-1 px-3 py-2 rounded-lg border border-primary text-primary font-semibold hover:bg-primary/5 disabled:opacity-60"
+                            className="flex-1 px-4 py-3 rounded-xl border-2 border-primary text-primary font-bold hover:bg-primary/5 disabled:opacity-60 transition-all bg-white/50"
                         >
-                            {otpStatus === 'sending' ? 'جارٍ الإرسال...' : otpStatus === 'sent' ? 'تم الإرسال' : 'إرسال الرمز'}
+                            {otpStatus === 'sending' ? 'جارٍ الإرسال...' : otpStatus === 'sent' ? '✓ تم الإرسال' : 'إرسال الرمز'}
                         </button>
                         <button
                             type="button"
                             onClick={handleVerifyOtp}
                             disabled={otpStatus === 'verifying' || otpStatus === 'idle'}
-                            className="flex-1 px-3 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-primary/90 disabled:opacity-60"
+                            className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-primary to-purple-600 text-white font-bold hover:shadow-lg hover:shadow-primary/30 disabled:opacity-60 transition-all"
                         >
-                            {otpStatus === 'verifying' ? 'جارٍ التحقق...' : 'تأكيد الرمز وتسجيل الدخول'}
+                            {otpStatus === 'verifying' ? 'جارٍ التحقق...' : 'تأكيد الرمز'}
                         </button>
                     </div>
                     {otpStatus === 'done' && (
-                        <p className="text-xs text-green-700 bg-green-50 border border-green-100 px-3 py-2 rounded-lg">تم التحقق! سيتم تحويلك الآن.</p>
+                        <p className="text-xs text-green-700 bg-green-50 border border-green-200 px-3 py-2 rounded-xl text-center font-semibold">✓ تم التحقق! جاري التحويل...</p>
                     )}
                 </div>
 
                 <button
                     onClick={handleGuestLogin}
-                    className="w-full py-3.5 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 font-medium hover:border-gray-400 hover:bg-gray-50 transition-all"
+                    className="w-full py-4 border-2 border-dashed border-gray-300 rounded-2xl text-gray-600 font-semibold hover:border-primary hover:bg-primary/5 hover:text-primary transition-all bg-white/50 backdrop-blur-sm"
                 >
-                    Continue as Guest
+                    الدخول كزائر
                 </button>
 
                 <p className="mt-8 text-center text-gray-600">
-                    Don't have an account?{' '}
-                    <Link to="/register" className="text-primary font-bold hover:underline">
-                        Sign Up
+                    ليس لديك حساب؟{' '}
+                    <Link to="/register" className="text-primary font-bold hover:underline bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                        إنشاء حساب جديد
                     </Link>
                 </p>
             </div>
+        </div>
 
             {/* Complete Profile Modal */}
             <CompleteProfileModal

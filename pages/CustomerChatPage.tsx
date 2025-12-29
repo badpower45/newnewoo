@@ -330,7 +330,7 @@ const CustomerChatPage: React.FC = () => {
       {/* Chat Area */}
       <div className="flex-1 max-w-4xl mx-auto w-full overflow-hidden flex flex-col">
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 pb-28 space-y-4">
           {messages.map((message) => (
             <div
               key={message.id}
@@ -393,7 +393,10 @@ const CustomerChatPage: React.FC = () => {
         )}
 
         {/* Input Area */}
-        <div className="border-t bg-white p-4">
+        <div
+          className="border-t bg-white p-4 sticky bottom-0 shadow-[0_-6px_20px_rgba(0,0,0,0.06)]"
+          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}
+        >
           <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
             <div className="flex items-center gap-3">
               <input
