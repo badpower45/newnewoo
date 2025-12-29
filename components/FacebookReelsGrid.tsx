@@ -25,18 +25,12 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
 }) => {
     const normalizeVideoUrl = (url?: string) => {
         if (!url) return '';
-        const ytWatch = url.match(/youtube\.com\/(?:watch\?v=|embed\/)([\w-]+)/);
-        const ytShort = url.match(/youtu\.be\/([\w-]+)/);
-        if (ytWatch && ytWatch[1]) {
-            return `https://www.youtube.com/embed/${ytWatch[1]}?rel=0&autoplay=1&modestbranding=1`;
-        }
-        if (ytShort && ytShort[1]) {
-            return `https://www.youtube.com/embed/${ytShort[1]}?rel=0&autoplay=1&modestbranding=1`;
-        }
+        const srcMatch = url.match(/src=["']([^"']+)["']/);
+        if (srcMatch?.[1]) url = srcMatch[1];
+        const ytId = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]+)/)?.[1];
+        if (ytId) return `https://www.youtube.com/embed/${ytId}?rel=0&autoplay=1&modestbranding=1`;
         const vimeoMatch = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
-        if (vimeoMatch && vimeoMatch[1]) {
-            return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`;
-        }
+        if (vimeoMatch?.[1]) return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`;
         return url;
     };
 

@@ -150,10 +150,15 @@ const FacebookReelsManager: React.FC = () => {
         return null;
     };
 
+    const extractYoutubeId = (url: string) => {
+        const srcMatch = url.match(/src=["']([^"']+)["']/);
+        if (srcMatch?.[1]) url = srcMatch[1];
+        const ytId = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]+)/);
+        return ytId?.[1] || '';
+    };
+
     const getYoutubeThumb = (url: string) => {
-        const ytWatch = url.match(/youtube\.com\/(?:watch\?v=|embed\/)([\w-]+)/);
-        const ytShort = url.match(/youtu\.be\/([\w-]+)/);
-        const id = ytWatch?.[1] || ytShort?.[1];
+        const id = extractYoutubeId(url);
         return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : '';
     };
 
@@ -166,13 +171,9 @@ const FacebookReelsManager: React.FC = () => {
         }
 
         // YouTube formats
-        const ytWatch = url.match(/youtube\.com\/(?:watch\?v=|embed\/)([\w-]+)/);
-        const ytShort = url.match(/youtu\.be\/([\w-]+)/);
-        if (ytWatch && ytWatch[1]) {
-            return `https://www.youtube.com/embed/${ytWatch[1]}?rel=0&autoplay=1&modestbranding=1`;
-        }
-        if (ytShort && ytShort[1]) {
-            return `https://www.youtube.com/embed/${ytShort[1]}?rel=0&autoplay=1&modestbranding=1`;
+        const ytId = extractYoutubeId(url);
+        if (ytId) {
+            return `https://www.youtube.com/embed/${ytId}?rel=0&autoplay=1&modestbranding=1`;
         }
 
         // Vimeo
