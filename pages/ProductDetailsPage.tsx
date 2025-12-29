@@ -827,7 +827,7 @@ const ProductDetailsPage = () => {
                                     <ArrowRight size={14} />
                                 </button>
                             </div>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide">
                                 {recommendedProducts.map((item) => {
                                     const itemPrice = Number(item.price) || 0;
                                     const itemOldPrice = Number(item.discount_price) || Number(item.originalPrice) || (itemPrice * 1.15);
@@ -837,7 +837,7 @@ const ProductDetailsPage = () => {
                                         <Link
                                             key={item.id}
                                             to={`/product/${item.id}`}
-                                            className="bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden hover:shadow-lg transition-all cursor-pointer relative group"
+                                            className="min-w-[180px] max-w-[200px] snap-start bg-white border border-[#E5E7EB] rounded-2xl overflow-hidden hover:shadow-lg transition-all cursor-pointer relative group"
                                         >
                                             {/* Discount Badge */}
                                             {itemDiscount > 0 && (

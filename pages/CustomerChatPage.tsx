@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, ArrowRight, Phone, Clock, MessageCircle, CheckCheck, Check, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { supabaseChatService, ChatMessage, ChatConversation } from '../services/supabaseChatService';
+import { supabaseChatService, ChatConversation } from '../services/supabaseChatService';
 import { useAuth } from '../context/AuthContext';
 
 // Quick response options
@@ -77,7 +77,6 @@ const CustomerChatPage: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [conversation, setConversation] = useState<ChatConversation | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   // Initialize chat
   useEffect(() => {
@@ -290,141 +289,156 @@ const CustomerChatPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen max-h-screen overflow-hidden bg-gray-50 flex flex-col" dir="rtl">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-orange-500 to-orange-600 text-white sticky top-0 z-10 shadow-lg">
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-[#F6F7FB] flex flex-col" dir="rtl">
+      <header className="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-gray-200">
+        <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate(-1)}
+              className="w-10 h-10 rounded-xl border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
+              aria-label="رجوع"
+            >
+              <ArrowRight size={18} className="text-gray-700" />
+            </button>
             <div className="flex items-center gap-3">
-              <button
-                onClick={() => navigate(-1)}
-                className="p-2 hover:bg-white/20 rounded-full transition-colors"
-              >
-                <ArrowRight size={24} />
-              </button>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                  <MessageCircle size={24} />
-                </div>
-                <div>
-                  <h1 className="text-lg font-bold">خدمة العملاء</h1>
-                  <div className="flex items-center gap-2 text-sm text-white/80">
-                    <span className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-400' : 'bg-yellow-400'} animate-pulse`}></span>
-                    <span>{isConnected ? 'متصل الآن' : 'جاري الاتصال...'}</span>
-                  </div>
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 text-white flex items-center justify-center shadow-sm">
+                <MessageCircle size={22} />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">محادثة خدمة العملاء</p>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      isConnected ? 'bg-green-500' : 'bg-yellow-400'
+                    } animate-pulse`}
+                  ></span>
+                  <span className="text-sm font-semibold text-gray-900">
+                    {isConnected ? 'متصل الآن' : 'جاري الاتصال...'}
+                  </span>
                 </div>
               </div>
             </div>
-            
-            <a
-              href="tel:+201234567890"
-              className="flex items-center gap-2 bg-white/20 hover:bg-white/30 px-4 py-2 rounded-full transition-colors"
-            >
-              <Phone size={18} />
-              <span className="hidden sm:inline">اتصل بنا</span>
-            </a>
           </div>
+          <a
+            href="tel:+201234567890"
+            className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            <Phone size={16} />
+            <span className="hidden sm:inline">اتصل بنا</span>
+          </a>
         </div>
       </header>
 
-      {/* Chat Area */}
-      <div className="flex-1 max-w-4xl mx-auto w-full overflow-hidden flex flex-col">
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.sender === 'user' ? 'justify-start' : 'justify-end'}`}
-            >
-              <div
-                className={`max-w-[85%] sm:max-w-[70%] rounded-2xl px-4 py-3 shadow-sm ${
-                  message.sender === 'user'
-                    ? 'bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-br-none'
-                    : 'bg-white text-gray-800 rounded-bl-none border border-gray-100'
-                }`}
-              >
-                <p className="text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
-                  {message.content}
-                </p>
-                <div className={`flex items-center gap-1 mt-1 text-xs ${
-                  message.sender === 'user' ? 'text-white/70' : 'text-gray-400'
-                }`}>
-                  <Clock size={10} />
-                  <span>{formatTime(message.timestamp)}</span>
-                  {message.sender === 'user' && getStatusIcon(message.status)}
-                </div>
+      <main className="flex-1 w-full px-3 sm:px-4 py-4">
+        <div className="max-w-3xl mx-auto h-full flex flex-col gap-4">
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-sm px-4 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 text-white flex items-center justify-center shadow-sm">
+                <MessageCircle size={20} />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">رد أسرع</p>
+                <p className="text-base font-semibold text-gray-900">نرد عادة في أقل من دقيقتين</p>
               </div>
             </div>
-          ))}
-          
-          {/* Typing Indicator */}
-          {isTyping && (
-            <div className="flex justify-end">
-              <div className="bg-white text-gray-800 rounded-2xl rounded-bl-none px-4 py-3 shadow-sm border border-gray-100">
-                <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                  <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                  <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Quick Responses */}
-        {messages.length <= 1 && (
-          <div className="px-4 pb-2">
-            <p className="text-gray-500 text-sm mb-3 text-center">اختر موضوع للمساعدة السريعة:</p>
-            <div className="flex flex-wrap gap-2 justify-center">
-              {QUICK_RESPONSES.map((response) => (
-                <button
-                  key={response.id}
-                  onClick={() => handleQuickResponse(response.text)}
-                  className="flex items-center gap-2 bg-white border border-orange-200 text-orange-600 px-4 py-2 rounded-full text-sm hover:bg-orange-50 hover:border-orange-300 transition-all shadow-sm"
-                >
-                  <span>{response.icon}</span>
-                  <span>{response.text}</span>
-                </button>
-              ))}
+            <div className="hidden sm:flex items-center gap-2 text-xs text-gray-500">
+              <Clock size={12} />
+              <span>يوميًا 9 ص - 10 م</span>
             </div>
           </div>
-        )}
 
-        {/* Input Area */}
-        <div
-          className="fixed bottom-0 left-0 right-0 border-t bg-white shadow-[0_-8px_24px_rgba(0,0,0,0.08)] z-20"
-          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
-        >
-          <div className="max-w-4xl mx-auto px-4 py-4">
-            <form onSubmit={handleSubmit}>
-              <div className="flex items-center gap-3">
-                <input
-                  ref={inputRef}
-                  type="text"
-                  value={inputMessage}
-                  onChange={(e) => setInputMessage(e.target.value)}
-                  placeholder="اكتب رسالتك هنا..."
-                  className="flex-1 border-2 border-gray-200 rounded-full px-5 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-right bg-gray-50"
-                />
+          <div className="bg-white border border-gray-200 rounded-2xl shadow-sm flex-1 flex flex-col overflow-hidden">
+            <div className="px-4 pt-4 pb-3 sticky top-0 bg-white/95 backdrop-blur supports-[backdrop-filter]:backdrop-blur-md border-b border-gray-100 z-10">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm font-semibold text-gray-900">ردود سريعة</p>
+                <p className="text-xs text-gray-400">اختصار للردود الشائعة</p>
+              </div>
+              <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
+                {QUICK_RESPONSES.map((response) => (
+                  <button
+                    key={response.id}
+                    onClick={() => handleQuickResponse(response.text)}
+                    className="min-w-fit flex items-center gap-2 px-3 py-2 rounded-full border border-gray-200 bg-gray-50 text-sm text-gray-700 whitespace-nowrap hover:border-orange-300 hover:bg-orange-50 transition-all shadow-sm"
+                  >
+                    <span>{response.icon}</span>
+                    <span>{response.text}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-gradient-to-b from-white to-gray-50">
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.sender === 'user' ? 'justify-start' : 'justify-end'}`}
+                >
+                  <div
+                    className={`max-w-[85%] sm:max-w-[70%] rounded-2xl px-4 py-3 shadow-sm ${
+                      message.sender === 'user'
+                        ? 'bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-br-md'
+                        : 'bg-white text-gray-800 rounded-bl-md border border-gray-100'
+                    }`}
+                  >
+                    <p className="text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
+                      {message.content}
+                    </p>
+                    <div
+                      className={`flex items-center gap-1 mt-2 text-xs ${
+                        message.sender === 'user' ? 'text-white/80' : 'text-gray-500'
+                      }`}
+                    >
+                      <Clock size={10} />
+                      <span>{formatTime(message.timestamp)}</span>
+                      {message.sender === 'user' && getStatusIcon(message.status)}
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {isTyping && (
+                <div className="flex justify-end">
+                  <div className="bg-white text-gray-800 rounded-2xl rounded-bl-md px-4 py-3 shadow-sm border border-gray-100">
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                      <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                      <div className="w-2 h-2 bg-orange-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div ref={messagesEndRef} />
+            </div>
+          </div>
+
+          <div className="sticky bottom-4">
+            <form
+              onSubmit={handleSubmit}
+              className="bg-white border border-gray-200 rounded-2xl shadow-lg px-3 py-2 flex items-center gap-2"
+            >
+              <input
+                type="text"
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                placeholder="اكتب رسالتك هنا..."
+                className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent text-right text-sm"
+              />
               <button
                 type="submit"
                 disabled={!inputMessage.trim()}
-                className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-3 rounded-full hover:from-orange-600 hover:to-orange-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+                className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-3 rounded-xl hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="إرسال"
               >
-                <Send size={20} />
+                <Send size={18} />
               </button>
-            </div>
-          </form>
-            
-            {/* Working Hours Note */}
-            <p className="text-center text-gray-400 text-xs mt-2">
+            </form>
+            <p className="text-center text-gray-400 text-[11px] mt-2">
               ساعات العمل: السبت - الخميس، 9 صباحاً - 10 مساءً
             </p>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 };
