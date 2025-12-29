@@ -35,6 +35,7 @@ const StoriesSection: React.FC = () => {
     const [isPaused, setIsPaused] = useState(false);
     const [isMuted, setIsMuted] = useState(true);
     const [loading, setLoading] = useState(true);
+    const isRTL = typeof document !== 'undefined' ? document.documentElement.dir === 'rtl' : false;
     const progressInterval = useRef<NodeJS.Timeout | null>(null);
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const touchStartX = useRef<number>(0);
@@ -269,7 +270,8 @@ const StoriesSection: React.FC = () => {
         const diff = touchStartX.current - touchEndX;
 
         if (Math.abs(diff) > 50) {
-            if (diff > 0) {
+            const goNext = diff > 0;
+            if ((goNext && !isRTL) || (!goNext && isRTL)) {
                 handleNextStory();
             } else {
                 handlePrevStory();
@@ -283,9 +285,12 @@ const StoriesSection: React.FC = () => {
         const x = e.clientX - rect.left;
         const width = rect.width;
 
-        if (x < width / 3) {
+        const isLeftZone = x < width / 3;
+        const isRightZone = x > (2 * width) / 3;
+
+        if ((isLeftZone && !isRTL) || (isRightZone && isRTL)) {
             handlePrevStory();
-        } else if (x > (2 * width) / 3) {
+        } else if ((isRightZone && !isRTL) || (isLeftZone && isRTL)) {
             handleNextStory();
         } else {
             setIsPaused(prev => !prev);

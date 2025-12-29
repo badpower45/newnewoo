@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, ArrowRight, Phone, Clock, MessageCircle, CheckCheck, Check, Loader2 } from 'lucide-react';
+import { Send, ArrowLeft, Phone, Clock, MessageCircle, CheckCheck, Check, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabaseChatService, ChatMessage, ChatConversation } from '../services/supabaseChatService';
 import { useAuth } from '../context/AuthContext';
@@ -300,7 +300,7 @@ const CustomerChatPage: React.FC = () => {
                 onClick={() => navigate(-1)}
                 className="p-2 hover:bg-white/20 rounded-full transition-colors"
               >
-                <ArrowRight size={24} />
+                <ArrowLeft size={24} />
               </button>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">

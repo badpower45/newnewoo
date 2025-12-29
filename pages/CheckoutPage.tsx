@@ -278,6 +278,23 @@ export default function CheckoutPage() {
             return;
         }
 
+        // Require full address details if ليس استلام
+        if (!isPickup) {
+            const requiredFields = [
+                { key: 'firstName', label: 'الاسم الأول' },
+                { key: 'lastName', label: 'الاسم الأخير' },
+                { key: 'phone', label: 'رقم الهاتف' },
+                { key: 'building', label: 'اسم العمارة / المبنى' },
+                { key: 'street', label: 'اسم الشارع' },
+                { key: 'address', label: 'العنوان' },
+            ];
+            const missing = requiredFields.find(f => !String((formData as any)[f.key] || '').trim());
+            if (missing) {
+                showToast(`يرجى إدخال ${missing.label}`, 'warning');
+                return;
+            }
+        }
+
         let currentUserId = user?.id;
 
         if (!currentUserId) {

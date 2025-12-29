@@ -134,7 +134,7 @@ const BrandPage = () => {
     const [brand, setBrand] = useState<any>(null);
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState<'all' | 'offers' | 'new'>('all');
+    const [activeTab, setActiveTab] = useState<'all' | 'offers'>('all');
     const [isFavorite, setIsFavorite] = useState(false);
 
     // Handle Favorite Toggle
@@ -566,17 +566,7 @@ const BrandPage = () => {
                             <Zap size={18} />
                             العروض
                         </button>
-                        <button
-                            onClick={() => setActiveTab('new')}
-                            className={`flex items-center gap-2 px-6 py-2.5 rounded-full font-medium transition whitespace-nowrap ${
-                                activeTab === 'new'
-                                    ? 'bg-green-500 text-white shadow-lg'
-                                    : 'bg-white text-gray-600 hover:bg-gray-100'
-                            }`}
-                        >
-                            <Sparkles size={18} />
-                            جديد
-                        </button>
+                        
                     </div>
                 </div>
             </div>
@@ -606,9 +596,7 @@ const BrandPage = () => {
                     <div className="text-center py-16">
                         <ShoppingBag size={64} className="mx-auto text-gray-300 mb-4" />
                         <h3 className="text-lg font-medium text-gray-800 mb-2">
-                            {activeTab === 'offers' ? 'لا توجد عروض حالياً' : 
-                             activeTab === 'new' ? 'لا توجد منتجات جديدة' : 
-                             'لا توجد منتجات'}
+                            {activeTab === 'offers' ? 'لا توجد عروض حالياً' : 'لا توجد منتجات'}
                         </h3>
                         <p className="text-gray-500">
                             {activeTab === 'all' 

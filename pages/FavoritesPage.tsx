@@ -23,7 +23,7 @@ const FavoritesPage = () => {
                 <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-primary absolute left-4">
                     <ChevronLeft size={28} />
                 </button>
-                <h1 className="text-xl font-bold text-gray-900 w-full text-center">My Favorites</h1>
+                <h1 className="text-xl font-bold text-gray-900 w-full text-center">المفضلة</h1>
                 <button 
                     onClick={() => refreshFavorites()} 
                     className="p-2 text-primary absolute right-4"
@@ -35,7 +35,7 @@ const FavoritesPage = () => {
 
             <div className="max-w-7xl mx-auto md:p-6">
                 <div className="hidden md:flex items-center justify-between mb-6">
-                    <h1 className="text-3xl font-bold text-gray-900">My Favorites</h1>
+                    <h1 className="text-3xl font-bold text-gray-900">المفضلة</h1>
                     <button 
                         onClick={() => refreshFavorites()} 
                         className="flex items-center gap-2 text-primary hover:text-primary-dark transition-colors"
@@ -65,13 +65,13 @@ const FavoritesPage = () => {
                         <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mb-6">
                             <Heart size={40} className="text-red-500" />
                         </div>
-                        <h2 className="text-2xl font-bold text-gray-900 mb-2">No favorites yet</h2>
-                        <p className="text-gray-500 mb-8">Start adding products you love!</p>
+                        <h2 className="text-2xl font-bold text-gray-900 mb-2">لا توجد مفضلة بعد</h2>
+                        <p className="text-gray-500 mb-8">ابدأ بإضافة المنتجات التي تحبها</p>
                         <button
                             onClick={() => navigate('/products')}
                             className="bg-primary text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-primary-dark transition-colors"
                         >
-                            Explore Products
+                            استكشف المنتجات
                         </button>
                     </div>
                 ) : (
