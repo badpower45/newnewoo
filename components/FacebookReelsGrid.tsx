@@ -23,6 +23,23 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
     pageUsername = 'Alloshchocolates',
     pageName = 'Allosh Chocolates'
 }) => {
+    const normalizeVideoUrl = (url?: string) => {
+        if (!url) return '';
+        const ytWatch = url.match(/youtube\.com\/(?:watch\?v=|embed\/)([\w-]+)/);
+        const ytShort = url.match(/youtu\.be\/([\w-]+)/);
+        if (ytWatch && ytWatch[1]) {
+            return `https://www.youtube.com/embed/${ytWatch[1]}?rel=0&autoplay=1&modestbranding=1`;
+        }
+        if (ytShort && ytShort[1]) {
+            return `https://www.youtube.com/embed/${ytShort[1]}?rel=0&autoplay=1&modestbranding=1`;
+        }
+        const vimeoMatch = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+        if (vimeoMatch && vimeoMatch[1]) {
+            return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`;
+        }
+        return url;
+    };
+
     const [reels, setReels] = useState<Reel[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeVideo, setActiveVideo] = useState<number | null>(null);
@@ -97,7 +114,7 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
                         id: reel.id,
                         title: reel.title,
                         thumbnail: reel.thumbnail_url,
-                        video_url: reel.video_url,
+                        video_url: normalizeVideoUrl(reel.video_url || reel.facebook_url),
                         facebook_url: reel.facebook_url,
                         views: reel.views_count || '0',
                         duration: reel.duration
@@ -324,58 +341,82 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
                             <X className="w-5 h-5" />
                         </button>
 
-                        {/* Mute Button */}
-                        <button
-                            onClick={toggleMute}
-                            className="absolute top-4 left-4 z-20 w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
-                        >
-                            {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-                        </button>
+                        {(() => {
+                            const current = reelsData[activeVideo];
+                            const isEmbedSource = current?.video_url
+                                ? /youtube\\.com|youtu\\.be|vimeo\\.com/.test(current.video_url)
+                                : false;
+                            const hasVideoFile = current?.video_url && !isEmbedSource;
 
-                        {/* Video Content */}
-                        {reelsData[activeVideo]?.video_url ? (
-                            <video
-                                ref={videoRef}
-                                src={reelsData[activeVideo].video_url}
-                                className="w-full h-full object-cover"
-                                autoPlay
-                                loop
-                                muted={isMuted}
-                                poster={reelsData[activeVideo]?.thumbnail}
-                                playsInline
-                                onClick={togglePlay}
-                                onPlay={() => setIsPlaying(true)}
-                                onPause={() => setIsPlaying(false)}
-                            />
-                        ) : (
-                            // Fallback: Show thumbnail with link to Facebook
-                            <div className="relative w-full h-full">
-                                <img
-                                    src={reelsData[activeVideo]?.thumbnail}
-                                    alt={reelsData[activeVideo]?.title}
-                                    className="w-full h-full object-cover"
-                                />
-                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50">
-                                    <p className="text-white text-center text-sm mb-4 px-4">
-                                        الفيديو غير متاح حالياً
-                                    </p>
-                                    {reelsData[activeVideo]?.facebook_url && (
-                                        <a
-                                            href={reelsData[activeVideo].facebook_url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition-colors"
+                            return (
+                                <>
+                                    {/* Mute Button - only for direct video */}
+                                    {hasVideoFile && (
+                                        <button
+                                            onClick={toggleMute}
+                                            className="absolute top-4 left-4 z-20 w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
                                         >
-                                            <Facebook className="w-5 h-5" />
-                                            شاهد على فيسبوك
-                                        </a>
+                                            {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                                        </button>
                                     )}
-                                </div>
-                            </div>
-                        )}
+
+                                    {/* Video Content */}
+                                    {current?.video_url ? (
+                                        isEmbedSource ? (
+                                            <iframe
+                                                src={current.video_url}
+                                                className="w-full h-full"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                allowFullScreen
+                                                title={current.title}
+                                            />
+                                        ) : (
+                                            <video
+                                                ref={videoRef}
+                                                src={current.video_url}
+                                                className="w-full h-full object-cover"
+                                                autoPlay
+                                                loop
+                                                muted={isMuted}
+                                                poster={current?.thumbnail}
+                                                playsInline
+                                                onClick={togglePlay}
+                                                onPlay={() => setIsPlaying(true)}
+                                                onPause={() => setIsPlaying(false)}
+                                            />
+                                        )
+                                    ) : (
+                                        // Fallback: Show thumbnail with link to Facebook
+                                        <div className="relative w-full h-full">
+                                            <img
+                                                src={current?.thumbnail}
+                                                alt={current?.title}
+                                                className="w-full h-full object-cover"
+                                            />
+                                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50">
+                                                <p className="text-white text-center text-sm mb-4 px-4">
+                                                    الفيديو غير متاح حالياً
+                                                </p>
+                                                {current?.facebook_url && (
+                                                    <a
+                                                        href={current.facebook_url}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition-colors"
+                                                    >
+                                                        <Facebook className="w-5 h-5" />
+                                                        شاهد على فيسبوك
+                                                    </a>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
+                            );
+                        })()}
 
                         {/* Play/Pause Overlay */}
-                        {reelsData[activeVideo]?.video_url && !isPlaying && (
+                        {reelsData[activeVideo]?.video_url && !/youtube\\.com|youtu\\.be|vimeo\\.com/.test(reelsData[activeVideo].video_url || '') && !isPlaying && (
                             <div 
                                 className="absolute inset-0 flex items-center justify-center bg-black/30 cursor-pointer"
                                 onClick={togglePlay}

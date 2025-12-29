@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, Eye, EyeOff, Save, X, RefreshCw, Facebook, Link as LinkIcon, Video, ExternalLink, GripVertical, Play, Bell } from 'lucide-react';
+import { Plus, Trash2, Edit2, Eye, EyeOff, Save, X, RefreshCw, Facebook, Link as LinkIcon, Video, ExternalLink, GripVertical, Play, Bell, Youtube } from 'lucide-react';
 import { api } from '../../services/api';
 import { pushNotificationService } from '../../services/pushNotifications';
 
@@ -57,6 +57,10 @@ const FacebookReelsManager: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!form.facebook_url && !form.video_url) {
+            alert('أضف رابط فيسبوك أو رابط فيديو (YouTube/Vimeo/MP4)');
+            return;
+        }
         setSaving(true);
 
         try {
@@ -143,6 +147,28 @@ const FacebookReelsManager: React.FC = () => {
         return null;
     };
 
+    const normalizeVideoUrl = (url: string) => {
+        if (!url) return '';
+        // YouTube formats
+        const ytWatch = url.match(/youtube\.com\/(?:watch\?v=|embed\/)([\w-]+)/);
+        const ytShort = url.match(/youtu\.be\/([\w-]+)/);
+        if (ytWatch && ytWatch[1]) {
+            return `https://www.youtube.com/embed/${ytWatch[1]}?rel=0&autoplay=1&modestbranding=1`;
+        }
+        if (ytShort && ytShort[1]) {
+            return `https://www.youtube.com/embed/${ytShort[1]}?rel=0&autoplay=1&modestbranding=1`;
+        }
+
+        // Vimeo
+        const vimeoMatch = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+        if (vimeoMatch && vimeoMatch[1]) {
+            return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`;
+        }
+
+        // Keep MP4 or direct link as-is
+        return url;
+    };
+
     // Auto-fill from Facebook URL
     const handleFacebookUrlChange = (url: string) => {
         setForm({ ...form, facebook_url: url });
@@ -160,6 +186,13 @@ const FacebookReelsManager: React.FC = () => {
         }
     };
 
+    const handleVideoUrlChange = (url: string) => {
+        setForm(prev => ({
+            ...prev,
+            video_url: normalizeVideoUrl(url)
+        }));
+    };
+
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -167,10 +200,10 @@ const FacebookReelsManager: React.FC = () => {
                 <div>
                     <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
                         <Facebook className="w-7 h-7 text-blue-600" />
-                        إدارة ريلز فيسبوك
+                        إدارة الريلز (Facebook / YouTube / Vimeo)
                     </h1>
                     <p className="text-gray-500 text-sm mt-1">
-                        أضف روابط ريلز فيسبوك لعرضها في الموقع
+                        أضف روابط فيسبوك أو فيديوهات YouTube/Vimeo أو ملفات MP4 للعرض داخل الموقع
                     </p>
                 </div>
                 <button
@@ -183,14 +216,13 @@ const FacebookReelsManager: React.FC = () => {
             </div>
 
             {/* Instructions */}
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                <h3 className="font-semibold text-blue-800 mb-2">كيفية إضافة ريل من فيسبوك:</h3>
-                <ol className="list-decimal list-inside text-blue-700 text-sm space-y-1">
-                    <li>افتح الريل على فيسبوك</li>
-                    <li>اضغط على "مشاركة" ثم "نسخ الرابط"</li>
-                    <li>الصق الرابط هنا وأضف صورة مصغرة</li>
-                    <li>الريل سيظهر تلقائياً في الموقع</li>
-                </ol>
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-2">
+                <h3 className="font-semibold text-blue-800">طرق الإضافة المدعومة:</h3>
+                <ul className="list-disc list-inside text-blue-700 text-sm space-y-1">
+                    <li>رابط فيسبوك (ريل/فيديو): الصقه لنصنع رابط التشغيل تلقائياً.</li>
+                    <li>رابط YouTube أو Vimeo: الصق الرابط المباشر وسيتم تحويله إلى Embed.</li>
+                    <li>ملف MP4 مباشر: ضع الرابط المباشر للفيديو لتشغيله داخل الموقع.</li>
+                </ul>
             </div>
 
             {/* Stats */}
@@ -338,7 +370,7 @@ const FacebookReelsManager: React.FC = () => {
                             {/* Facebook URL */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    رابط الريل من فيسبوك *
+                                    رابط فيسبوك (اختياري)
                                 </label>
                                 <div className="relative">
                                     <Facebook className="absolute right-3 top-1/2 -translate-y-1/2 text-blue-500" size={18} />
@@ -348,10 +380,28 @@ const FacebookReelsManager: React.FC = () => {
                                         onChange={(e) => handleFacebookUrlChange(e.target.value)}
                                         placeholder="https://www.facebook.com/reel/..."
                                         className="w-full pr-10 pl-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                                        required
                                     />
                                 </div>
-                                <p className="text-xs text-gray-500 mt-1">الصق رابط الريل من فيسبوك هنا</p>
+                                <p className="text-xs text-gray-500 mt-1">الصق رابط الريل من فيسبوك (سنولّد رابط تشغيل تلقائي).</p>
+                            </div>
+
+                            {/* Video URL */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    رابط فيديو (YouTube / Vimeo / MP4) *
+                                </label>
+                                <div className="relative">
+                                    <Youtube className="absolute right-3 top-1/2 -translate-y-1/2 text-red-500" size={18} />
+                                    <input
+                                        type="url"
+                                        value={form.video_url}
+                                        onChange={(e) => handleVideoUrlChange(e.target.value)}
+                                        placeholder="https://youtu.be/XXXX أو https://player.vimeo.com/... أو https://.../video.mp4"
+                                        className="w-full pr-10 pl-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+                                        required={!form.facebook_url}
+                                    />
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1">نحوّل YouTube/Vimeo تلقائياً إلى رابط تشغيل داخل الموقع.</p>
                             </div>
 
                             {/* Title */}
