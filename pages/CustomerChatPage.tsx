@@ -289,7 +289,7 @@ const CustomerChatPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F6F7FB] flex flex-col" dir="rtl">
+    <div className="min-h-screen bg-[#F6F7FB] flex flex-col pb-4" dir="rtl">
       <header className="sticky top-0 z-20 bg-white/90 backdrop-blur border-b border-gray-200">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -329,7 +329,7 @@ const CustomerChatPage: React.FC = () => {
         </div>
       </header>
 
-      <main className="flex-1 w-full px-3 sm:px-4 py-4">
+      <main className="flex-1 w-full px-3 sm:px-4 py-5 pb-12">
         <div className="max-w-3xl mx-auto h-full flex flex-col gap-4">
           <div className="bg-white border border-gray-200 rounded-2xl shadow-sm px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -367,7 +367,7 @@ const CustomerChatPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-gradient-to-b from-white to-gray-50">
+            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-gradient-to-b from-white to-gray-50 min-h-[62vh]">
               {messages.map((message) => (
                 <div
                   key={message.id}

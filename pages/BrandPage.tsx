@@ -128,6 +128,18 @@ interface BrandInfo {
     featured: boolean;
 }
 
+const FAVORITE_BRANDS_KEY = 'favorite_brands';
+
+const getStoredFavoriteBrands = () => {
+    try {
+        const saved = localStorage.getItem(FAVORITE_BRANDS_KEY);
+        return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+        console.error('Failed to parse favorite brands', e);
+        return [];
+    }
+};
+
 const BrandPage = () => {
     const { brandName } = useParams<{ brandName: string }>();
     const { selectedBranch } = useBranch();
@@ -139,9 +151,31 @@ const BrandPage = () => {
 
     // Handle Favorite Toggle
     const handleFavoriteToggle = () => {
-        setIsFavorite(!isFavorite);
-        // يمكن إضافة API call هنا لحفظ في قاعدة البيانات
-        const message = !isFavorite ? 'تم إضافة البراند للمفضلة! ❤️' : 'تم إزالة البراند من المفضلة';
+        if (!brand) return;
+
+        const current = getStoredFavoriteBrands();
+        const key = String(brand.id || brand.name_en || brand.name);
+        const exists = current.some((b: any) => String(b.id || b.name_en || b.name) === key);
+
+        let updated;
+        if (exists) {
+            updated = current.filter((b: any) => String(b.id || b.name_en || b.name) !== key);
+        } else {
+            updated = [
+                ...current,
+                {
+                    id: brand.id || brand.name_en || brand.name,
+                    name_ar: brand.name || brand.name_ar,
+                    name_en: brand.name_en || brand.nameEn || brand.name,
+                    logo_url: brand.logo || brand.logo_url || brand.banner || ''
+                }
+            ];
+        }
+
+        localStorage.setItem(FAVORITE_BRANDS_KEY, JSON.stringify(updated));
+        setIsFavorite(!exists);
+
+        const message = !exists ? 'تم إضافة البراند للمفضلة! ❤️' : 'تم إزالة البراند من المفضلة';
         if (typeof window !== 'undefined' && 'toast' in window) {
             (window as any).toast?.success?.(message);
         }
@@ -194,6 +228,14 @@ const BrandPage = () => {
             loadBrandData();
         }
     }, [brandName, selectedBranch]);
+
+    useEffect(() => {
+        if (!brand) return;
+        const current = getStoredFavoriteBrands();
+        const key = String(brand.id || brand.name_en || brand.name);
+        const exists = current.some((b: any) => String(b.id || b.name_en || b.name) === key);
+        setIsFavorite(exists);
+    }, [brand]);
 
     const loadBrandData = async () => {
         setLoading(true);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, Heart, Share2, Star, Minus, Plus, ShoppingCart, CheckCircle2, Clock, Truck, Shield, Package, Award, ThumbsUp, Zap, Info, Search } from 'lucide-react';
+import { ArrowRight, Heart, Share2, Star, Minus, Plus, ShoppingCart, CheckCircle2, Clock, Truck, Shield, Package, Award, ThumbsUp, Zap, Info } from 'lucide-react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import { Product } from '../types';
@@ -15,7 +15,6 @@ const ProductDetailsPage = () => {
     const [product, setProduct] = useState<Product | null>(null);
     const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
     const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
-    const [quickSearch, setQuickSearch] = useState('');
     const { addToCart } = useCart();
     const { isFavorite, toggleFavorite } = useFavorites();
     const [quantity, setQuantity] = useState(1);
@@ -213,12 +212,6 @@ const ProductDetailsPage = () => {
 
     const tags = [product.weight, product.category, available ? 'متوفر' : 'غير متوفر'].filter(Boolean);
 
-    const handleQuickSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        const term = quickSearch.trim();
-        navigate(term ? `/products?search=${encodeURIComponent(term)}` : '/products');
-    };
-
     return (
         <div className="min-h-screen bg-gradient-to-b from-[#FAFAFA] to-white flex flex-col">
             {/* Success Animation Overlay */}
@@ -267,7 +260,7 @@ const ProductDetailsPage = () => {
             {/* Hero Image */}
             <div className="bg-gradient-to-b from-[#FFF4E6] via-white to-white px-5 pt-16 pb-10">
                 <div className="relative flex flex-col items-center gap-4">
-                    <div className="relative bg-white/90 border border-orange-100 rounded-3xl shadow-lg p-4">
+                    <div className="relative flex items-center justify-center">
                         {/* Discount Badge */}
                         {discountPercentage > 0 && (
                             <div className="absolute -top-3 -left-3 z-20">
@@ -302,25 +295,6 @@ const ProductDetailsPage = () => {
                         <span>شامل الضريبة</span>
                     </div>
                 </div>
-
-                {/* Quick Search */}
-                <form onSubmit={handleQuickSearch} className="mt-6 max-w-xl mx-auto">
-                    <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-2xl px-3 py-2 shadow-sm">
-                        <Search className="w-5 h-5 text-gray-500" />
-                        <input
-                            value={quickSearch}
-                            onChange={(e) => setQuickSearch(e.target.value)}
-                            placeholder="ابحث عن منتج آخر بسرعة"
-                            className="flex-1 bg-transparent outline-none text-sm text-gray-700"
-                        />
-                        <button
-                            type="submit"
-                            className="bg-[#F97316] text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-[#ea580c] transition-colors"
-                        >
-                            بحث
-                        </button>
-                    </div>
-                </form>
             </div>
 
             {/* Main Content Container with Enhanced Shadow */}
