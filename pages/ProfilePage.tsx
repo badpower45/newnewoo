@@ -90,7 +90,7 @@ const ProfilePage = () => {
 
         setUploadingImage(true);
         try {
-            // Use the backend upload endpoint instead of direct Cloudinary upload
+            // Try backend upload endpoint first
             const formData = new FormData();
             formData.append('image', file);
             formData.append('productId', `user_${user?.id}_${Date.now()}`);
@@ -103,13 +103,33 @@ const ProfilePage = () => {
                 body: formData
             });
 
+            let imageUrl = '';
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to upload image');
-            }
+                // Backend failed, try Cloudinary directly
+                const fallbackError = await response.text();
+                console.warn('Backend upload failed, trying Cloudinary:', fallbackError);
 
-            const data = await response.json();
-            const imageUrl = data.data.url;
+                const cloudForm = new FormData();
+                cloudForm.append('file', file);
+                cloudForm.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
+                cloudForm.append('folder', 'users');
+
+                const cloudRes = await fetch(
+                    `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/image/upload`,
+                    { method: 'POST', body: cloudForm }
+                );
+
+                if (!cloudRes.ok) {
+                    const cloudErr = await cloudRes.text();
+                    throw new Error(cloudErr || 'Failed to upload image');
+                }
+
+                const cloudData = await cloudRes.json();
+                imageUrl = cloudData.secure_url;
+            } else {
+                const data = await response.json();
+                imageUrl = data.data.url;
+            }
 
             // Update profile with new avatar
             const updateResponse = await api.users.updateProfile({

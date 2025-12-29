@@ -290,7 +290,7 @@ const CustomerChatPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col" dir="rtl">
+    <div className="min-h-screen max-h-screen overflow-hidden bg-gray-50 flex flex-col" dir="rtl">
       {/* Header */}
       <header className="bg-gradient-to-r from-orange-500 to-orange-600 text-white sticky top-0 z-10 shadow-lg">
         <div className="max-w-4xl mx-auto px-4 py-4">
@@ -408,15 +408,15 @@ const CustomerChatPage: React.FC = () => {
                   placeholder="اكتب رسالتك هنا..."
                   className="flex-1 border-2 border-gray-200 rounded-full px-5 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-right bg-gray-50"
                 />
-                <button
-                  type="submit"
-                  disabled={!inputMessage.trim()}
-                  className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-3 rounded-full hover:from-orange-600 hover:to-orange-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
-                >
-                  <Send size={20} className="rotate-180" />
-                </button>
-              </div>
-            </form>
+              <button
+                type="submit"
+                disabled={!inputMessage.trim()}
+                className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-3 rounded-full hover:from-orange-600 hover:to-orange-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+              >
+                <Send size={20} />
+              </button>
+            </div>
+          </form>
             
             {/* Working Hours Note */}
             <p className="text-center text-gray-400 text-xs mt-2">
