@@ -144,7 +144,7 @@ const FacebookReelsSection: React.FC<FacebookReelsSectionProps> = ({
                         <Facebook className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-bold text-gray-800">ريلز {pageName}</h2>
+                        <h2 className="text-lg font-bold text-gray-800">الريلز</h2>
                         <p className="text-xs text-gray-500">أحدث الفيديوهات من صفحتنا</p>
                     </div>
                 </div>

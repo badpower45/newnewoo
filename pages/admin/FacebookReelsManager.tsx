@@ -64,10 +64,13 @@ const FacebookReelsManager: React.FC = () => {
         setSaving(true);
 
         try {
+            const normalizedVideo = normalizeVideoUrl(form.video_url || form.facebook_url);
+            const autoThumb = form.thumbnail_url || getYoutubeThumb(normalizedVideo);
+
             if (editing) {
-                await api.facebookReels.update(editing.id, form);
+                await api.facebookReels.update(editing.id, { ...form, video_url: normalizedVideo, thumbnail_url: autoThumb });
             } else {
-                await api.facebookReels.create(form);
+                await api.facebookReels.create({ ...form, video_url: normalizedVideo, thumbnail_url: autoThumb });
             }
 
             if (sendPush) {
@@ -147,8 +150,21 @@ const FacebookReelsManager: React.FC = () => {
         return null;
     };
 
+    const getYoutubeThumb = (url: string) => {
+        const ytWatch = url.match(/youtube\.com\/(?:watch\?v=|embed\/)([\w-]+)/);
+        const ytShort = url.match(/youtu\.be\/([\w-]+)/);
+        const id = ytWatch?.[1] || ytShort?.[1];
+        return id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : '';
+    };
+
     const normalizeVideoUrl = (url: string) => {
         if (!url) return '';
+        // If user pasted embed code, extract src
+        const srcMatch = url.match(/src=["']([^"']+)["']/);
+        if (srcMatch && srcMatch[1]) {
+            url = srcMatch[1];
+        }
+
         // YouTube formats
         const ytWatch = url.match(/youtube\.com\/(?:watch\?v=|embed\/)([\w-]+)/);
         const ytShort = url.match(/youtu\.be\/([\w-]+)/);

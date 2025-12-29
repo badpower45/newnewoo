@@ -47,19 +47,30 @@ const StoriesSection: React.FC = () => {
                 const response = await api.stories.getAll();
                 const stories: Story[] = Array.isArray(response) ? response : response?.data || [];
                 
-                // Group stories by user/brand
-                const groups: StoryGroup[] = [];
-                const storeGroup: StoryGroup = {
-                    id: 0,
-                    name: 'Allosh Market',
-                    avatar: 'https://ui-avatars.com/api/?name=Allosh&background=F97316&color=fff&size=128',
-                    stories: stories.filter(s => !s.user_id || s.user_id === 0),
-                    hasUnviewed: true
-                };
-                
-                if (storeGroup.stories.length > 0) {
-                    groups.push(storeGroup);
-                }
+                // Group stories by user_id/name
+                const groupsMap = new Map<string | number, StoryGroup>();
+                stories.forEach((story) => {
+                    const key = story.user_id ?? story.user_name ?? 'store';
+                    const name = story.user_name || 'Allosh Market';
+                    const avatar =
+                        story.user_avatar ||
+                        'https://ui-avatars.com/api/?name=' +
+                            encodeURIComponent(name) +
+                            '&background=F97316&color=fff&size=128';
+
+                    if (!groupsMap.has(key)) {
+                        groupsMap.set(key, {
+                            id: typeof key === 'number' ? key : Date.now() + Math.random(),
+                            name,
+                            avatar,
+                            stories: [],
+                            hasUnviewed: true
+                        });
+                    }
+                    groupsMap.get(key)!.stories.push(story);
+                });
+
+                const groups: StoryGroup[] = Array.from(groupsMap.values());
 
                 // If no stories from API, use mock data
                 if (groups.length === 0) {

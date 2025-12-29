@@ -177,31 +177,28 @@ const LoginPage = () => {
     };
 
     return (
-        <div className="min-h-screen relative overflow-hidden">
-            {/* Background with gradient */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-purple-50 to-pink-50"></div>
-            
-            {/* Animated circles */}
-            <div className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full blur-3xl animate-pulse"></div>
-            <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-300/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-orange-50 via-orange-100 to-white">
+            {/* Background accents */}
+            <div className="absolute top-16 left-6 w-64 h-64 bg-orange-200/40 rounded-full blur-3xl animate-pulse"></div>
+            <div className="absolute bottom-16 right-6 w-80 h-80 bg-amber-300/30 rounded-full blur-3xl animate-pulse delay-1000"></div>
             
             {/* Header */}
             <div className="relative p-4 flex items-center z-10">
                 <button onClick={() => navigate('/')} className="p-2 hover:bg-white/50 backdrop-blur-sm rounded-full transition">
                     <ChevronLeft size={24} className="text-gray-700" />
                 </button>
-                <h1 className="text-xl font-bold ml-2 text-gray-800">تسجيل الدخول</h1>
+                <h1 className="text-xl font-bold ml-2 text-gray-900">تسجيل الدخول</h1>
             </div>
 
             {/* Main Content */}
             <div className="relative flex-1 px-6 py-8 max-w-md mx-auto w-full flex flex-col justify-center z-10">
                 {/* Glass Card */}
-                <div className="backdrop-blur-xl bg-white/80 rounded-3xl shadow-2xl p-8 border border-white/20">
+                <div className="backdrop-blur-xl bg-white/90 rounded-3xl shadow-2xl p-8 border border-orange-100">
                     <div className="mb-8 text-center">
-                        <div className="w-20 h-20 bg-gradient-to-br from-primary to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg rotate-6 hover:rotate-0 transition-transform">
+                        <div className="w-20 h-20 bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg rotate-3 hover:rotate-0 transition-transform">
                             <LogIn size={32} className="text-white" />
                         </div>
-                        <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent mb-2">
+                        <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent mb-2">
                             أهلاً بعودتك
                         </h2>
                         <p className="text-gray-600">سجل دخولك للمتابعة إلى Lumina Fresh Market</p>
