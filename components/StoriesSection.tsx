@@ -70,7 +70,18 @@ const StoriesSection: React.FC = () => {
                     groupsMap.get(key)!.stories.push(story);
                 });
 
-                const groups: StoryGroup[] = Array.from(groupsMap.values());
+                const groups: StoryGroup[] = Array.from(groupsMap.values()).map((group) => {
+                    if (!group.stories.length) return group;
+                    // اختر آخر ستوري (الأحدث) لتكون الغلاف الظاهر خارجياً
+                    const sorted = [...group.stories].sort(
+                        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+                    );
+                    const cover = sorted[sorted.length - 1];
+                    return {
+                        ...group,
+                        avatar: cover?.media_url || group.avatar
+                    };
+                });
 
                 // If no stories from API, use mock data
                 if (groups.length === 0) {
