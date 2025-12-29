@@ -349,10 +349,11 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
 
                         {(() => {
                             const current = reelsData[activeVideo];
-                            const isEmbedSource = current?.video_url
-                                ? /youtube\\.com|youtu\\.be|vimeo\\.com/.test(current.video_url)
+                            const playableUrl = normalizeVideoUrl(current?.video_url || current?.facebook_url);
+                            const isEmbedSource = playableUrl
+                                ? /youtube\.com|youtu\.be|vimeo\.com|facebook\.com\/plugins\/video\.php/.test(playableUrl)
                                 : false;
-                            const hasVideoFile = current?.video_url && !isEmbedSource;
+                            const hasVideoFile = playableUrl && !isEmbedSource;
 
                             return (
                                 <>
