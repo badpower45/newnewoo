@@ -42,6 +42,23 @@ const StoriesSection: React.FC = () => {
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const touchStartX = useRef<number>(0);
 
+    const toYoutubeEmbed = (url: string) => {
+        const srcMatch = url.match(/src=["']([^"']+)["']/);
+        if (srcMatch?.[1]) url = srcMatch[1];
+        const shorts = url.match(/youtube\.com\/shorts\/([\w-]+)/);
+        const watch = url.match(/youtube\.com\/(?:watch\?v=|embed\/)([\w-]+)/);
+        const short = url.match(/youtu\.be\/([\w-]+)/);
+        const id = shorts?.[1] || watch?.[1] || short?.[1];
+        return id ? `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1&playsinline=1&autoplay=1` : url;
+    };
+
+    const normalizeMediaUrl = (url: string, type: 'image' | 'video') => {
+        if (!url) return '';
+        if (type !== 'video') return url;
+        if (/youtube\.com|youtu\.be/.test(url)) return toYoutubeEmbed(url);
+        return url;
+    };
+
     // Fetch stories from API
     useEffect(() => {
         const fetchStories = async () => {
@@ -501,19 +518,33 @@ const StoriesSection: React.FC = () => {
 
                         {/* Story Content */}
                         <div className="flex-1 flex items-center justify-center px-2">
-                            {currentStory.media_type === 'video' ? (
-                                <video
-                                    ref={videoRef}
-                                    src={currentStory.media_url}
-                                    className="max-w-full max-h-full object-contain"
-                                    autoPlay
-                                    muted={isMuted}
-                                    playsInline
-                                    loop={false}
-                                    onLoadStart={() => setIsPaused(true)}
-                                    onCanPlay={() => setIsPaused(false)}
-                                />
-                            ) : (
+                            {currentStory.media_type === 'video' ? (() => {
+                                const playableUrl = normalizeMediaUrl(currentStory.media_url, 'video');
+                                if (/youtube\.com|youtu\.be/.test(playableUrl)) {
+                                    return (
+                                        <iframe
+                                            src={playableUrl}
+                                            className="max-w-full max-h-full w-full h-full"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                            title={currentStory.title}
+                                        />
+                                    );
+                                }
+                                return (
+                                    <video
+                                        ref={videoRef}
+                                        src={playableUrl}
+                                        className="max-w-full max-h-full object-contain"
+                                        autoPlay
+                                        muted={isMuted}
+                                        playsInline
+                                        loop={false}
+                                        onLoadStart={() => setIsPaused(true)}
+                                        onCanPlay={() => setIsPaused(false)}
+                                    />
+                                );
+                            })() : (
                                 <img 
                                     src={currentStory.media_url}
                                     alt={currentStory.title}

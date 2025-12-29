@@ -36,6 +36,27 @@ const StoriesManager: React.FC = () => {
     });
     const [saving, setSaving] = useState(false);
 
+    const toYoutubeEmbed = (url: string) => {
+        if (!url) return '';
+        const srcMatch = url.match(/src=["']([^"']+)["']/);
+        if (srcMatch?.[1]) url = srcMatch[1];
+        const shorts = url.match(/youtube\.com\/shorts\/([\w-]+)/);
+        const watch = url.match(/youtube\.com\/(?:watch\?v=|embed\/)([\w-]+)/);
+        const short = url.match(/youtu\.be\/([\w-]+)/);
+        const id = shorts?.[1] || watch?.[1] || short?.[1];
+        return id ? `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1&playsinline=1&autoplay=1` : url;
+    };
+
+    const normalizeMediaUrl = (url: string, type: 'image' | 'video') => {
+        if (!url) return '';
+        if (type !== 'video') return url;
+        // YouTube shorts/links
+        if (/youtube\.com|youtu\.be/.test(url)) {
+            return toYoutubeEmbed(url);
+        }
+        return url;
+    };
+
     const fetchStories = async () => {
         setLoading(true);
         try {
@@ -74,10 +95,15 @@ const StoriesManager: React.FC = () => {
         setSaving(true);
 
         try {
+            const payload = {
+                ...formData,
+                media_url: normalizeMediaUrl(formData.media_url, formData.media_type)
+            };
+
             if (editingStory) {
-                await api.stories.update(editingStory.id, formData);
+                await api.stories.update(editingStory.id, payload);
             } else {
-                await api.stories.create(formData);
+                await api.stories.create(payload);
             }
             setShowModal(false);
             resetForm();
@@ -351,12 +377,24 @@ const StoriesManager: React.FC = () => {
                                 />
                                 {formData.media_url && (
                                     <div className="mt-2 aspect-video bg-gray-100 rounded-lg overflow-hidden">
-                                        <img 
-                                            src={formData.media_url} 
-                                            alt="Preview" 
-                                            className="w-full h-full object-cover"
-                                            onError={(e) => (e.target as HTMLImageElement).style.display = 'none'}
-                                        />
+                                        {formData.media_type === 'video' && /youtube\.com|youtu\.be/.test(formData.media_url) ? (
+                                            <iframe
+                                                src={normalizeMediaUrl(formData.media_url, 'video')}
+                                                className="w-full h-full"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                allowFullScreen
+                                                title="story-preview"
+                                            />
+                                        ) : formData.media_type === 'video' ? (
+                                            <video src={formData.media_url} className="w-full h-full object-cover" controls />
+                                        ) : (
+                                            <img 
+                                                src={formData.media_url} 
+                                                alt="Preview" 
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => (e.target as HTMLImageElement).style.display = 'none'}
+                                            />
+                                        )}
                                     </div>
                                 )}
                             </div>
