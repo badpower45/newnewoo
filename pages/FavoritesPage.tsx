@@ -133,7 +133,7 @@ const FavoritesPage = () => {
                         )}
 
                         {/* Favorite Products Section */}
-                        {favorites.length > 0 && (
+                        {favorites.length > 0 ? (
                             <div className="px-4 md:px-0">
                                 <div className="flex items-center justify-between mb-4">
                                     <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
@@ -148,27 +148,21 @@ const FavoritesPage = () => {
                                     ))}
                                 </div>
                             </div>
+                        ) : (
+                            <div className="flex flex-col items-center justify-center py-20 text-center">
+                                <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mb-6">
+                                    <Heart size={40} className="text-red-500" />
+                                </div>
+                                <h2 className="text-2xl font-bold text-gray-900 mb-2">لا توجد مفضلة بعد</h2>
+                                <p className="text-gray-500 mb-8">ابدأ بإضافة المنتجات التي تحبها</p>
+                                <button
+                                    onClick={() => navigate('/products')}
+                                    className="bg-primary text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-primary-dark transition-colors"
+                                >
+                                    استكشف المنتجات
+                                </button>
+                            </div>
                         )}
-                    </div>
-                ) : favorites.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 text-center">
-                        <div className="w-24 h-24 bg-red-50 rounded-full flex items-center justify-center mb-6">
-                            <Heart size={40} className="text-red-500" />
-                        </div>
-                        <h2 className="text-2xl font-bold text-gray-900 mb-2">لا توجد مفضلة بعد</h2>
-                        <p className="text-gray-500 mb-8">ابدأ بإضافة المنتجات التي تحبها</p>
-                        <button
-                            onClick={() => navigate('/products')}
-                            className="bg-primary text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-primary-dark transition-colors"
-                        >
-                            استكشف المنتجات
-                        </button>
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 p-4 md:p-0">
-                        {favorites.map((product) => (
-                            <ProductCard key={product.id} product={product} />
-                        ))}
                     </div>
                 )}
             </div>
