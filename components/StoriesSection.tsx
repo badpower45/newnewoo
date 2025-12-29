@@ -288,10 +288,11 @@ const StoriesSection: React.FC = () => {
         const isLeftZone = x < width / 3;
         const isRightZone = x > (2 * width) / 3;
 
+        // Fix swipe direction for RTL: when RTL and click right, go next (not prev)
         if ((isLeftZone && !isRTL) || (isRightZone && isRTL)) {
-            handlePrevStory();
+            handleNextStory();  // Changed from handlePrevStory
         } else if ((isRightZone && !isRTL) || (isLeftZone && isRTL)) {
-            handleNextStory();
+            handlePrevStory();  // Changed from handleNextStory
         } else {
             setIsPaused(prev => !prev);
         }
@@ -395,11 +396,7 @@ const StoriesSection: React.FC = () => {
                     onTouchStart={handleTouchStart}
                     onTouchEnd={handleTouchEnd}
                 >
-                    {/* Background blur */}
-                    <div 
-                        className="absolute inset-0 bg-cover bg-center blur-3xl opacity-30"
-                        style={{ backgroundImage: `url(${currentStory.media_url})` }}
-                    />
+                    {/* Removed background blur to fix black overlay issue */}
 
                     {/* Story Container */}
                     <div 

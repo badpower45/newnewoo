@@ -15,7 +15,7 @@ const LoyaltyBarcodePage = () => {
     const [barcodes, setBarcodes] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [creatingBarcode, setCreatingBarcode] = useState(false);
-    const [pointsToRedeem, setPointsToRedeem] = useState('100');
+    const [pointsToRedeem, setPointsToRedeem] = useState('1000');
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [userPoints, setUserPoints] = useState(0);
 
@@ -47,8 +47,13 @@ const LoyaltyBarcodePage = () => {
     const handleCreateBarcode = async () => {
         const points = parseInt(pointsToRedeem);
         
-        if (points < 50) {
-            alert('الحد الأدنى للاستبدال 50 نقطة');
+        if (points < 1000) {
+            alert('الحد الأدنى للاستبدال 1000 نقطة');
+            return;
+        }
+
+        if (points % 1000 !== 0) {
+            alert('يجب أن يكون عدد النقاط من مضاعفات 1000 (مثال: 1000، 2000، 3000)');
             return;
         }
 
@@ -61,10 +66,11 @@ const LoyaltyBarcodePage = () => {
         try {
             const result = await api.loyaltyBarcode.createRedemption(points);
             
-            alert(`✅ ${result.message}\n💰 القيمة: ${points} جنيه\n📊 رصيدك المتبقي: ${result.remaining_points} نقطة`);
+            const monetaryValue = (points / 1000) * 35;
+            alert(`✅ ${result.message}\n💰 القيمة: ${monetaryValue} جنيه\n📊 رصيدك المتبقي: ${result.remaining_points} نقطة`);
             
             setShowCreateModal(false);
-            setPointsToRedeem('100');
+            setPointsToRedeem('1000');
             
             await loadBarcodes();
             await loadUserPoints();
@@ -171,7 +177,7 @@ const LoyaltyBarcodePage = () => {
                 <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3 flex items-start gap-2">
                     <Zap className="text-yellow-300 flex-shrink-0 mt-0.5" size={18} />
                     <p className="text-sm text-white/90">
-                        <strong>كل نقطة = 1 جنيه!</strong> حوّل نقاطك لباركود يستخدم مرة واحدة، وأعطيه لأي حد يستخدمه في الطلبات
+                        <strong>كل 1000 نقطة = 35 جنيه!</strong> حوّل نقاطك لباركود يستخدم مرة واحدة، وأعطيه لأي حد يستخدمه في الطلبات
                     </p>
                 </div>
             </div>
@@ -299,24 +305,27 @@ const LoyaltyBarcodePage = () => {
                                 type="number"
                                 value={pointsToRedeem}
                                 onChange={(e) => setPointsToRedeem(e.target.value)}
-                                min="50"
+                                min="1000"
                                 max={userPoints}
-                                step="50"
+                                step="1000"
                                 className="w-full px-4 py-3 border border-gray-300 rounded-xl text-lg font-bold text-center focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                             />
                             <div className="flex items-center justify-between mt-2 text-sm">
-                                <span className="text-gray-500">الحد الأدنى: 50 نقطة</span>
+                                <span className="text-gray-500">الحد الأدنى: 1000 نقطة</span>
                                 <span className="text-orange-600 font-bold">
-                                    القيمة: {pointsToRedeem} جنيه
+                                    القيمة: {(parseInt(pointsToRedeem) / 1000) * 35 || 0} جنيه
                                 </span>
                             </div>
                         </div>
 
                         {/* Info Box */}
                         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-                            <p className="text-sm text-blue-900">
+                            <p className="text-sm text-blue-900 mb-2">
                                 <strong>ملاحظة:</strong> الباركود يستخدم مرة واحدة فقط، ويمكن لأي شخص استخدامه. 
                                 صلاحية الباركود 30 يوم من تاريخ الإنشاء.
+                            </p>
+                            <p className="text-xs text-blue-700">
+                                💡 كل 1000 نقطة = 35 جنيه | يجب أن يكون العدد من مضاعفات 1000
                             </p>
                         </div>
 

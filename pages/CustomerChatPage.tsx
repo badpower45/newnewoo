@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, ArrowLeft, Phone, Clock, MessageCircle, CheckCheck, Check, Loader2 } from 'lucide-react';
+import { Send, ArrowRight, Phone, Clock, MessageCircle, CheckCheck, Check, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabaseChatService, ChatMessage, ChatConversation } from '../services/supabaseChatService';
 import { useAuth } from '../context/AuthContext';
@@ -300,7 +300,7 @@ const CustomerChatPage: React.FC = () => {
                 onClick={() => navigate(-1)}
                 className="p-2 hover:bg-white/20 rounded-full transition-colors"
               >
-                <ArrowLeft size={24} />
+                <ArrowRight size={24} />
               </button>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
@@ -330,7 +330,7 @@ const CustomerChatPage: React.FC = () => {
       {/* Chat Area */}
       <div className="flex-1 max-w-4xl mx-auto w-full overflow-hidden flex flex-col">
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 pb-28 space-y-4">
+        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
           {messages.map((message) => (
             <div
               key={message.id}
@@ -394,33 +394,35 @@ const CustomerChatPage: React.FC = () => {
 
         {/* Input Area */}
         <div
-          className="border-t bg-white p-4 sticky bottom-0 shadow-[0_-6px_20px_rgba(0,0,0,0.06)]"
-          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}
+          className="fixed bottom-0 left-0 right-0 border-t bg-white shadow-[0_-8px_24px_rgba(0,0,0,0.08)] z-20"
+          style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
         >
-          <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
-            <div className="flex items-center gap-3">
-              <input
-                ref={inputRef}
-                type="text"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                placeholder="اكتب رسالتك هنا..."
-                className="flex-1 border border-gray-200 rounded-full px-5 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-right bg-gray-50"
-              />
-              <button
-                type="submit"
-                disabled={!inputMessage.trim()}
-                className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-3 rounded-full hover:from-orange-600 hover:to-orange-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
-              >
-                <Send size={20} className="rotate-180" />
-              </button>
-            </div>
-          </form>
-          
-          {/* Working Hours Note */}
-          <p className="text-center text-gray-400 text-xs mt-3">
-            ساعات العمل: السبت - الخميس، 9 صباحاً - 10 مساءً
-          </p>
+          <div className="max-w-4xl mx-auto px-4 py-4">
+            <form onSubmit={handleSubmit}>
+              <div className="flex items-center gap-3">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  placeholder="اكتب رسالتك هنا..."
+                  className="flex-1 border-2 border-gray-200 rounded-full px-5 py-3 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-right bg-gray-50"
+                />
+                <button
+                  type="submit"
+                  disabled={!inputMessage.trim()}
+                  className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-3 rounded-full hover:from-orange-600 hover:to-orange-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+                >
+                  <Send size={20} className="rotate-180" />
+                </button>
+              </div>
+            </form>
+            
+            {/* Working Hours Note */}
+            <p className="text-center text-gray-400 text-xs mt-2">
+              ساعات العمل: السبت - الخميس، 9 صباحاً - 10 مساءً
+            </p>
+          </div>
         </div>
       </div>
     </div>

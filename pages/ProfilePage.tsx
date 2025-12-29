@@ -5,7 +5,7 @@ import { User, Mail, LogOut, ChevronLeft, Edit2, Phone, Save, X, Camera, LayoutD
 import { api } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import Footer from '../components/Footer';
-import { CLOUDINARY_CONFIG } from '../src/config';
+import { API_URL } from '../src/config';
 
 const ProfilePage = () => {
     const { user, logout, updateUser } = useAuth();
@@ -90,23 +90,26 @@ const ProfilePage = () => {
 
         setUploadingImage(true);
         try {
+            // Use the backend upload endpoint instead of direct Cloudinary upload
             const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', CLOUDINARY_CONFIG.uploadPreset);
-            formData.append('folder', 'users');
+            formData.append('image', file);
+            formData.append('productId', `user_${user?.id}_${Date.now()}`);
 
-            const response = await fetch(
-                `https://api.cloudinary.com/v1_1/${CLOUDINARY_CONFIG.cloudName}/image/upload`,
-                {
-                    method: 'POST',
-                    body: formData
-                }
-            );
+            const response = await fetch(`${API_URL}/upload/image`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: formData
+            });
 
-            if (!response.ok) throw new Error('Failed to upload image');
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to upload image');
+            }
 
             const data = await response.json();
-            const imageUrl = data.secure_url;
+            const imageUrl = data.data.url;
 
             // Update profile with new avatar
             const updateResponse = await api.users.updateProfile({
@@ -117,9 +120,9 @@ const ProfilePage = () => {
                 updateUser({ avatar: imageUrl });
                 alert('تم تحديث الصورة بنجاح');
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error('Failed to upload image:', err);
-            alert('فشل رفع الصورة');
+            alert('فشل رفع الصورة: ' + (err.message || 'حاول مرة أخرى'));
         } finally {
             setUploadingImage(false);
         }

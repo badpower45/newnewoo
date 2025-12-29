@@ -501,8 +501,9 @@ export default function CheckoutPage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-700">اسم العمارة / المبنى</label>
+                                <label className="text-sm font-bold text-slate-700">اسم العمارة / المبنى <span className="text-red-500">*</span></label>
                                 <input
+                                    required
                                     type="text"
                                     name="building"
                                     value={formData.building}
@@ -512,8 +513,9 @@ export default function CheckoutPage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-700">اسم الشارع</label>
+                                <label className="text-sm font-bold text-slate-700">اسم الشارع <span className="text-red-500">*</span></label>
                                 <input
+                                    required
                                     type="text"
                                     name="street"
                                     value={formData.street}
@@ -526,7 +528,7 @@ export default function CheckoutPage() {
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-700">الدور</label>
+                                <label className="text-sm font-bold text-slate-700">الدور <span className="text-gray-400 font-normal">(اختياري)</span></label>
                                 <input
                                     type="text"
                                     name="floor"
@@ -537,7 +539,7 @@ export default function CheckoutPage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-700">الشقة</label>
+                                <label className="text-sm font-bold text-slate-700">الشقة <span className="text-gray-400 font-normal">(اختياري)</span></label>
                                 <input
                                     type="text"
                                     name="apartment"
@@ -551,7 +553,7 @@ export default function CheckoutPage() {
 
                         <div className="space-y-2">
                                 <label className="text-sm font-bold text-slate-700 flex justify-between items-center">
-                                <span>تفاصيل العنوان الإضافية</span>
+                                <span>تفاصيل العنوان الإضافية <span className="text-red-500">*</span></span>
                                 {/* Location Button */}
                                 <button
                                     type="button"
@@ -567,6 +569,7 @@ export default function CheckoutPage() {
                             {locationError && <p className="text-xs text-red-500">{locationError}</p>}
                             
                             <textarea
+                                required
                                 rows={2}
                                 name="address"
                                 value={formData.address}
