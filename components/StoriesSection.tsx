@@ -23,6 +23,8 @@ interface StoryGroup {
     id: number;
     name: string;
     avatar: string;
+    coverTitle?: string;
+    coverLink?: string;
     stories: Story[];
     hasUnviewed: boolean;
 }
@@ -79,7 +81,9 @@ const StoriesSection: React.FC = () => {
                     const cover = sorted[sorted.length - 1];
                     return {
                         ...group,
-                        avatar: cover?.media_url || group.avatar
+                        avatar: cover?.media_url || group.avatar,
+                        coverTitle: cover?.title,
+                        coverLink: cover?.link_url
                     };
                 });
 
@@ -407,6 +411,16 @@ const StoriesSection: React.FC = () => {
                         <span className="text-xs text-[#1F2937] font-medium truncate max-w-[64px]">
                             {group.name}
                         </span>
+                        {group.coverTitle && (
+                            <span className="text-[11px] text-gray-500 truncate max-w-[64px]">
+                                {group.coverTitle}
+                            </span>
+                        )}
+                        {group.coverLink && (
+                            <span className="text-[10px] text-blue-600 font-semibold truncate max-w-[64px]">
+                                رابط متاح
+                            </span>
+                        )}
                     </div>
                 ))}
             </div>
