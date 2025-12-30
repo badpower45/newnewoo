@@ -131,6 +131,13 @@ export default function FAQPage() {
     const [selectedCategory, setSelectedCategory] = useState('الكل');
     const [openQuestions, setOpenQuestions] = useState<number[]>([]);
     const navigate = useNavigate();
+    const handleBack = () => {
+        if (typeof window !== 'undefined' && window.history.length > 1) {
+            navigate(-1);
+        } else {
+            navigate('/more');
+        }
+    };
 
     const toggleQuestion = (index: number) => {
         setOpenQuestions(prev => 
@@ -168,7 +175,7 @@ export default function FAQPage() {
             <div className="bg-gradient-to-r from-brand-brown to-brand-orange py-16 px-4">
                 <div className="max-w-4xl mx-auto text-center relative">
                     <button
-                        onClick={() => navigate(-1)}
+                        onClick={handleBack}
                         className="absolute left-0 top-4 w-10 h-10 bg-white/15 rounded-full flex items-center justify-center hover:bg-white/25 transition"
                         dir="ltr"
                     >

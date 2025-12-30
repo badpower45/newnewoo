@@ -3,6 +3,7 @@ import { ChevronLeft, Search, Loader2, Grid3X3, LayoutList, Mic } from 'lucide-r
 import { useNavigate } from 'react-router-dom';
 import CategoryCard from '../components/CategoryCard';
 import { api } from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
 import Seo, { getSiteUrl } from '../components/Seo';
 
 interface Category {
@@ -17,11 +18,13 @@ interface Category {
 
 const CategoriesPage = () => {
     const navigate = useNavigate();
+    const { language } = useLanguage();
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [isListening, setIsListening] = useState(false);
+    const [spokenTerm, setSpokenTerm] = useState('');
     const siteUrl = getSiteUrl();
     const canonicalUrl = `${siteUrl}/categories`;
     const keywordList = [
@@ -40,6 +43,14 @@ const CategoriesPage = () => {
     useEffect(() => {
         loadCategories();
     }, []);
+
+    const normalize = (text: string = '') =>
+        text
+            .toLowerCase()
+            .replace(/أ|إ|آ/g, 'ا')
+            .replace(/ة/g, 'ه')
+            .replace(/ى/g, 'ي')
+            .trim();
 
     const loadCategories = async () => {
         setLoading(true);
@@ -65,18 +76,19 @@ const CategoriesPage = () => {
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         const recognition = new SpeechRecognition();
         
-        recognition.lang = 'ar-SA';
+        recognition.lang = language === 'ar' ? 'ar-SA' : 'en-US';
         recognition.continuous = false;
         recognition.interimResults = false;
 
         recognition.onstart = () => {
             setIsListening(true);
+            setSpokenTerm('');
         };
 
         recognition.onresult = (event: any) => {
             const transcript = event.results[0][0].transcript;
+            setSpokenTerm(transcript);
             setSearchTerm(transcript);
-            setIsListening(false);
         };
 
         recognition.onerror = (event: any) => {
@@ -87,6 +99,9 @@ const CategoriesPage = () => {
 
         recognition.onend = () => {
             setIsListening(false);
+            if (spokenTerm) {
+                setSearchTerm(spokenTerm);
+            }
         };
 
         recognition.start();
@@ -95,8 +110,8 @@ const CategoriesPage = () => {
     const filteredCategories = categories.filter(cat => {
         const nameAr = cat.name_ar || '';
         const nameEn = cat.name || '';
-        const term = searchTerm.toLowerCase();
-        return nameEn.toLowerCase().includes(term) || nameAr.toLowerCase().includes(term);
+        const term = normalize(searchTerm);
+        return normalize(nameEn).includes(term) || normalize(nameAr).includes(term);
     });
     const pageDescription = filteredCategories.length
         ? `اكتشف ${filteredCategories.length} تصنيفاً داخل علوش ماركت وحدد القسم المناسب لك.`

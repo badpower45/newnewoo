@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronRight, ChevronDown, HelpCircle, Package, CreditCard, Truck, Gift, Clock, MapPin } from 'lucide-react';
+import { ArrowLeft, ChevronDown, HelpCircle, Package, CreditCard, Truck, Gift, Clock, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface FAQItem {
@@ -100,16 +100,25 @@ const GeneralFAQPage = () => {
         setOpenIndex(openIndex === index ? null : index);
     };
 
+    const handleBack = () => {
+        if (typeof window !== 'undefined' && window.history.length > 1) {
+            navigate(-1);
+        } else {
+            navigate('/more');
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-50">
             {/* Header */}
             <div className="bg-gradient-to-r from-brand-orange to-orange-600 text-white">
                 <div className="max-w-4xl mx-auto px-4 py-6">
                     <button
-                        onClick={() => navigate(-1)}
+                        onClick={handleBack}
                         className="flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity"
+                        dir="ltr"
                     >
-                        <ChevronRight size={20} />
+                        <ArrowLeft size={20} />
                         <span>رجوع</span>
                     </button>
                     <div className="flex items-center gap-3 mb-2">

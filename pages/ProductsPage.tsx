@@ -12,6 +12,7 @@ import { Product } from '../types';
 import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useBranch } from '../context/BranchContext';
 import Seo, { getSiteUrl } from '../components/Seo';
+import { useCart } from '../context/CartContext';
 
 const SORT_OPTIONS = [
     { id: 'newest', name: 'الأحدث', icon: Clock },
@@ -43,6 +44,7 @@ export default function ProductsPage() {
     const [searchParams] = useSearchParams();
     const location = useLocation();
     const { selectedBranch } = useBranch();
+    const { addToCart } = useCart();
 
     // Load categories from actual products (not API)
     useEffect(() => {
@@ -304,11 +306,19 @@ export default function ProductsPage() {
     const handleSearch = useCallback(async (query: string) => {
         setSearchQuery(query);
         setCurrentPage(1);
+
+        const trimmed = query.trim();
+        const looksLikeBarcode = /^\d{6,}$/.test(trimmed);
+
+        if (looksLikeBarcode) {
+            await handleBarcodeScanned(trimmed);
+            return;
+        }
         
-        if (query.trim()) {
+        if (trimmed) {
             setLoading(true);
             try {
-                const data = await api.products.search(query);
+                const data = await api.products.search(trimmed);
                 if (data.data) {
                     setAllProducts(data.data);
                 }
@@ -434,50 +444,70 @@ export default function ProductsPage() {
         const price = Number(product.price) || 0;
         const oldPrice = Number(product.discount_price) || Number(product.originalPrice) || 0;
         const discount = oldPrice > price ? Math.round(((oldPrice - price) / oldPrice) * 100) : 0;
+        const handleQuickAdd = (e: React.MouseEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!available) return;
+            addToCart(product, 1);
+        };
 
         return (
-            <Link
-                to={`/product/${product.id}`}
-                className="flex gap-4 py-4 px-3 hover:bg-gray-50 transition rounded-2xl"
-            >
-                <div className="w-24 h-24 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden">
-                    <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-full h-full object-contain"
-                        onError={(e) => {
-                            (e.target as HTMLImageElement).src = 'https://placehold.co/200x200?text=Product';
-                        }}
-                    />
-                </div>
-                <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-800 line-clamp-2">{product.name}</p>
-                    <p className="text-xs text-gray-500 mt-1">{product.category}</p>
-                    <div className="flex items-center gap-2 mt-2">
-                        <span className="text-lg font-bold text-brand-orange">{price.toFixed(0)} ج.م</span>
-                        {oldPrice > price && (
-                            <span className="text-xs line-through text-gray-400">{oldPrice.toFixed(0)}</span>
-                        )}
-                        {discount > 0 && (
-                            <span className="text-[11px] text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
-                                -{discount}%
+            <div className="flex gap-4 py-4 px-3 hover:bg-gray-50 transition rounded-2xl">
+                <Link
+                    to={`/product/${product.id}`}
+                    className="flex items-start gap-4 flex-1"
+                >
+                    <div className="w-24 h-24 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden">
+                        <img
+                            src={product.image}
+                            alt={product.name}
+                            className="w-full h-full object-contain"
+                            onError={(e) => {
+                                (e.target as HTMLImageElement).src = 'https://placehold.co/200x200?text=Product';
+                            }}
+                        />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-gray-800 line-clamp-2">{product.name}</p>
+                        <p className="text-xs text-gray-500 mt-1">{product.category}</p>
+                        <div className="flex items-center gap-2 mt-2">
+                            <span className="text-lg font-bold text-brand-orange">{price.toFixed(0)} ج.م</span>
+                            {oldPrice > price && (
+                                <span className="text-xs line-through text-gray-400">{oldPrice.toFixed(0)}</span>
+                            )}
+                            {discount > 0 && (
+                                <span className="text-[11px] text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
+                                    -{discount}%
+                                </span>
+                            )}
+                        </div>
+                        <div className="flex items-center gap-2 mt-2">
+                            <span
+                                className={`text-[11px] px-2 py-1 rounded-full ${
+                                    available ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'
+                                }`}
+                            >
+                                {available ? 'متوفر' : 'غير متوفر'}
                             </span>
-                        )}
+                            {product.weight && (
+                                <span className="text-[11px] text-gray-500">{product.weight}</span>
+                            )}
+                        </div>
                     </div>
-                    <div className="flex items-center gap-2 mt-2">
-                        <span
-                            className={`text-[11px] px-2 py-1 rounded-full ${
-                                available ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'
-                            }`}
-                        >
-                            {available ? 'متوفر' : 'غير متوفر'}
-                        </span>
-                        {product.weight && (
-                            <span className="text-[11px] text-gray-500">{product.weight}</span>
-                        )}
-                    </div>
-                </div>
-            </Link>
+                </Link>
+                <button
+                    onClick={handleQuickAdd}
+                    disabled={!available}
+                    className={`self-center w-12 h-12 rounded-xl border transition-all ${
+                        available
+                            ? 'border-brand-orange text-brand-orange hover:bg-orange-50 active:scale-95'
+                            : 'border-gray-200 text-gray-400 cursor-not-allowed'
+                    }`}
+                    title={available ? 'إضافة سريعة للسلة' : 'غير متوفر'}
+                >
+                    +
+                </button>
+            </div>
         );
     };
 
@@ -509,9 +539,17 @@ export default function ProductsPage() {
                         <input
                             value={searchQuery}
                             onChange={(e) => handleSearch(e.target.value)}
-                            placeholder="ابحث عن منتج..."
+                            placeholder="ابحث عن منتج أو باركود..."
                             className="flex-1 bg-transparent outline-none text-sm text-gray-800"
                         />
+                        <button
+                            type="button"
+                            onClick={() => setShowScanner(true)}
+                            className="text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg p-1.5 transition"
+                            title="مسح باركود بالكاميرا"
+                        >
+                            <Scan size={16} />
+                        </button>
                         {searchQuery && (
                             <button onClick={() => handleSearch('')} className="text-gray-400 hover:text-gray-600">
                                 <X size={16} />
@@ -529,13 +567,7 @@ export default function ProductsPage() {
                             </option>
                         ))}
                     </select>
-                    <button
-                        onClick={() => setShowScanner(true)}
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 text-sm text-gray-700"
-                    >
-                        <Scan size={16} />
-                        مسح باركود
-                    </button>
+                    
                     <div className="hidden sm:flex items-center gap-2 text-gray-500 text-sm">
                         <Sparkles size={16} className="text-amber-500" />
                         <span>{filteredAndSortedProducts.length} منتج</span>
@@ -575,45 +607,6 @@ export default function ProductsPage() {
             )}
 
             <div className="max-w-7xl mx-auto px-4 py-6 space-y-4">
-                {/* Active Filters */}
-                {hasActiveFilters && (
-                    <div className="flex flex-wrap items-center gap-2">
-                        {selectedCategory && (
-                            <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-50 text-brand-orange rounded-full text-sm border border-orange-100">
-                                {categories.find(c => c.id === selectedCategory)?.icon}
-                                {categories.find(c => c.id === selectedCategory)?.name}
-                                <button onClick={() => setSelectedCategory('')} className="hover:text-orange-700">
-                                    <X size={14} />
-                                </button>
-                            </span>
-                        )}
-                        {selectedBrand && (
-                            <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-sm border border-blue-100">
-                                <Tag size={14} />
-                                {brands.find(b => b.id === selectedBrand)?.name}
-                                <button onClick={() => setSelectedBrand('')} className="hover:text-blue-800">
-                                    <X size={14} />
-                                </button>
-                            </span>
-                        )}
-                        {showOnlyOffers && (
-                            <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-50 text-green-700 rounded-full text-sm border border-green-100">
-                                <Sparkles size={14} />
-                                عروض فقط
-                                <button onClick={() => setShowOnlyOffers(false)} className="hover:text-green-800">
-                                    <X size={14} />
-                                </button>
-                            </span>
-                        )}
-                        <button
-                            onClick={clearFilters}
-                            className="text-gray-500 hover:text-gray-700 text-sm underline"
-                        >
-                            مسح الكل
-                        </button>
-                    </div>
-                )}
-
                 {/* Filters Panel */}
                 {showFilters && (
                     <div className="bg-white border rounded-2xl p-4 space-y-4">

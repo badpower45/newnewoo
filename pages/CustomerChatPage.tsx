@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, ArrowRight, Phone, Clock, MessageCircle, CheckCheck, Check, Loader2 } from 'lucide-react';
+import { Send, ArrowLeft, Phone, Clock, MessageCircle, CheckCheck, Check, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabaseChatService, ChatConversation } from '../services/supabaseChatService';
 import { useAuth } from '../context/AuthContext';
@@ -77,6 +77,13 @@ const CustomerChatPage: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [conversation, setConversation] = useState<ChatConversation | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const handleBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/more');
+    }
+  };
 
   // Initialize chat
   useEffect(() => {
@@ -294,11 +301,11 @@ const CustomerChatPage: React.FC = () => {
         <div className="max-w-3xl mx-auto px-3 py-2.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
-              onClick={() => navigate(-1)}
+              onClick={handleBack}
               className="w-9 h-9 rounded-xl border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
               aria-label="رجوع"
             >
-              <ArrowRight size={16} className="text-gray-700" />
+              <ArrowLeft size={16} className="text-gray-700" />
             </button>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white flex items-center justify-center shadow-sm">
