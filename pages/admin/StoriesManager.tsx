@@ -47,6 +47,18 @@ const StoriesManager: React.FC = () => {
         return id ? `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1&playsinline=1&autoplay=1` : url;
     };
 
+    const extractYoutubeId = (url: string) => {
+        if (!url) return '';
+        const srcMatch = url.match(/src=["']([^"']+)["']/);
+        if (srcMatch?.[1]) url = srcMatch[1];
+        const shorts = url.match(/youtube\.com\/shorts\/([\w-]+)/);
+        const watch = url.match(/youtube\.com\/(?:watch\?v=|embed\/)([\w-]+)/);
+        const short = url.match(/youtu\.be\/([\w-]+)/);
+        return shorts?.[1] || watch?.[1] || short?.[1] || '';
+    };
+
+    const youtubeThumbnail = (id: string) => id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : '';
+
     const normalizeMediaUrl = (url: string, type: 'image' | 'video') => {
         if (!url) return '';
         if (type !== 'video') return url;
@@ -95,9 +107,20 @@ const StoriesManager: React.FC = () => {
         setSaving(true);
 
         try {
+            let derivedMediaUrl = formData.media_url;
+            let derivedMediaType = formData.media_type;
+
+            // If YouTube link is provided and no media selected, use thumbnail automatically
+            const ytId = extractYoutubeId(formData.link_url);
+            if (!derivedMediaUrl && ytId) {
+                derivedMediaUrl = youtubeThumbnail(ytId);
+                derivedMediaType = 'image';
+            }
+
             const payload = {
                 ...formData,
-                media_url: normalizeMediaUrl(formData.media_url, formData.media_type)
+                media_url: normalizeMediaUrl(derivedMediaUrl, derivedMediaType),
+                media_type: derivedMediaType
             };
 
             if (editingStory) {

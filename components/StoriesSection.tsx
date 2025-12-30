@@ -426,7 +426,7 @@ const StoriesSection: React.FC = () => {
                             )}
                         </div>
                         <span className="text-xs text-[#1F2937] font-medium truncate max-w-[64px]">
-                            {group.name}
+                            {group.coverTitle || group.name}
                         </span>
                         {group.coverTitle && (
                             <span className="text-[11px] text-gray-500 truncate max-w-[64px]">

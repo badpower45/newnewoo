@@ -98,7 +98,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 throw new Error(data?.message || data?.error || 'Login failed');
             }
             localStorage.setItem('token', data.token);
-            const userWithGuestStatus = { ...data.user, isGuest: false };
+            let userWithGuestStatus = { ...data.user, isGuest: false };
+
+            try {
+                const profile = await api.users.getProfile();
+                userWithGuestStatus = { ...userWithGuestStatus, ...profile };
+            } catch (e) {
+                // if profile fetch fails, continue with base data
+            }
+
             localStorage.setItem('user', JSON.stringify(userWithGuestStatus));
             setUser(userWithGuestStatus);
             return userWithGuestStatus; // Return user data for role-based navigation
@@ -115,7 +123,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 throw new Error(data?.message || data?.error || 'Registration failed');
             }
             localStorage.setItem('token', data.token);
-            const userWithGuestStatus = { ...data.user, isGuest: false };
+            let userWithGuestStatus = { ...data.user, isGuest: false };
+
+            try {
+                const profile = await api.users.getProfile();
+                userWithGuestStatus = { ...userWithGuestStatus, ...profile };
+            } catch (e) {
+                // ignore profile fetch failure
+            }
+
             localStorage.setItem('user', JSON.stringify(userWithGuestStatus));
             setUser(userWithGuestStatus);
             return userWithGuestStatus;

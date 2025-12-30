@@ -691,9 +691,18 @@ const ProductDetailsPage = () => {
                                             >
                                                 <div className="flex items-start justify-between mb-3">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#F97316] to-[#EA580C] flex items-center justify-center text-white font-black text-lg shadow-lg">
-                                                            {(review.user_name || review.name || 'U').charAt(0)}
-                                                        </div>
+                                                        {review.user_avatar ? (
+                                                            <img
+                                                                src={review.user_avatar}
+                                                                alt={review.user_name || review.name || 'مستخدم'}
+                                                                className="w-12 h-12 rounded-2xl object-cover border border-orange-100 shadow-lg"
+                                                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                                            />
+                                                        ) : (
+                                                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#F97316] to-[#EA580C] flex items-center justify-center text-white font-black text-lg shadow-lg">
+                                                                {(review.user_name || review.name || 'U').charAt(0)}
+                                                            </div>
+                                                        )}
                                                         <div>
                                                             <div className="flex items-center gap-2">
                                                                 <p className="text-[#23110C] font-bold">

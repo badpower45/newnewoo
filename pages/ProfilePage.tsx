@@ -136,10 +136,9 @@ const ProfilePage = () => {
                 avatar: imageUrl
             });
 
-            if (updateResponse.success) {
-                updateUser({ avatar: imageUrl });
-                alert('تم تحديث الصورة بنجاح');
-            }
+            const updatedAvatar = updateResponse?.data?.avatar || imageUrl;
+            updateUser({ avatar: updatedAvatar });
+            alert('تم تحديث الصورة بنجاح');
         } catch (err: any) {
             console.error('Failed to upload image:', err);
             alert('فشل رفع الصورة: ' + (err.message || 'حاول مرة أخرى'));

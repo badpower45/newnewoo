@@ -181,7 +181,13 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
                                 className="absolute inset-0 w-full h-full"
                                 style={{ minHeight: '320px' }}
                             />
-                            <div className="absolute inset-0 bg-black/25" />
+                            <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/25 to-black/65" />
+                            <div 
+                                className="absolute inset-0 pointer-events-none"
+                                style={{
+                                    background: 'radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.65) 68%)'
+                                }}
+                            />
 
                             {/* Framing corners - rectangular */}
                             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">

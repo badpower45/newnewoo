@@ -525,6 +525,7 @@ export default function ProductsPage() {
                 <div className="sticky top-0 z-40 bg-white border-b">
                 <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center gap-3">
                     <button
+                        type="button"
                         onClick={() => setShowFilters(!showFilters)}
                         className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm ${
                             showFilters ? 'border-brand-orange text-brand-orange' : 'border-gray-200 text-gray-700'

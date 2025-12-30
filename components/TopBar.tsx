@@ -139,9 +139,17 @@ const TopBar = () => {
                             {/* User Icon */}
                             <Link to={isAuthenticated ? '/profile' : '/login'} className="p-2">
                                 {isAuthenticated ? (
-                                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold text-sm">
-                                        {user?.name?.charAt(0).toUpperCase()}
-                                    </div>
+                                    user?.avatar ? (
+                                        <img
+                                            src={user.avatar}
+                                            alt={user.name}
+                                            className="w-8 h-8 rounded-full object-cover border border-primary/20"
+                                        />
+                                    ) : (
+                                        <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold text-sm">
+                                            {user?.name?.charAt(0).toUpperCase()}
+                                        </div>
+                                    )
                                 ) : (
                                     <User size={22} className="text-gray-600" />
                                 )}
@@ -266,9 +274,17 @@ const TopBar = () => {
                             </Link>
                             <Link to={isAuthenticated ? '/profile' : '/login'} className="p-2 rounded-xl hover:bg-gray-50">
                                 {isAuthenticated ? (
-                                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold text-sm">
-                                        {user?.name?.charAt(0).toUpperCase()}
-                                    </div>
+                                    user?.avatar ? (
+                                        <img
+                                            src={user.avatar}
+                                            alt={user.name}
+                                            className="w-10 h-10 rounded-full object-cover border border-primary/20"
+                                        />
+                                    ) : (
+                                        <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold text-sm">
+                                            {user?.name?.charAt(0).toUpperCase()}
+                                        </div>
+                                    )
                                 ) : (
                                     <User size={22} className="text-gray-600" />
                                 )}
