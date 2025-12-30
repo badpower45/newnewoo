@@ -6,6 +6,7 @@ import { Product } from '../types';
 import { useCart } from '../context/CartContext';
 import { useBranch } from '../context/BranchContext';
 import { useFavorites } from '../context/FavoritesContext';
+import { useAuth } from '../context/AuthContext';
 import { ProductDetailsSkeleton } from '../components/Skeleton';
 import Footer from '../components/Footer';
 import Seo, { getSiteUrl } from '../components/Seo';
@@ -18,6 +19,7 @@ const ProductDetailsPage = () => {
     const [recommendedProducts, setRecommendedProducts] = useState<Product[]>([]);
     const { addToCart } = useCart();
     const { isFavorite, toggleFavorite } = useFavorites();
+    const { user } = useAuth();
     const [quantity, setQuantity] = useState(1);
     const { selectedBranch } = useBranch();
     const [available, setAvailable] = useState<boolean>(true);
@@ -63,7 +65,8 @@ const ProductDetailsPage = () => {
             await api.reviews.create({
                 product_id: id!,
                 rating: userReview.rating,
-                comment: userReview.comment
+                comment: userReview.comment,
+                user_avatar: user?.avatar
             });
             
             setUserReview({ rating: 5, comment: '' });

@@ -52,6 +52,18 @@ const StoriesSection: React.FC = () => {
         return id ? `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1&playsinline=1&autoplay=1` : url;
     };
 
+    const extractYoutubeId = (url: string) => {
+        if (!url) return '';
+        const srcMatch = url.match(/src=["']([^"']+)["']/);
+        if (srcMatch?.[1]) url = srcMatch[1];
+        const shorts = url.match(/youtube\.com\/shorts\/([\w-]+)/);
+        const watch = url.match(/youtube\.com\/(?:watch\?v=|embed\/)([\w-]+)/);
+        const short = url.match(/youtu\.be\/([\w-]+)/);
+        return shorts?.[1] || watch?.[1] || short?.[1] || '';
+    };
+
+    const youtubeThumbnail = (id: string) => id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : '';
+
     const normalizeMediaUrl = (url: string, type: 'image' | 'video') => {
         if (!url) return '';
         if (type !== 'video') return url;
@@ -71,8 +83,12 @@ const StoriesSection: React.FC = () => {
                 stories.forEach((story) => {
                     const key = story.user_id ?? story.user_name ?? 'store';
                     const name = story.user_name || 'Allosh Market';
+                    const ytId = extractYoutubeId(story.link_url || story.media_url);
+                    const derivedThumb = youtubeThumbnail(ytId);
                     const avatar =
                         story.user_avatar ||
+                        story.media_url ||
+                        derivedThumb ||
                         'https://ui-avatars.com/api/?name=' +
                             encodeURIComponent(name) +
                             '&background=F97316&color=fff&size=128';
@@ -96,9 +112,11 @@ const StoriesSection: React.FC = () => {
                         (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
                     );
                     const cover = sorted[sorted.length - 1];
+                    const ytId = extractYoutubeId(cover?.link_url || cover?.media_url || '');
+                    const coverAvatar = cover?.media_url || youtubeThumbnail(ytId) || group.avatar;
                     return {
                         ...group,
-                        avatar: cover?.media_url || group.avatar,
+                        avatar: coverAvatar,
                         coverTitle: cover?.title,
                         coverLink: cover?.link_url
                     };
@@ -428,11 +446,6 @@ const StoriesSection: React.FC = () => {
                         <span className="text-xs text-[#1F2937] font-medium truncate max-w-[64px]">
                             {group.coverTitle || group.name}
                         </span>
-                        {group.coverTitle && (
-                            <span className="text-[11px] text-gray-500 truncate max-w-[64px]">
-                                {group.coverTitle}
-                            </span>
-                        )}
                         {group.coverLink && (
                             <span className="text-[10px] text-blue-600 font-semibold truncate max-w-[64px]">
                                 رابط متاح
