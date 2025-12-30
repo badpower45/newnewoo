@@ -42,17 +42,9 @@ const TopBar = () => {
             recognitionInstance.onresult = (event: any) => {
                 const transcript = event.results[0][0].transcript;
                 const isFinal = event.results[0].isFinal;
-                
+
                 console.log(`🎤 Voice input: "${transcript}" (Final: ${isFinal})`);
                 setSearchQuery(transcript);
-                
-                // Auto-search after voice input ends (final result)
-                if (isFinal && transcript.trim()) {
-                    console.log('✅ Voice search triggered:', transcript);
-                    setTimeout(() => {
-                        navigate(`/products?search=${encodeURIComponent(transcript.trim())}`);
-                    }, 300);
-                }
             };
             
             recognitionInstance.onerror = (event: any) => {
@@ -76,19 +68,11 @@ const TopBar = () => {
             recognitionInstance.onend = () => {
                 console.log('🎤 Voice recognition ended');
                 setIsListening(false);
-                
-                // If we have a search query but recognition ended without final result, trigger search
-                if (searchQuery && searchQuery.trim()) {
-                    console.log('🔍 Triggering search on end:', searchQuery);
-                    setTimeout(() => {
-                        navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
-                    }, 200);
-                }
             };
             
             setRecognition(recognitionInstance);
         }
-    }, [navigate, language]);
+    }, [language]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
