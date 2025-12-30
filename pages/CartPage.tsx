@@ -264,14 +264,9 @@ const CartPage = () => {
                                     <span>{totalPrice.toFixed(2)} جنيه</span>
                                 </div>
                                 <div className="flex justify-between text-gray-600">
-                                    <span>رسوم الخدمة</span>
-                                    <span className={serviceFee === 0 ? 'text-green-600 font-bold' : ''}>
-                                        {serviceFee === 0 ? 'مجاني! 🎉' : `${serviceFee.toFixed(2)} جنيه`}
-                                    </span>
+                                    <span>ضريبة الخدمة</span>
+                                    <span>{serviceFee.toFixed(2)} جنيه</span>
                                 </div>
-                                {serviceFee === 0 && (
-                                    <p className="text-xs text-green-600 -mt-2">الشحن مجاني للطلبات فوق {FREE_SHIPPING_THRESHOLD} جنيه</p>
-                                )}
                                 <div className="border-t border-gray-100 pt-3 flex justify-between font-bold text-lg text-gray-900">
                                     <span>الإجمالي</span>
                                     <span>{finalTotal.toFixed(2)} جنيه</span>
@@ -351,9 +346,7 @@ const CartPage = () => {
                 {/* Service Fee Info */}
                 <div className="flex justify-between text-xs text-gray-500">
                     <span>المجموع الفرعي: {totalPrice.toFixed(2)} جنيه</span>
-                    <span className={serviceFee === 0 ? 'text-green-600 font-bold' : ''}>
-                        {serviceFee === 0 ? 'رسوم مجانية! 🎉' : `رسوم خدمة: ${serviceFee.toFixed(2)} جنيه`}
-                    </span>
+                    <span>ضريبة الخدمة: {serviceFee.toFixed(2)} جنيه</span>
                 </div>
             </div>
 

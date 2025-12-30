@@ -6,7 +6,7 @@ import { useBranch } from './BranchContext';
 import { useToast } from '../components/Toast';
 
 // Financial Constants
-const SERVICE_FEE = 25;
+const SERVICE_FEE = 7;
 const MIN_ORDER = 200;
 const FREE_SHIPPING_THRESHOLD = 600;
 const LOYALTY_POINTS_RATIO = 1; // 1 EGP = 1 Point
@@ -268,8 +268,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const totalPrice = items.reduce((sum, item) => sum + ((Number(item.price) || 0) * item.quantity), 0);
   
-  // Service fee: 7 EGP if under free shipping threshold, otherwise 0
-  const serviceFee = totalPrice >= FREE_SHIPPING_THRESHOLD ? 0 : SERVICE_FEE;
+  // Service fee: fixed 7 EGP as service tax
+  const serviceFee = SERVICE_FEE;
   
   // Final total with service fee
   const finalTotal = totalPrice + serviceFee;

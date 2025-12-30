@@ -50,8 +50,8 @@ export default function CheckoutPage() {
     const [barcodeError, setBarcodeError] = useState('');
     const [isValidatingBarcode, setIsValidatingBarcode] = useState(false);
 
-    // Final total with coupon discount + barcode discount (service fee already included in cartFinalTotal)
-    const finalTotal = cartFinalTotal - couponDiscount - barcodeDiscount;
+    // Final total with service fee (in cartFinalTotal) + delivery fee - discounts
+    const finalTotal = cartFinalTotal + deliveryFee - couponDiscount - barcodeDiscount;
 
     const [formData, setFormData] = useState({
         firstName: '',
@@ -740,7 +740,7 @@ export default function CheckoutPage() {
                         {(!isPickup && !canDeliver) ? 'لا يمكن إتمام الطلب' 
                             : !meetsMinimumOrder 
                                 ? 'الحد الأدنى 200 جنيه' 
-                                : `تأكيد الطلب (${(totalPrice + deliveryFee - couponDiscount - barcodeDiscount).toFixed(2)} جنيه)`}
+                                : `تأكيد الطلب (${finalTotal.toFixed(2)} جنيه)`}
                     </button>
                 </div>
 
@@ -883,6 +883,10 @@ export default function CheckoutPage() {
                                 <span>{totalPrice.toFixed(2)} EGP</span>
                             </div>
                             <div className="flex justify-between items-center text-sm text-gray-600">
+                                <span>Service Tax</span>
+                                <span>{serviceFee.toFixed(2)} EGP</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm text-gray-600">
                                 <span>{isPickup ? 'Pickup' : 'Delivery'}</span>
                                 <span className={freeDelivery ? 'text-green-600 font-bold' : ''}>
                                     {freeDelivery ? 'FREE!' : `${deliveryFee.toFixed(2)} EGP`}
@@ -902,7 +906,7 @@ export default function CheckoutPage() {
                             )}
                             <div className="flex justify-between items-center pt-2 border-t border-gray-200">
                                 <span className="font-bold text-slate-800">Total</span>
-                                <span className="font-bold text-xl text-primary">{(totalPrice + deliveryFee - couponDiscount - barcodeDiscount).toFixed(2)} EGP</span>
+                                <span className="font-bold text-xl text-primary">{(finalTotal).toFixed(2)} EGP</span>
                             </div>
                             {!meetsMinimumOrder && (
                                 <p className="text-xs text-red-600 pt-1">الحد الأدنى للطلب 200 جنيه - أضف منتجات أكثر لإكمال الطلب</p>
