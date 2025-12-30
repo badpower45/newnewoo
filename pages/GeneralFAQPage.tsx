@@ -112,8 +112,7 @@ const GeneralFAQPage = () => {
         <div className="min-h-screen bg-gray-50">
             {/* Header */}
             <div className="bg-gradient-to-r from-brand-orange to-orange-600 text-white">
-                <div className="max-w-4xl mx-auto px-4 py-6 flex items-center justify-between flex-row-reverse">
-                    <div className="flex-1" />
+                <div className="max-w-4xl mx-auto px-4 py-6 flex items-center justify-between" dir="ltr">
                     <button
                         onClick={handleBack}
                         className="flex items-center gap-2 hover:opacity-80 transition-opacity"
@@ -122,12 +121,13 @@ const GeneralFAQPage = () => {
                         <ArrowLeft size={20} />
                         <span>رجوع</span>
                     </button>
-                    <div className="flex items-center gap-3 mb-2 flex-1 justify-end">
+                    <div className="flex items-center gap-3 mb-2">
                         <HelpCircle size={32} />
                         <h1 className="text-3xl font-bold">الأسئلة الشائعة</h1>
                     </div>
+                    <div className="flex-1" />
                 </div>
-                <div className="max-w-4xl mx-auto px-4 pb-2 -mt-4">
+                <div className="max-w-4xl mx-auto px-4 pb-2">
                     <p className="text-white/90">إجابات على أكثر الأسئلة شيوعًا</p>
                 </div>
             </div>

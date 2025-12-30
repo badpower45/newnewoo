@@ -298,7 +298,32 @@ const CustomerChatPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#F6F7FB] flex flex-col pb-3" dir="rtl">
       <header className="sticky top-0 z-20 bg-white/95 backdrop-blur border-b border-gray-200">
-        <div className="max-w-3xl mx-auto px-3 py-2.5 flex items-center justify-between flex-row-reverse">
+        <div className="max-w-3xl mx-auto px-3 py-2.5 flex items-center justify-between" dir="ltr">
+          <button
+            onClick={handleBack}
+            className="w-9 h-9 rounded-xl border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
+            aria-label="رجوع"
+          >
+            <ArrowLeft size={16} className="text-gray-700" />
+          </button>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white flex items-center justify-center shadow-sm">
+              <MessageCircle size={20} />
+            </div>
+            <div>
+              <p className="text-[11px] text-gray-500">محادثة خدمة العملاء</p>
+              <div className="flex items-center gap-2">
+                <span
+                  className={`w-2 h-2 rounded-full ${
+                    isConnected ? 'bg-green-500' : 'bg-yellow-400'
+                  } animate-pulse`}
+                ></span>
+                <span className="text-sm font-semibold text-gray-900">
+                  {isConnected ? 'متصل الآن' : 'جاري الاتصال...'}
+                </span>
+              </div>
+            </div>
+          </div>
           <a
             href="tel:+201234567890"
             className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 text-xs text-gray-700 hover:bg-gray-50 transition-colors"
@@ -306,33 +331,6 @@ const CustomerChatPage: React.FC = () => {
             <Phone size={14} />
             <span className="hidden sm:inline">اتصل بنا</span>
           </a>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white flex items-center justify-center shadow-sm">
-                <MessageCircle size={20} />
-              </div>
-              <div>
-                <p className="text-[11px] text-gray-500">محادثة خدمة العملاء</p>
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`w-2 h-2 rounded-full ${
-                      isConnected ? 'bg-green-500' : 'bg-yellow-400'
-                    } animate-pulse`}
-                  ></span>
-                  <span className="text-sm font-semibold text-gray-900">
-                    {isConnected ? 'متصل الآن' : 'جاري الاتصال...'}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={handleBack}
-              className="w-9 h-9 rounded-xl border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
-              aria-label="رجوع"
-            >
-              <ArrowLeft size={16} className="text-gray-700" />
-            </button>
-          </div>
         </div>
       </header>
 

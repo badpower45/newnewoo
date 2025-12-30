@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, Search, Loader2, Grid3X3, LayoutList, Mic } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import CategoryCard from '../components/CategoryCard';
@@ -25,6 +25,7 @@ const CategoriesPage = () => {
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [isListening, setIsListening] = useState(false);
     const [spokenTerm, setSpokenTerm] = useState('');
+    const recognitionRef = useRef<any>(null);
     const siteUrl = getSiteUrl();
     const canonicalUrl = `${siteUrl}/categories`;
     const keywordList = [
@@ -73,38 +74,56 @@ const CategoriesPage = () => {
             return;
         }
 
-        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-        const recognition = new SpeechRecognition();
-        
-        recognition.lang = language === 'ar' ? 'ar-SA' : 'en-US';
-        recognition.continuous = false;
-        recognition.interimResults = false;
+        // Reuse single instance to avoid "already started" errors
+        if (!recognitionRef.current) {
+            const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            
+            recognition.lang = language === 'ar' ? 'ar-SA' : 'en-US';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+    
+            recognition.onstart = () => {
+                setIsListening(true);
+                setSpokenTerm('');
+            };
+    
+            recognition.onresult = (event: any) => {
+                const transcript = event.results[0][0].transcript;
+                setSpokenTerm(transcript);
+                setSearchTerm(transcript);
+            };
+    
+            recognition.onerror = (event: any) => {
+                if (event.error === 'aborted') return;
+                console.error('Speech recognition error:', event.error);
+                setIsListening(false);
+                alert('حدث خطأ في البحث الصوتي');
+            };
+    
+            recognition.onend = () => {
+                setIsListening(false);
+                if (spokenTerm) {
+                    setSearchTerm(spokenTerm);
+                }
+            };
 
-        recognition.onstart = () => {
-            setIsListening(true);
-            setSpokenTerm('');
-        };
+            recognitionRef.current = recognition;
+        }
 
-        recognition.onresult = (event: any) => {
-            const transcript = event.results[0][0].transcript;
-            setSpokenTerm(transcript);
-            setSearchTerm(transcript);
-        };
+        const recognition = recognitionRef.current;
 
-        recognition.onerror = (event: any) => {
-            console.error('Speech recognition error:', event.error);
+        if (isListening) {
+            recognition.stop();
+            return;
+        }
+
+        try {
+            recognition.start();
+        } catch (e) {
+            console.error('Speech recognition start error:', e);
             setIsListening(false);
-            alert('حدث خطأ في البحث الصوتي');
-        };
-
-        recognition.onend = () => {
-            setIsListening(false);
-            if (spokenTerm) {
-                setSearchTerm(spokenTerm);
-            }
-        };
-
-        recognition.start();
+        }
     };
 
     const filteredCategories = categories.filter(cat => {
