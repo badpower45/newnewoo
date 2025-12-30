@@ -112,19 +112,22 @@ const GeneralFAQPage = () => {
         <div className="min-h-screen bg-gray-50">
             {/* Header */}
             <div className="bg-gradient-to-r from-brand-orange to-orange-600 text-white">
-                <div className="max-w-4xl mx-auto px-4 py-6">
+                <div className="max-w-4xl mx-auto px-4 py-6 flex items-center justify-between flex-row-reverse">
+                    <div className="flex-1" />
                     <button
                         onClick={handleBack}
-                        className="flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity"
+                        className="flex items-center gap-2 hover:opacity-80 transition-opacity"
                         dir="ltr"
                     >
                         <ArrowLeft size={20} />
                         <span>رجوع</span>
                     </button>
-                    <div className="flex items-center gap-3 mb-2">
+                    <div className="flex items-center gap-3 mb-2 flex-1 justify-end">
                         <HelpCircle size={32} />
                         <h1 className="text-3xl font-bold">الأسئلة الشائعة</h1>
                     </div>
+                </div>
+                <div className="max-w-4xl mx-auto px-4 pb-2 -mt-4">
                     <p className="text-white/90">إجابات على أكثر الأسئلة شيوعًا</p>
                 </div>
             </div>
