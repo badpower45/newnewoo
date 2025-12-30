@@ -154,7 +154,7 @@ const AddressesPage = () => {
         <div className="min-h-screen bg-gray-50 pb-24">
             {/* Header */}
             <div className="bg-white border-b sticky top-0 z-10">
-                <div className="p-4 flex items-center justify-between">
+                <div className="p-4 flex items-center justify-between" dir="ltr">
                     <button onClick={() => navigate(-1)} className="p-2 -ml-2">
                         <ChevronLeft size={24} />
                     </button>

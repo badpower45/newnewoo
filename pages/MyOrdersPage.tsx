@@ -266,7 +266,7 @@ const MyOrdersPage = () => {
             {/* Header */}
             <div className="bg-white border-b sticky top-0 z-20">
                 <div className="max-w-4xl mx-auto px-4 py-4">
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between mb-4" dir="ltr">
                         <div className="flex items-center gap-3">
                             <button 
                                 onClick={() => navigate('/more')} 

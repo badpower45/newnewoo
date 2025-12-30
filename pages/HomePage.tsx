@@ -22,6 +22,7 @@ import { useAuth } from '../context/AuthContext';
 import { useBranch } from '../context/BranchContext';
 import { useLanguage } from '../context/LanguageContext';
 import { DEFAULT_BRANCH_ID } from '../src/config';
+import Seo, { getSiteUrl } from '../components/Seo';
 
 interface Category {
     id?: number;
@@ -58,6 +59,21 @@ const HomePage = () => {
     const { selectedBranch } = useBranch();
     const { t, isRTL } = useLanguage();
     const wavePalette = ['#FDF2E9', '#EEF2FF', '#ECFDF3', '#FFF7ED', '#E0F2FE'];
+    const siteUrl = getSiteUrl();
+    const heroImage = FLYER_PAGES?.[0]?.image || 'https://images.unsplash.com/photo-1582719478248-48c1e9e4f1d5?w=1200&auto=format&fit=crop&q=80';
+    const featuredCategories = categories.slice(0, 6).map(cat => cat.name_ar || cat.name).filter(Boolean);
+    const homeStructuredData = {
+        '@context': 'https://schema.org',
+        '@type': 'Store',
+        name: 'علوش ماركت',
+        url: siteUrl,
+        description: 'علوش ماركت - سوبر ماركت متكامل مع توصيل سريع خلال اليوم وخيارات دفع آمنة.',
+        image: heroImage,
+        areaServed: 'EG',
+        brand: 'علوش ماركت',
+        sameAs: ['https://www.facebook.com/alloshmarket'],
+        knowsAbout: featuredCategories
+    };
 
     // Fetch categories from API
     const fetchCategories = async () => {
@@ -223,7 +239,23 @@ const HomePage = () => {
     }
 
     return (
-        <div className="bg-[#FAFAFA] min-h-screen pb-24 md:pb-8">
+        <>
+            <Seo
+                title="علوش ماركت - سوبر ماركت أونلاين"
+                description="اطلب كل احتياجات البيت من علوش ماركت مع توصيل سريع 24/7، عروض يومية وبقالة، خضار، فاكهة، ومنتجات تكميلية."
+                url={`${siteUrl}/`}
+                image={heroImage}
+                keywords={[
+                    'علوش ماركت',
+                    'سوبر ماركت أونلاين',
+                    'توصيل بقالة',
+                    'عروض سوبر ماركت',
+                    'allosh market',
+                    'بقالة 24 ساعة'
+                ]}
+                structuredData={homeStructuredData}
+            />
+            <div className="bg-[#FAFAFA] min-h-screen pb-24 md:pb-8">
             <TopBar />
 
             <div className="px-4 py-3 space-y-5 max-w-7xl mx-auto">
@@ -445,6 +477,7 @@ const HomePage = () => {
                 <FacebookReelsGrid pageUsername="Alloshchocolates" pageName="Allosh Chocolates" />
             </div>
         </div>
+        </>
     );
 };
 

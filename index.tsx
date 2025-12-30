@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
+import { HelmetProvider } from 'react-helmet-async';
 
 // Guard against duplicate custom element registration (e.g., mce-autosize-textarea) to prevent runtime errors
 if (typeof window !== 'undefined' && window.customElements) {
@@ -20,6 +21,8 @@ if (!rootElement) {
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
-    <App />
+    <HelmetProvider>
+      <App />
+    </HelmetProvider>
   </React.StrictMode>
 );

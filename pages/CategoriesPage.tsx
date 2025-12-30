@@ -3,6 +3,7 @@ import { ChevronLeft, Search, Loader2, Grid3X3, LayoutList, Mic } from 'lucide-r
 import { useNavigate } from 'react-router-dom';
 import CategoryCard from '../components/CategoryCard';
 import { api } from '../services/api';
+import Seo, { getSiteUrl } from '../components/Seo';
 
 interface Category {
     id?: number;
@@ -21,6 +22,20 @@ const CategoriesPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
     const [isListening, setIsListening] = useState(false);
+    const siteUrl = getSiteUrl();
+    const canonicalUrl = `${siteUrl}/categories`;
+    const keywordList = [
+        'تصنيفات علوش ماركت',
+        'تسوق حسب القسم',
+        ...categories.slice(0, 6).map(cat => cat.name_ar || cat.name)
+    ].filter(Boolean) as string[];
+    const categoryStructuredData = {
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: 'تصنيفات علوش ماركت',
+        description: 'تصفح أقسام المنتجات في علوش ماركت.',
+        url: canonicalUrl
+    };
 
     useEffect(() => {
         loadCategories();
@@ -83,11 +98,22 @@ const CategoriesPage = () => {
         const term = searchTerm.toLowerCase();
         return nameEn.toLowerCase().includes(term) || nameAr.toLowerCase().includes(term);
     });
+    const pageDescription = filteredCategories.length
+        ? `اكتشف ${filteredCategories.length} تصنيفاً داخل علوش ماركت وحدد القسم المناسب لك.`
+        : 'استكشف كل تصنيفات علوش ماركت للعروض والمنتجات المتنوعة.';
 
     return (
-        <div className="bg-gray-50 min-h-screen pb-24 md:pb-8">
+        <>
+            <Seo
+                title="التصنيفات - علوش ماركت"
+                description={pageDescription}
+                url={canonicalUrl}
+                keywords={keywordList}
+                structuredData={categoryStructuredData}
+            />
+            <div className="bg-gray-50 min-h-screen pb-24 md:pb-8">
             {/* Fixed Mobile Header - Removed sticky */}
-            <div className="bg-white p-4 shadow-sm flex items-center justify-between md:hidden">
+            <div className="bg-white p-4 shadow-sm flex items-center justify-between md:hidden" dir="ltr">
                 <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-gray-700">
                     <ChevronLeft size={28} />
                 </button>
@@ -208,6 +234,7 @@ const CategoriesPage = () => {
                 )}
             </div>
         </div>
+        </>
     );
 };
 

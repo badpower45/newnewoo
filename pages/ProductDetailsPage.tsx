@@ -8,6 +8,7 @@ import { useBranch } from '../context/BranchContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { ProductDetailsSkeleton } from '../components/Skeleton';
 import Footer from '../components/Footer';
+import Seo, { getSiteUrl } from '../components/Seo';
 
 const ProductDetailsPage = () => {
     const navigate = useNavigate();
@@ -29,6 +30,8 @@ const ProductDetailsPage = () => {
     const [reviewStats, setReviewStats] = useState<any>(null);
     const [userReview, setUserReview] = useState({ rating: 5, comment: '' });
     const [showReviewForm, setShowReviewForm] = useState(false);
+    const siteUrl = getSiteUrl();
+    const productUrl = `${siteUrl}/product/${encodeURIComponent(id ?? '')}`;
 
     // Fetch reviews from API
     useEffect(() => {
@@ -165,10 +168,31 @@ const ProductDetailsPage = () => {
     }, [id, selectedBranch?.id]);
 
     if (loading) {
-        return <ProductDetailsSkeleton />;
+        return (
+            <>
+                <Seo 
+                    title="جاري تحميل المنتج"
+                    description="نجهز لك تفاصيل المنتج الآن"
+                    url={productUrl}
+                    type="product"
+                />
+                <ProductDetailsSkeleton />
+            </>
+        );
     }
     
-    if (!product) return <div className="min-h-screen flex items-center justify-center">المنتج غير موجود</div>;
+    if (!product) return (
+        <>
+            <Seo 
+                title="المنتج غير متوفر"
+                description="لم نتمكن من العثور على هذا المنتج حالياً"
+                url={productUrl}
+                type="product"
+                noIndex
+            />
+            <div className="min-h-screen flex items-center justify-center">المنتج غير موجود</div>
+        </>
+    );
 
     const displayPrice = Number(branchPrice) || Number(product.price) || 0;
     const oldPrice = Number(product.discount_price) || Number(product.originalPrice) || (displayPrice * 1.15); // 15% higher as old price if not set
@@ -182,6 +206,38 @@ const ProductDetailsPage = () => {
     const productReviews = reviewStats?.total_reviews 
         ? Number(reviewStats.total_reviews) 
         : (Number(product.reviews) || 0);
+    const productBrand = (product as any)?.brand || (product as any)?.brand_name;
+    const metaDescription = product.description 
+        ? String(product.description)
+        : `${product.name} متاح الآن بسعر ${(displayPrice || 0).toFixed(0)} جنيه مع توصيل سريع من علوش ماركت.`;
+    const seoKeywords = [
+        product.name,
+        product.category,
+        product.weight,
+        product.barcode,
+        available ? 'متوفر' : 'غير متوفر'
+    ].filter(Boolean) as string[];
+    const productStructuredData = {
+        '@context': 'https://schema.org',
+        '@type': 'Product',
+        name: product.name,
+        image: product.image ? [product.image] : undefined,
+        description: metaDescription,
+        sku: product.barcode,
+        brand: productBrand ? { '@type': 'Brand', name: productBrand } : undefined,
+        offers: {
+            '@type': 'Offer',
+            priceCurrency: 'EGP',
+            price: Number(displayPrice) || 0,
+            availability: available ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+            url: productUrl
+        },
+        aggregateRating: productReviews ? {
+            '@type': 'AggregateRating',
+            ratingValue: productRating.toFixed(1),
+            reviewCount: productReviews
+        } : undefined
+    };
 
     const handleIncrement = () => setQuantity(q => q + 1);
     const handleDecrement = () => setQuantity(q => (q > 1 ? q - 1 : 1));
@@ -213,7 +269,17 @@ const ProductDetailsPage = () => {
     const tags = [product.weight, product.category, available ? 'متوفر' : 'غير متوفر'].filter(Boolean);
 
     return (
-        <div className="min-h-screen bg-white flex flex-col">
+        <>
+            <Seo 
+                title={product.name}
+                description={metaDescription}
+                image={product.image}
+                url={productUrl}
+                type="product"
+                keywords={seoKeywords}
+                structuredData={productStructuredData}
+            />
+            <div className="min-h-screen bg-white flex flex-col">
             {/* Success Animation Overlay */}
             {showSuccessAnimation && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm animate-fade-in">
@@ -936,6 +1002,7 @@ const ProductDetailsPage = () => {
                 </div>
             </div>
         </div>
+        </>
     );
 };
 

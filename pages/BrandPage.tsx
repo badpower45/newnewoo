@@ -10,6 +10,7 @@ import ProductCard from '../components/ProductCard';
 import TopBar from '../components/TopBar';
 import { api } from '../services/api';
 import { useBranch } from '../context/BranchContext';
+import Seo, { getSiteUrl } from '../components/Seo';
 
 // بيانات البراندات - يمكن نقلها لقاعدة البيانات لاحقاً
 const BRANDS_DATA: { [key: string]: BrandInfo } = {
@@ -148,6 +149,43 @@ const BrandPage = () => {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'all' | 'offers'>('all');
     const [isFavorite, setIsFavorite] = useState(false);
+    const siteUrl = getSiteUrl();
+    const canonicalUrl = `${siteUrl}/brand/${encodeURIComponent(brandName || '')}`;
+    const brandData = brand as any;
+    const brandDisplayName = brandData?.name || brandData?.name_ar || brandData?.name_en || brandData?.nameEn || brandName || 'البراند';
+    const brandDescription = brandData?.description || brandData?.description_ar || brandData?.description_en || brandData?.tagline || 'اكتشف منتجات البراند المميزة من علوش ماركت.';
+    const brandImage = brandData?.banner || brandData?.banner_url || brandData?.logo || brandData?.logo_url || brandData?.bannerImage;
+    const brandKeywords = [
+        brandData?.name,
+        brandData?.name_ar,
+        brandData?.name_en,
+        brandData?.tagline,
+        ...(brandData?.keywords || [])
+    ].filter(Boolean) as string[];
+    const brandStructuredData = brand
+        ? {
+            '@context': 'https://schema.org',
+            '@type': 'Brand',
+            name: brandDisplayName,
+            description: brandDescription,
+            url: canonicalUrl,
+            logo: brandImage,
+            image: brandImage,
+            slogan: brandData?.tagline,
+            hasOfferCatalog: products.slice(0, 8).map((p, index) => ({
+                '@type': 'Offer',
+                itemOffered: {
+                    '@type': 'Product',
+                    name: p.name,
+                    image: p.image
+                },
+                priceCurrency: 'EGP',
+                price: Number(p.price) || undefined,
+                position: index + 1,
+                url: `${siteUrl}/product/${p.id}`
+            }))
+        }
+        : undefined;
 
     // Handle Favorite Toggle
     const handleFavoriteToggle = () => {
@@ -348,46 +386,64 @@ const BrandPage = () => {
     // Loading skeleton while fetching brand data
     if (loading || !brand) {
         return (
-            <div className="min-h-screen bg-gray-50">
-                {/* Header Skeleton */}
-                <div className="bg-white p-4 border-b">
-                    <div className="h-6 w-32 bg-gray-200 rounded animate-pulse"></div>
-                </div>
-                
-                {/* Hero Banner Skeleton */}
-                <div className="relative h-96 bg-gradient-to-br from-gray-200 to-gray-300 animate-pulse">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="w-32 h-32 bg-gray-300 rounded-full animate-pulse"></div>
+            <>
+                <Seo
+                    title={brandDisplayName}
+                    description={brandDescription}
+                    url={canonicalUrl}
+                    image={brandImage}
+                    keywords={brandKeywords}
+                />
+                <div className="min-h-screen bg-gray-50">
+                    {/* Header Skeleton */}
+                    <div className="bg-white p-4 border-b">
+                        <div className="h-6 w-32 bg-gray-200 rounded animate-pulse"></div>
                     </div>
-                </div>
+                    
+                    {/* Hero Banner Skeleton */}
+                    <div className="relative h-96 bg-gradient-to-br from-gray-200 to-gray-300 animate-pulse">
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="w-32 h-32 bg-gray-300 rounded-full animate-pulse"></div>
+                        </div>
+                    </div>
 
-                {/* Tabs Skeleton */}
-                <div className="bg-white border-b p-4">
-                    <div className="flex gap-3 justify-center">
-                        {[1, 2, 3].map(i => (
-                            <div key={i} className="h-10 w-24 bg-gray-200 rounded-full animate-pulse"></div>
-                        ))}
+                    {/* Tabs Skeleton */}
+                    <div className="bg-white border-b p-4">
+                        <div className="flex gap-3 justify-center">
+                            {[1, 2, 3].map(i => (
+                                <div key={i} className="h-10 w-24 bg-gray-200 rounded-full animate-pulse"></div>
+                            ))}
+                        </div>
                     </div>
-                </div>
 
-                {/* Products Grid Skeleton */}
-                <div className="max-w-7xl mx-auto px-4 py-6">
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        {[...Array(8)].map((_, i) => (
-                            <div key={i} className="bg-white rounded-2xl p-4 animate-pulse">
-                                <div className="aspect-square bg-gray-200 rounded-xl mb-3"></div>
-                                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                                <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                            </div>
-                        ))}
+                    {/* Products Grid Skeleton */}
+                    <div className="max-w-7xl mx-auto px-4 py-6">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            {[...Array(8)].map((_, i) => (
+                                <div key={i} className="bg-white rounded-2xl p-4 animate-pulse">
+                                    <div className="aspect-square bg-gray-200 rounded-xl mb-3"></div>
+                                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
-            </div>
+            </>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <>
+            <Seo
+                title={`${brandDisplayName} - عروض ${brandDisplayName}`}
+                description={brandDescription}
+                url={canonicalUrl}
+                image={brandImage || brand.banner}
+                keywords={brandKeywords}
+                structuredData={brandStructuredData}
+            />
+            <div className="min-h-screen bg-gray-50">
             {/* Hero Banner */}
             <div 
                 className="relative h-[300px] md:h-[400px] overflow-hidden"
@@ -690,6 +746,7 @@ const BrandPage = () => {
                 }
             `}</style>
         </div>
+        </>
     );
 };
 

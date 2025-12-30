@@ -9,8 +9,9 @@ import {
 } from 'lucide-react';
 import { api } from '../services/api';
 import { Product } from '../types';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useBranch } from '../context/BranchContext';
+import Seo, { getSiteUrl } from '../components/Seo';
 
 const SORT_OPTIONS = [
     { id: 'newest', name: 'الأحدث', icon: Clock },
@@ -40,6 +41,7 @@ export default function ProductsPage() {
     
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const location = useLocation();
     const { selectedBranch } = useBranch();
 
     // Load categories from actual products (not API)
@@ -382,6 +384,40 @@ export default function ProductsPage() {
         (currentPage - 1) * ITEMS_PER_PAGE,
         currentPage * ITEMS_PER_PAGE
     );
+    const siteUrl = getSiteUrl();
+    const canonicalUrl = `${siteUrl}${location.pathname}${location.search}`;
+    const filtersLabel = [
+        selectedCategory && `قسم ${selectedCategory}`,
+        selectedBrand && `براند ${selectedBrand}`,
+        showOnlyOffers && 'عروض وخصومات'
+    ].filter(Boolean).join(' • ');
+    const pageTitle = selectedCategory
+        ? `منتجات ${selectedCategory}`
+        : searchQuery
+            ? `نتائج البحث عن "${searchQuery}"`
+            : 'كل المنتجات';
+    const pageDescription = filtersLabel
+        ? `${filtersLabel} - تصفح ${filteredAndSortedProducts.length} منتج متاح للتوصيل السريع من علوش ماركت.`
+        : 'تسوق كل منتجات علوش ماركت مع عروض يومية، فلترة ذكية، وتوصيل سريع.';
+    const keywordList = [
+        'علوش ماركت',
+        'بقالة أونلاين',
+        'عروض سوبر ماركت',
+        selectedCategory,
+        selectedBrand,
+        searchQuery
+    ].filter(Boolean) as string[];
+    const itemListSchema = {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        numberOfItems: filteredAndSortedProducts.length,
+        itemListElement: paginatedProducts.slice(0, 10).map((product, index) => ({
+            '@type': 'ListItem',
+            position: index + 1,
+            url: `${siteUrl}/product/${product.id}`,
+            name: product.name
+        }))
+    };
 
     const clearFilters = () => {
         setSelectedCategory('');
@@ -446,8 +482,17 @@ export default function ProductsPage() {
     };
 
     return (
-        <div className="min-h-screen bg-white">
-            <div className="sticky top-0 z-40 bg-white border-b">
+        <>
+            <Seo
+                title={pageTitle}
+                description={pageDescription}
+                url={canonicalUrl}
+                image={paginatedProducts[0]?.image}
+                keywords={keywordList}
+                structuredData={itemListSchema}
+            />
+            <div className="min-h-screen bg-white">
+                <div className="sticky top-0 z-40 bg-white border-b">
                 <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center gap-3">
                     <button
                         onClick={() => setShowFilters(!showFilters)}
@@ -1005,5 +1050,6 @@ export default function ProductsPage() {
                 </div>
             )}
         </div>
+        </>
     );
 }

@@ -185,14 +185,7 @@ const ProfilePage = () => {
 
             {/* User Info Card */}
             <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl p-6 mx-4 md:mx-0 mt-4">
-                <button 
-                    onClick={() => navigate(-1)} 
-                    className="mb-4 p-2 -ml-2 hover:bg-white/10 rounded-xl transition-colors md:hidden"
-                >
-                    <ChevronLeft size={24} />
-                </button>
-                
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col md:flex-row md:items-center gap-4 text-center md:text-left">
                     <div className="relative">
                         {user?.avatar ? (
                             <img 
@@ -228,7 +221,7 @@ const ProfilePage = () => {
                             </>
                         )}
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 flex flex-col items-center md:items-start">
                         <h1 className="text-2xl font-bold">{user?.name || 'مستخدم'}</h1>
                         <p className="text-white/80 text-sm">{user?.email || 'لا يوجد بريد إلكتروني'}</p>
                     </div>

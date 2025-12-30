@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronRight, Shield, Lock, UserCheck, Database, Eye, Mail, Phone } from 'lucide-react';
+import { ChevronLeft, Shield, Lock, UserCheck, Database, Eye, Mail, Phone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 const PrivacyPolicyPage = () => {
@@ -9,12 +9,12 @@ const PrivacyPolicyPage = () => {
         <div className="min-h-screen bg-gray-50">
             {/* Header */}
             <div className="bg-gradient-to-r from-brand-orange to-orange-600 text-white">
-                <div className="max-w-4xl mx-auto px-4 py-6">
+                <div className="max-w-4xl mx-auto px-4 py-6" dir="ltr">
                     <button
                         onClick={() => navigate(-1)}
                         className="flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity"
                     >
-                        <ChevronRight size={20} />
+                        <ChevronLeft size={20} />
                         <span>رجوع</span>
                     </button>
                     <div className="flex items-center gap-3 mb-2">

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, Loader, Percent, Tag, ShoppingBag, AlertCircle, Link2, BadgePercent } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Loader, Percent, Tag, ShoppingBag, AlertCircle, Link2, BadgePercent } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 
@@ -61,12 +61,12 @@ const MagazinePage: React.FC = () => {
         <div className="min-h-screen bg-gray-50 pb-24">
             {/* Header */}
             <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-6 sticky top-0 z-10 shadow-md">
-                <div className="flex items-center justify-between max-w-7xl mx-auto">
+                <div className="flex items-center justify-between max-w-7xl mx-auto" dir="ltr">
                     <button 
                         onClick={() => navigate(-1)}
                         className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/30 transition"
                     >
-                        <ArrowRight size={20} />
+                        <ArrowLeft size={20} />
                     </button>
                     <div className="text-center flex-1">
                         <h1 className="text-2xl font-bold flex items-center justify-center gap-2">

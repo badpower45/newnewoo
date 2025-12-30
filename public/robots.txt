@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /cart
+Disallow: /checkout
+Disallow: /profile
+Disallow: /my-orders
+Disallow: /order-confirmation
+Disallow: /order-invoice
+Disallow: /orders
+Disallow: /customer-service
+Disallow: /delivery
+Disallow: /addresses
+
+Sitemap: https://allosh-eg.com/sitemap.xml

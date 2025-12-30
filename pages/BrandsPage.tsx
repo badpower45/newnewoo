@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, ChevronRight, Star, Package } from 'lucide-react';
 import { api } from '../services/api';
+import Seo, { getSiteUrl } from '../components/Seo';
 
 interface Brand {
     id: number;
@@ -24,6 +25,8 @@ const BrandsPage: React.FC = () => {
     const [brands, setBrands] = useState<Brand[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const siteUrl = getSiteUrl();
+    const canonicalUrl = `${siteUrl}/brands`;
 
     useEffect(() => {
         loadBrands();
@@ -65,9 +68,32 @@ const BrandsPage: React.FC = () => {
 
         return fields.some(field => normalize(field).includes(term));
     });
+    const pageDescription = filteredBrands.length
+        ? `تصفح ${filteredBrands.length} براند متاح على علوش ماركت واكتشف العروض والمنتجات المميزة.`
+        : 'استكشف كل البراندات المتاحة في علوش ماركت.';
+    const keywordList = [
+        'براندات علوش ماركت',
+        'عروض براندات',
+        searchTerm
+    ].filter(Boolean) as string[];
+    const brandsStructuredData = {
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: 'جميع البراندات',
+        url: canonicalUrl,
+        description: pageDescription
+    };
 
     return (
-        <div className="bg-gray-50 min-h-screen pb-24 md:pb-8">
+        <>
+            <Seo
+                title="كل البراندات - علوش ماركت"
+                description={pageDescription}
+                url={canonicalUrl}
+                keywords={keywordList}
+                structuredData={brandsStructuredData}
+            />
+            <div className="bg-gray-50 min-h-screen pb-24 md:pb-8">
             <div className="px-4 py-4 max-w-7xl mx-auto">
                 {/* Page Header */}
                 <div className="mb-6">
@@ -179,6 +205,7 @@ const BrandsPage: React.FC = () => {
                 )}
             </div>
         </div>
+        </>
     );
 };
 

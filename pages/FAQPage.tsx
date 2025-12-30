@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { HelpCircle, ChevronDown, ChevronUp, Search, Phone, MessageCircle, Truck, CreditCard, Package, RefreshCw, User, Shield } from 'lucide-react';
+import { HelpCircle, ChevronDown, ChevronUp, Search, Phone, MessageCircle, Truck, CreditCard, Package, RefreshCw, User, Shield, ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import TopBar from '../components/TopBar';
 import Footer from '../components/Footer';
 
@@ -129,6 +130,7 @@ export default function FAQPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('الكل');
     const [openQuestions, setOpenQuestions] = useState<number[]>([]);
+    const navigate = useNavigate();
 
     const toggleQuestion = (index: number) => {
         setOpenQuestions(prev => 
@@ -164,7 +166,14 @@ export default function FAQPage() {
             
             {/* Hero Section */}
             <div className="bg-gradient-to-r from-brand-brown to-brand-orange py-16 px-4">
-                <div className="max-w-4xl mx-auto text-center">
+                <div className="max-w-4xl mx-auto text-center relative">
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="absolute left-0 top-4 w-10 h-10 bg-white/15 rounded-full flex items-center justify-center hover:bg-white/25 transition"
+                        dir="ltr"
+                    >
+                        <ArrowLeft size={22} className="text-white" />
+                    </button>
                     <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6">
                         <HelpCircle size={40} className="text-white" />
                     </div>
@@ -266,7 +275,7 @@ export default function FAQPage() {
                         </a>
                         <a href="/chat" className="inline-flex items-center justify-center gap-3 bg-white/20 text-white px-8 py-4 rounded-xl font-bold hover:bg-white/30 transition-colors">
                             <MessageCircle size={24} />
-                            محادثة مباشرة
+                            إرسال اقتراح
                         </a>
                     </div>
                 </div>
