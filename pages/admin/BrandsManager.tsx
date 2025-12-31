@@ -141,287 +141,6 @@ const BrandsManager: React.FC = () => {
         }
     };
 
-    const BrandForm = () => (
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-            <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold text-gray-900">
-                    {editingBrand ? 'تعديل البراند' : 'إضافة براند جديد'}
-                </h3>
-                <button
-                    onClick={() => {
-                        setShowAddForm(false);
-                        setEditingBrand(null);
-                        setFormData({
-                            name_ar: '',
-                            name_en: '',
-                            description_ar: '',
-                            description_en: '',
-                            primary_color: '#F57C00',
-                            secondary_color: '#FF9800',
-                            is_featured: false
-                        });
-                    }}
-                    className="text-gray-500 hover:text-gray-700"
-                >
-                    <X size={24} />
-                </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                    {/* Arabic Name */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            الاسم بالعربية *
-                        </label>
-                        <input
-                            type="text"
-                            value={formData.name_ar || ''}
-                            ref={nameArRef}
-                            onChange={(e) => setFormData({ ...formData, name_ar: e.target.value })}
-                            onBlur={keepFocusIfLost(nameArRef)}
-                            inputMode="text"
-                            autoComplete="off"
-                            autoCorrect="off"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
-                            required
-                        />
-                    </div>
-
-                    {/* English Name */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            English Name *
-                        </label>
-                        <input
-                            type="text"
-                            value={formData.name_en || ''}
-                            ref={nameEnRef}
-                            onChange={(e) => setFormData({ ...formData, name_en: e.target.value })}
-                            onBlur={keepFocusIfLost(nameEnRef)}
-                            inputMode="text"
-                            autoComplete="off"
-                            autoCorrect="off"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
-                            required
-                        />
-                    </div>
-                </div>
-
-                {/* Arabic Description */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        الوصف بالعربية
-                    </label>
-                    <textarea
-                        value={formData.description_ar || ''}
-                        onChange={(e) => setFormData({ ...formData, description_ar: e.target.value })}
-                        rows={3}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
-                    />
-                </div>
-
-                {/* English Description */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        English Description
-                    </label>
-                    <textarea
-                        value={formData.description_en || ''}
-                        onChange={(e) => setFormData({ ...formData, description_en: e.target.value })}
-                        rows={3}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
-                    />
-                </div>
-
-                {/* Colors */}
-                <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            <Palette size={16} className="inline ml-1" />
-                            اللون الأساسي
-                        </label>
-                        <div className="flex gap-2">
-                            <input
-                                type="color"
-                                value={formData.primary_color || '#F57C00'}
-                                onChange={(e) => setFormData({ ...formData, primary_color: e.target.value })}
-                                className="h-10 w-16 border border-gray-300 rounded-lg cursor-pointer"
-                            />
-                            <input
-                                type="text"
-                                value={formData.primary_color || '#F57C00'}
-                                onChange={(e) => setFormData({ ...formData, primary_color: e.target.value })}
-                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
-                                placeholder="#F57C00"
-                            />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            <Palette size={16} className="inline ml-1" />
-                            اللون الثانوي
-                        </label>
-                        <div className="flex gap-2">
-                            <input
-                                type="color"
-                                value={formData.secondary_color || '#FF9800'}
-                                onChange={(e) => setFormData({ ...formData, secondary_color: e.target.value })}
-                                className="h-10 w-16 border border-gray-300 rounded-lg cursor-pointer"
-                            />
-                            <input
-                                type="text"
-                                value={formData.secondary_color || '#FF9800'}
-                                onChange={(e) => setFormData({ ...formData, secondary_color: e.target.value })}
-                                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
-                                placeholder="#FF9800"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                {/* Logo Upload */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        <ImageIcon size={16} className="inline ml-1" />
-                        شعار البراند (Logo)
-                    </label>
-                    <div className="flex items-center gap-4">
-                        {formData.logo_url && formData.logo_url !== 'uploading...' && (
-                            <div className="relative">
-                                <img 
-                                    src={formData.logo_url} 
-                                    alt="Logo" 
-                                    className="w-20 h-20 object-contain border rounded-lg bg-white"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setFormData({ ...formData, logo_url: '' })}
-                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
-                                    title="حذف الصورة"
-                                >
-                                    <X size={14} />
-                                </button>
-                            </div>
-                        )}
-                        {formData.logo_url === 'uploading...' && (
-                            <div className="w-20 h-20 border rounded-lg flex items-center justify-center bg-gray-50">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-                            </div>
-                        )}
-                        <label className="flex-1 cursor-pointer">
-                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-orange-500 transition-colors">
-                                <Upload size={20} className="mx-auto mb-2 text-gray-400" />
-                                <span className="text-sm text-gray-600">
-                                    {formData.logo_url === 'uploading...' ? 'جاري الرفع...' : 'اختر صورة الشعار'}
-                                </span>
-                                <p className="text-xs text-gray-400 mt-1">400×400 - PNG/JPG</p>
-                            </div>
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) handleImageUpload(file, 'logo');
-                                }}
-                                className="hidden"
-                                disabled={formData.logo_url === 'uploading...'}
-                            />
-                        </label>
-                    </div>
-                </div>
-
-                {/* Banner Upload */}
-                <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                        <ImageIcon size={16} className="inline ml-1" />
-                        صورة الغلاف (Banner)
-                    </label>
-                    <div className="flex items-center gap-4">
-                        {formData.banner_url && formData.banner_url !== 'uploading...' && (
-                            <div className="relative">
-                                <img 
-                                    src={formData.banner_url} 
-                                    alt="Banner" 
-                                    className="w-32 h-20 object-cover border rounded-lg"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setFormData({ ...formData, banner_url: '' })}
-                                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
-                                    title="حذف الصورة"
-                                >
-                                    <X size={14} />
-                                </button>
-                            </div>
-                        )}
-                        {formData.banner_url === 'uploading...' && (
-                            <div className="w-32 h-20 border rounded-lg flex items-center justify-center bg-gray-50">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
-                            </div>
-                        )}
-                        <label className="flex-1 cursor-pointer">
-                            <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-orange-500 transition-colors">
-                                <Upload size={20} className="mx-auto mb-2 text-gray-400" />
-                                <span className="text-sm text-gray-600">
-                                    {formData.banner_url === 'uploading...' ? 'جاري الرفع...' : 'اختر صورة الغلاف'}
-                                </span>
-                                <p className="text-xs text-gray-400 mt-1">1200×400 - PNG/JPG</p>
-                            </div>
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) handleImageUpload(file, 'banner');
-                                }}
-                                className="hidden"
-                                disabled={formData.banner_url === 'uploading...'}
-                            />
-                        </label>
-                    </div>
-                </div>
-
-                {/* Featured Toggle */}
-                <div className="flex items-center gap-2">
-                    <input
-                        type="checkbox"
-                        id="is_featured"
-                        checked={formData.is_featured || false}
-                        onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
-                        className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
-                    />
-                    <label htmlFor="is_featured" className="text-sm font-medium text-gray-700">
-                        <Tag size={16} className="inline ml-1" />
-                        عرض في الصفحة الرئيسية
-                    </label>
-                </div>
-
-                {/* Submit Button */}
-                <div className="flex gap-3 pt-4">
-                    <button
-                        type="submit"
-                        className="flex-1 bg-orange-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
-                    >
-                        <Save size={18} />
-                        {editingBrand ? 'حفظ التعديلات' : 'إضافة البراند'}
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            setShowAddForm(false);
-                            setEditingBrand(null);
-                        }}
-                        className="px-6 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors"
-                    >
-                        إلغاء
-                    </button>
-                </div>
-            </form>
-        </div>
-    );
-
     return (
         <div className="min-h-screen bg-gray-50">
             <AdminHeader />
@@ -442,7 +161,286 @@ const BrandsManager: React.FC = () => {
                 </div>
 
                 {/* Add/Edit Form */}
-                {showAddForm && <BrandForm />}
+                {showAddForm && (
+                    <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-xl font-bold text-gray-900">
+                                {editingBrand ? 'تعديل البراند' : 'إضافة براند جديد'}
+                            </h3>
+                            <button
+                                onClick={() => {
+                                    setShowAddForm(false);
+                                    setEditingBrand(null);
+                                    setFormData({
+                                        name_ar: '',
+                                        name_en: '',
+                                        description_ar: '',
+                                        description_en: '',
+                                        primary_color: '#F57C00',
+                                        secondary_color: '#FF9800',
+                                        is_featured: false
+                                    });
+                                }}
+                                className="text-gray-500 hover:text-gray-700"
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div className="grid md:grid-cols-2 gap-4">
+                                {/* Arabic Name */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        الاسم بالعربية *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.name_ar || ''}
+                                        ref={nameArRef}
+                                        onChange={(e) => setFormData({ ...formData, name_ar: e.target.value })}
+                                        onBlur={keepFocusIfLost(nameArRef)}
+                                        inputMode="text"
+                                        autoComplete="off"
+                                        autoCorrect="off"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                        required
+                                    />
+                                </div>
+
+                                {/* English Name */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        English Name *
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.name_en || ''}
+                                        ref={nameEnRef}
+                                        onChange={(e) => setFormData({ ...formData, name_en: e.target.value })}
+                                        onBlur={keepFocusIfLost(nameEnRef)}
+                                        inputMode="text"
+                                        autoComplete="off"
+                                        autoCorrect="off"
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Arabic Description */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    الوصف بالعربية
+                                </label>
+                                <textarea
+                                    value={formData.description_ar || ''}
+                                    onChange={(e) => setFormData({ ...formData, description_ar: e.target.value })}
+                                    rows={3}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                />
+                            </div>
+
+                            {/* English Description */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    English Description
+                                </label>
+                                <textarea
+                                    value={formData.description_en || ''}
+                                    onChange={(e) => setFormData({ ...formData, description_en: e.target.value })}
+                                    rows={3}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                />
+                            </div>
+
+                            {/* Colors */}
+                            <div className="grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        <Palette size={16} className="inline ml-1" />
+                                        اللون الأساسي
+                                    </label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="color"
+                                            value={formData.primary_color || '#F57C00'}
+                                            onChange={(e) => setFormData({ ...formData, primary_color: e.target.value })}
+                                            className="h-10 w-16 border border-gray-300 rounded-lg cursor-pointer"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={formData.primary_color || '#F57C00'}
+                                            onChange={(e) => setFormData({ ...formData, primary_color: e.target.value })}
+                                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
+                                            placeholder="#F57C00"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        <Palette size={16} className="inline ml-1" />
+                                        اللون الثانوي
+                                    </label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="color"
+                                            value={formData.secondary_color || '#FF9800'}
+                                            onChange={(e) => setFormData({ ...formData, secondary_color: e.target.value })}
+                                            className="h-10 w-16 border border-gray-300 rounded-lg cursor-pointer"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={formData.secondary_color || '#FF9800'}
+                                            onChange={(e) => setFormData({ ...formData, secondary_color: e.target.value })}
+                                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
+                                            placeholder="#FF9800"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Logo Upload */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <ImageIcon size={16} className="inline ml-1" />
+                                    شعار البراند (Logo)
+                                </label>
+                                <div className="flex items-center gap-4">
+                                    {formData.logo_url && formData.logo_url !== 'uploading...' && (
+                                        <div className="relative">
+                                            <img 
+                                                src={formData.logo_url} 
+                                                alt="Logo" 
+                                                className="w-20 h-20 object-contain border rounded-lg bg-white"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, logo_url: '' })}
+                                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                                                title="حذف الصورة"
+                                            >
+                                                <X size={14} />
+                                            </button>
+                                        </div>
+                                    )}
+                                    {formData.logo_url === 'uploading...' && (
+                                        <div className="w-20 h-20 border rounded-lg flex items-center justify-center bg-gray-50">
+                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                                        </div>
+                                    )}
+                                    <label className="flex-1 cursor-pointer">
+                                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-orange-500 transition-colors">
+                                            <Upload size={20} className="mx-auto mb-2 text-gray-400" />
+                                            <span className="text-sm text-gray-600">
+                                                {formData.logo_url === 'uploading...' ? 'جاري الرفع...' : 'اختر صورة الشعار'}
+                                            </span>
+                                            <p className="text-xs text-gray-400 mt-1">400×400 - PNG/JPG</p>
+                                        </div>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) handleImageUpload(file, 'logo');
+                                            }}
+                                            className="hidden"
+                                            disabled={formData.logo_url === 'uploading...'}
+                                        />
+                                    </label>
+                                </div>
+                            </div>
+
+                            {/* Banner Upload */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    <ImageIcon size={16} className="inline ml-1" />
+                                    صورة الغلاف (Banner)
+                                </label>
+                                <div className="flex items-center gap-4">
+                                    {formData.banner_url && formData.banner_url !== 'uploading...' && (
+                                        <div className="relative">
+                                            <img 
+                                                src={formData.banner_url} 
+                                                alt="Banner" 
+                                                className="w-32 h-20 object-cover border rounded-lg"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, banner_url: '' })}
+                                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600 transition-colors"
+                                                title="حذف الصورة"
+                                            >
+                                                <X size={14} />
+                                            </button>
+                                        </div>
+                                    )}
+                                    {formData.banner_url === 'uploading...' && (
+                                        <div className="w-32 h-20 border rounded-lg flex items-center justify-center bg-gray-50">
+                                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                                        </div>
+                                    )}
+                                    <label className="flex-1 cursor-pointer">
+                                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-orange-500 transition-colors">
+                                            <Upload size={20} className="mx-auto mb-2 text-gray-400" />
+                                            <span className="text-sm text-gray-600">
+                                                {formData.banner_url === 'uploading...' ? 'جاري الرفع...' : 'اختر صورة الغلاف'}
+                                            </span>
+                                            <p className="text-xs text-gray-400 mt-1">1200×400 - PNG/JPG</p>
+                                        </div>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) handleImageUpload(file, 'banner');
+                                            }}
+                                            className="hidden"
+                                            disabled={formData.banner_url === 'uploading...'}
+                                        />
+                                    </label>
+                                </div>
+                            </div>
+
+                            {/* Featured Toggle */}
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    id="is_featured"
+                                    checked={formData.is_featured || false}
+                                    onChange={(e) => setFormData({ ...formData, is_featured: e.target.checked })}
+                                    className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
+                                />
+                                <label htmlFor="is_featured" className="text-sm font-medium text-gray-700">
+                                    <Tag size={16} className="inline ml-1" />
+                                    عرض في الصفحة الرئيسية
+                                </label>
+                            </div>
+
+                            {/* Submit Button */}
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    type="submit"
+                                    className="flex-1 bg-orange-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-orange-600 transition-colors flex items-center justify-center gap-2"
+                                >
+                                    <Save size={18} />
+                                    {editingBrand ? 'حفظ التعديلات' : 'إضافة البراند'}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setShowAddForm(false);
+                                        setEditingBrand(null);
+                                    }}
+                                    className="px-6 py-2 border border-gray-300 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                                >
+                                    إلغاء
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                )}
 
                 {/* Brands List */}
                 {loading ? (

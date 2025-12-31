@@ -225,34 +225,6 @@ export default function ProductsPage() {
         'فواكه وخضار': 'فواكه وخضار'
     };
 
-    useEffect(() => {
-        const category = searchParams.get('category');
-        const barcode = searchParams.get('barcode');
-        const search = searchParams.get('search');
-        
-        if (category) {
-            // Map the category name to match database values
-            const mappedCategory = categoryMapping[category] || category;
-            console.log('🔍 Category mapping:', category, '→', mappedCategory);
-            setSelectedCategory(mappedCategory);
-        }
-
-        // Handle barcode from URL (from TopBar navigation)
-        if (barcode) {
-            handleBarcodeScanned(barcode);
-            return; // barcode search takes precedence
-        }
-
-        // Handle search query from URL (header search)
-        if (search && search.trim() !== '') {
-            setSearchQuery(search);
-            handleSearch(search);
-            return;
-        }
-        
-        fetchProducts();
-    }, [searchParams, selectedBranch, handleSearch, handleBarcodeScanned, fetchProducts]);
-
     const fetchProducts = useCallback(async () => {
         setLoading(true);
         try {
@@ -342,6 +314,34 @@ export default function ProductsPage() {
             fetchProducts();
         }
     }, [handleBarcodeScanned, fetchProducts]);
+
+    useEffect(() => {
+        const category = searchParams.get('category');
+        const barcode = searchParams.get('barcode');
+        const search = searchParams.get('search');
+        
+        if (category) {
+            // Map the category name to match database values
+            const mappedCategory = categoryMapping[category] || category;
+            console.log('🔍 Category mapping:', category, '→', mappedCategory);
+            setSelectedCategory(mappedCategory);
+        }
+
+        // Handle barcode from URL (from TopBar navigation)
+        if (barcode) {
+            handleBarcodeScanned(barcode);
+            return; // barcode search takes precedence
+        }
+
+        // Handle search query from URL (header search)
+        if (search && search.trim() !== '') {
+            setSearchQuery(search);
+            handleSearch(search);
+            return;
+        }
+        
+        fetchProducts();
+    }, [searchParams, selectedBranch, handleSearch, handleBarcodeScanned, fetchProducts]);
 
     // Filter and sort products
     const filteredAndSortedProducts = useMemo(() => {
