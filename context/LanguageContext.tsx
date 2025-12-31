@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { translations as nestedTranslations } from '../constants';
+import { loadGoogleTranslate, translateTo } from '../utils/googleTranslate';
 
 type Language = 'ar' | 'en';
 
@@ -30,6 +31,9 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     useEffect(() => {
         // Load saved language
         const savedLang = localStorage.getItem('language') as Language;
+        // Ensure Google widget starts loading early
+        loadGoogleTranslate();
+
         if (savedLang && (savedLang === 'ar' || savedLang === 'en')) {
             setLanguageState(savedLang);
             applyLanguage(savedLang);
@@ -47,6 +51,9 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
         // Add language class to body for CSS targeting
         document.body.classList.remove('lang-ar', 'lang-en');
         document.body.classList.add(`lang-${lang}`);
+
+        // Trigger browser-level translate to mirror the toggle (hidden widget)
+        translateTo(lang);
     };
 
     const setLanguage = (lang: Language) => {
