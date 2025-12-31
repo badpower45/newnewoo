@@ -108,17 +108,30 @@ export default function HeroSectionsManager() {
     const fetchHeroSections = async () => {
         try {
             const token = localStorage.getItem('token');
+            console.log('🔍 Fetching hero sections from:', `${API_URL}/api/hero-sections?all=true`);
             const response = await fetch(`${API_URL}/api/hero-sections?all=true`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
+            
+            if (!response.ok) {
+                console.error('❌ Response not OK:', response.status, response.statusText);
+            }
+            
             const data = await response.json();
+            console.log('📦 Received data:', data);
+            
             if (data.success) {
-                setHeroSections(data.data);
+                setHeroSections(data.data || []);
+                console.log('✅ Hero sections loaded:', data.data?.length || 0);
+            } else {
+                console.error('❌ API returned error:', data.message);
+                alert('خطأ في تحميل البيانات: ' + (data.message || 'Unknown error'));
             }
         } catch (error) {
-            console.error('Error fetching hero sections:', error);
+            console.error('❌ Error fetching hero sections:', error);
+            alert('فشل الاتصال بالسيرفر. تحقق من اتصال الإنترنت.');
         } finally {
             setLoading(false);
         }
