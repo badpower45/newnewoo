@@ -70,7 +70,11 @@ export const api = {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(googleData)
             });
-            return res.json();
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data?.error || 'Google login failed');
+            }
+            return data;
         },
         facebookLogin: async (fbData: { 
             facebookId: string; 

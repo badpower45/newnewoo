@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { supabaseAuth } from '../services/supabaseAuth';
+import { api } from '../services/api';
 
 const AuthCallbackPage: React.FC = () => {
   const navigate = useNavigate();
@@ -27,28 +28,47 @@ const AuthCallbackPage: React.FC = () => {
         }
 
         const user = session.user;
-        const token = session.access_token;
-        
-        // Extract phone number from user metadata
-        const phone = user?.user_metadata?.phone || user?.phone;
+        const identity = user?.identities?.find((i: any) => i.provider === 'google') || user?.identities?.[0];
+        const googleId = identity?.provider_id 
+          || identity?.identity_data?.sub 
+          || user?.user_metadata?.sub 
+          || user?.id;
 
-        const userData = {
-          id: user?.id || 'supabase-user',
+        // Prepare payload for backend Google OAuth endpoint
+        const backendPayload = {
+          googleId,
           email: user?.email || '',
           name: user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Supabase User',
-          phone: phone,
-          avatar: user?.user_metadata?.avatar_url,
-          role: 'customer',
-          isGuest: false
+          picture: user?.user_metadata?.avatar_url,
+          phone: user?.user_metadata?.phone || user?.phone,
+          givenName: user?.user_metadata?.given_name,
+          familyName: user?.user_metadata?.family_name
         };
 
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(userData));
+        // Exchange Supabase session for backend JWT (our API)
+        const backendRes = await api.auth.googleLogin(backendPayload);
+        if (!backendRes?.token) {
+          throw new Error(backendRes?.error || 'فشل إنشاء جلسة التطبيق');
+        }
+
+        const phone = backendRes?.user?.phone || backendPayload.phone;
+
+        localStorage.setItem('token', backendRes.token);
+        localStorage.setItem('user', JSON.stringify({
+          id: backendRes?.user?.id || user?.id || 'supabase-user',
+          email: backendRes?.user?.email || backendPayload.email,
+          name: `${backendRes?.user?.firstName || ''} ${backendRes?.user?.lastName || ''}`.trim() || backendPayload.name,
+          phone,
+          avatar: backendRes?.user?.avatar || backendPayload.picture,
+          role: backendRes?.user?.role || 'customer',
+          isGuest: false
+        }));
 
         setStatus('success');
         
-        // Check if phone number is missing
-        if (!phone) {
+        const needsCompletion = backendRes?.needsCompletion || !phone;
+
+        if (needsCompletion) {
           setMessage('يرجى إكمال بياناتك...');
           setTimeout(() => {
             window.location.replace('/complete-profile');
