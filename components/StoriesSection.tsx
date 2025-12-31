@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { X, ChevronLeft, ChevronRight, Plus, Volume2, VolumeX, Pause, Play } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Volume2, VolumeX, Pause, Play } from 'lucide-react';
 import { api } from '../services/api';
 
 interface Story {
@@ -122,118 +122,10 @@ const StoriesSection: React.FC = () => {
                     };
                 });
 
-                // If no stories from API, use mock data
-                if (groups.length === 0) {
-                    groups.push({
-                        id: 0,
-                        name: 'Allosh Market',
-                        avatar: 'https://ui-avatars.com/api/?name=Allosh&background=F97316&color=fff&size=128',
-                        stories: [
-                            {
-                                id: 1,
-                                title: 'عروض اليوم! 🔥',
-                                media_url: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800',
-                                media_type: 'image',
-                                duration: 5,
-                                views_count: 1250,
-                                is_active: true,
-                                expires_at: new Date(Date.now() + 86400000).toISOString(),
-                                created_at: new Date().toISOString()
-                            },
-                            {
-                                id: 2,
-                                title: 'منتجات طازجة 🥬',
-                                media_url: 'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=800',
-                                media_type: 'image',
-                                duration: 5,
-                                views_count: 980,
-                                is_active: true,
-                                expires_at: new Date(Date.now() + 86400000).toISOString(),
-                                created_at: new Date().toISOString()
-                            },
-                            {
-                                id: 3,
-                                title: 'خصم 50% على الألبان 🥛',
-                                media_url: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=800',
-                                media_type: 'image',
-                                duration: 5,
-                                views_count: 2100,
-                                is_active: true,
-                                expires_at: new Date(Date.now() + 86400000).toISOString(),
-                                created_at: new Date().toISOString()
-                            }
-                        ],
-                        hasUnviewed: true
-                    });
-                    
-                    // Add Pepsi brand stories
-                    groups.push({
-                        id: 1,
-                        name: 'Pepsi',
-                        avatar: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Pepsi_logo_2014.svg/200px-Pepsi_logo_2014.svg.png',
-                        stories: [
-                            {
-                                id: 4,
-                                title: 'عرض بيبسي! 🥤',
-                                media_url: 'https://images.unsplash.com/photo-1629203851122-3726ecdf080e?w=800',
-                                media_type: 'image',
-                                duration: 5,
-                                views_count: 3500,
-                                is_active: true,
-                                expires_at: new Date(Date.now() + 86400000).toISOString(),
-                                created_at: new Date().toISOString()
-                            }
-                        ],
-                        hasUnviewed: true
-                    });
-
-                    // Add Nescafe stories
-                    groups.push({
-                        id: 2,
-                        name: 'Nescafé',
-                        avatar: 'https://ui-avatars.com/api/?name=Nescafe&background=7f1d1d&color=fff&size=128',
-                        stories: [
-                            {
-                                id: 5,
-                                title: 'قهوة الصباح ☕',
-                                media_url: 'https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=800',
-                                media_type: 'image',
-                                duration: 5,
-                                views_count: 1800,
-                                is_active: true,
-                                expires_at: new Date(Date.now() + 86400000).toISOString(),
-                                created_at: new Date().toISOString()
-                            }
-                        ],
-                        hasUnviewed: false
-                    });
-                }
-
                 setStoryGroups(groups);
             } catch (error) {
                 console.error('Failed to fetch stories:', error);
-                // Use mock data on error
-                setStoryGroups([
-                    {
-                        id: 0,
-                        name: 'Allosh Market',
-                        avatar: 'https://ui-avatars.com/api/?name=Allosh&background=F97316&color=fff&size=128',
-                        stories: [
-                            {
-                                id: 1,
-                                title: 'عروض حصرية! 🎉',
-                                media_url: 'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=800',
-                                media_type: 'image',
-                                duration: 5,
-                                views_count: 500,
-                                is_active: true,
-                                expires_at: new Date(Date.now() + 86400000).toISOString(),
-                                created_at: new Date().toISOString()
-                            }
-                        ],
-                        hasUnviewed: true
-                    }
-                ]);
+                setStoryGroups([]);
             } finally {
                 setLoading(false);
             }

@@ -14,10 +14,9 @@ import {
     ArrowUp,
     ArrowDown,
     BarChart,
-    Upload,
-    Palette
+    Upload
 } from 'lucide-react';
-import AdminLayout from './AdminLayout';
+import { API_URL } from '../../src/config';
 
 interface HeroButton {
     text_en: string;
@@ -99,7 +98,7 @@ export default function HeroSectionsManager() {
     const [uploading, setUploading] = useState(false);
     const [activeTab, setActiveTab] = useState<'content' | 'design' | 'buttons'>('content');
 
-    const API_URL = 'https://bkaa.vercel.app';
+    const API_BASE_URL = API_URL;
 
     useEffect(() => {
         fetchHeroSections();
@@ -108,8 +107,8 @@ export default function HeroSectionsManager() {
     const fetchHeroSections = async () => {
         try {
             const token = localStorage.getItem('token');
-            console.log('🔍 Fetching hero sections from:', `${API_URL}/api/hero-sections?all=true`);
-            const response = await fetch(`${API_URL}/api/hero-sections?all=true`, {
+            console.log('🔍 Fetching hero sections from:', `${API_BASE_URL}/hero-sections?all=true`);
+            const response = await fetch(`${API_BASE_URL}/hero-sections?all=true`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -122,12 +121,19 @@ export default function HeroSectionsManager() {
             const data = await response.json();
             console.log('📦 Received data:', data);
             
-            if (data.success) {
+            if (Array.isArray(data)) {
+                setHeroSections(data);
+                console.log('✅ Hero sections loaded:', data.length || 0);
+            } else if (Array.isArray(data?.data)) {
+                setHeroSections(data.data || []);
+                console.log('✅ Hero sections loaded:', data.data?.length || 0);
+            } else if (data?.success) {
                 setHeroSections(data.data || []);
                 console.log('✅ Hero sections loaded:', data.data?.length || 0);
             } else {
-                console.error('❌ API returned error:', data.message);
-                alert('خطأ في تحميل البيانات: ' + (data.message || 'Unknown error'));
+                const message = data?.message || 'Unknown error';
+                console.error('❌ API returned error:', message);
+                alert('خطأ في تحميل البيانات: ' + message);
             }
         } catch (error) {
             console.error('❌ Error fetching hero sections:', error);
@@ -175,8 +181,8 @@ export default function HeroSectionsManager() {
             }
 
             const url = editingSection
-                ? `${API_URL}/api/hero-sections/${editingSection.id}`
-                : `${API_URL}/api/hero-sections`;
+                ? `${API_BASE_URL}/hero-sections/${editingSection.id}`
+                : `${API_BASE_URL}/hero-sections`;
 
             const response = await fetch(url, {
                 method: editingSection ? 'PUT' : 'POST',
@@ -209,7 +215,7 @@ export default function HeroSectionsManager() {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${API_URL}/api/hero-sections/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/hero-sections/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -261,7 +267,7 @@ export default function HeroSectionsManager() {
 
         try {
             const token = localStorage.getItem('token');
-            await fetch(`${API_URL}/api/hero-sections/reorder`, {
+            await fetch(`${API_BASE_URL}/hero-sections/reorder`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -279,18 +285,15 @@ export default function HeroSectionsManager() {
     if (loading) {
         console.log('⏳ Loading state: true');
         return (
-            <AdminLayout>
-                <div className="flex items-center justify-center h-64">
-                    <div className="text-xl">جاري التحميل...</div>
-                </div>
-            </AdminLayout>
+            <div className="flex items-center justify-center h-64">
+                <div className="text-xl">جاري التحميل...</div>
+            </div>
         );
     }
 
     console.log('🎨 Rendering Hero Sections, count:', heroSections.length);
 
     return (
-        <AdminLayout>
             <div className="p-6 max-w-7xl mx-auto" dir="rtl">
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6">
@@ -946,6 +949,5 @@ export default function HeroSectionsManager() {
                     </div>
                 )}
             </div>
-        </AdminLayout>
     );
 }

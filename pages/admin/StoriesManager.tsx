@@ -35,6 +35,7 @@ const StoriesManager: React.FC = () => {
         priority: 0
     });
     const [saving, setSaving] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
 
     const toYoutubeEmbed = (url: string) => {
         if (!url) return '';
@@ -71,28 +72,15 @@ const StoriesManager: React.FC = () => {
 
     const fetchStories = async () => {
         setLoading(true);
+        setErrorMessage('');
         try {
             const response = await api.stories.getAllAdmin();
-            setStories(Array.isArray(response) ? response : response?.data || []);
+            const fetched = Array.isArray(response) ? response : response?.data || [];
+            setStories(fetched);
         } catch (error) {
             console.error('Failed to fetch stories:', error);
-            // Mock data for development
-            setStories([
-                {
-                    id: 1,
-                    title: 'عروض اليوم! 🔥',
-                    media_url: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800',
-                    media_type: 'image',
-                    duration: 5,
-                    link_url: '/deals',
-                    link_text: 'شاهد العروض',
-                    views_count: 1250,
-                    is_active: true,
-                    priority: 10,
-                    expires_at: new Date(Date.now() + 86400000).toISOString(),
-                    created_at: new Date().toISOString()
-                }
-            ]);
+            setStories([]);
+            setErrorMessage('تعذر تحميل الاستوريز من الخادم.');
         } finally {
             setLoading(false);
         }
@@ -240,6 +228,9 @@ const StoriesManager: React.FC = () => {
                 </div>
             ) : stories.length === 0 ? (
                 <div className="text-center py-16 bg-white rounded-xl">
+                    {errorMessage && (
+                        <p className="text-red-600 mb-3">{errorMessage}</p>
+                    )}
                     <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                         <Image className="w-8 h-8 text-gray-400" />
                     </div>
