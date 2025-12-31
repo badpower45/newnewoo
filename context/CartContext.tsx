@@ -118,6 +118,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       ...product,
       price: Number(product.price) || 0
     };
+    const productIdStr = String(normalizedProduct.id);
+    const isSynthetic = productIdStr.startsWith('hot-') || productIdStr.startsWith('mag-');
     
     // Quick client-side availability check (no blocking API calls)
     const existing = items.find(i => String(i.id) === String(normalizedProduct.id));
@@ -134,10 +136,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (user && !user.isGuest) {
       // Optimistic update with smooth animation
       setItems(prev => {
-        const existingItem = prev.find(item => String(item.id) === String(normalizedProduct.id));
+        const existingItem = prev.find(item => String(item.id) === productIdStr);
         if (existingItem) {
           return prev.map(item =>
-            String(item.id) === String(normalizedProduct.id)
+            String(item.id) === productIdStr
               ? { ...item, quantity: item.quantity + quantity, substitutionPreference: substitutionPreference || item.substitutionPreference }
               : item
           );
@@ -149,19 +151,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
       showToast(`تمت إضافة ${normalizedProduct.name || normalizedProduct.title} إلى السلة`, 'success');
 
       // Add to cart in background without blocking UI
-      api.cart.add({ 
-        userId: user.id, 
-        productId: String(normalizedProduct.id), 
-        quantity,
-        substitutionPreference 
-      }).then(() => {
-        // Debounced sync - only sync after 300ms of no activity
-        if (window.cartSyncTimeout) clearTimeout(window.cartSyncTimeout);
-        window.cartSyncTimeout = setTimeout(() => syncCart(), 300);
-      }).catch(err => {
-        console.error("Failed to add to cart", err);
-        syncCart(); // Revert on error
-      });
+      if (!isSynthetic) {
+        api.cart.add({ 
+          userId: user.id, 
+          productId: productIdStr, 
+          quantity,
+          substitutionPreference 
+        }).then(() => {
+          // Debounced sync - only sync after 300ms of no activity
+          if (window.cartSyncTimeout) clearTimeout(window.cartSyncTimeout);
+          window.cartSyncTimeout = setTimeout(() => syncCart(), 300);
+        }).catch(err => {
+          console.error("Failed to add to cart", err);
+          syncCart(); // Revert on error
+        });
+      }
     } else {
       setItems(prev => {
         const existingItem = prev.find(item => String(item.id) === String(normalizedProduct.id));
@@ -182,12 +186,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const removeFromCart = async (productId: string | number) => {
+    const isSynthetic = String(productId).startsWith('hot-') || String(productId).startsWith('mag-');
     if (user && !user.isGuest) {
       setItems(prev => prev.filter(item => item.id !== productId));
-      try {
-        await api.cart.remove(user.id, String(productId));
-      } catch (err) {
-        console.error("Failed to remove from cart", err);
+      if (!isSynthetic) {
+        try {
+          await api.cart.remove(user.id, String(productId));
+        } catch (err) {
+          console.error("Failed to remove from cart", err);
+        }
       }
     } else {
       setItems(prev => prev.filter(item => item.id !== productId));
@@ -230,7 +237,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       )
     );
 
-    if (user && !user.isGuest) {
+    const isSynthetic = String(productId).startsWith('hot-') || String(productId).startsWith('mag-');
+    if (user && !user.isGuest && !isSynthetic) {
       // Very fast debounced API call - only 150ms
       if (window.quantityUpdateTimeout) clearTimeout(window.quantityUpdateTimeout);
       window.quantityUpdateTimeout = setTimeout(async () => {

@@ -125,7 +125,7 @@ router.post('/dev/fix-prices', [verifyToken, isAdmin], async (req, res) => {
 
 // Get all products (filtered by branch)
 router.get('/', async (req, res) => {
-    const { branchId, category, search, limit, includeAllBranches } = req.query;
+    const { branchId, category, search, limit, includeAllBranches, includeMagazine } = req.query;
 
     // For admin panel - show all products with their branch data
     if (includeAllBranches === 'true') {
@@ -192,7 +192,7 @@ router.get('/', async (req, res) => {
             SELECT p.id, p.name, p.category, p.image, p.weight, p.rating, p.reviews, p.is_organic, p.is_new, p.barcode, p.shelf_location,
                    bp.price, bp.discount_price, bp.stock_quantity, bp.is_available,
                    (mo.id IS NOT NULL) AS in_magazine
-            FROM products p
+        FROM products p
             JOIN branch_products bp ON p.id = bp.product_id
             LEFT JOIN magazine_offers mo ON mo.product_id = p.id 
                 AND mo.is_active = TRUE 
@@ -215,8 +215,10 @@ router.get('/', async (req, res) => {
             paramIndex++;
         }
         
-        // إخفاء منتجات المجلة من القوائم العادية
-        sql += ` AND mo.id IS NULL`;
+        // إخفاء منتجات المجلة من القوائم العادية إلا إذا طلب صراحة
+        if (includeMagazine !== 'true') {
+            sql += ` AND mo.id IS NULL`;
+        }
 
         // Add ORDER BY for consistent results
         sql += ` ORDER BY p.id`;

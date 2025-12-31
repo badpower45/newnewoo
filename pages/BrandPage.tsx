@@ -154,6 +154,8 @@ const BrandPage = () => {
     const [magazineOffers, setMagazineOffers] = useState<any[]>([]);
     const [loadingMagazine, setLoadingMagazine] = useState(false);
     const [addingOfferId, setAddingOfferId] = useState<number | null>(null);
+    const [brandHotDeals, setBrandHotDeals] = useState<any[]>([]);
+    const [loadingHotDeals, setLoadingHotDeals] = useState(false);
     const { addToCart } = useCart();
     const siteUrl = getSiteUrl();
     const canonicalUrl = `${siteUrl}/brand/${encodeURIComponent(brandName || '')}`;
@@ -355,7 +357,7 @@ const BrandPage = () => {
 
         try {
             const res = selectedBranch 
-                ? await api.products.getAllByBranch(selectedBranch.id)
+                ? await api.products.getAllByBranch(selectedBranch.id, { includeMagazine: true })
                 : await api.products.getAll();
             
             const allProducts = res.data || res || [];
@@ -390,6 +392,7 @@ const BrandPage = () => {
             
             setProducts(brandProducts);
             await loadBrandMagazineOffers(brandInfo);
+            await loadBrandHotDeals(brandInfo);
         } catch (err) {
             console.error('Failed to load brand products:', err);
         }
@@ -410,6 +413,24 @@ const BrandPage = () => {
             setMagazineOffers([]);
         } finally {
             setLoadingMagazine(false);
+        }
+    };
+
+    const loadBrandHotDeals = async (brandInfo: any) => {
+        if (!brandInfo?.id) {
+            setBrandHotDeals([]);
+            return;
+        }
+        setLoadingHotDeals(true);
+        try {
+            const res = await api.hotDeals.getAll(brandInfo.id);
+            const data = Array.isArray(res) ? res : res?.data || [];
+            setBrandHotDeals(data);
+        } catch (err) {
+            console.error('Failed to load brand hot deals:', err);
+            setBrandHotDeals([]);
+        } finally {
+            setLoadingHotDeals(false);
         }
     };
 
@@ -750,64 +771,118 @@ const BrandPage = () => {
             {/* Products Grid */}
             <div className="max-w-7xl mx-auto px-4 py-6">
                 {activeTab === 'offers' && (
-                    <div className="mb-6">
-                        <div className="flex items-center justify-between mb-3">
-                            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                                <BadgePercent size={18} className="text-orange-500" />
-                                عروض المجلة للبراند
-                            </h3>
-                            {loadingMagazine && <span className="text-xs text-gray-500">...تحميل</span>}
-                        </div>
-                        {loadingMagazine ? (
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                {[...Array(3)].map((_, i) => (
-                                    <div key={i} className="bg-white border rounded-xl p-3 animate-pulse">
-                                        <div className="aspect-square bg-gray-100 rounded-lg mb-2" />
-                                        <div className="h-3 bg-gray-100 rounded mb-1" />
-                                        <div className="h-3 bg-gray-100 rounded w-1/2" />
-                                    </div>
-                                ))}
+                    <div className="space-y-8 mb-6">
+                        <div>
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                    <BadgePercent size={18} className="text-orange-500" />
+                                    عروض المجلة للبراند
+                                </h3>
+                                {loadingMagazine && <span className="text-xs text-gray-500">...تحميل</span>}
                             </div>
-                        ) : magazineOffers.length === 0 ? (
-                            <p className="text-sm text-gray-500">لا توجد عروض مجلة لهذا البراند حالياً.</p>
-                        ) : (
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                {magazineOffers.map((offer: any) => (
-                                    <div key={offer.id} className="bg-white border rounded-xl p-3 shadow-sm flex flex-col">
-                                        <div className="aspect-square bg-gray-50 rounded-lg flex items-center justify-center mb-2 overflow-hidden">
-                                            <img
-                                                src={offer.image || 'https://placehold.co/200x200?text=Offer'}
-                                                alt={offer.name}
-                                                className="w-full h-full object-contain"
-                                                onError={(e) => {
-                                                    (e.target as HTMLImageElement).src = 'https://placehold.co/200x200?text=Offer';
-                                                }}
-                                            />
+                            {loadingMagazine ? (
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                    {[...Array(3)].map((_, i) => (
+                                        <div key={i} className="bg-white border rounded-xl p-3 animate-pulse">
+                                            <div className="aspect-square bg-gray-100 rounded-lg mb-2" />
+                                            <div className="h-3 bg-gray-100 rounded mb-1" />
+                                            <div className="h-3 bg-gray-100 rounded w-1/2" />
                                         </div>
-                                        <div className="space-y-1">
-                                            <p className="text-xs text-gray-500">{offer.category || 'عرض'}</p>
-                                            <h4 className="text-sm font-bold text-gray-900 line-clamp-2">{offer.name}</h4>
-                                            <div className="flex items-baseline gap-1">
-                                                <span className="text-lg font-bold text-orange-600">{Number(offer.price || 0).toFixed(2)}</span>
-                                                <span className="text-xs text-gray-500">جنيه</span>
-                                                {offer.old_price && (
-                                                    <span className="text-xs text-gray-400 line-through ml-auto">
-                                                        {Number(offer.old_price).toFixed(2)}
-                                                    </span>
-                                                )}
+                                    ))}
+                                </div>
+                            ) : magazineOffers.length === 0 ? (
+                                <p className="text-sm text-gray-500">لا توجد عروض مجلة لهذا البراند حالياً.</p>
+                            ) : (
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                    {magazineOffers.map((offer: any) => (
+                                        <div key={offer.id} className="bg-white border rounded-xl p-3 shadow-sm flex flex-col">
+                                            <div className="aspect-square bg-gray-50 rounded-lg flex items-center justify-center mb-2 overflow-hidden">
+                                                <img
+                                                    src={offer.image || 'https://placehold.co/200x200?text=Offer'}
+                                                    alt={offer.name}
+                                                    className="w-full h-full object-contain"
+                                                    onError={(e) => {
+                                                        (e.target as HTMLImageElement).src = 'https://placehold.co/200x200?text=Offer';
+                                                    }}
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-xs text-gray-500">{offer.category || 'عرض'}</p>
+                                                <h4 className="text-sm font-bold text-gray-900 line-clamp-2">{offer.name}</h4>
+                                                <div className="flex items-baseline gap-1">
+                                                    <span className="text-lg font-bold text-orange-600">{Number(offer.price || 0).toFixed(2)}</span>
+                                                    <span className="text-xs text-gray-500">جنيه</span>
+                                                    {offer.old_price && (
+                                                        <span className="text-xs text-gray-400 line-through ml-auto">
+                                                            {Number(offer.old_price).toFixed(2)}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => handleAddMagazineOffer(offer)}
+                                                disabled={addingOfferId === offer.id}
+                                                className="mt-3 w-full py-2 rounded-lg text-sm font-bold text-white bg-orange-500 hover:bg-orange-600 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                                            >
+                                                {addingOfferId === offer.id ? '...جاري الإضافة' : 'أضف للسلة'}
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <div>
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                    <Flame size={18} className="text-red-500" />
+                                    العروض الساخنة للبراند
+                                </h3>
+                                {loadingHotDeals && <span className="text-xs text-gray-500">...تحميل</span>}
+                            </div>
+                            {loadingHotDeals ? (
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                    {[...Array(3)].map((_, i) => (
+                                        <div key={i} className="bg-white border rounded-xl p-3 animate-pulse">
+                                            <div className="aspect-square bg-gray-100 rounded-lg mb-2" />
+                                            <div className="h-3 bg-gray-100 rounded mb-1" />
+                                            <div className="h-3 bg-gray-100 rounded w-1/2" />
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : brandHotDeals.length === 0 ? (
+                                <p className="text-sm text-gray-500">لا توجد عروض ساخنة لهذا البراند حالياً.</p>
+                            ) : (
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                    {brandHotDeals.map((deal: any) => (
+                                        <div key={deal.id} className="bg-white border rounded-xl p-3 shadow-sm flex flex-col">
+                                            <div className="aspect-square bg-gray-50 rounded-lg flex items-center justify-center mb-2 overflow-hidden">
+                                                <img
+                                                    src={deal.image || 'https://placehold.co/200x200?text=Deal'}
+                                                    alt={deal.name}
+                                                    className="w-full h-full object-contain"
+                                                    onError={(e) => {
+                                                        (e.target as HTMLImageElement).src = 'https://placehold.co/200x200?text=Deal';
+                                                    }}
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <h4 className="text-sm font-bold text-gray-900 line-clamp-2">{deal.name}</h4>
+                                                <div className="flex items-baseline gap-1">
+                                                    <span className="text-lg font-bold text-red-600">{Number(deal.price || 0).toFixed(2)}</span>
+                                                    <span className="text-xs text-gray-500">جنيه</span>
+                                                    {deal.old_price && (
+                                                        <span className="text-xs text-gray-400 line-through ml-auto">
+                                                            {Number(deal.old_price).toFixed(2)}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
-                                        <button
-                                            onClick={() => handleAddMagazineOffer(offer)}
-                                            disabled={addingOfferId === offer.id}
-                                            className="mt-3 w-full py-2 rounded-lg text-sm font-bold text-white bg-orange-500 hover:bg-orange-600 transition disabled:opacity-60 disabled:cursor-not-allowed"
-                                        >
-                                            {addingOfferId === offer.id ? '...جاري الإضافة' : 'أضف للسلة'}
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
 

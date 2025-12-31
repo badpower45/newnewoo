@@ -124,8 +124,12 @@ export const api = {
             const data = Array.isArray(json) ? json : (json.data || []);
             return data.map(normalize);
         },
-        getAllByBranch: async (branchId: number) => {
-            const res = await fetch(`${API_URL}/products?branchId=${branchId}`, { headers: getHeaders() });
+        getAllByBranch: async (branchId: number, options?: { includeMagazine?: boolean }) => {
+            let url = `${API_URL}/products?branchId=${branchId}`;
+            if (options?.includeMagazine) {
+                url += '&includeMagazine=true';
+            }
+            const res = await fetch(url, { headers: getHeaders() });
             if (!res.ok && res.status === 404) {
                 // backend missing branch filter; fallback to all products
                 const all = await fetch(`${API_URL}/products`, { headers: getHeaders() });
@@ -1012,8 +1016,10 @@ export const api = {
     // Hot Deals API
     hotDeals: {
         // جلب جميع العروض الساخنة
-        getAll: async () => {
-            const res = await fetch(`${API_URL}/hot-deals`, { headers: getHeaders() });
+        getAll: async (brandId?: number) => {
+            let url = `${API_URL}/hot-deals`;
+            if (brandId) url += `?brandId=${brandId}`;
+            const res = await fetch(url, { headers: getHeaders() });
             return res.json();
         },
 
