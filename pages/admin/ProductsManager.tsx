@@ -47,6 +47,16 @@ const ProductsManager = () => {
     const [brands, setBrands] = useState<any[]>([]);
     const [subcategories, setSubcategories] = useState<{ [key: string]: any[] }>({});
 
+    // Clean invalid brand selection when brand list changes
+    useEffect(() => {
+        if (form.brandId) {
+            const exists = brands.find(b => b.id === form.brandId);
+            if (!exists) {
+                setForm(prev => ({ ...prev, brandId: undefined }));
+            }
+        }
+    }, [brands]);
+
     useEffect(() => {
         loadProducts();
         loadBranches();
@@ -723,7 +733,7 @@ const ProductsManager = () => {
                                         </option>
                                     ))}
                                 </select>
-                                {form.brandId ? (
+                                {form.brandId && brands.find(b => b.id === form.brandId) && (
                                     <div className="mt-2 p-2 bg-green-100 border border-green-300 rounded-lg">
                                         <p className="text-sm text-green-800 font-bold flex items-center gap-2">
                                             ✅ تم اختيار البراند
@@ -731,13 +741,14 @@ const ProductsManager = () => {
                                                 ID: {form.brandId}
                                             </span>
                                             <span className="text-xs">
-                                                ({brands.find(b => b.id === form.brandId)?.name_ar || '⚠️ غير موجود'})
+                                                ({brands.find(b => b.id === form.brandId)?.name_ar})
                                             </span>
                                         </p>
                                     </div>
-                                ) : (
+                                )}
+                                {!form.brandId && (
                                     <p className="text-xs text-gray-500 mt-2">
-                                        💡 اختر البراند المناسب للمنتج لربطه بصفحة البراند الديناميكية
+                                        💡 يمكنك تركه بدون براند أو اختيار براند لربطه بصفحة البراند.
                                     </p>
                                 )}
                                 {brands.length === 0 && (

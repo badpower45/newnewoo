@@ -65,8 +65,11 @@ const CartPage = () => {
 
     if (items.length === 0) {
         return (
-            <div className="min-h-screen bg-black flex items-center justify-center p-0">
-                <div className="w-full h-screen relative overflow-hidden">
+            <div className="min-h-screen bg-[#f9fafb] flex items-center justify-center p-4">
+                <div
+                    className="relative w-full max-w-4xl aspect-video overflow-hidden rounded-3xl shadow-2xl"
+                    style={{ background: 'linear-gradient(135deg,#fff7ed,#f3f4f6)' }}
+                >
                     <iframe
                         src="https://player.vimeo.com/video/1150683918?background=1&autoplay=1&loop=1&muted=1&playsinline=1&controls=0&title=0&byline=0&portrait=0"
                         className="absolute inset-0 w-full h-full"
