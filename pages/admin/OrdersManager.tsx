@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Eye, X } from 'lucide-react';
+import { Search, Filter, Eye, X, Info } from 'lucide-react';
 import { api } from '../../services/api';
 import { ORDER_STATUS_LABELS } from '../../src/config';
 import { TableSkeleton } from '../../components/Skeleton';
@@ -11,6 +11,7 @@ const OrdersManager = () => {
     const [selectedOrder, setSelectedOrder] = useState<any>(null);
     const [showModal, setShowModal] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [reasonModal, setReasonModal] = useState<{ orderId: string | number; reason: string } | null>(null);
 
     useEffect(() => {
         loadOrders();
@@ -121,8 +122,17 @@ const OrdersManager = () => {
                                 <td className="px-6 py-4 text-gray-600">User #{order.userId || order.user_id}</td>
                                 <td className="px-6 py-4 font-medium text-gray-900">{(Number(order.total) || 0).toFixed(2)} EGP</td>
                                 <td className="px-6 py-4">
-                                    <span className={`px-2 py-1 text-xs font-bold rounded-full ${getStatusColor(order.status)}`}>
+                                    <span
+                                        onClick={() => order.rejection_reason && setReasonModal({ orderId: order.id, reason: order.rejection_reason })}
+                                        className={`px-2 py-1 text-xs font-bold rounded-full ${getStatusColor(order.status)} ${
+                                            order.rejection_reason ? 'cursor-pointer hover:shadow' : ''
+                                        }`}
+                                        title={order.rejection_reason ? 'عرض سبب الإلغاء' : undefined}
+                                    >
                                         {ORDER_STATUS_LABELS[order.status] || order.status}
+                                        {order.rejection_reason && (
+                                            <Info size={14} className="inline-block ml-1 align-middle" />
+                                        )}
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 text-right">
