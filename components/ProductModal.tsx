@@ -81,7 +81,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 animate-fadeIn">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm sm:max-w-md max-h-[75vh] sm:max-h-[80vh] overflow-y-auto animate-slideUp">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm sm:max-w-md max-h-[70vh] sm:max-h-[78vh] overflow-y-auto animate-slideUp translate-y-[-10px]">
                 {/* Header */}
                 <div className="relative">
                     <button
@@ -115,7 +115,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
                 </div>
 
                 {/* Content */}
-                <div className="p-3 sm:p-4 space-y-3 pb-5">
+                <div className="p-3 sm:p-4 space-y-3 pb-6">
                     {/* Product Name */}
                     <div>
                         <h2 className="text-xl font-bold text-gray-900 mb-1">{product.name}</h2>

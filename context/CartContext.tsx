@@ -91,7 +91,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
           ...item,
           price: Number(item.price) || 0
         }));
-        setItems(normalizedItems);
+        // Keep synthetic items (hot-/mag-) that aren't on server
+        const syntheticItems = items.filter(i => {
+          const id = String(i.id || '');
+          return id.startsWith('hot-') || id.startsWith('mag-');
+        });
+        const merged = [
+          ...normalizedItems,
+          ...syntheticItems.filter(
+            s => !normalizedItems.some((srv: any) => String(srv.id) === String(s.id))
+          )
+        ];
+        setItems(merged);
       }
     } catch (err) {
       // Silent fallback: backend unavailable, use local state
