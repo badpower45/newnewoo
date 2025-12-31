@@ -1,10 +1,9 @@
-import { API_URL, SUPABASE_ANON_KEY } from '../src/config';
+import { API_URL } from '../src/config';
 
 const getHeaders = () => {
     const token = localStorage.getItem('token');
     return {
         'Content-Type': 'application/json',
-        'apikey': SUPABASE_ANON_KEY,
         ...(token ? { 'Authorization': `Bearer ${token}` } : {})
     };
 };
@@ -1028,76 +1027,6 @@ export const api = {
         // حذف عرض (Admin)
         delete: async (id: number) => {
             const res = await fetch(`${API_URL}/hot-deals/${id}`, {
-                method: 'DELETE',
-                headers: getHeaders()
-            });
-            return res.json();
-        }
-    },
-
-    // ===================== STORIES =====================
-    stories: {
-        // Get all active stories
-        getAll: async () => {
-            const res = await fetch(`${API_URL}/stories`, { headers: getHeaders() });
-            return res.json();
-        },
-
-        // Get single story
-        getOne: async (id: number) => {
-            const res = await fetch(`${API_URL}/stories/${id}`, { headers: getHeaders() });
-            return res.json();
-        },
-
-        // Record a view
-        recordView: async (storyId: number, userId?: string) => {
-            const res = await fetch(`${API_URL}/stories/${storyId}/view`, {
-                method: 'POST',
-                headers: getHeaders(),
-                body: JSON.stringify({ userId })
-            });
-            return res.json();
-        },
-
-        // Get all stories for admin (including expired)
-        getAllAdmin: async () => {
-            const res = await fetch(`${API_URL}/stories/admin/all`, { headers: getHeaders() });
-            return res.json();
-        },
-
-        // Create new story (Admin)
-        create: async (data: {
-            title: string;
-            media_url: string;
-            media_type?: 'image' | 'video';
-            duration?: number;
-            link_url?: string;
-            link_text?: string;
-            expires_in_hours?: number;
-            priority?: number;
-            branch_id?: number;
-        }) => {
-            const res = await fetch(`${API_URL}/stories`, {
-                method: 'POST',
-                headers: getHeaders(),
-                body: JSON.stringify(data)
-            });
-            return res.json();
-        },
-
-        // Update story (Admin)
-        update: async (id: number, data: any) => {
-            const res = await fetch(`${API_URL}/stories/${id}`, {
-                method: 'PUT',
-                headers: getHeaders(),
-                body: JSON.stringify(data)
-            });
-            return res.json();
-        },
-
-        // Delete story (Admin)
-        delete: async (id: number) => {
-            const res = await fetch(`${API_URL}/stories/${id}`, {
                 method: 'DELETE',
                 headers: getHeaders()
             });
