@@ -191,33 +191,41 @@
   animation: shake 0.5s ease-in-out;
 }
 
-/* Hard-hide all Google Translate UI traces while keeping translation */
-#google_translate_element,
+/* Hide Google Translate chrome but keep functionality alive */
+#google_translate_element {
+  position: absolute !important;
+  left: -9999px !important;
+  top: -9999px !important;
+  visibility: hidden !important;
+}
+
 .goog-te-banner-frame,
 .goog-te-balloon-frame,
-.goog-te-menu-frame,
+.goog-te-menu-frame {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* Make sure page layout isn't pushed by banner */
+body {
+  top: 0 !important;
+  position: static !important;
+}
+
+/* Hide inline badges/tooltips while letting text render */
+.goog-logo-link,
 .goog-te-gadget,
 .goog-te-gadget-icon,
 .goog-te-menu-value,
 .goog-te-menu-value span,
-.goog-te-spinner-pos,
 .goog-tooltip,
-.goog-tooltip span,
-.goog-text-highlight,
-.skiptranslate {
-  display: none !important;
+.goog-tooltip span {
+  opacity: 0 !important;
   visibility: hidden !important;
-  height: 0 !important;
-  width: 0 !important;
-  overflow: hidden !important;
+  pointer-events: none !important;
 }
 
-body {
-  top: 0 !important; /* Prevent banner from pushing body */
-  position: static !important;
-}
-
-/* Hide any inline badges Google injects */
-.goog-logo-link {
-  display: none !important;
+.goog-text-highlight {
+  background: none !important;
+  box-shadow: none !important;
 }
