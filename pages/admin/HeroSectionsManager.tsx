@@ -277,6 +277,7 @@ export default function HeroSectionsManager() {
     };
 
     if (loading) {
+        console.log('⏳ Loading state: true');
         return (
             <AdminLayout>
                 <div className="flex items-center justify-center h-64">
@@ -285,6 +286,8 @@ export default function HeroSectionsManager() {
             </AdminLayout>
         );
     }
+
+    console.log('🎨 Rendering Hero Sections, count:', heroSections.length);
 
     return (
         <AdminLayout>
@@ -316,7 +319,11 @@ export default function HeroSectionsManager() {
                             <p className="text-gray-500 mt-2">ابدأ بإضافة أول Hero Section</p>
                         </div>
                     ) : (
-                        heroSections.map((section, index) => (
+                        <>
+                            {console.log('🔢 About to map', heroSections.length, 'hero sections')}
+                            {heroSections.map((section, index) => {
+                                console.log('🎯 Rendering section:', section.id, section.title_ar);
+                                return (
                             <div
                                 key={section.id}
                                 className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
@@ -434,7 +441,9 @@ export default function HeroSectionsManager() {
                                     </div>
                                 </div>
                             </div>
-                        ))
+                        );
+                            })}
+                        </>
                     )}
                 </div>
 
