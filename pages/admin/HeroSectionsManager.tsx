@@ -99,7 +99,7 @@ export default function HeroSectionsManager() {
     const [uploading, setUploading] = useState(false);
     const [activeTab, setActiveTab] = useState<'content' | 'design' | 'buttons'>('content');
 
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    const API_URL = 'https://bkaa.vercel.app';
 
     useEffect(() => {
         fetchHeroSections();
