@@ -146,48 +146,61 @@ const MagazinePage: React.FC = () => {
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {offers.map((offer) => (
-                                <div key={offer.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex flex-col gap-3">
-                                    <div className="w-full aspect-square bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden">
-                                        <img
-                                            src={offer.image || 'https://placehold.co/200x200?text=Offer'}
-                                            alt={offer.name}
-                                            className="w-full h-full object-contain"
-                                            onError={(e) => {
-                                                (e.target as HTMLImageElement).src = 'https://placehold.co/200x200?text=Offer';
-                                            }}
-                                        />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="text-xs text-gray-500">{offer.category || 'عرض'}</p>
-                                        <h3 className="text-base font-bold text-gray-900 line-clamp-2">{offer.name}</h3>
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <div className="flex items-baseline gap-1">
-                                                <span className="text-xl font-bold text-orange-600">{Number(offer.price || 0).toFixed(2)}</span>
-                                                <span className="text-xs text-gray-500">جنيه</span>
+                            {offers.map((offer) => {
+                                const hasDiscount = offer.discount_percentage && offer.discount_percentage > 0;
+                                return (
+                                    <div key={offer.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 flex flex-col gap-3">
+                                        <div className="relative w-full aspect-square bg-gray-50 rounded-lg flex items-center justify-center overflow-hidden">
+                                            <img
+                                                src={offer.image || 'https://placehold.co/200x200?text=Offer'}
+                                                alt={offer.name}
+                                                className="w-full h-full object-contain"
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).src = 'https://placehold.co/200x200?text=Offer';
+                                                }}
+                                            />
+                                            <div className="absolute top-2 left-2 flex gap-2">
+                                                <span className="px-2 py-1 text-[11px] font-bold bg-orange-500 text-white rounded-full flex items-center gap-1">
+                                                    <BadgePercent size={12} /> عرض المجلة
+                                                </span>
+                                                {hasDiscount && (
+                                                    <span className="px-2 py-1 text-[11px] font-bold bg-red-100 text-red-700 rounded-full">
+                                                        -{offer.discount_percentage}%
+                                                    </span>
+                                                )}
                                             </div>
-                                            {offer.old_price ? (
-                                                <p className="text-sm text-gray-400 line-through">{Number(offer.old_price).toFixed(2)}</p>
-                                            ) : null}
                                         </div>
-                                        <button
-                                            onClick={() => handleAddToCart(offer)}
-                                            disabled={addingOfferId === offer.id}
-                                            className="px-3 py-2 rounded-lg bg-orange-500 text-white text-sm font-bold hover:bg-orange-600 transition disabled:opacity-50"
-                                        >
-                                            {addingOfferId === offer.id ? '...' : 'أضف'}
-                                        </button>
+                                        <div className="space-y-1">
+                                            <p className="text-xs text-gray-500">{offer.category || 'عرض'}</p>
+                                            <h3 className="text-base font-bold text-gray-900 line-clamp-2">{offer.name}</h3>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <div className="flex items-baseline gap-1">
+                                                    <span className="text-xl font-bold text-orange-600">{Number(offer.price || 0).toFixed(2)}</span>
+                                                    <span className="text-xs text-gray-500">جنيه</span>
+                                                </div>
+                                                {offer.old_price ? (
+                                                    <p className="text-sm text-gray-400 line-through">{Number(offer.old_price).toFixed(2)}</p>
+                                                ) : null}
+                                            </div>
+                                            <button
+                                                onClick={() => handleAddToCart(offer)}
+                                                disabled={addingOfferId === offer.id}
+                                                className="px-3 py-2 rounded-lg bg-orange-500 text-white text-sm font-bold hover:bg-orange-600 transition disabled:opacity-50"
+                                            >
+                                                {addingOfferId === offer.id ? '...' : 'أضف'}
+                                            </button>
+                                        </div>
+                                        <div className="text-xs text-gray-500 flex justify-between">
+                                            <span>{offer.unit || 'وحدة'}</span>
+                                            {offer.discount_percentage && (
+                                                <span className="text-red-600 font-bold">-{offer.discount_percentage}%</span>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="text-xs text-gray-500 flex justify-between">
-                                        <span>{offer.unit || 'وحدة'}</span>
-                                        {offer.discount_percentage && (
-                                            <span className="text-red-600 font-bold">-{offer.discount_percentage}%</span>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </>
                 )}
