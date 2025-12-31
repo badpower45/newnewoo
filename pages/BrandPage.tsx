@@ -148,6 +148,7 @@ const BrandPage = () => {
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'all' | 'offers'>('all');
+    const [otherBrands, setOtherBrands] = useState<any[]>([]);
     const [isFavorite, setIsFavorite] = useState(false);
     const siteUrl = getSiteUrl();
     const canonicalUrl = `${siteUrl}/brand/${encodeURIComponent(brandName || '')}`;
@@ -264,8 +265,24 @@ const BrandPage = () => {
     useEffect(() => {
         if (brandName) {
             loadBrandData();
+            loadOtherBrands();
         }
     }, [brandName, selectedBranch]);
+
+    const loadOtherBrands = async () => {
+        try {
+            const response = await api.brands.getAll();
+            const allBrands = Array.isArray(response) ? response : response.data || [];
+            // Filter out current brand and get random 6 brands
+            const filtered = allBrands.filter((b: any) => {
+                const slug = slugify(brandName || '');
+                return slugify(b.name_en) !== slug && slugify(b.name_ar) !== slug;
+            });
+            setOtherBrands(filtered.slice(0, 6));
+        } catch (error) {
+            console.error('Error loading other brands:', error);
+        }
+    };
 
     useEffect(() => {
         if (!brand) return;
@@ -712,27 +729,29 @@ const BrandPage = () => {
                     براندات أخرى
                 </h3>
                 <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
-                    {Object.values(BRANDS_DATA)
-                        .filter(b => b.id !== brand.id)
-                        .map(b => (
+                    {otherBrands.map((b: any) => {
+                        const brandSlug = slugify(b.name_en || b.name_ar || b.name);
+                        return (
                             <Link
                                 key={b.id}
-                                to={`/brand/${b.id}`}
-                                className="flex-shrink-0 bg-white rounded-2xl p-4 shadow-sm border hover:shadow-md transition w-32"
+                                to={`/brand/${brandSlug}`}
+                                className="flex-shrink-0 w-32 bg-white rounded-xl p-3 border border-gray-100 hover:shadow-md transition-all duration-200 hover:-translate-y-1"
                             >
-                                <div className="w-16 h-16 mx-auto mb-2 rounded-xl overflow-hidden bg-gray-50 flex items-center justify-center p-2">
-                                    <img 
-                                        src={b.logo}
-                                        alt={b.name}
-                                        className="max-w-full max-h-full object-contain"
-                                        onError={(e) => {
-                                            (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${b.nameEn}&size=64&background=random`;
-                                        }}
-                                    />
+                                <div className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg mb-2 flex items-center justify-center overflow-hidden">
+                                    {b.logo_url || b.logo ? (
+                                        <img src={b.logo_url || b.logo} alt={b.name_ar || b.name} className="w-full h-full object-contain" />
+                                    ) : (
+                                        <span className="text-2xl font-bold text-gray-400">
+                                            {(b.name_ar || b.name || '').charAt(0)}
+                                        </span>
+                                    )}
                                 </div>
-                                <p className="text-center text-sm font-medium text-gray-800">{b.name}</p>
+                                <h4 className="text-xs font-semibold text-gray-800 text-center truncate">
+                                    {b.name_ar || b.name}
+                                </h4>
                             </Link>
-                        ))}
+                        );
+                    })}
                 </div>
             </div>
 

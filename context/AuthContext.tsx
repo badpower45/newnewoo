@@ -173,7 +173,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     // Check if user needs to complete phone number (phone should exist and not be empty)
-    const needsPhoneNumber = !!user && !user.isGuest && (!user.phone || user.phone.trim() === '');
+    const needsPhoneNumber = !!user && !user.isGuest && !user.profileCompleted && (!user.phone || user.phone.trim() === '');
 
     return (
         <AuthContext.Provider value={{ 

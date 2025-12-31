@@ -30,11 +30,16 @@ const CompleteProfilePage = () => {
             });
 
             if (response.success) {
-                // Update local user data
-                updateUser({ phone: phone });
+                // Update local user data with profileCompleted flag
+                updateUser({ 
+                    phone: phone,
+                    profileCompleted: true 
+                });
                 
-                // Redirect to home page
-                navigate('/', { replace: true });
+                // Force reload to update needsPhoneNumber state
+                setTimeout(() => {
+                    navigate('/', { replace: true });
+                }, 100);
             } else {
                 setError(response.message || 'حدث خطأ أثناء تحديث البيانات');
             }

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ChevronLeft, Loader2, Facebook, KeyRound, Eye, EyeOff, Mail, Lock, LogIn } from 'lucide-react';
+import { ChevronLeft, Loader2, KeyRound, Eye, EyeOff, Mail, Lock, LogIn } from 'lucide-react';
 import { api } from '../services/api';
 import { supabaseAuth } from '../services/supabaseAuth';
 import CompleteProfileModal from '../components/CompleteProfileModal';
@@ -281,24 +281,11 @@ const LoginPage = () => {
                     <div className="flex-1 border-t border-gray-300"></div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                    <button
-                        onClick={handleFacebookLogin}
-                        disabled={socialLoading !== null}
-                        className="group relative overflow-hidden flex items-center justify-center gap-2 py-4 border-2 border-gray-200 rounded-2xl hover:border-blue-400 hover:bg-blue-50 transition-all disabled:opacity-50 bg-white/50 backdrop-blur-sm"
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/0 to-blue-600/0 group-hover:from-blue-600/10 group-hover:to-blue-400/10 transition-all"></div>
-                        {socialLoading === 'facebook' ? (
-                            <Loader2 size={22} className="animate-spin text-blue-600" />
-                        ) : (
-                            <Facebook size={22} className="text-blue-600" />
-                        )}
-                        <span className="font-semibold text-gray-700 relative z-10">Facebook</span>
-                    </button>
+                <div className="mb-6">
                     <button
                         onClick={handleGoogleLogin}
                         disabled={socialLoading !== null}
-                        className="group relative overflow-hidden flex items-center justify-center gap-2 py-4 border-2 border-gray-200 rounded-2xl hover:border-red-400 hover:bg-red-50 transition-all disabled:opacity-50 bg-white/50 backdrop-blur-sm"
+                        className="group relative overflow-hidden flex items-center justify-center gap-2 py-4 border-2 border-gray-200 rounded-2xl hover:border-red-400 hover:bg-red-50 transition-all disabled:opacity-50 bg-white/50 backdrop-blur-sm w-full"
                     >
                         <div className="absolute inset-0 bg-gradient-to-r from-red-600/0 to-red-600/0 group-hover:from-red-600/10 group-hover:to-red-400/10 transition-all"></div>
                         {socialLoading === 'google' ? (
