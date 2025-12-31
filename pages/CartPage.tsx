@@ -65,9 +65,9 @@ const CartPage = () => {
 
     if (items.length === 0) {
         return (
-            <div className="min-h-screen bg-[#f9fafb] flex items-center justify-center p-4">
+            <div className="min-h-screen bg-[#f9fafb] flex items-center justify-center">
                 <div
-                    className="relative w-full max-w-4xl aspect-video overflow-hidden rounded-3xl shadow-2xl"
+                    className="relative w-full h-[70vh] overflow-hidden"
                     style={{ background: 'linear-gradient(135deg,#fff7ed,#f3f4f6)' }}
                 >
                     <iframe

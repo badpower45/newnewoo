@@ -58,6 +58,7 @@ router.post('/delivery-staff', [verifyToken, isAdmin], async (req, res) => {
         }
         await query('BEGIN');
 
+        const normalizedEmail = (email || '').trim().toLowerCase();
         const hashedPassword = bcrypt.hashSync(password, 8);
         
         // إنشاء المستخدم أولاً
@@ -66,7 +67,7 @@ router.post('/delivery-staff', [verifyToken, isAdmin], async (req, res) => {
             VALUES ($1, $2, $3, 'delivery')
             RETURNING id
         `;
-        const { rows: userRows } = await query(userSql, [name, email, hashedPassword]);
+        const { rows: userRows } = await query(userSql, [name, normalizedEmail, hashedPassword]);
         const userId = userRows[0].id;
         
         // إنشاء سجل موظف التوصيل
@@ -100,7 +101,7 @@ router.post('/delivery-staff', [verifyToken, isAdmin], async (req, res) => {
 // تحديث موظف توصيل
 router.put('/delivery-staff/:id', [verifyToken, isAdmin], async (req, res) => {
     const { id } = req.params;
-    const { name, phone, phone2, branchIds, maxOrders, isAvailable } = req.body;
+    const { name, email, password, phone, phone2, branchIds, maxOrders, isAvailable } = req.body;
     
     try {
         await query('BEGIN');
@@ -121,6 +122,28 @@ router.put('/delivery-staff/:id', [verifyToken, isAdmin], async (req, res) => {
         if (rows.length === 0) {
             await query('ROLLBACK');
             return res.status(404).json({ error: 'Delivery staff not found' });
+        }
+
+        // تحديث بيانات المستخدم المرتبطة (الايميل/الباسورد)
+        if (email || password) {
+            const updates = [];
+            const params = [];
+            let idx = 1;
+            if (email) {
+                updates.push(`email = $${idx++}`);
+                params.push((email || '').trim().toLowerCase());
+            }
+            if (password) {
+                if (password.length < 4) {
+                    await query('ROLLBACK');
+                    return res.status(400).json({ error: 'كلمة المرور يجب أن تكون 4 أحرف على الأقل' });
+                }
+                updates.push(`password = $${idx++}`);
+                params.push(bcrypt.hashSync(password, 8));
+            }
+            params.push(rows[0].user_id);
+            const userSql = `UPDATE users SET ${updates.join(', ')} WHERE id = $${params.length}`;
+            await query(userSql, params);
         }
         
         // تحديث الفروع إذا تم تمريرها

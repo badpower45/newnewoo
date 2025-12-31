@@ -156,10 +156,11 @@ app.post('/api/auth/register', async (req, res) => {
 
 // Login
 app.post('/api/auth/login', async (req, res) => {
-    const { email, password } = req.body;
+    const normalizedEmail = (req.body.email || '').trim().toLowerCase();
+    const password = req.body.password;
 
     try {
-        const { rows } = await query('SELECT * FROM users WHERE email = $1', [email]);
+        const { rows } = await query('SELECT * FROM users WHERE LOWER(email) = LOWER($1)', [normalizedEmail]);
         if (!rows[0]) return res.status(404).json({ error: 'User not found' });
 
         const storedPassword = rows[0].password || '';
