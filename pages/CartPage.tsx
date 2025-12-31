@@ -67,8 +67,7 @@ const CartPage = () => {
         return (
             <div className="min-h-screen bg-[#f9fafb] flex items-center justify-center">
                 <div
-                    className="relative w-full h-[70vh] overflow-hidden"
-                    style={{ background: 'linear-gradient(135deg,#fff7ed,#f3f4f6)' }}
+                    className="relative w-full h-[70vh] overflow-hidden bg-white"
                 >
                     <iframe
                         src="https://player.vimeo.com/video/1150683918?background=1&autoplay=1&loop=1&muted=1&playsinline=1&controls=0&title=0&byline=0&portrait=0"
