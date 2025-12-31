@@ -4,6 +4,7 @@ import TopBar from '../components/TopBar';
 import Footer from '../components/Footer';
 import { api } from '../services/api';
 import { useCart } from '../context/CartContext';
+import { useBranch } from '../context/BranchContext';
 import { Flame, Plus, Clock, Loader, ChevronLeft, Percent, Zap } from 'lucide-react';
 
 interface HotDeal {
@@ -18,14 +19,18 @@ interface HotDeal {
     sold_quantity: number;
     end_time: string;
     is_flash_deal: boolean;
+    product_id?: number;
+    branch_id?: number;
 }
 
 const DealsPage = () => {
     const { addToCart } = useCart();
+    const { selectedBranch } = useBranch();
     const [deals, setDeals] = useState<HotDeal[]>([]);
     const [flashDeal, setFlashDeal] = useState<HotDeal | null>(null);
     const [loading, setLoading] = useState(true);
     const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
+    const [addingDealId, setAddingDealId] = useState<number | null>(null);
 
     useEffect(() => {
         loadDeals();
@@ -74,15 +79,48 @@ const DealsPage = () => {
         }
     };
 
-    const handleAddToCart = (deal: HotDeal) => {
-        addToCart({
-            id: `deal-${deal.id}`,
+    const handleAddToCart = async (deal: HotDeal) => {
+        setAddingDealId(deal.id);
+        const fallbackStock = Math.max(0, (deal.total_quantity ?? 0) - (deal.sold_quantity ?? 0));
+        let normalizedProduct: any = {
+            id: `hot-${deal.id}`,
             name: deal.name,
-            price: deal.price,
+            price: Number(deal.price ?? 0),
             image: deal.image,
-            category: 'عروض',
-            weight: ''
-        } as any, 1);
+            category: 'العروض الساخنة',
+            weight: '',
+            stock_quantity: fallbackStock || 1000
+        };
+
+        if (deal.product_id) {
+            try {
+                const productResponse = await api.products.getOne(String(deal.product_id), selectedBranch?.id);
+                const productData = (productResponse as any)?.data || productResponse || {};
+                normalizedProduct = {
+                    ...productData,
+                    id: String(productData.id ?? deal.product_id),
+                    name: productData.name || deal.name,
+                    price: Number(productData.price ?? deal.price ?? 0),
+                    image: productData.image || productData.image_url || deal.image,
+                    category: productData.category || 'العروض الساخنة',
+                    weight: productData.weight || '',
+                    stock_quantity: (productData.stock_quantity ?? productData.stockQuantity ?? fallbackStock) || 1000,
+                    reserved_quantity: productData.reserved_quantity ?? productData.reservedQuantity
+                };
+            } catch (err) {
+                console.warn('⚠️ استخدام بيانات العرض الساخن بدلاً من المنتج المرتبط بسبب خطأ في الطلب:', err);
+            }
+        }
+
+        try {
+            addToCart(normalizedProduct as any, 1);
+        } catch (err) {
+            console.error('Failed to add hot deal to cart:', err);
+        } finally {
+            setAddingDealId(null);
+        }
+
+        api.hotDeals.updateSold(deal.id, 1).catch(err => console.error('Failed to update sold quantity:', err));
     };
 
     return (
@@ -181,9 +219,14 @@ const DealsPage = () => {
 
                                         <button
                                             onClick={() => handleAddToCart(flashDeal)}
-                                            className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-xl hover:scale-105 transition-transform flex-shrink-0"
+                                            disabled={addingDealId === flashDeal.id}
+                                            className="w-14 h-14 bg-white rounded-xl flex items-center justify-center shadow-xl hover:scale-105 transition-transform flex-shrink-0 disabled:opacity-60"
                                         >
-                                            <Plus className="w-7 h-7 text-[#EF4444]" />
+                                            {addingDealId === flashDeal.id ? (
+                                                <Loader className="w-7 h-7 text-[#EF4444] animate-spin" />
+                                            ) : (
+                                                <Plus className="w-7 h-7 text-[#EF4444]" />
+                                            )}
                                         </button>
                                     </div>
                                 </div>
@@ -264,10 +307,20 @@ const DealsPage = () => {
                                         {/* Add Button */}
                                         <button
                                             onClick={() => handleAddToCart(deal)}
-                                            className="w-full py-2 bg-[#F97316] text-white rounded-xl flex items-center justify-center gap-1.5 shadow-sm hover:bg-[#ea580c] transition-all active:scale-95 text-sm font-medium"
+                                            disabled={addingDealId === deal.id}
+                                            className="w-full py-2 bg-[#F97316] text-white rounded-xl flex items-center justify-center gap-1.5 shadow-sm hover:bg-[#ea580c] transition-all active:scale-95 text-sm font-medium disabled:opacity-60"
                                         >
-                                            <Plus className="w-4 h-4" />
-                                            أضف للسلة
+                                            {addingDealId === deal.id ? (
+                                                <>
+                                                    <Loader className="w-4 h-4 animate-spin" />
+                                                    جاري الإضافة...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Plus className="w-4 h-4" />
+                                                    أضف للسلة
+                                                </>
+                                            )}
                                         </button>
                                     </div>
                                 </div>

@@ -89,20 +89,20 @@ const HotDealsPage = () => {
 
     const handleAddToCart = async (deal: HotDeal) => {
         setAddingDealId(deal.id);
-        try {
-            const fallbackStock = Math.max(0, (deal.total_quantity ?? 0) - (deal.sold_quantity ?? 0));
-            let normalizedProduct: any = {
-                id: `hot-${deal.id}`,
-                name: deal.name,
-                price: Number(deal.price ?? 0),
-                image: deal.image || '',
-                category: 'العروض الساخنة',
-                weight: '',
-                stock_quantity: fallbackStock || 1000
-            };
+        const fallbackStock = Math.max(0, (deal.total_quantity ?? 0) - (deal.sold_quantity ?? 0));
+        let normalizedProduct: any = {
+            id: `hot-${deal.id}`,
+            name: deal.name,
+            price: Number(deal.price ?? 0),
+            image: deal.image || '',
+            category: 'العروض الساخنة',
+            weight: '',
+            stock_quantity: fallbackStock || 1000
+        };
 
-            // لو العرض مربوط بمنتج، استعمل بيانات المنتج الفعلية
-            if (deal.product_id) {
+        // لو العرض مربوط بمنتج، استعمل بيانات المنتج الفعلية لكن بدون منع الإضافة لو فشل الطلب
+        if (deal.product_id) {
+            try {
                 const productResponse = await api.products.getOne(String(deal.product_id), selectedBranch?.id);
                 const productData = (productResponse as any)?.data || productResponse || {};
                 normalizedProduct = {
@@ -116,22 +116,24 @@ const HotDealsPage = () => {
                     stock_quantity: (productData.stock_quantity ?? productData.stockQuantity ?? fallbackStock) || 1000,
                     reserved_quantity: productData.reserved_quantity ?? productData.reservedQuantity
                 };
-            }
-
-            addToCart(normalizedProduct, 1);
-
-            // Update sold quantity
-            try {
-                await api.hotDeals.updateSold(deal.id, 1);
             } catch (err) {
-                console.error('Failed to update sold quantity:', err);
+                console.warn('⚠️ استخدام بيانات العرض الساخن بدلاً من المنتج المرتبط بسبب خطأ في الطلب:', err);
             }
+        }
+
+        try {
+            addToCart(normalizedProduct, 1);
         } catch (err) {
             console.error('Failed to add hot deal to cart:', err);
             alert('تعذر إضافة العرض للسلة حالياً. حاول مرة أخرى.');
         } finally {
             setAddingDealId(null);
         }
+
+        // حدث بيعي غير معطل لتجربة المستخدم
+        api.hotDeals.updateSold(deal.id, 1).catch(err => {
+            console.error('Failed to update sold quantity:', err);
+        });
     };
 
     return (
