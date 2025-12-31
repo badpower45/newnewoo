@@ -60,15 +60,27 @@ export const supabaseAuth = {
     return data.session;
   },
   getOrExchangeSessionFromCallback: async (code: string | null) => {
-    // Try to pull session from URL (works for PKCE code or implicit hash tokens)
+    // PKCE: code in query → exchange for session (stores it automatically)
+    if (code) {
+      return supabaseAuth.exchangeCodeForSession(code);
+    }
+
+    // Implicit flow (hash tokens) fallback: parse hash, set session manually
     if (typeof window !== 'undefined') {
       const hasHashTokens = window.location.hash?.includes('access_token');
       if (code || hasHashTokens) {
-        const { data, error } = await supabase.auth.getSessionFromUrl({ storeSession: true });
-        if (error) throw error;
-        return data.session;
+        const hash = window.location.hash.replace(/^#/, '');
+        const params = new URLSearchParams(hash);
+        const access_token = params.get('access_token');
+        const refresh_token = params.get('refresh_token');
+        if (access_token && refresh_token) {
+          const { data, error } = await supabase.auth.setSession({ access_token, refresh_token });
+          if (error) throw error;
+          return data.session;
+        }
       }
     }
+
     // Fallback: use existing session if present
     return supabaseAuth.getSession();
   }
