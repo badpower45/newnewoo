@@ -5,7 +5,8 @@ import { ProductGridSkeleton } from '../components/Skeleton';
 import { 
     Scan, Search, X, 
     SlidersHorizontal, Sparkles,
-    TrendingUp, Clock, Tag, ArrowUpDown
+    TrendingUp, Clock, Tag, ArrowUpDown,
+    Grid3X3
 } from 'lucide-react';
 import { api } from '../services/api';
 import { Product } from '../types';

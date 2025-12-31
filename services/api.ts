@@ -222,8 +222,23 @@ export const api = {
         // Public fetch for homepage
         getAll: async (options?: { all?: boolean }) => {
             const qs = options?.all ? '?all=true' : '';
-            const res = await fetch(`${API_URL}/hero-sections${qs}`, { headers: getHeaders() });
-            return res.json();
+            const token = localStorage.getItem('token');
+            const headers: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
+            const res = await fetch(`${API_URL}/hero-sections${qs}`, { headers });
+            const text = await res.text();
+            try {
+                const json = text ? JSON.parse(text) : {};
+                if (!res.ok) {
+                    throw new Error(json?.message || `Failed to load hero sections: ${res.status}`);
+                }
+                return json;
+            } catch (err) {
+                if (!res.ok) {
+                    throw err;
+                }
+                // Parsing failed
+                throw new Error('Invalid hero sections response');
+            }
         }
     },
     cart: {

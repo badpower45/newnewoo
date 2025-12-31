@@ -42,11 +42,12 @@ const HeroCarousel: React.FC = () => {
                 const response = await api.heroSections.getAll();
                 const payload = response?.data ?? response;
                 const list = Array.isArray(payload?.data) ? payload.data : Array.isArray(payload) ? payload : [];
-                const active = list.filter((s: HeroSection) => s.is_active);
+                const active = list.filter((s: HeroSection) => s.is_active !== false);
                 setHeroSections(active);
                 console.log('✅ Loaded', active.length, 'hero sections');
             } catch (error) {
-                console.error('❌ Error:', error);
+                console.error('❌ Error fetching hero sections:', error);
+                setHeroSections([]);
             } finally {
                 setLoading(false);
             }
