@@ -218,6 +218,14 @@ export const api = {
             return res.json();
         }
     },
+    heroSections: {
+        // Public fetch for homepage
+        getAll: async (options?: { all?: boolean }) => {
+            const qs = options?.all ? '?all=true' : '';
+            const res = await fetch(`${API_URL}/hero-sections${qs}`, { headers: getHeaders() });
+            return res.json();
+        }
+    },
     cart: {
         get: async (userId: string, branchId?: number) => {
             const branch = branchId || 1;

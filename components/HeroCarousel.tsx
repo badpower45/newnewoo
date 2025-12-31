@@ -21,6 +21,9 @@ interface HeroSection {
     button2_enabled: boolean;
     background_color: string;
     text_color: string;
+    is_active?: boolean;
+    show_on_mobile?: boolean;
+    show_on_desktop?: boolean;
 }
 
 const HeroCarousel: React.FC = () => {
@@ -36,12 +39,12 @@ const HeroCarousel: React.FC = () => {
         const fetchHeroSections = async () => {
             try {
                 console.log('🎬 Fetching hero sections...');
-                const response = await api.get('/hero-sections');
-                if (response.data.success && response.data.data) {
-                    const active = response.data.data.filter((s: HeroSection) => s.is_active);
-                    setHeroSections(active);
-                    console.log('✅ Loaded', active.length, 'hero sections');
-                }
+                const response = await api.heroSections.getAll();
+                const payload = response?.data ?? response;
+                const list = Array.isArray(payload?.data) ? payload.data : Array.isArray(payload) ? payload : [];
+                const active = list.filter((s: HeroSection) => s.is_active);
+                setHeroSections(active);
+                console.log('✅ Loaded', active.length, 'hero sections');
             } catch (error) {
                 console.error('❌ Error:', error);
             } finally {

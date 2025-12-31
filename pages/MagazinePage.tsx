@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, ArrowRight, Loader, Percent, Tag, ShoppingBag, AlertCircle, Link2, BadgePercent } from 'lucide-react';
+import { ArrowLeft, Loader, Percent, Tag, ShoppingBag, AlertCircle, Link2, BadgePercent } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
+import { useCart } from '../context/CartContext';
+import { useBranch } from '../context/BranchContext';
 
 interface MagazineOffer {
     id: number;
@@ -19,9 +21,12 @@ interface MagazineOffer {
 
 const MagazinePage: React.FC = () => {
     const navigate = useNavigate();
+    const { addToCart } = useCart();
+    const { selectedBranch } = useBranch();
     const [offers, setOffers] = useState<MagazineOffer[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [addingOfferId, setAddingOfferId] = useState<number | null>(null);
 
     useEffect(() => {
         loadMagazineOffers();
@@ -46,6 +51,44 @@ const MagazinePage: React.FC = () => {
     const handleOpenProduct = (offer: MagazineOffer) => {
         if (offer.product_id) {
             navigate(`/product/${offer.product_id}`);
+        }
+    };
+
+    const handleAddToCart = async (offer: MagazineOffer) => {
+        setAddingOfferId(offer.id);
+        try {
+            let normalizedProduct: any = {
+                id: `mag-${offer.id}`,
+                name: offer.name,
+                price: Number(offer.price ?? 0),
+                image: offer.image || '',
+                category: offer.category || 'عروض المجلة',
+                weight: '',
+                stock_quantity: 1000
+            };
+
+            // إن وجد product_id نجلب بيانات المنتج الحقيقية لنفس سلوك المنتجات
+            if (offer.product_id) {
+                const productResponse = await api.products.getOne(String(offer.product_id), selectedBranch?.id);
+                const productData = (productResponse as any)?.data || productResponse || {};
+                normalizedProduct = {
+                    ...productData,
+                    id: String(productData.id ?? offer.product_id),
+                    name: productData.name || offer.name,
+                    price: Number(productData.price ?? offer.price ?? 0),
+                    image: productData.image || productData.image_url || offer.image || '',
+                    category: productData.category || offer.category || 'عروض المجلة',
+                    stock_quantity: productData.stock_quantity ?? productData.stockQuantity ?? 1000,
+                    reserved_quantity: productData.reserved_quantity ?? productData.reservedQuantity
+                };
+            }
+
+            addToCart(normalizedProduct, 1);
+        } catch (err) {
+            console.error('Failed to add magazine offer to cart:', err);
+            alert('تعذر إضافة المنتج للسلة حالياً. حاول مرة أخرى.');
+        } finally {
+            setAddingOfferId(null);
         }
     };
 
@@ -143,7 +186,7 @@ const MagazinePage: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    <div className="p-4 flex items-center justify-between">
+                                    <div className="p-4 flex items-center justify-between gap-3">
                                         <div>
                                             <div className="flex items-baseline gap-1">
                                                 <span className="text-2xl font-bold text-gray-900">{offer.price}</span>
@@ -155,17 +198,33 @@ const MagazinePage: React.FC = () => {
                                             <p className="text-xs text-gray-500 mt-1">{offer.unit || 'وحدة'}</p>
                                         </div>
 
-                                        <button
-                                            onClick={() => handleOpenProduct(offer)}
-                                            disabled={!offer.product_id}
-                                            className={`px-4 py-2 rounded-xl font-semibold text-sm transition-colors shadow-sm ${
-                                                offer.product_id
-                                                    ? 'bg-orange-500 text-white hover:bg-orange-600'
-                                                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                            }`}
-                                        >
-                                            {offer.product_id ? 'عرض المنتج' : 'عرض بدون ربط'}
-                                        </button>
+                                        <div className="flex flex-col items-end gap-2">
+                                            <button
+                                                onClick={() => handleAddToCart(offer)}
+                                                disabled={addingOfferId === offer.id}
+                                                className={`px-4 py-2 rounded-xl font-semibold text-sm transition-colors shadow-sm flex items-center gap-2 ${
+                                                    'bg-orange-500 text-white hover:bg-orange-600 disabled:bg-orange-300'
+                                                }`}
+                                            >
+                                                {addingOfferId === offer.id ? (
+                                                    <Loader className="w-4 h-4 animate-spin" />
+                                                ) : (
+                                                    <ShoppingBag size={16} />
+                                                )}
+                                                <span>أضف للسلة</span>
+                                            </button>
+                                            <button
+                                                onClick={() => handleOpenProduct(offer)}
+                                                disabled={!offer.product_id}
+                                                className={`text-xs font-semibold ${
+                                                    offer.product_id
+                                                        ? 'text-orange-600 hover:text-orange-700'
+                                                        : 'text-gray-400 cursor-not-allowed'
+                                                }`}
+                                            >
+                                                {offer.product_id ? 'عرض المنتج' : 'بدون ربط بمنتج'}
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             ))}

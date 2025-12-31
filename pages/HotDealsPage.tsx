@@ -3,6 +3,7 @@ import { ArrowRight, Filter, Flame, Plus, Loader } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { useCart } from '../context/CartContext';
+import { useBranch } from '../context/BranchContext';
 
 interface HotDeal {
     id: number;
@@ -18,11 +19,13 @@ interface HotDeal {
     time_remaining: number;
     is_flash_deal: boolean;
     product_id?: number;
+    branch_id?: number;
 }
 
 const HotDealsPage = () => {
     const navigate = useNavigate();
     const { addToCart } = useCart();
+    const { selectedBranch } = useBranch();
     const [deals, setDeals] = useState<HotDeal[]>([]);
     const [flashDeal, setFlashDeal] = useState<HotDeal | null>(null);
     const [loading, setLoading] = useState(true);
@@ -31,6 +34,7 @@ const HotDealsPage = () => {
         minutes: 0,
         seconds: 0
     });
+    const [addingDealId, setAddingDealId] = useState<number | null>(null);
 
     useEffect(() => {
         loadData();
@@ -84,36 +88,50 @@ const HotDealsPage = () => {
     };
 
     const handleAddToCart = async (deal: HotDeal) => {
-        // Check if product_id exists - if not, show alert
-        if (!deal.product_id) {
-            alert('هذا العرض غير مرتبط بمنتج. يرجى ربطه بمنتج من المخزون.');
-            return;
-        }
-        
-        const product = {
-            id: deal.product_id,
-            name: deal.name,
-            price: deal.price,
-            image: deal.image,
-            category: 'عروض',
-            weight: '',
-            stock_quantity: deal.total_quantity - deal.sold_quantity
-        };
-        addToCart(product as any, 1);
-
-        // Update sold quantity
+        setAddingDealId(deal.id);
         try {
-            await api.hotDeals.updateSold(deal.id, 1);
+            const fallbackStock = Math.max(0, (deal.total_quantity ?? 0) - (deal.sold_quantity ?? 0));
+            let normalizedProduct: any = {
+                id: `hot-${deal.id}`,
+                name: deal.name,
+                price: Number(deal.price ?? 0),
+                image: deal.image || '',
+                category: 'العروض الساخنة',
+                weight: '',
+                stock_quantity: fallbackStock || 1000
+            };
+
+            // لو العرض مربوط بمنتج، استعمل بيانات المنتج الفعلية
+            if (deal.product_id) {
+                const productResponse = await api.products.getOne(String(deal.product_id), selectedBranch?.id);
+                const productData = (productResponse as any)?.data || productResponse || {};
+                normalizedProduct = {
+                    ...productData,
+                    id: String(productData.id ?? deal.product_id),
+                    name: productData.name || deal.name,
+                    price: Number(productData.price ?? deal.price ?? 0),
+                    image: productData.image || productData.image_url || deal.image || '',
+                    category: productData.category || 'العروض الساخنة',
+                    weight: productData.weight || '',
+                    stock_quantity: productData.stock_quantity ?? productData.stockQuantity ?? fallbackStock || 1000,
+                    reserved_quantity: productData.reserved_quantity ?? productData.reservedQuantity
+                };
+            }
+
+            addToCart(normalizedProduct, 1);
+
+            // Update sold quantity
+            try {
+                await api.hotDeals.updateSold(deal.id, 1);
+            } catch (err) {
+                console.error('Failed to update sold quantity:', err);
+            }
         } catch (err) {
-            console.error('Failed to update sold quantity:', err);
+            console.error('Failed to add hot deal to cart:', err);
+            alert('تعذر إضافة العرض للسلة حالياً. حاول مرة أخرى.');
+        } finally {
+            setAddingDealId(null);
         }
-        
-        // Show success toast
-        const toast = document.createElement('div');
-        toast.className = 'fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-bounce';
-        toast.innerHTML = '<span class="font-bold">✓ تمت الإضافة للسلة</span>';
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 2000);
     };
 
     return (
@@ -214,9 +232,14 @@ const HotDealsPage = () => {
                                     </div>
                                     <button
                                         onClick={() => handleAddToCart(flashDeal)}
-                                        className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-transform"
+                                        disabled={addingDealId === flashDeal.id}
+                                        className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg hover:scale-105 transition-transform disabled:opacity-50"
                                     >
-                                        <Plus className="w-6 h-6 text-[#EF4444]" />
+                                        {addingDealId === flashDeal.id ? (
+                                            <Loader className="w-6 h-6 text-[#EF4444] animate-spin" />
+                                        ) : (
+                                            <Plus className="w-6 h-6 text-[#EF4444]" />
+                                        )}
                                     </button>
                                 </div>
                             </div>
@@ -301,10 +324,15 @@ const HotDealsPage = () => {
                                         {/* Add Button - Hot Style */}
                                         <button 
                                             onClick={() => handleAddToCart(deal)}
-                                            className="w-full py-2.5 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-full flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:from-orange-700 hover:to-red-700 transition-all active:scale-95 font-bold"
+                                            disabled={addingDealId === deal.id}
+                                            className="w-full py-2.5 bg-gradient-to-r from-orange-600 to-red-600 text-white rounded-full flex items-center justify-center gap-2 shadow-lg hover:shadow-xl hover:from-orange-700 hover:to-red-700 transition-all active:scale-95 font-bold disabled:opacity-50"
                                         >
-                                            <Plus className="w-4 h-4" />
-                                            <span>اشتري الآن</span>
+                                            {addingDealId === deal.id ? (
+                                                <Loader className="w-4 h-4 animate-spin" />
+                                            ) : (
+                                                <Plus className="w-4 h-4" />
+                                            )}
+                                            <span>{addingDealId === deal.id ? 'جارٍ الإضافة...' : 'اشتري الآن'}</span>
                                         </button>
                                     </div>
                                 </div>
