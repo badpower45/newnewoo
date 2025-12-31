@@ -42,6 +42,8 @@ export const supabaseAuth = {
       provider: 'google',
       options: {
         redirectTo: defaultAuthRedirect(),
+        // Use PKCE flow so we receive a `code` in the callback (matches AuthCallbackPage logic)
+        flowType: 'pkce',
         queryParams: {
           access_type: 'offline',
           prompt: 'consent'
