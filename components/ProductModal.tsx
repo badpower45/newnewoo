@@ -81,7 +81,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
-            <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto animate-slideUp">
+            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto animate-slideUp">
                 {/* Header */}
                 <div className="relative">
                     <button
@@ -92,7 +92,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
                     </button>
 
                     {/* Product Image */}
-                    <div className="relative h-64 bg-gradient-to-br from-gray-100 to-gray-200">
+                    <div className="relative h-52 bg-gray-100">
                         <img
                             src={product.image}
                             alt={product.name}
@@ -115,10 +115,10 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
                 </div>
 
                 {/* Content */}
-                <div className="p-6 space-y-4">
+                <div className="p-4 space-y-3">
                     {/* Product Name */}
                     <div>
-                        <h2 className="text-2xl font-bold text-gray-900 mb-2">{product.name}</h2>
+                        <h2 className="text-xl font-bold text-gray-900 mb-1">{product.name}</h2>
                         {product.category && (
                             <div className="flex items-center gap-2 text-sm text-gray-600">
                                 <Tag size={16} />
@@ -152,9 +152,9 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
                     )}
 
                     {/* Product Info */}
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-2">
                         {product.weight && (
-                            <div className="bg-gray-50 rounded-xl p-3">
+                            <div className="bg-gray-50 rounded-lg p-3">
                                 <div className="flex items-center gap-2 text-gray-600 mb-1">
                                     <Package size={16} />
                                     <span className="text-xs font-medium">الحجم</span>
@@ -163,7 +163,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
                             </div>
                         )}
                         {product.barcode && (
-                            <div className="bg-gray-50 rounded-xl p-3">
+                            <div className="bg-gray-50 rounded-lg p-3">
                                 <div className="flex items-center gap-2 text-gray-600 mb-1">
                                     <Tag size={16} />
                                     <span className="text-xs font-medium">الباركود</span>
@@ -172,7 +172,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
                             </div>
                         )}
                         {product.expiry_date && (
-                            <div className="bg-gray-50 rounded-xl p-3 col-span-2">
+                            <div className="bg-gray-50 rounded-lg p-3 col-span-2">
                                 <div className="flex items-center gap-2 text-gray-600 mb-1">
                                     <Clock size={16} />
                                     <span className="text-xs font-medium">تاريخ الانتهاء</span>
@@ -185,7 +185,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
                     </div>
 
                     {/* Stock Status */}
-                    <div className={`p-3 rounded-xl ${stockQty > 10 ? 'bg-green-50' : stockQty > 0 ? 'bg-yellow-50' : 'bg-red-50'}`}>
+                    <div className={`p-3 rounded-lg ${stockQty > 10 ? 'bg-green-50' : stockQty > 0 ? 'bg-yellow-50' : 'bg-red-50'}`}>
                         <p className={`text-sm font-medium ${stockQty > 10 ? 'text-green-700' : stockQty > 0 ? 'text-yellow-700' : 'text-red-700'}`}>
                             {stockQty > 10 
                                 ? '✅ متوفر' 
@@ -196,26 +196,26 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
                     </div>
 
                     {/* Price */}
-                    <div className="bg-gradient-to-r from-brand-orange/10 to-orange-100 rounded-2xl p-4">
+                    <div className="bg-white border border-gray-100 rounded-xl p-3 shadow-sm">
                         {finalPrice > 0 ? (
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm text-gray-600 mb-1">السعر</p>
+                                    <p className="text-xs text-gray-600 mb-1">السعر</p>
                                     <div className="flex items-baseline gap-2">
-                                        <span className="text-3xl font-bold text-brand-orange">
+                                        <span className="text-2xl font-bold text-brand-orange">
                                             {finalPrice.toFixed(2)} جنيه
                                         </span>
                                         {hasDiscount && (
-                                            <span className="text-lg text-gray-500 line-through">
+                                            <span className="text-sm text-gray-500 line-through">
                                                 {productPrice.toFixed(2)}
                                             </span>
                                         )}
                                     </div>
                                 </div>
                                 {hasDiscount && (
-                                    <div className="bg-red-500 text-white px-3 py-2 rounded-xl">
+                                    <div className="bg-red-500 text-white px-3 py-2 rounded-lg text-center">
                                         <p className="text-xs">توفر</p>
-                                        <p className="text-lg font-bold">
+                                        <p className="text-sm font-bold">
                                             {(productPrice - productDiscountPrice).toFixed(2)} جنيه
                                         </p>
                                     </div>
@@ -230,22 +230,22 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
                     </div>
 
                     {/* Quantity Selector */}
-                    <div className="flex items-center justify-between bg-gray-50 rounded-2xl p-4">
+                    <div className="flex items-center justify-between bg-gray-50 rounded-xl p-3">
                         <span className="text-gray-700 font-medium">الكمية</span>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3">
                             <button
                                 onClick={decrementQuantity}
-                                className="w-10 h-10 rounded-full bg-white shadow-md hover:shadow-lg transition-all flex items-center justify-center text-gray-700 hover:text-brand-orange disabled:opacity-50"
+                                className="w-9 h-9 rounded-full bg-white shadow hover:shadow-md transition-all flex items-center justify-center text-gray-700 hover:text-brand-orange disabled:opacity-50"
                                 disabled={quantity <= 1}
                             >
                                 <Minus size={20} />
                             </button>
-                            <span className="text-2xl font-bold text-gray-900 w-12 text-center">
+                            <span className="text-xl font-bold text-gray-900 w-10 text-center">
                                 {quantity}
                             </span>
                             <button
                                 onClick={incrementQuantity}
-                                className="w-10 h-10 rounded-full bg-white shadow-md hover:shadow-lg transition-all flex items-center justify-center text-gray-700 hover:text-brand-orange disabled:opacity-50"
+                                className="w-9 h-9 rounded-full bg-white shadow hover:shadow-md transition-all flex items-center justify-center text-gray-700 hover:text-brand-orange disabled:opacity-50"
                                 disabled={quantity >= stockQty}
                             >
                                 <Plus size={20} />
@@ -255,10 +255,10 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
 
                     {/* Total */}
                     {finalPrice > 0 && (
-                        <div className="bg-gray-900 text-white rounded-2xl p-4">
+                        <div className="bg-gray-900 text-white rounded-xl p-3">
                             <div className="flex items-center justify-between">
-                                <span className="text-lg">الإجمالي</span>
-                                <span className="text-2xl font-bold">
+                                <span className="text-base">الإجمالي</span>
+                                <span className="text-xl font-bold">
                                     {(finalPrice * quantity).toFixed(2)} جنيه
                                 </span>
                             </div>
