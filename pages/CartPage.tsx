@@ -86,8 +86,17 @@ const CartPage = () => {
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">Your cart is empty!</h2>
                     <p className="text-gray-500 mb-8">Ready to shop? Your cart is waiting.</p>
 
-                    <div className="w-64 h-64 bg-gray-50 rounded-full flex items-center justify-center mb-8 relative">
-                        <ShoppingCart size={80} className="text-gray-300" />
+                    <div className="w-full max-w-md mb-8">
+                        <div className="relative w-full" style={{ paddingTop: '100%' }}>
+                            <iframe
+                                src="https://player.vimeo.com/video/1150683918?badge=0&autopause=0&player_id=0&app_id=58479"
+                                className="absolute inset-0 w-full h-full rounded-2xl shadow-lg"
+                                allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
+                                referrerPolicy="strict-origin-when-cross-origin"
+                                allowFullScreen
+                                title="Cart empty video"
+                            />
+                        </div>
                     </div>
                 </div>
 
