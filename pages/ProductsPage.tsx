@@ -14,6 +14,7 @@ import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-do
 import { useBranch } from '../context/BranchContext';
 import Seo, { getSiteUrl } from '../components/Seo';
 import { useCart } from '../context/CartContext';
+import { CATEGORIES } from '../data/mockData';
 
 const SORT_OPTIONS = [
     { id: 'newest', name: 'الأحدث', icon: Clock },
