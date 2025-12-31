@@ -275,6 +275,29 @@ const OrdersManager = () => {
                     </div>
                 </div>
             )}
+
+            {/* سبب الإلغاء / الرفض */}
+            {reasonModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-xl shadow-lg p-5 w-full max-w-sm text-right">
+                        <div className="flex items-start justify-between mb-3">
+                            <div>
+                                <p className="text-xs text-gray-500">سبب الإلغاء</p>
+                                <p className="text-lg font-bold text-gray-900">طلب #{reasonModal.orderId}</p>
+                            </div>
+                            <button
+                                onClick={() => setReasonModal(null)}
+                                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full"
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
+                        <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
+                            {reasonModal.reason || 'لا يوجد سبب مسجل'}
+                        </p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
