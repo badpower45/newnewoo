@@ -949,9 +949,14 @@ export const api = {
     // Magazine Offers API
     magazine: {
         // جلب جميع العروض
-        getAll: async (category?: string) => {
+        getAll: async (category?: string, brandId?: number) => {
             let url = `${API_URL}/magazine`;
-            if (category) url += `?category=${encodeURIComponent(category)}`;
+            const params = [];
+            if (category) params.push(`category=${encodeURIComponent(category)}`);
+            if (brandId) params.push(`brandId=${brandId}`);
+            if (params.length) {
+                url += `?${params.join('&')}`;
+            }
             const res = await fetch(url, { headers: getHeaders() });
             return res.json();
         },

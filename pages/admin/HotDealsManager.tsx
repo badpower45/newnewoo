@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Edit2, Trash2, Loader, Flame, Search, Clock, Bell, AlertCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader, Flame, Search, Clock, Bell, AlertCircle, ShoppingBag } from 'lucide-react';
 import { api } from '../../services/api';
 import { TableSkeleton } from '../../components/Skeleton';
 import { API_URL, CLOUDINARY_CONFIG } from '../../src/config';
@@ -39,6 +39,9 @@ const HotDealsManager = () => {
     const [sendPush, setSendPush] = useState(false);
     const [error, setError] = useState('');
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [products, setProducts] = useState<any[]>([]);
+    const [loadingProducts, setLoadingProducts] = useState(false);
+    const [addingProductId, setAddingProductId] = useState<string | null>(null);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -55,6 +58,7 @@ const HotDealsManager = () => {
 
     useEffect(() => {
         loadDeals();
+        loadProducts();
     }, []);
 
     const loadDeals = async () => {
@@ -69,6 +73,54 @@ const HotDealsManager = () => {
             setError('فشل تحميل العروض الساخنة');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const loadProducts = async () => {
+        setLoadingProducts(true);
+        try {
+            const res = await fetch(`${API_URL}/products?includeAllBranches=true&limit=300`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('token') || ''}`
+                }
+            });
+            const data = await res.json();
+            const list = Array.isArray(data) ? data : data?.data || [];
+            setProducts(list);
+        } catch (err) {
+            console.error('Failed to load products for hot deals quick add:', err);
+        } finally {
+            setLoadingProducts(false);
+        }
+    };
+
+    const handleQuickAddProduct = async (product: any) => {
+        setAddingProductId(product.id);
+        try {
+            const discount = product.discount_price
+                ? Math.round(((product.price - product.discount_price) / product.price) * 100)
+                : 10;
+            await api.hotDeals.create({
+                name: product.name,
+                name_en: product.name_en || product.name,
+                price: product.discount_price || product.price || 0,
+                old_price: product.price || 0,
+                discount_percentage: discount,
+                image: product.image,
+                total_quantity: 100,
+                end_time: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // +1 day
+                is_flash_deal: false,
+                is_active: true,
+                product_id: product.id,
+                branch_id: product.branch_id || product.branchId || 1
+            });
+            loadDeals();
+        } catch (err) {
+            console.error('Quick add to hot deals failed:', err);
+            alert('فشل إضافة المنتج للعروض الساخنة');
+        } finally {
+            setAddingProductId(null);
         }
     };
 
@@ -383,6 +435,45 @@ const HotDealsManager = () => {
                         </table>
                     </div>
                 )}
+            </div>
+
+            {/* Quick Add from Products */}
+            <div className="mt-8 bg-white rounded-xl shadow-sm border border-gray-100">
+                <div className="p-4 border-b flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <ShoppingBag className="w-5 h-5 text-gray-600" />
+                        <h3 className="font-bold text-gray-900">كل المنتجات (إضافة سريعة للعروض الساخنة)</h3>
+                    </div>
+                    {loadingProducts && <span className="text-sm text-gray-500">...تحميل</span>}
+                </div>
+                <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[480px] overflow-y-auto">
+                    {products.map((p) => (
+                        <div key={p.id} className="border rounded-lg p-3 flex gap-3 items-center">
+                            <div className="w-14 h-14 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
+                                {p.image ? (
+                                    <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                                ) : (
+                                    <Flame className="w-6 h-6 text-gray-400" />
+                                )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="font-bold text-sm text-gray-900 line-clamp-1">{p.name}</p>
+                                <p className="text-xs text-gray-500">{p.category}</p>
+                                <p className="text-xs text-orange-600 font-bold">{Number(p.price || 0).toFixed(2)} ج.م</p>
+                            </div>
+                            <button
+                                onClick={() => handleQuickAddProduct(p)}
+                                disabled={addingProductId === p.id}
+                                className="text-sm px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition disabled:opacity-60"
+                            >
+                                {addingProductId === p.id ? '...' : 'أضف كعرض ساخن'}
+                            </button>
+                        </div>
+                    ))}
+                    {!loadingProducts && products.length === 0 && (
+                        <p className="text-sm text-gray-500">لا توجد منتجات متاحة.</p>
+                    )}
+                </div>
             </div>
 
             {/* Modal */}

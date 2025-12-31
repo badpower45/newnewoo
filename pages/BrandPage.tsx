@@ -10,6 +10,7 @@ import ProductCard from '../components/ProductCard';
 import TopBar from '../components/TopBar';
 import { api } from '../services/api';
 import { useBranch } from '../context/BranchContext';
+import { useCart } from '../context/CartContext';
 import Seo, { getSiteUrl } from '../components/Seo';
 
 // بيانات البراندات - يمكن نقلها لقاعدة البيانات لاحقاً
@@ -150,6 +151,10 @@ const BrandPage = () => {
     const [activeTab, setActiveTab] = useState<'all' | 'offers'>('all');
     const [otherBrands, setOtherBrands] = useState<any[]>([]);
     const [isFavorite, setIsFavorite] = useState(false);
+    const [magazineOffers, setMagazineOffers] = useState<any[]>([]);
+    const [loadingMagazine, setLoadingMagazine] = useState(false);
+    const [addingOfferId, setAddingOfferId] = useState<number | null>(null);
+    const { addToCart } = useCart();
     const siteUrl = getSiteUrl();
     const canonicalUrl = `${siteUrl}/brand/${encodeURIComponent(brandName || '')}`;
     const brandData = brand as any;
@@ -384,8 +389,64 @@ const BrandPage = () => {
             });
             
             setProducts(brandProducts);
+            await loadBrandMagazineOffers(brandInfo);
         } catch (err) {
             console.error('Failed to load brand products:', err);
+        }
+    };
+
+    const loadBrandMagazineOffers = async (brandInfo: any) => {
+        if (!brandInfo?.id) {
+            setMagazineOffers([]);
+            return;
+        }
+        setLoadingMagazine(true);
+        try {
+            const res = await api.magazine.getAll(undefined, brandInfo.id);
+            const data = Array.isArray(res) ? res : res?.data || [];
+            setMagazineOffers(data);
+        } catch (err) {
+            console.error('Failed to load brand magazine offers:', err);
+            setMagazineOffers([]);
+        } finally {
+            setLoadingMagazine(false);
+        }
+    };
+
+    const handleAddMagazineOffer = async (offer: any) => {
+        setAddingOfferId(offer.id);
+        try {
+            let normalizedProduct: any = {
+                id: `mag-${offer.id}`,
+                name: offer.name,
+                price: Number(offer.price ?? 0),
+                image: offer.image || '',
+                category: offer.category || 'عروض المجلة',
+                weight: offer.unit || 'وحدة',
+                stock_quantity: 1000
+            };
+
+            if (offer.product_id) {
+                const productResponse = await api.products.getOne(String(offer.product_id), selectedBranch?.id);
+                const productData = (productResponse as any)?.data || productResponse || {};
+                normalizedProduct = {
+                    ...productData,
+                    id: String(productData.id ?? offer.product_id),
+                    name: productData.name || offer.name,
+                    price: Number(productData.price ?? offer.price ?? 0),
+                    image: productData.image || productData.image_url || offer.image || '',
+                    category: productData.category || offer.category || 'عروض المجلة',
+                    stock_quantity: productData.stock_quantity ?? productData.stockQuantity ?? 1000,
+                    reserved_quantity: productData.reserved_quantity ?? productData.reservedQuantity
+                };
+            }
+
+            await addToCart(normalizedProduct, 1);
+        } catch (err) {
+            console.error('Failed to add magazine offer to cart:', err);
+            alert('تعذر إضافة العرض للسلة حالياً.');
+        } finally {
+            setAddingOfferId(null);
         }
     };
 
@@ -688,6 +749,68 @@ const BrandPage = () => {
 
             {/* Products Grid */}
             <div className="max-w-7xl mx-auto px-4 py-6">
+                {activeTab === 'offers' && (
+                    <div className="mb-6">
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                                <BadgePercent size={18} className="text-orange-500" />
+                                عروض المجلة للبراند
+                            </h3>
+                            {loadingMagazine && <span className="text-xs text-gray-500">...تحميل</span>}
+                        </div>
+                        {loadingMagazine ? (
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                {[...Array(3)].map((_, i) => (
+                                    <div key={i} className="bg-white border rounded-xl p-3 animate-pulse">
+                                        <div className="aspect-square bg-gray-100 rounded-lg mb-2" />
+                                        <div className="h-3 bg-gray-100 rounded mb-1" />
+                                        <div className="h-3 bg-gray-100 rounded w-1/2" />
+                                    </div>
+                                ))}
+                            </div>
+                        ) : magazineOffers.length === 0 ? (
+                            <p className="text-sm text-gray-500">لا توجد عروض مجلة لهذا البراند حالياً.</p>
+                        ) : (
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                {magazineOffers.map((offer: any) => (
+                                    <div key={offer.id} className="bg-white border rounded-xl p-3 shadow-sm flex flex-col">
+                                        <div className="aspect-square bg-gray-50 rounded-lg flex items-center justify-center mb-2 overflow-hidden">
+                                            <img
+                                                src={offer.image || 'https://placehold.co/200x200?text=Offer'}
+                                                alt={offer.name}
+                                                className="w-full h-full object-contain"
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).src = 'https://placehold.co/200x200?text=Offer';
+                                                }}
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-xs text-gray-500">{offer.category || 'عرض'}</p>
+                                            <h4 className="text-sm font-bold text-gray-900 line-clamp-2">{offer.name}</h4>
+                                            <div className="flex items-baseline gap-1">
+                                                <span className="text-lg font-bold text-orange-600">{Number(offer.price || 0).toFixed(2)}</span>
+                                                <span className="text-xs text-gray-500">جنيه</span>
+                                                {offer.old_price && (
+                                                    <span className="text-xs text-gray-400 line-through ml-auto">
+                                                        {Number(offer.old_price).toFixed(2)}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => handleAddMagazineOffer(offer)}
+                                            disabled={addingOfferId === offer.id}
+                                            className="mt-3 w-full py-2 rounded-lg text-sm font-bold text-white bg-orange-500 hover:bg-orange-600 transition disabled:opacity-60 disabled:cursor-not-allowed"
+                                        >
+                                            {addingOfferId === offer.id ? '...جاري الإضافة' : 'أضف للسلة'}
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+
                 {loading ? (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                         {[...Array(8)].map((_, i) => (

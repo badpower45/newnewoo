@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Loader, BookOpen, Search, Filter, AlertCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, Loader, BookOpen, Search, Filter, AlertCircle, ShoppingBag } from 'lucide-react';
 import { api } from '../../services/api';
 import { TableSkeleton } from '../../components/Skeleton';
+import { API_URL } from '../../src/config';
 
 interface MagazineOffer {
     id: number;
@@ -28,6 +29,9 @@ const MagazineManager = () => {
     const [filterCategory, setFilterCategory] = useState('all');
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
+    const [products, setProducts] = useState<any[]>([]);
+    const [loadingProducts, setLoadingProducts] = useState(false);
+    const [addingProductId, setAddingProductId] = useState<string | null>(null);
 
     const categories = ['جميع العروض', 'طازج', 'لحوم', 'ألبان', 'مشروبات', 'معلبات', 'منظفات'];
 
@@ -48,6 +52,7 @@ const MagazineManager = () => {
 
     useEffect(() => {
         loadOffers();
+        loadProducts();
     }, []);
 
     const loadOffers = async () => {
@@ -62,6 +67,49 @@ const MagazineManager = () => {
             setError('فشل تحميل عروض المجلة');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const loadProducts = async () => {
+        setLoadingProducts(true);
+        try {
+            const res = await fetch(`${API_URL}/products?includeAllBranches=true&limit=300`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem('token') || ''}`
+                }
+            });
+            const data = await res.json();
+            const list = Array.isArray(data) ? data : data?.data || [];
+            setProducts(list);
+        } catch (err) {
+            console.error('Failed to load products for magazine quick add:', err);
+        } finally {
+            setLoadingProducts(false);
+        }
+    };
+
+    const handleQuickAddProduct = async (product: any) => {
+        setAddingProductId(product.id);
+        try {
+            await api.magazine.create({
+                name: product.name,
+                name_en: product.name_en || product.name,
+                price: product.price || 0,
+                old_price: product.discount_price || product.price || 0,
+                unit: product.weight || 'قطعة',
+                discount_percentage: product.discount_price ? Math.round(((product.price - product.discount_price) / product.price) * 100) : null,
+                image: product.image,
+                category: product.category || 'عروض',
+                product_id: product.id,
+                branch_id: product.branch_id || product.branchId || 1
+            });
+            loadOffers();
+        } catch (err) {
+            console.error('Quick add to magazine failed:', err);
+            alert('فشل إضافة المنتج للمجلة');
+        } finally {
+            setAddingProductId(null);
         }
     };
 
@@ -311,6 +359,45 @@ const MagazineManager = () => {
                         </table>
                     </div>
                 )}
+            </div>
+
+            {/* Quick Add from Products */}
+            <div className="mt-8 bg-white rounded-xl shadow-sm border border-gray-100">
+                <div className="p-4 border-b flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <ShoppingBag className="w-5 h-5 text-gray-600" />
+                        <h3 className="font-bold text-gray-900">كل المنتجات (إضافة سريعة للمجلة)</h3>
+                    </div>
+                    {loadingProducts && <span className="text-sm text-gray-500">...تحميل</span>}
+                </div>
+                <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[480px] overflow-y-auto">
+                    {products.map((p) => (
+                        <div key={p.id} className="border rounded-lg p-3 flex gap-3 items-center">
+                            <div className="w-14 h-14 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
+                                {p.image ? (
+                                    <img src={p.image} alt={p.name} className="w-full h-full object-cover" />
+                                ) : (
+                                    <BookOpen className="w-6 h-6 text-gray-400" />
+                                )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="font-bold text-sm text-gray-900 line-clamp-1">{p.name}</p>
+                                <p className="text-xs text-gray-500">{p.category}</p>
+                                <p className="text-xs text-orange-600 font-bold">{Number(p.price || 0).toFixed(2)} ج.م</p>
+                            </div>
+                            <button
+                                onClick={() => handleQuickAddProduct(p)}
+                                disabled={addingProductId === p.id}
+                                className="text-sm px-3 py-2 bg-[#F97316] text-white rounded-lg hover:bg-[#ea580c] transition disabled:opacity-60"
+                            >
+                                {addingProductId === p.id ? '...' : 'أضف للمجلة'}
+                            </button>
+                        </div>
+                    ))}
+                    {!loadingProducts && products.length === 0 && (
+                        <p className="text-sm text-gray-500">لا توجد منتجات متاحة.</p>
+                    )}
+                </div>
             </div>
 
             {/* Modal */}
