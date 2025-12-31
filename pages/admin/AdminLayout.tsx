@@ -81,6 +81,7 @@ const AdminLayout = () => {
                 { path: '/admin/stories', icon: <CircleDot size={20} />, label: 'الاستوريز', roles: ['admin', 'manager'] },
                 { path: '/admin/facebook-reels', icon: <Facebook size={20} />, label: 'الريلز', roles: ['admin', 'manager'] },
                 { path: '/admin/home-sections', icon: <LayoutGrid size={20} />, label: 'أقسام الرئيسية', roles: ['admin', 'manager'] },
+                { path: '/admin/hero-sections', icon: <LayoutGrid size={20} />, label: 'Hero Sections', roles: ['admin', 'manager'] },
             ]
         },
         {
