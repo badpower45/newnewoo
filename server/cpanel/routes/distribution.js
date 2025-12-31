@@ -1,6 +1,7 @@
 const express = require('express');
 const { query } = require('../database');
 const { verifyToken, isAdmin } = require('../middleware/auth');
+const bcrypt = require('bcryptjs');
 const { 
     notifyDriverNewOrder, 
     notifyCustomerOrderUpdate, 
@@ -52,7 +53,12 @@ router.post('/delivery-staff', [verifyToken, isAdmin], async (req, res) => {
     const { name, email, password, phone, phone2, branchIds, maxOrders } = req.body;
     
     try {
+        if (!password || password.length < 4) {
+            return res.status(400).json({ error: 'كلمة المرور مطلوبة ويجب أن تكون 4 أحرف على الأقل' });
+        }
         await query('BEGIN');
+
+        const hashedPassword = bcrypt.hashSync(password, 8);
         
         // إنشاء المستخدم أولاً
         const userSql = `
@@ -60,7 +66,7 @@ router.post('/delivery-staff', [verifyToken, isAdmin], async (req, res) => {
             VALUES ($1, $2, $3, 'delivery')
             RETURNING id
         `;
-        const { rows: userRows } = await query(userSql, [name, email, password]);
+        const { rows: userRows } = await query(userSql, [name, email, hashedPassword]);
         const userId = userRows[0].id;
         
         // إنشاء سجل موظف التوصيل

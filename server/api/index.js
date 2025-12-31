@@ -162,9 +162,22 @@ app.post('/api/auth/login', async (req, res) => {
         const { rows } = await query('SELECT * FROM users WHERE email = $1', [email]);
         if (!rows[0]) return res.status(404).json({ error: 'User not found' });
 
-        if (!bcrypt.compareSync(password, rows[0].password)) {
-            return res.status(401).json({ error: 'Invalid password' });
+        const storedPassword = rows[0].password || '';
+        const isHashed = storedPassword.startsWith('$2');
+        let passwordValid = false;
+
+        if (isHashed) {
+            passwordValid = bcrypt.compareSync(password, storedPassword);
+        } else {
+            // Legacy plain password fallback for delivery staff created without hashing
+            passwordValid = storedPassword === password;
+            if (passwordValid) {
+                const newHash = bcrypt.hashSync(password, 8);
+                await query('UPDATE users SET password = $1 WHERE id = $2', [newHash, rows[0].id]);
+            }
         }
+
+        if (!passwordValid) return res.status(401).json({ error: 'Invalid password' });
 
         const token = jwt.sign({ id: rows[0].id, role: rows[0].role }, JWT_SECRET, { expiresIn: '24h' });
         res.json({
