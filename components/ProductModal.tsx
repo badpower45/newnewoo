@@ -80,8 +80,8 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
     }
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
-            <div className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto animate-slideUp">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 animate-fadeIn">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm sm:max-w-md max-h-[80vh] overflow-y-auto animate-slideUp">
                 {/* Header */}
                 <div className="relative">
                     <button
@@ -92,7 +92,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
                     </button>
 
                     {/* Product Image */}
-                    <div className="relative h-52 bg-gray-100">
+                    <div className="relative h-44 bg-gray-100">
                         <img
                             src={product.image}
                             alt={product.name}
@@ -115,7 +115,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
                 </div>
 
                 {/* Content */}
-                <div className="p-4 space-y-3">
+                <div className="p-3 sm:p-4 space-y-3">
                     {/* Product Name */}
                     <div>
                         <h2 className="text-xl font-bold text-gray-900 mb-1">{product.name}</h2>
