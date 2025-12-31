@@ -113,7 +113,7 @@ const HotDealsPage = () => {
                     image: productData.image || productData.image_url || deal.image || '',
                     category: productData.category || 'العروض الساخنة',
                     weight: productData.weight || '',
-                    stock_quantity: productData.stock_quantity ?? productData.stockQuantity ?? fallbackStock || 1000,
+                    stock_quantity: (productData.stock_quantity ?? productData.stockQuantity ?? fallbackStock) || 1000,
                     reserved_quantity: productData.reserved_quantity ?? productData.reservedQuantity
                 };
             }
