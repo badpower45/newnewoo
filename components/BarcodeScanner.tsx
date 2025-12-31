@@ -136,7 +136,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
 
     return (
         <div className="fixed inset-0 bg-black/85 z-50 flex items-center justify-center px-3">
-            <div className="relative w-full max-w-2xl h-full md:h-[90vh] rounded-[32px] overflow-hidden">
+            <div className="relative w-full max-w-lg h-auto md:h-auto max-h-[85vh] rounded-[32px] overflow-hidden">
                 {/* Header Bar */}
                 <div className="absolute top-4 left-4 right-4 z-30">
                     <div className="relative bg-white text-gray-900 rounded-2xl shadow-xl px-4 py-3 flex items-center justify-center">
@@ -151,10 +151,10 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
                     </div>
                 </div>
 
-                <div className="h-full pt-24 pb-16 px-3 sm:px-6 flex flex-col items-center gap-4">
+                <div className="pt-20 pb-6 px-3 sm:px-4 flex flex-col items-center gap-3">
                     {/* Camera / Manual Input */}
                     {useManualMode ? (
-                        <form onSubmit={handleManualSubmit} className="w-full max-w-sm bg-white/95 rounded-2xl p-4 shadow-lg space-y-3 mt-6">
+                        <form onSubmit={handleManualSubmit} className="w-full max-w-sm bg-white/95 rounded-2xl p-3 shadow-lg space-y-2">
                             <label className="block text-sm font-semibold text-gray-800">
                                 أدخل رقم الباركود
                             </label>
@@ -175,11 +175,11 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
                             </button>
                         </form>
                     ) : (
-                        <div className="relative w-full max-w-lg flex-1 rounded-3xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.45)] bg-black/80">
+                        <div className="relative w-full max-w-md rounded-3xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.45)] bg-black/80" style={{ height: '280px' }}>
                             <div
                                 id={readerIdRef.current}
                                 className="absolute inset-0 w-full h-full"
-                                style={{ minHeight: '320px' }}
+                                style={{ minHeight: '280px' }}
                             />
 
                             {/* Single mask with clear center rectangle */}
@@ -187,11 +187,11 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
                                 <div
                                     className="relative"
                                     style={{
-                                        width: '82%',
-                                        maxWidth: 420,
-                                        height: 260,
+                                        width: '85%',
+                                        maxWidth: 340,
+                                        height: 200,
                                         boxShadow: '0 0 0 9999px rgba(0,0,0,0.65)',
-                                        borderRadius: 22
+                                        borderRadius: 18
                                     }}
                                 >
                                     <span className="absolute -top-1.5 -left-1.5 w-12 h-12 border-t-3 border-l-3 border-white rounded-lg"></span>
@@ -218,7 +218,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
 
                     {/* Status Blocks */}
                     {error && (
-                        <div className="w-full max-w-sm bg-red-50 border border-red-200 rounded-xl p-3 flex items-start gap-3 shadow-sm">
+                        <div className="w-full max-w-sm bg-red-50 border border-red-200 rounded-xl p-2 flex items-start gap-2 shadow-sm">
                             <AlertCircle className="text-red-500 flex-shrink-0" size={20} />
                             <div>
                                 <p className="font-semibold text-red-700">خطأ</p>
@@ -228,7 +228,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
                     )}
 
                     {success && scannedCode && (
-                        <div className="w-full max-w-sm bg-green-50 border border-green-200 rounded-xl p-3 shadow-sm">
+                        <div className="w-full max-w-sm bg-green-50 border border-green-200 rounded-xl p-2 shadow-sm">
                             <div className="flex items-center gap-2 mb-1">
                                 <CheckCircle2 className="text-green-600" size={18} />
                                 <p className="text-green-700 font-semibold">تم المسح بنجاح!</p>
@@ -239,7 +239,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
                     )}
 
                     {/* Actions */}
-                    <div className="w-full max-w-sm grid grid-cols-2 gap-3 mt-auto">
+                    <div className="w-full max-w-sm grid grid-cols-2 gap-2 mt-2">
                         <button
                             onClick={handleClose}
                             className="px-4 py-3 bg-white/90 text-gray-800 font-bold rounded-xl border border-gray-200 hover:bg-white transition-colors flex items-center justify-center gap-2"

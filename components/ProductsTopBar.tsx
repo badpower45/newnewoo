@@ -65,8 +65,15 @@ const ProductsTopBar: React.FC<ProductsTopBarProps> = ({ onScan }) => {
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        if (searchQuery.trim()) {
-            navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+        const trimmed = searchQuery.trim();
+        if (trimmed) {
+            // فحص لو المدخل باركود
+            const looksLikeBarcode = /^\d{6,}$/.test(trimmed);
+            if (looksLikeBarcode) {
+                navigate(`/products?barcode=${encodeURIComponent(trimmed)}`);
+            } else {
+                navigate(`/products?search=${encodeURIComponent(trimmed)}`);
+            }
         }
     };
 

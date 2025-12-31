@@ -9,7 +9,6 @@ const ROLES: { [key: string]: { label: string; labelAr: string; color: string; b
     employee: { label: 'Employee', labelAr: 'موظف خدمة عملاء', color: 'text-green-700', bgColor: 'bg-green-100', icon: Headphones },
     distributor: { label: 'Distributor', labelAr: 'موزع الطلبات', color: 'text-orange-700', bgColor: 'bg-orange-100', icon: Package },
     returns_manager: { label: 'Returns Manager', labelAr: 'موظف المرتجعات', color: 'text-red-700', bgColor: 'bg-red-100', icon: RotateCcw },
-    delivery: { label: 'Delivery', labelAr: 'عامل توصيل', color: 'text-cyan-700', bgColor: 'bg-cyan-100', icon: Truck },
     customer: { label: 'Customer', labelAr: 'عميل', color: 'text-gray-700', bgColor: 'bg-gray-100', icon: User },
 };
 
@@ -90,13 +89,6 @@ const EmployeesManager = () => {
                 password: newUser.password,
                 role: newUser.role
             };
-
-            // إذا كان ديليفري، أضف بيانات إضافية
-            if (newUser.role === 'delivery') {
-                userData.phone = newUser.phone;
-                userData.phone2 = newUser.phone2;
-                userData.branchId = newUser.branchId;
-            }
 
             // إذا كان موزع، أضف الفرع
             if (newUser.role === 'distributor') {
@@ -430,53 +422,6 @@ const EmployeesManager = () => {
                                     />
                                 </div>
                             </div>
-
-                            {/* Delivery-specific fields */}
-                            {newUser.role === 'delivery' && (
-                                <div className="p-4 bg-cyan-50 rounded-xl space-y-4">
-                                    <h3 className="font-medium text-cyan-800 flex items-center gap-2">
-                                        <Truck size={18} />
-                                        بيانات عامل التوصيل
-                                    </h3>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">رقم الهاتف</label>
-                                            <input
-                                                type="tel"
-                                                required
-                                                value={newUser.phone}
-                                                onChange={e => setNewUser({ ...newUser, phone: e.target.value })}
-                                                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                                                placeholder="01xxxxxxxxx"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-1">رقم بديل (اختياري)</label>
-                                            <input
-                                                type="tel"
-                                                value={newUser.phone2}
-                                                onChange={e => setNewUser({ ...newUser, phone2: e.target.value })}
-                                                className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                                                placeholder="01xxxxxxxxx"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">الفرع</label>
-                                        <select
-                                            required
-                                            value={newUser.branchId}
-                                            onChange={e => setNewUser({ ...newUser, branchId: e.target.value })}
-                                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                                        >
-                                            <option value="">اختر الفرع</option>
-                                            {branches.map(branch => (
-                                                <option key={branch.id} value={branch.id}>{branch.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
-                            )}
 
                             {/* Distributor-specific fields */}
                             {newUser.role === 'distributor' && (

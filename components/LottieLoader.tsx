@@ -46,19 +46,19 @@ const LottieLoader: React.FC<LottieLoaderProps> = ({ onComplete, duration = 2000
 
     return (
         <div
-            className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-white transition-opacity duration-500 ${
+            className={`fixed inset-0 z-50 flex items-center justify-center bg-white transition-opacity duration-500 ${
                 fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
             }`}
         >
-            {/* Enlarged Video/Animation - Full Screen */}
-            <div className="w-screen h-screen flex items-center justify-center overflow-hidden">
+            {/* Full Width Video - No Padding */}
+            <div className="w-full h-screen flex items-center justify-center overflow-hidden">
                 <dotlottie-player
                     src={DOT_LOTTIE_SRC}
                     background="transparent"
                     speed="1"
                     loop
                     autoplay
-                    style={{ width: '100vw', height: '100vh', objectFit: 'cover' }}
+                    style={{ width: '100%', height: 'auto', minHeight: '100vh', objectFit: 'contain' }}
                 />
             </div>
         </div>

@@ -166,7 +166,8 @@ export const api = {
             return data.map(normalize);
         },
         search: async (query: string) => {
-            const res = await fetch(`${API_URL}/products/search?q=${encodeURIComponent(query)}`, { headers: getHeaders() });
+            const branchId = localStorage.getItem('selectedBranchId') || '1';
+            const res = await fetch(`${API_URL}/products/search?q=${encodeURIComponent(query)}&branchId=${branchId}`, { headers: getHeaders() });
             return res.json();
         },
         delete: async (id: string) => {

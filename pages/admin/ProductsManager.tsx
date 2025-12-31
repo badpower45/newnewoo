@@ -21,7 +21,7 @@ const emptyProduct = {
     rating: 0,
     reviews: 0,
     shelfLocation: '',
-    brandId: undefined as number | undefined
+    brandId: undefined as string | undefined
 };
 
 // Will be loaded from API
@@ -49,13 +49,13 @@ const ProductsManager = () => {
 
     // Clean invalid brand selection when brand list changes
     useEffect(() => {
-        if (form.brandId) {
-            const exists = brands.find(b => b.id === form.brandId);
-            if (!exists) {
-                setForm(prev => ({ ...prev, brandId: undefined }));
-            }
+        if (!form.brandId || brands.length === 0) return;
+        
+        const exists = brands.find(b => String(b.id) === String(form.brandId));
+        if (!exists) {
+            setForm(prev => ({ ...prev, brandId: undefined }));
         }
-    }, [brands]);
+    }, [brands, form.brandId]);
 
     useEffect(() => {
         loadProducts();
@@ -158,8 +158,12 @@ const ProductsManager = () => {
             console.log('🏷️ Brands API response:', response);
             const brandData = response?.data || response || [];
             if (Array.isArray(brandData)) {
-                console.log('✅ Loaded', brandData.length, 'brands:', brandData.map(b => ({ id: b.id, name: b.name_ar })));
-                setBrands(brandData);
+                const normalizedBrands = brandData.map((b: any) => ({
+                    ...b,
+                    id: String(b.id)
+                }));
+                console.log('✅ Loaded', normalizedBrands.length, 'brands:', normalizedBrands.map(b => ({ id: b.id, name: b.name_ar })));
+                setBrands(normalizedBrands);
             } else {
                 console.warn('⚠️ Brands data is not array:', brandData);
                 setBrands([]);
@@ -192,11 +196,11 @@ const ProductsManager = () => {
         setEditing(p);
         
         // Check if brand exists in available brands
-        const productBrandId = (p as any).brand_id;
-        let validBrandId = productBrandId || undefined;
+        const productBrandId = (p as any).brand_id ?? (p as any).brandId;
+        let validBrandId = productBrandId !== undefined && productBrandId !== null ? String(productBrandId) : undefined;
         
-        if (productBrandId) {
-            const brandExists = brands.find(b => b.id === productBrandId);
+        if (validBrandId && brands.length > 0) {
+            const brandExists = brands.find(b => String(b.id) === String(validBrandId));
             if (!brandExists) {
                 console.warn('⚠️ Product has brand_id', productBrandId, 'but brand not found in list. Clearing it.');
                 validBrandId = undefined;
@@ -238,8 +242,8 @@ const ProductsManager = () => {
         }
         
         // Validate brand_id ONLY if selected
-        if (form.brandId && form.brandId > 0) {
-            const brandExists = brands.find(b => b.id === form.brandId);
+        if (form.brandId) {
+            const brandExists = brands.find(b => String(b.id) === String(form.brandId));
             if (!brandExists) {
                 alert('❌ البراند المختار (ID: ' + form.brandId + ') غير موجود في النظام. يرجى اختيار براند آخر أو إلغاء الاختيار.');
                 console.error('🚫 Brand validation failed:', {
@@ -254,6 +258,8 @@ const ProductsManager = () => {
         }
         
         try {
+            // Keep brandId as-is to support UUID/text IDs (don't coerce to number)
+            const normalizedBrandId = form.brandId ? String(form.brandId) : null;
             const productData = {
                 barcode: form.barcode,
                 name: form.name,
@@ -267,7 +273,7 @@ const ProductsManager = () => {
                 stockQuantity: form.stockQuantity,
                 weight: form.weight,
                 shelfLocation: form.shelfLocation,
-                brandId: form.brandId || null  // 🏷️ إضافة brand_id
+                brandId: normalizedBrandId  // 🏷️ إرسال brand_id كما هو (يدعم UUID)
             };
             
             console.log('📦 Saving product with data:', productData);
@@ -720,7 +726,7 @@ const ProductsManager = () => {
                                 <select
                                     value={form.brandId || ''}
                                     onChange={e => {
-                                        const newBrandId = e.target.value ? parseInt(e.target.value) : undefined;
+                                        const newBrandId = e.target.value ? e.target.value : undefined;
                                         console.log('🏷️ Brand selected:', newBrandId);
                                         setForm({ ...form, brandId: newBrandId });
                                     }}
@@ -728,12 +734,12 @@ const ProductsManager = () => {
                                 >
                                     <option value="" className="text-gray-500">بدون براند</option>
                                     {brands.map(brand => (
-                                        <option key={brand.id} value={brand.id} className="font-medium">
+                                        <option key={brand.id} value={String(brand.id)} className="font-medium">
                                             🏷️ {brand.name_ar} - {brand.name_en}
                                         </option>
                                     ))}
                                 </select>
-                                {form.brandId && brands.find(b => b.id === form.brandId) && (
+                                {form.brandId && brands.find(b => String(b.id) === String(form.brandId)) && (
                                     <div className="mt-2 p-2 bg-green-100 border border-green-300 rounded-lg">
                                         <p className="text-sm text-green-800 font-bold flex items-center gap-2">
                                             ✅ تم اختيار البراند
@@ -741,7 +747,7 @@ const ProductsManager = () => {
                                                 ID: {form.brandId}
                                             </span>
                                             <span className="text-xs">
-                                                ({brands.find(b => b.id === form.brandId)?.name_ar})
+                                                ({brands.find(b => String(b.id) === String(form.brandId))?.name_ar})
                                             </span>
                                         </p>
                                     </div>
