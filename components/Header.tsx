@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ShoppingCart, Search, Menu, User, Heart, MapPin, Sparkles, X, ChevronLeft, Clock, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { NAV_ITEMS } from '../constants';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useBranch } from '../context/BranchContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -17,6 +17,7 @@ export default function Header() {
   const { totalItems, totalPrice } = useCart();
   const { selectedBranch } = useBranch();
   const { t, language, setLanguage, isRTL } = useLanguage();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -25,6 +26,14 @@ export default function Header() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const triggerSearchNavigation = () => {
+    const trimmed = searchQuery.trim();
+    if (!trimmed) return;
+    navigate(`/products?search=${encodeURIComponent(trimmed)}`);
+    setIsMobileMenuOpen(false);
+    setActiveMegaMenu(null);
+  };
 
   return (
     <header className={`fixed w-full z-50 transition-all duration-300 font-header ${isScrolled ? 'bg-white/95 backdrop-blur-md shadow-sm py-2' : 'bg-white py-4'}`}>
@@ -138,6 +147,12 @@ export default function Header() {
                 className="bg-transparent border-none outline-none w-full text-sm text-slate-700 placeholder:text-slate-400 font-medium"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    triggerSearchNavigation();
+                  }
+                }}
               />
               {searchQuery.length > 0 ? (
                 <button 
@@ -256,6 +271,12 @@ export default function Header() {
                     type="text"
                     placeholder={t('header.searchProducts')}
                     value={searchQuery}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        triggerSearchNavigation();
+                      }
+                    }}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className={`w-full px-4 py-3 bg-slate-50 border-2 border-slate-200 rounded-xl focus:border-brand-orange focus:bg-white outline-none transition-all text-sm ${isRTL ? 'pr-12' : 'pl-12'}`}
                   />

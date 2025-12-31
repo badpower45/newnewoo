@@ -34,6 +34,17 @@ const BrandsManager: React.FC = () => {
         secondary_color: '#FF9800',
         is_featured: false
     });
+    const nameArRef = React.useRef<HTMLInputElement | null>(null);
+    const nameEnRef = React.useRef<HTMLInputElement | null>(null);
+
+    // Keep keyboard open on mobile while typing brand names (avoid blur-to-body)
+    const keepFocusIfLost = (ref: React.RefObject<HTMLInputElement>) => (e: React.FocusEvent<HTMLInputElement>) => {
+        // Allow normal focus change to other controls
+        const next = e.relatedTarget as HTMLElement | null;
+        const movingToFocusable = next && ['INPUT', 'TEXTAREA', 'BUTTON', 'SELECT', 'OPTION', 'LABEL'].includes(next.tagName);
+        if (movingToFocusable) return;
+        requestAnimationFrame(() => ref.current?.focus());
+    };
 
     useEffect(() => {
         fetchBrands();
@@ -166,7 +177,12 @@ const BrandsManager: React.FC = () => {
                         <input
                             type="text"
                             value={formData.name_ar || ''}
+                            ref={nameArRef}
                             onChange={(e) => setFormData({ ...formData, name_ar: e.target.value })}
+                            onBlur={keepFocusIfLost(nameArRef)}
+                            inputMode="text"
+                            autoComplete="off"
+                            autoCorrect="off"
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
                             required
                         />
@@ -180,7 +196,12 @@ const BrandsManager: React.FC = () => {
                         <input
                             type="text"
                             value={formData.name_en || ''}
+                            ref={nameEnRef}
                             onChange={(e) => setFormData({ ...formData, name_en: e.target.value })}
+                            onBlur={keepFocusIfLost(nameEnRef)}
+                            inputMode="text"
+                            autoComplete="off"
+                            autoCorrect="off"
                             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
                             required
                         />

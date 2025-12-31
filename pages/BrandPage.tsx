@@ -320,7 +320,7 @@ const BrandPage = () => {
                     gradientFrom: foundBrand.primary_color || '#F97316',
                     gradientTo: foundBrand.secondary_color || '#EA580C'
                 });
-                await loadBrandProducts(foundBrand.name_en || foundBrand.name_ar);
+                await loadBrandProducts(foundBrand);
             } else {
                 // Fallback to static data
                 const brandKey = brandName.toLowerCase();

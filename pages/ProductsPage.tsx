@@ -228,6 +228,7 @@ export default function ProductsPage() {
     useEffect(() => {
         const category = searchParams.get('category');
         const barcode = searchParams.get('barcode');
+        const search = searchParams.get('search');
         
         if (category) {
             // Map the category name to match database values
@@ -235,16 +236,24 @@ export default function ProductsPage() {
             console.log('🔍 Category mapping:', category, '→', mappedCategory);
             setSelectedCategory(mappedCategory);
         }
-        
+
         // Handle barcode from URL (from TopBar navigation)
         if (barcode) {
             handleBarcodeScanned(barcode);
+            return; // barcode search takes precedence
+        }
+
+        // Handle search query from URL (header search)
+        if (search && search.trim() !== '') {
+            setSearchQuery(search);
+            handleSearch(search);
+            return;
         }
         
         fetchProducts();
-    }, [searchParams, selectedBranch]);
+    }, [searchParams, selectedBranch, handleSearch, handleBarcodeScanned, fetchProducts]);
 
-    const fetchProducts = async () => {
+    const fetchProducts = useCallback(async () => {
         setLoading(true);
         try {
             const branchId = selectedBranch?.id || 1;
@@ -256,12 +265,12 @@ export default function ProductsPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [selectedBranch]);
 
     const [scannedProduct, setScannedProduct] = useState<Product | null>(null);
     const [showProductModal, setShowProductModal] = useState(false);
 
-    const handleBarcodeScanned = async (barcode: string) => {
+    const handleBarcodeScanned = useCallback(async (barcode: string) => {
         // Close scanner immediately
         setShowScanner(false);
         
@@ -303,7 +312,7 @@ export default function ProductsPage() {
             console.error('Error fetching product:', error);
             alert('❌ حدث خطأ في البحث عن المنتج');
         }
-    };
+    }, [selectedBranch]);
 
     const handleSearch = useCallback(async (query: string) => {
         setSearchQuery(query);
@@ -332,7 +341,7 @@ export default function ProductsPage() {
         } else {
             fetchProducts();
         }
-    }, []);
+    }, [handleBarcodeScanned, fetchProducts]);
 
     // Filter and sort products
     const filteredAndSortedProducts = useMemo(() => {
