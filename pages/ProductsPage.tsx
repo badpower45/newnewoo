@@ -526,17 +526,6 @@ export default function ProductsPage() {
             <div className="min-h-screen bg-white">
                 <div className="sticky top-0 z-40 bg-white border-b">
                 <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center gap-3">
-                    <button
-                        type="button"
-                        onClick={() => setShowFilters(!showFilters)}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm ${
-                            showFilters ? 'border-brand-orange text-brand-orange' : 'border-gray-200 text-gray-700'
-                        }`}
-                    >
-                        <SlidersHorizontal size={16} />
-                        <span>فلاتر</span>
-                        {hasActiveFilters && <span className="text-brand-orange text-xs">•</span>}
-                    </button>
                     <div className="flex-1 min-w-[240px] flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
                         <Search size={16} className="text-gray-400" />
                         <input
@@ -611,7 +600,7 @@ export default function ProductsPage() {
 
             <div className="max-w-7xl mx-auto px-4 py-6 space-y-4">
                 {/* Filters Panel */}
-                {showFilters && (
+                {false && (
                     <div className="bg-white border rounded-2xl p-4 space-y-4">
                         <div className="flex flex-col sm:flex-row gap-4">
                             <div className="flex-1">
@@ -683,41 +672,7 @@ export default function ProductsPage() {
 
                 {/* Active Filters */}
                 {hasActiveFilters && (
-                    <div className="flex flex-wrap items-center gap-2 mb-6">
-                        {selectedCategory && (
-                            <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-100 text-brand-orange rounded-full text-sm">
-                                {categories.find(c => c.id === selectedCategory)?.icon}
-                                {categories.find(c => c.id === selectedCategory)?.name}
-                                <button onClick={() => setSelectedCategory('')} className="hover:bg-orange-200 rounded-full p-0.5">
-                                    <X size={14} />
-                                </button>
-                            </span>
-                        )}
-                        {selectedBrand && (
-                            <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm">
-                                <Tag size={14} />
-                                {brands.find(b => b.id === selectedBrand)?.name}
-                                <button onClick={() => setSelectedBrand('')} className="hover:bg-blue-200 rounded-full p-0.5">
-                                    <X size={14} />
-                                </button>
-                            </span>
-                        )}
-                        {showOnlyOffers && (
-                            <span className="inline-flex items-center gap-2 px-3 py-1.5 bg-orange-100 text-orange-700 rounded-full text-sm">
-                                <Tag size={14} />
-                                عروض فقط
-                                <button onClick={() => setShowOnlyOffers(false)} className="hover:bg-orange-200 rounded-full p-0.5">
-                                    <X size={14} />
-                                </button>
-                            </span>
-                        )}
-                        <button
-                            onClick={clearFilters}
-                            className="text-gray-500 hover:text-gray-700 text-sm underline"
-                        >
-                            مسح الكل
-                        </button>
-                    </div>
+                    <div className="flex flex-wrap items-center gap-2 mb-6" />
                 )}
 
                 {/* Filters Panel */}
@@ -779,22 +734,8 @@ export default function ProductsPage() {
                                     <Grid3X3 size={18} className="text-brand-brown" />
                                     فئة سريعة
                                 </h3>
-                                <div className="flex flex-wrap gap-2">
-                                    {CATEGORIES.slice(1, 6).map((cat) => (
-                                        <button
-                                            key={cat.id}
-                                            onClick={() => setSelectedCategory(cat.id)}
-                                            className={`px-3 py-1.5 rounded-lg text-sm transition ${
-                                                selectedCategory === cat.id
-                                                    ? 'bg-brand-brown text-white'
-                                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                            }`}
-                                        >
-                                            {cat.icon} {cat.name}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
+                    <div className="flex flex-wrap gap-2"></div>
+                </div>
 
                             {/* Brands Filter */}
                             {brands.length > 1 && (

@@ -77,6 +77,7 @@ const CustomerChatPage: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [conversation, setConversation] = useState<ChatConversation | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const isSendingQuickRef = useRef(false);
   const handleBack = () => {
     if (typeof window !== 'undefined' && window.history.length > 1) {
       navigate(-1);
@@ -162,7 +163,10 @@ const CustomerChatPage: React.FC = () => {
   }, [messages]);
 
   // Send message
-  const sendMessage = async (content: string) => {
+  const sendMessage = async (content: string, blockIfSending = false) => {
+    if (blockIfSending && isSendingQuickRef.current) return;
+    if (blockIfSending) isSendingQuickRef.current = true;
+
     if (!content.trim()) return;
 
     const tempId = `temp_${Date.now()}`;
@@ -262,6 +266,8 @@ const CustomerChatPage: React.FC = () => {
           ? { ...msg, status: 'sent' as const }
           : msg
       ));
+    } finally {
+      if (blockIfSending) isSendingQuickRef.current = false;
     }
   };
 
@@ -273,7 +279,7 @@ const CustomerChatPage: React.FC = () => {
 
   // Handle quick response click
   const handleQuickResponse = (text: string) => {
-    sendMessage(text);
+    sendMessage(text, true);
   };
 
   // Format time
