@@ -442,17 +442,21 @@ export default function CheckoutPage() {
                                 <SavedAddressSelector 
                                     userId={user.id}
                                     onSelect={(address: any) => {
-                                        setFormData({
-                                            firstName: address.full_name?.split(' ')[0] || '',
-                                            lastName: address.full_name?.split(' ').slice(1).join(' ') || '',
-                                            phone: address.phone || '',
-                                            building: address.building || '',
-                                            street: address.street || '',
-                                            floor: address.floor || '',
-                                            apartment: address.apartment || '',
-                                            address: `${address.governorate}, ${address.city}, ${address.area || ''}`,
-                                            notes: address.notes || ''
-                                        });
+                                        const fullAddressLine = [
+                                            address.city,
+                                            address.governorate
+                                        ].filter(Boolean).join(', ');
+
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            phone: address.phone || prev.phone,
+                                            // نستخدم السطر الأول كسطر أساسي (يلزم الحقل)
+                                            building: address.address_line1 || prev.building,
+                                            // السطر الثاني اختياري للشارع/المعلم
+                                            street: address.address_line2 || prev.street,
+                                            address: fullAddressLine || address.address_line1 || prev.address,
+                                            notes: address.address_line2 ? `${address.address_line2}${address.postal_code ? ` - ${address.postal_code}` : ''}` : prev.notes
+                                        }));
                                     }}
                                 />
                             </div>

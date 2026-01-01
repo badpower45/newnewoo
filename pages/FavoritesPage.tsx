@@ -2,9 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { useFavorites } from '../context/FavoritesContext';
 import ProductCard from '../components/ProductCard';
 import Footer from '../components/Footer';
-import { ChevronLeft, Heart, Loader2, RefreshCw, Star } from 'lucide-react';
+import { ChevronLeft, Heart, Loader2, RefreshCw, Star, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+
+const FAVORITE_BRANDS_KEY = 'favorite_brands';
 
 const FavoritesPage = () => {
     const { favorites, loading, refreshFavorites } = useFavorites();
@@ -28,6 +30,12 @@ const FavoritesPage = () => {
     useEffect(() => {
         refreshFavorites();
     }, []);
+
+    const removeFavoriteBrand = (brandId: string | number) => {
+        const updated = favoriteBrands.filter((b) => String(b.id || b.name_en || b.name) !== String(brandId));
+        setFavoriteBrands(updated);
+        localStorage.setItem(FAVORITE_BRANDS_KEY, JSON.stringify(updated));
+    };
 
     return (
         <div className="bg-gray-50 min-h-screen pb-24 md:pb-8">
@@ -109,24 +117,35 @@ const FavoritesPage = () => {
                                 </div>
                                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                     {favoriteBrands.map((brand) => (
-                                        <button
+                                        <div
                                             key={brand.id}
-                                            onClick={() => navigate(`/brand/${brand.name_en || brand.id}`)}
-                                            className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all border border-gray-100"
+                                            className="relative bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all border border-gray-100"
                                         >
-                                            {brand.logo_url ? (
-                                                <img 
-                                                    src={brand.logo_url} 
-                                                    alt={brand.name_ar}
-                                                    className="w-16 h-16 object-contain mx-auto mb-2"
-                                                />
-                                            ) : (
-                                                <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-2">
-                                                    <Star className="text-gray-400" size={32} />
-                                                </div>
-                                            )}
-                                            <p className="font-bold text-gray-900 text-sm text-center">{brand.name_ar}</p>
-                                        </button>
+                                            <button
+                                                onClick={() => removeFavoriteBrand(brand.id || brand.name_en || brand.name)}
+                                                className="absolute top-2 left-2 p-1.5 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition"
+                                                title="إزالة من المفضلة"
+                                            >
+                                                <X size={14} />
+                                            </button>
+                                            <button
+                                                onClick={() => navigate(`/brand/${brand.name_en || brand.id}`)}
+                                                className="w-full flex flex-col items-center"
+                                            >
+                                                {brand.logo_url ? (
+                                                    <img 
+                                                        src={brand.logo_url} 
+                                                        alt={brand.name_ar}
+                                                        className="w-16 h-16 object-contain mx-auto mb-2"
+                                                    />
+                                                ) : (
+                                                    <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-2">
+                                                        <Star className="text-gray-400" size={32} />
+                                                    </div>
+                                                )}
+                                                <p className="font-bold text-gray-900 text-sm text-center">{brand.name_ar}</p>
+                                            </button>
+                                        </div>
                                     ))}
                                 </div>
                             </div>

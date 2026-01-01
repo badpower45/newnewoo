@@ -49,9 +49,8 @@ const MagazinePage: React.FC = () => {
     };
 
     const handleOpenProduct = (offer: MagazineOffer) => {
-        if (offer.product_id) {
-            navigate(`/product/${offer.product_id}`);
-        }
+        if (!offer.product_id) return;
+        navigate(`/product/${offer.product_id}`);
     };
 
     const handleAddToCart = async (offer: MagazineOffer) => {
@@ -147,24 +146,38 @@ const MagazinePage: React.FC = () => {
 
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                             {offers.map((offer) => {
-                                const hasDiscount = offer.discount_percentage && offer.discount_percentage > 0;
+                                const discountPercent =
+                                    offer.discount_percentage ??
+                                    (offer.old_price && offer.price
+                                        ? Math.round(((Number(offer.old_price) - Number(offer.price)) / Number(offer.old_price)) * 100)
+                                        : 0);
+                                const hasDiscount = !!discountPercent && discountPercent > 0;
                                 return (
-                                    <div 
-                                        key={offer.id} 
-                                        className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl overflow-hidden shadow-sm border border-orange-100 relative"
+                                    <div
+                                        key={offer.id}
+                                        role={offer.product_id ? 'button' : undefined}
+                                        tabIndex={offer.product_id ? 0 : -1}
+                                        onClick={() => handleOpenProduct(offer)}
+                                        onKeyDown={(e) => {
+                                            if ((e.key === 'Enter' || e.key === ' ') && offer.product_id) {
+                                                e.preventDefault();
+                                                handleOpenProduct(offer);
+                                            }
+                                        }}
+                                        className={`group bg-gradient-to-br from-orange-50 to-amber-50 rounded-2xl overflow-hidden shadow-sm border border-orange-100 relative isolate transition hover:shadow-md ${offer.product_id ? 'cursor-pointer' : 'cursor-default'}`}
                                     >
-                                        <div className="absolute top-2 left-2 flex gap-2 z-10">
-                                            <span className="px-2 py-1 text-[10px] font-bold bg-orange-500 text-white rounded-full flex items-center gap-1">
+                                        <div className="absolute top-2 left-2 flex gap-2 z-10 pointer-events-none">
+                                            <span className="px-2 py-1 text-[10px] font-bold bg-orange-500 text-white rounded-full flex items-center gap-1 shadow-sm">
                                                 <BadgePercent size={12} /> عرض المجلة
                                             </span>
                                             {hasDiscount && (
-                                                <span className="px-2 py-1 text-[10px] font-bold bg-red-100 text-red-700 rounded-full">
-                                                    -{offer.discount_percentage}%
+                                                <span className="px-2 py-1 text-[10px] font-bold bg-red-100 text-red-700 rounded-full shadow-sm">
+                                                    -{discountPercent}%
                                                 </span>
                                             )}
                                         </div>
 
-                                        <div className="bg-white/80 p-3 h-32 flex items-center justify-center">
+                                        <div className="bg-white/80 p-3 h-32 flex items-center justify-center overflow-hidden relative">
                                             <img
                                                 src={offer.image || 'https://placehold.co/200x200?text=Offer'}
                                                 alt={offer.name}
@@ -190,7 +203,10 @@ const MagazinePage: React.FC = () => {
                                                     ) : null}
                                                 </div>
                                                 <button
-                                                    onClick={() => handleAddToCart(offer)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleAddToCart(offer);
+                                                    }}
                                                     disabled={addingOfferId === offer.id}
                                                     className="px-3 py-2 rounded-full bg-orange-500 text-white text-xs font-bold hover:bg-orange-600 transition disabled:opacity-50"
                                                 >
@@ -200,8 +216,8 @@ const MagazinePage: React.FC = () => {
 
                                             <div className="text-[11px] text-gray-500 flex justify-between">
                                                 <span>{offer.unit || 'وحدة'}</span>
-                                                {offer.discount_percentage && (
-                                                    <span className="text-red-600 font-bold">-{offer.discount_percentage}%</span>
+                                                {hasDiscount && (
+                                                    <span className="text-red-600 font-bold">-{discountPercent}%</span>
                                                 )}
                                             </div>
                                         </div>

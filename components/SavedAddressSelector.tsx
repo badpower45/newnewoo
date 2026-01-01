@@ -4,19 +4,16 @@ import api from '../services/api';
 
 interface Address {
     id: number;
-    label: string;
-    full_name: string;
-    phone: string;
-    governorate: string;
+    user_id?: number;
+    type?: 'home' | 'work' | 'other' | string;
+    address_line1: string;
+    address_line2?: string;
     city: string;
-    area?: string;
-    street: string;
-    building?: string;
-    floor?: string;
-    apartment?: string;
-    landmark?: string;
-    notes?: string;
-    is_default: boolean;
+    governorate: string;
+    postal_code?: string;
+    phone: string;
+    is_default?: boolean;
+    created_at?: string;
 }
 
 interface SavedAddressSelectorProps {
@@ -37,14 +34,15 @@ const SavedAddressSelector: React.FC<SavedAddressSelectorProps> = ({ userId, onS
         try {
             setLoading(true);
             const response = await api.addresses.getAll(userId);
-            const addressesData = response.data || response;
+            const addressesData = (response as any)?.data || response || [];
             setAddresses(addressesData);
             
             // Auto-select default address
             const defaultAddr = addressesData.find((addr: Address) => addr.is_default);
-            if (defaultAddr) {
-                setSelectedId(defaultAddr.id);
-                onSelect(defaultAddr);
+            const firstAddr = defaultAddr || addressesData[0];
+            if (firstAddr) {
+                setSelectedId(firstAddr.id);
+                onSelect(firstAddr);
             }
         } catch (error) {
             console.error('Failed to fetch addresses:', error);
@@ -75,6 +73,17 @@ const SavedAddressSelector: React.FC<SavedAddressSelectorProps> = ({ userId, onS
         );
     }
 
+    const renderLabel = (address: Address) => {
+        if (address.type === 'home') return 'المنزل';
+        if (address.type === 'work') return 'العمل';
+        return address.type ? address.type : 'عنوان';
+    };
+
+    const renderAddressLine = (address: Address) =>
+        [address.address_line1, address.address_line2, address.city, address.governorate]
+            .filter(Boolean)
+            .join(', ');
+
     return (
         <div className="space-y-3">
             {addresses.map((address) => (
@@ -99,7 +108,7 @@ const SavedAddressSelector: React.FC<SavedAddressSelectorProps> = ({ userId, onS
                         
                         <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                                <span className="font-bold text-gray-900">{address.label}</span>
+                                <span className="font-bold text-gray-900">{renderLabel(address)}</span>
                                 {address.is_default && (
                                     <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full">
                                         افتراضي
@@ -111,24 +120,16 @@ const SavedAddressSelector: React.FC<SavedAddressSelectorProps> = ({ userId, onS
                             </div>
                             
                             <p className="text-sm font-medium text-gray-800 mb-1">
-                                {address.full_name} • {address.phone}
+                                {address.phone}
                             </p>
                             
                             <p className="text-sm text-gray-600">
-                                {[
-                                    address.building && `بناية ${address.building}`,
-                                    address.floor && `طابق ${address.floor}`,
-                                    address.apartment && `شقة ${address.apartment}`,
-                                    address.street,
-                                    address.area,
-                                    address.city,
-                                    address.governorate
-                                ].filter(Boolean).join(', ')}
+                                {renderAddressLine(address)}
                             </p>
-                            
-                            {address.landmark && (
+
+                            {address.postal_code && (
                                 <p className="text-xs text-gray-500 mt-1">
-                                    معلم مميز: {address.landmark}
+                                    الرمز البريدي: {address.postal_code}
                                 </p>
                             )}
                         </div>

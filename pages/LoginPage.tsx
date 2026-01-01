@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ChevronLeft, Loader2, KeyRound, Eye, EyeOff, Mail, Lock, LogIn } from 'lucide-react';
+import { ChevronLeft, Loader2, Eye, EyeOff, Mail, Lock, LogIn } from 'lucide-react';
 import { api } from '../services/api';
 import { supabaseAuth } from '../services/supabaseAuth';
 import CompleteProfileModal from '../components/CompleteProfileModal';
@@ -15,11 +15,9 @@ const LoginPage = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showCompletion, setShowCompletion] = useState(false);
     const [profileData, setProfileData] = useState<any>({});
-    const [otpEmail, setOtpEmail] = useState('');
-    const [otpToken, setOtpToken] = useState('');
-    const [otpStatus, setOtpStatus] = useState<'idle' | 'sending' | 'sent' | 'verifying' | 'done'>('idle');
-    const [otpError, setOtpError] = useState('');
-    const { login, loginAsGuest, updateUser } = useAuth();
+    const [resetStatus, setResetStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+    const [resetError, setResetError] = useState('');
+    const { login, updateUser } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -44,11 +42,6 @@ const LoginPage = () => {
             setError(message);
         }
         setIsSubmitting(false);
-    };
-
-    const handleGuestLogin = () => {
-        loginAsGuest();
-        navigate('/');
     };
 
     const finalizeSocialLogin = async (provider: 'google' | 'facebook', profile: any) => {
@@ -131,48 +124,19 @@ const LoginPage = () => {
         navigate('/');
     };
 
-    const handleSendOtp = async () => {
-        if (!otpEmail) {
-            setOtpError('أدخل البريد الإلكتروني أولاً');
+    const handleSendResetLink = async () => {
+        if (!email) {
+            setResetError('اكتب بريدك الإلكتروني أولاً');
             return;
         }
-        setOtpError('');
-        setOtpStatus('sending');
+        setResetError('');
+        setResetStatus('sending');
         try {
-            await supabaseAuth.sendEmailOtp(otpEmail.trim());
-            setOtpStatus('sent');
+            await api.auth.forgotPassword(email.trim());
+            setResetStatus('sent');
         } catch (err: any) {
-            setOtpError(err.message || 'تعذر إرسال الرمز');
-            setOtpStatus('idle');
-        }
-    };
-
-    const handleVerifyOtp = async () => {
-        if (!otpEmail || !otpToken) {
-            setOtpError('أدخل البريد والرمز');
-            return;
-        }
-        setOtpError('');
-        setOtpStatus('verifying');
-        try {
-            const result = await supabaseAuth.verifyEmailOtp(otpEmail.trim(), otpToken.trim());
-            const session = result.session || (await supabaseAuth.getSession());
-            const supaUser = result.user || session?.user;
-            const token = session?.access_token || 'supabase-session';
-
-            localStorage.setItem('token', token);
-            localStorage.setItem('user', JSON.stringify({
-                id: supaUser?.id || 'supabase-user',
-                email: supaUser?.email || otpEmail.trim(),
-                name: supaUser?.email?.split('@')[0] || 'Supabase User',
-                role: 'customer',
-                isGuest: false
-            }));
-            setOtpStatus('done');
-            window.location.href = '/';
-        } catch (err: any) {
-            setOtpError(err.message || 'فشل التحقق من الرمز');
-            setOtpStatus('sent');
+            setResetError(err.message || 'تعذر إرسال الرابط');
+            setResetStatus('error');
         }
     };
 
@@ -250,11 +214,24 @@ const LoginPage = () => {
                         </div>
                     </div>
 
-                    <div className="flex justify-end">
+                    <div className="flex flex-wrap justify-between items-center gap-3">
                         <Link to="/forgot-password" className="text-sm text-primary font-semibold hover:underline flex items-center gap-1">
                             نسيت كلمة المرور؟
                         </Link>
+                        <button
+                            type="button"
+                            onClick={handleSendResetLink}
+                            disabled={resetStatus === 'sending'}
+                            className="text-sm font-semibold text-purple-700 hover:underline disabled:opacity-60"
+                        >
+                            {resetStatus === 'sent' ? 'تم إرسال رابط التغيير ✉️' : resetStatus === 'sending' ? 'جارٍ الإرسال...' : 'أرسل رابط إعادة التعيين'}
+                        </button>
                     </div>
+                    {resetError && (
+                        <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+                            {resetError}
+                        </p>
+                    )}
 
                     <button
                         type="submit"
@@ -313,71 +290,6 @@ const LoginPage = () => {
                         <span className="font-semibold text-gray-700 relative z-10">Google</span>
                     </button>
                 </div>
-
-                <div className="bg-gradient-to-br from-primary/10 to-purple-100 border-2 border-primary/20 rounded-2xl p-5 space-y-4 mb-6 backdrop-blur-sm">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm font-bold text-gray-800 flex items-center gap-2">
-                                <KeyRound size={18} className="text-primary" />
-                                تسجيل برمز OTP
-                            </p>
-                            <p className="text-xs text-gray-600 mt-1">سجل دخولك بسرعة باستخدام رمز التحقق</p>
-                        </div>
-                    </div>
-
-                    {otpError && (
-                        <div className="text-xs text-red-600 bg-red-50 border border-red-200 px-3 py-2 rounded-xl animate-shake">{otpError}</div>
-                    )}
-
-                    <div className="space-y-3">
-                        <input
-                            type="email"
-                            value={otpEmail}
-                            onChange={(e) => setOtpEmail(e.target.value)}
-                            placeholder="بريدك الإلكتروني"
-                            className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/10 text-sm bg-white/80 backdrop-blur-sm"
-                        />
-                        {otpStatus !== 'idle' && (
-                            <input
-                                type="text"
-                                value={otpToken}
-                                onChange={(e) => setOtpToken(e.target.value)}
-                                placeholder="أدخل رمز التحقق المكون من 6 أرقام"
-                                className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 focus:border-primary focus:ring-4 focus:ring-primary/10 text-sm bg-white/80 backdrop-blur-sm tracking-widest text-center text-lg font-bold"
-                                maxLength={6}
-                            />
-                        )}
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row gap-3">
-                        <button
-                            type="button"
-                            onClick={handleSendOtp}
-                            disabled={otpStatus === 'sending' || otpStatus === 'sent' || otpStatus === 'verifying'}
-                            className="flex-1 px-4 py-3 rounded-xl border-2 border-primary text-primary font-bold hover:bg-primary/5 disabled:opacity-60 transition-all bg-white/50"
-                        >
-                            {otpStatus === 'sending' ? 'جارٍ الإرسال...' : otpStatus === 'sent' ? '✓ تم الإرسال' : 'إرسال الرمز'}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={handleVerifyOtp}
-                            disabled={otpStatus === 'verifying' || otpStatus === 'idle'}
-                            className="flex-1 px-4 py-3 rounded-xl bg-gradient-to-r from-primary to-purple-600 text-white font-bold hover:shadow-lg hover:shadow-primary/30 disabled:opacity-60 transition-all"
-                        >
-                            {otpStatus === 'verifying' ? 'جارٍ التحقق...' : 'تأكيد الرمز'}
-                        </button>
-                    </div>
-                    {otpStatus === 'done' && (
-                        <p className="text-xs text-green-700 bg-green-50 border border-green-200 px-3 py-2 rounded-xl text-center font-semibold">✓ تم التحقق! جاري التحويل...</p>
-                    )}
-                </div>
-
-                <button
-                    onClick={handleGuestLogin}
-                    className="w-full py-4 border-2 border-dashed border-gray-300 rounded-2xl text-gray-600 font-semibold hover:border-primary hover:bg-primary/5 hover:text-primary transition-all bg-white/50 backdrop-blur-sm"
-                >
-                    الدخول كزائر
-                </button>
 
                 <p className="mt-8 text-center text-gray-600">
                     ليس لديك حساب؟{' '}

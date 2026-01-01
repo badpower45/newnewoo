@@ -231,10 +231,14 @@ const HomePage = () => {
         setBranchMap({});
     }, [selectedBranch]);
 
-    // Global loading state - show full page skeleton while all data is loading
-    const globalLoading = loading || categoriesLoading || sectionsLoading;
+    // Global loading state - show full page skeleton while all data is loading and nothing is rendered yet
+    const showFullPageSkeleton =
+        (loading || categoriesLoading || sectionsLoading) &&
+        products.length === 0 &&
+        categories.length === 0 &&
+        homeSections.length === 0;
 
-    if (globalLoading) {
+    if (showFullPageSkeleton) {
         return <FullPageSkeleton />;
     }
 

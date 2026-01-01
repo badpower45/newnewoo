@@ -396,7 +396,7 @@ const CustomerServiceDashboard = () => {
                 </div>
 
                 {/* Simplified Chat Area */}
-                <div className="flex-1 flex flex-col bg-gradient-to-br from-white to-blue-50/30">
+                <div className="flex-1 flex flex-col bg-gradient-to-br from-white to-blue-50/30 min-h-0">
                     {selectedConversation ? (
                         <>
                             {/* Cleaner Chat Header */}
@@ -420,7 +420,7 @@ const CustomerServiceDashboard = () => {
                             </div>
 
                             {/* Simplified Messages */}
-                            <div className="flex-1 overflow-y-auto p-6 space-y-3">
+                            <div className="flex-1 overflow-y-auto p-6 space-y-3 pb-28">
                                 {messages.length === 0 ? (
                                     <div className="flex items-center justify-center h-full">
                                         <div className="text-center">
@@ -482,7 +482,7 @@ const CustomerServiceDashboard = () => {
                             </div>
 
                             {/* Simplified Input Area */}
-                            <div className="bg-white border-t border-gray-200 p-5 shadow-lg">
+                            <div className="bg-white border-t border-gray-200 p-5 shadow-lg sticky bottom-0">
                                 <div className="flex items-center gap-3" dir="rtl">
                                     <textarea
                                         value={message}
