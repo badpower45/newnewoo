@@ -187,7 +187,7 @@ const LoginPage = () => {
                         <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent mb-2">
                             أهلاً بعودتك
                         </h2>
-                        <p className="text-gray-600">سجل دخولك للمتابعة إلى Lumina Fresh Market</p>
+                        <p className="text-gray-600">سجل دخولك للمتابعة إلى علوش سوبر ماركت</p>
                     </div>
 
                     {error && (

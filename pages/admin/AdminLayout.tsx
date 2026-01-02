@@ -117,7 +117,7 @@ const AdminLayout = () => {
                 >
                     {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
                 </button>
-                <h1 className="text-lg font-bold text-brand-brown">Lumina Admin</h1>
+                <h1 className="text-lg font-bold text-brand-brown">علوش Admin</h1>
                 <div className="w-10" /> {/* Spacer for centering */}
             </div>
 
@@ -137,7 +137,7 @@ const AdminLayout = () => {
                 ${sidebarOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}
             `}>
                 <div className="p-4 lg:p-6 border-b">
-                    <h1 className="text-xl lg:text-2xl font-bold text-brand-brown">Lumina Admin</h1>
+                    <h1 className="text-xl lg:text-2xl font-bold text-brand-brown">علوش Admin</h1>
                     <p className="text-xs lg:text-sm text-gray-500 truncate">مرحباً، {user?.name || 'Guest'}</p>
                 </div>
                 <nav className="flex-1 p-2 lg:p-4 space-y-1 lg:space-y-2 overflow-y-auto">

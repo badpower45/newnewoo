@@ -59,15 +59,15 @@ console.log('📋 Config Loaded:', {
 });
 
 // App Constants
-export const APP_NAME = 'Lumina Fresh Market';
+export const APP_NAME = 'علوش سوبر ماركت';
 export const DEFAULT_BRANCH_ID = 1;
 
 // Pagination
 export const ITEMS_PER_PAGE = 12;
 
 // Cart
-export const CART_STORAGE_KEY = 'lumina_cart';
-export const FAVORITES_STORAGE_KEY = 'lumina_favorites';
+export const CART_STORAGE_KEY = 'allosh_cart';
+export const FAVORITES_STORAGE_KEY = 'allosh_favorites';
 
 // Substitution Preferences
 export const SUBSTITUTION_OPTIONS = [

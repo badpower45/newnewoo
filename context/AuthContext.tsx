@@ -22,7 +22,7 @@ interface AuthContextType {
     user: User | null;
     loading: boolean;
     login: (credentials: any) => Promise<User>;
-    register: (data: any) => Promise<User>;
+    register: (data: any) => Promise<any>;
     loginAsGuest: () => User;
     logout: () => void;
     updateUser: (userData: Partial<User>) => void;
@@ -115,13 +115,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     };
 
-    const register = async (registerData: any): Promise<User> => {
+    const register = async (registerData: any): Promise<any> => {
         setLoading(true);
         try {
             const data = await api.auth.register(registerData);
             if (!data?.auth || !data?.user) {
                 throw new Error(data?.message || data?.error || 'Registration failed');
             }
+            
+            // If email verification is required, return the data without setting user
+            if (data.requiresVerification || !data.emailVerified) {
+                setLoading(false);
+                return data; // Return full data including requiresVerification flag
+            }
+            
             localStorage.setItem('token', data.token);
             let userWithGuestStatus = { ...data.user, isGuest: false };
 
@@ -134,7 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             localStorage.setItem('user', JSON.stringify(userWithGuestStatus));
             setUser(userWithGuestStatus);
-            return userWithGuestStatus;
+            return data;
         } finally {
             setLoading(false);
         }

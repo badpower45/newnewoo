@@ -15,6 +15,7 @@ const RegisterPage = () => {
     const [error, setError] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [socialLoading, setSocialLoading] = useState<string | null>(null);
+    const [showVerificationMessage, setShowVerificationMessage] = useState(false);
     const { register } = useAuth();
     const navigate = useNavigate();
 
@@ -24,7 +25,7 @@ const RegisterPage = () => {
         setIsSubmitting(true);
         
         try {
-            await register({ 
+            const response = await register({ 
                 firstName, 
                 lastName, 
                 email, 
@@ -32,7 +33,14 @@ const RegisterPage = () => {
                 phone,
                 birthDate: birthDate || undefined
             });
-            navigate('/');
+            
+            // Check if email verification is required
+            if (response?.requiresVerification || !response?.emailVerified) {
+                setShowVerificationMessage(true);
+                // Don't navigate, show verification message instead
+            } else {
+                navigate('/');
+            }
         } catch (err: any) {
             setError(err?.message || 'فشل التسجيل. برجاء المحاولة مرة أخرى');
         } finally {
@@ -79,12 +87,29 @@ const RegisterPage = () => {
                         <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-primary bg-clip-text text-transparent mb-2">
                             مرحباً بك
                         </h2>
-                        <p className="text-gray-600">انضم إلى Lumina Fresh Market</p>
+                        <p className="text-gray-600">انضم إلى علوش سوبر ماركت</p>
                     </div>
 
                     {error && (
                         <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-sm text-center border border-red-100 animate-shake">
                             {error}
+                        </div>
+                    )}
+                    
+                    {showVerificationMessage && (
+                        <div className="bg-blue-50 text-blue-700 p-4 rounded-xl mb-4 text-sm border border-blue-200 space-y-3">
+                            <div className="flex items-center gap-2 font-bold">
+                                <Mail size={18} />
+                                <span>تم إنشاء حسابك بنجاح! ✅</span>
+                            </div>
+                            <p>تم إرسال رابط تفعيل إلى بريدك الإلكتروني <strong>{email}</strong></p>
+                            <p className="text-xs">يرجى التحقق من صندوق الوارد الخاص بك وتفعيل بريدك للمتابعة.</p>
+                            <button
+                                onClick={() => navigate('/login')}
+                                className="w-full mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                            >
+                                الانتقال إلى تسجيل الدخول
+                            </button>
                         </div>
                     )}
 
