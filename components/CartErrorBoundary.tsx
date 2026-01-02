@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 import { ShoppingCart, RefreshCw } from 'lucide-react';
 
 interface Props {
@@ -10,7 +10,7 @@ interface State {
   error?: Error;
 }
 
-export default class CartErrorBoundary extends React.Component<Props, State> {
+export default class CartErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = { hasError: false };

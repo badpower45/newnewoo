@@ -49,6 +49,7 @@ import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import GeneralFAQPage from './pages/GeneralFAQPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
+import CompleteProfilePage from './pages/CompleteProfilePage';
 
 import AdminLayout from './pages/admin/AdminLayout';
 import DashboardOverview from './pages/admin/DashboardOverview';

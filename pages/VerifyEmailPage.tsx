@@ -19,13 +19,29 @@ const VerifyEmailPage: React.FC = () => {
 
         const verify = async () => {
             try {
-                await api.auth.verifyEmail(token);
+                const data = await api.auth.verifyEmail(token);
                 setStatus('success');
-                setMessage('تم تفعيل بريدك بنجاح! سيتم تحويلك لتسجيل الدخول.');
-                setTimeout(() => navigate('/login', { replace: true }), 1200);
+                setMessage('تم تفعيل بريدك بنجاح! سيتم تحويلك...');
+                
+                // Save the JWT token and user data
+                if (data.token) {
+                    localStorage.setItem('token', data.token);
+                }
+                if (data.user) {
+                    localStorage.setItem('user', JSON.stringify({ ...data.user, isGuest: false }));
+                }
+                
+                // Redirect to home page after 2 seconds
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
             } catch (err: any) {
                 setStatus('error');
-                setMessage(err?.message || 'فشل تفعيل البريد');
+                if (err?.message?.includes('انتهت صلاحية') || err?.message?.includes('expired')) {
+                    setMessage('انتهت صلاحية رابط التفعيل. الرجاء طلب رابط جديد من صفحة تسجيل الدخول');
+                } else {
+                    setMessage(err?.message || 'فشل تفعيل البريد');
+                }
             }
         };
 
