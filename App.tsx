@@ -49,6 +49,8 @@ import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import GeneralFAQPage from './pages/GeneralFAQPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
+import EmailVerificationPending from './pages/EmailVerificationPending';
+import EmailVerificationSuccess from './pages/EmailVerificationSuccess';
 import CompleteProfilePage from './pages/CompleteProfilePage';
 
 import AdminLayout from './pages/admin/AdminLayout';
@@ -163,7 +165,8 @@ function AppContent() {
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
-            <Route path="/verify-email" element={<VerifyEmailPage />} />
+            <Route path="/verify-email" element={<EmailVerificationSuccess />} />
+            <Route path="/email-verification-pending" element={<EmailVerificationPending />} />
             <Route path="/track-order" element={<TrackOrderPage />} />
             <Route path="/smart-returns" element={<SmartReturnsPage />} />
             <Route path="/delivery-policy" element={<DeliveryPolicyPage />} />
