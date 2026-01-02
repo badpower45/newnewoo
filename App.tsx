@@ -102,9 +102,14 @@ function AppContent() {
   const [showSplash, setShowSplash] = React.useState(true);
   const [appReady, setAppReady] = React.useState(false);
   const location = useLocation();
-  const isAdminRoute = location.pathname.startsWith('/admin');
-  const isChatPage = location.pathname === '/chat';
-  const canonicalUrl = `${getSiteUrl()}${location.pathname}${location.search}`;
+  const path = location.pathname;
+  const isAdminRoute = path.startsWith('/admin');
+  const isChatPage = path === '/chat';
+  const isEmployeeRoute = ['/customer-service', '/delivery', '/smart-returns'].some(route =>
+    path.startsWith(route)
+  );
+  const hideBottomNav = isAdminRoute || isEmployeeRoute;
+  const canonicalUrl = `${getSiteUrl()}${path}${location.search}`;
   const { loading: authLoading } = useAuth();
   const { loading: branchLoading } = useBranch();
   const globalLoading = authLoading || branchLoading;
@@ -133,7 +138,7 @@ function AppContent() {
     <>
       <Seo url={canonicalUrl} />
       <div className="min-h-screen bg-gray-50 font-sans text-slate-900 relative flex flex-col">
-        <main className={`flex-grow ${!isAdminRoute ? 'pb-16 md:pb-0' : ''}`}>
+        <main className={`flex-grow ${!hideBottomNav ? 'pb-16 md:pb-0' : ''}`}>
         <div className={!isAdminRoute ? "max-w-7xl mx-auto w-full" : "w-full"}>
           <PhoneNumberGuard>
             <Routes>
@@ -215,7 +220,7 @@ function AppContent() {
           </PhoneNumberGuard>
         </div>
       </main>
-      {!isAdminRoute && appReady && (
+      {!hideBottomNav && appReady && (
         <div className="md:hidden">
           <BottomNav />
         </div>
