@@ -183,7 +183,7 @@ const CustomerAnalyticsPage = () => {
                         <Users className="text-brand-orange" size={36} />
                         تحليلات العملاء
                     </h1>
-                    <p className="text-gray-600 mt-1">راقب سلوك العملاء وحدد "المشاغبين"</p>
+                    <p className="text-gray-600 mt-1">راقب سلوك العملاء وحدد "المشاغبين" — اضغط زر الحظر الموجود تحت اسم العميل</p>
                 </div>
                 <div className="flex items-center gap-3">
                     {error && (
@@ -328,6 +328,21 @@ const CustomerAnalyticsPage = () => {
                                             <div>
                                                 <p className="font-bold text-gray-900">{customer.name}</p>
                                                 <p className="text-xs text-gray-500">ID: {customer.id}</p>
+                                                <button
+                                                    onClick={() => handleBlockToggle(customer, !(customer.is_blocked || customer.customer_rating === 'banned'))}
+                                                    disabled={actionEmail === customer.email}
+                                                    className={`mt-1 px-3 py-1 rounded-lg text-xs font-bold transition ${
+                                                        customer.is_blocked || customer.customer_rating === 'banned'
+                                                            ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                                            : 'bg-red-100 text-red-700 hover:bg-red-200'
+                                                    } ${actionEmail === customer.email ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                                >
+                                                    {actionEmail === customer.email
+                                                        ? '...'
+                                                        : (customer.is_blocked || customer.customer_rating === 'banned')
+                                                            ? 'إلغاء الحظر'
+                                                            : 'حظر العميل'}
+                                                </button>
                                             </div>
                                         </div>
                                     </td>
