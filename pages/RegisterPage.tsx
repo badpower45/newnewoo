@@ -16,12 +16,15 @@ const RegisterPage = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [socialLoading, setSocialLoading] = useState<string | null>(null);
     const [showVerificationMessage, setShowVerificationMessage] = useState(false);
+    const [verificationInfo, setVerificationInfo] = useState<{ email?: string; message?: string; verificationUrl?: string } | null>(null);
     const { register } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setVerificationInfo(null);
+        setShowVerificationMessage(false);
         setIsSubmitting(true);
         
         try {
@@ -35,13 +38,20 @@ const RegisterPage = () => {
             });
             
             // Check if email verification is required
-            if (response?.requiresVerification || !response?.emailVerified) {
+            if (response?.requiresVerification || response?.emailVerified === false || response?.success) {
+                setVerificationInfo({
+                    email: response?.email || email,
+                    message: response?.message,
+                    verificationUrl: response?.verificationUrl
+                });
                 setShowVerificationMessage(true);
                 // Don't navigate, show verification message instead
+                return;
             } else {
                 navigate('/');
             }
         } catch (err: any) {
+            setShowVerificationMessage(false);
             setError(err?.message || 'فشل التسجيل. برجاء المحاولة مرة أخرى');
         } finally {
             setIsSubmitting(false);
@@ -100,10 +110,20 @@ const RegisterPage = () => {
                         <div className="bg-blue-50 text-blue-700 p-4 rounded-xl mb-4 text-sm border border-blue-200 space-y-3">
                             <div className="flex items-center gap-2 font-bold">
                                 <Mail size={18} />
-                                <span>تم إنشاء حسابك بنجاح! ✅</span>
+                                <span>{verificationInfo?.message || 'تم إنشاء حسابك بنجاح! ✅'}</span>
                             </div>
-                            <p>تم إرسال رابط تفعيل إلى بريدك الإلكتروني <strong>{email}</strong></p>
+                            <p>تم إرسال رابط تفعيل إلى بريدك الإلكتروني <strong>{verificationInfo?.email || email}</strong></p>
                             <p className="text-xs">يرجى التحقق من صندوق الوارد الخاص بك وتفعيل بريدك للمتابعة.</p>
+                            {verificationInfo?.verificationUrl && (
+                                <a 
+                                    href={verificationInfo.verificationUrl} 
+                                    target="_blank" 
+                                    rel="noreferrer" 
+                                    className="text-xs text-blue-700 underline font-semibold"
+                                >
+                                    فتح رابط التفعيل (للاختبار)
+                                </a>
+                            )}
                             <button
                                 onClick={() => navigate('/login')}
                                 className="w-full mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
@@ -188,11 +208,11 @@ const RegisterPage = () => {
                         />
                     </div>
                     
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
-                            <Lock size={16} className="text-purple-600" />
-                            كلمة المرور *
-                        </label>
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+                                <Lock size={16} className="text-purple-600" />
+                                كلمة المرور *
+                            </label>
                         <div className="relative">
                             <input
                                 type={showPassword ? "text" : "password"}
@@ -201,7 +221,7 @@ const RegisterPage = () => {
                                 className="w-full px-5 py-4 rounded-2xl border-2 border-gray-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 outline-none transition-all bg-white/50 backdrop-blur-sm pr-12"
                                 placeholder="••••••••"
                                 required
-                                minLength={6}
+                                minLength={8}
                             />
                             <button
                                 type="button"
@@ -211,7 +231,7 @@ const RegisterPage = () => {
                                 {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                             </button>
                         </div>
-                        <p className="text-xs text-gray-500 mt-1">* يجب أن تكون على الأقل 6 أحرف</p>
+                        <p className="text-xs text-gray-500 mt-1">* يجب أن تكون 8 أحرف على الأقل وتتضمن حرفاً كبيراً وصغيراً ورقماً ورمزاً خاصاً</p>
                     </div>
 
                     <button

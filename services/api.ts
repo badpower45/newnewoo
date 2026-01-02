@@ -23,10 +23,23 @@ export const api = {
             return data;
         },
         register: async (data: any) => {
+            const firstName = typeof data.firstName === 'string' ? data.firstName.trim() : data.firstName;
+            const lastName = typeof data.lastName === 'string' ? data.lastName.trim() : data.lastName;
+            const nameFromParts = `${firstName || ''} ${lastName || ''}`.trim();
+            const email = typeof data.email === 'string' ? data.email.trim().toLowerCase() : data.email;
+            const phone = typeof data.phone === 'string' ? data.phone.trim() : data.phone;
+            const payload = {
+                ...data,
+                firstName,
+                lastName,
+                name: (typeof data.name === 'string' && data.name.trim()) ? data.name.trim() : nameFromParts,
+                email,
+                phone
+            };
             const res = await fetch(`${API_URL}/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: JSON.stringify(payload)
             });
             const responseData = await res.json();
             if (!res.ok) {

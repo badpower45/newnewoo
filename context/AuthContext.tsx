@@ -32,6 +32,50 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const validatePasswordStrength = (password: string): string | null => {
+    if (!password || password.length < 8) {
+        return 'كلمة المرور يجب أن تكون 8 أحرف على الأقل';
+    }
+    if (password.length > 100) {
+        return 'كلمة المرور طويلة جداً';
+    }
+    if (!/[A-Z]/.test(password)) {
+        return 'كلمة المرور يجب أن تحتوي على حرف كبير واحد على الأقل';
+    }
+    if (!/[a-z]/.test(password)) {
+        return 'كلمة المرور يجب أن تحتوي على حرف صغير واحد على الأقل';
+    }
+    if (!/[0-9]/.test(password)) {
+        return 'كلمة المرور يجب أن تحتوي على رقم واحد على الأقل';
+    }
+    if (!/[!@#$%^&*(),.?\":{}|<>]/.test(password)) {
+        return 'كلمة المرور يجب أن تحتوي على رمز خاص واحد على الأقل (!@#$%^&*...)';
+    }
+    const commonPasswords = [
+        '12345678', 'password', 'Password1!', 'Admin123!',
+        'Qwerty123!', 'Welcome123!'
+    ];
+    if (commonPasswords.includes(password)) {
+        return 'كلمة المرور ضعيفة جداً، استخدم كلمة مرور أقوى';
+    }
+    return null;
+};
+
+const normalizeRegisterData = (data: any) => {
+    const firstName = (data.firstName || '').trim();
+    const lastName = (data.lastName || '').trim();
+    const nameFromFields = `${firstName} ${lastName}`.trim();
+    return {
+        ...data,
+        firstName,
+        lastName,
+        name: data.name?.trim() || nameFromFields,
+        email: (data.email || '').trim().toLowerCase(),
+        phone: data.phone?.toString().trim() || undefined,
+        birthDate: data.birthDate || undefined
+    };
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
@@ -93,7 +137,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const login = async (credentials: any): Promise<User> => {
         setLoading(true);
         try {
-            const data = await api.auth.login(credentials);
+            const data = await api.auth.login({
+                ...credentials,
+                email: (credentials.email || '').trim().toLowerCase()
+            });
             if (!data?.auth || !data?.user) {
                 throw new Error(data?.message || data?.error || 'Login failed');
             }
@@ -118,15 +165,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const register = async (registerData: any): Promise<any> => {
         setLoading(true);
         try {
-            const data = await api.auth.register(registerData);
+            const passwordError = validatePasswordStrength(registerData?.password);
+            if (passwordError) {
+                throw new Error(passwordError);
+            }
+
+            const payload = normalizeRegisterData(registerData);
+            const data = await api.auth.register(payload);
+
+            // New backend flow: verification required before issuing tokens
+            if (data?.success || data?.requiresVerification || data?.emailVerified === false) {
+                return {
+                    success: data?.success ?? true,
+                    requiresVerification: data?.requiresVerification ?? true,
+                    emailVerified: data?.emailVerified ?? false,
+                    message: data?.message,
+                    email: data?.email || payload.email,
+                    verificationUrl: data?.verificationUrl
+                };
+            }
+
             if (!data?.auth || !data?.user) {
                 throw new Error(data?.message || data?.error || 'Registration failed');
-            }
-            
-            // If email verification is required, return the data without setting user
-            if (data.requiresVerification || !data.emailVerified) {
-                setLoading(false);
-                return data; // Return full data including requiresVerification flag
             }
             
             localStorage.setItem('token', data.token);
