@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, User, Mail, Shield, Phone, Building, Filter, Search, Edit2, X, Truck, Headphones, Package, Users, Star, RotateCcw } from 'lucide-react';
+import { Plus, User, Mail, Shield, Phone, Building, Filter, Search, Edit2, X, Truck, Headphones, Package, Users, Star, RotateCcw } from 'lucide-react';
 import { api } from '../../services/api';
 
 // تعريف الـ Roles مع الألوان والأيقونات
@@ -66,17 +66,6 @@ const EmployeesManager = () => {
         returns_managers: users.filter(u => u.role === 'returns_manager').length,
         delivery: users.filter(u => u.role === 'delivery').length,
         customers: users.filter(u => u.role === 'customer').length,
-    };
-
-    const handleDelete = async (id: string) => {
-        if (window.confirm('هل أنت متأكد من حذف هذا المستخدم؟')) {
-            try {
-                await api.users.delete(id);
-                loadUsers();
-            } catch (err) {
-                console.error("Failed to delete user", err);
-            }
-        }
     };
 
     const handleAddUser = async (e: React.FormEvent) => {
