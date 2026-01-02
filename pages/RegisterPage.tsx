@@ -28,31 +28,45 @@ const RegisterPage = () => {
         setIsSubmitting(true);
         
         try {
-            const response = await register({ 
-                firstName, 
-                lastName, 
-                email, 
-                password, 
+            // Use Supabase Auth for registration
+            const { user, session } = await supabaseAuth.signUp(email, password, {
+                firstName,
+                lastName,
                 phone,
-                birthDate: birthDate || undefined
+                birthDate
             });
             
-            // Check if email verification is required
-            if (response?.requiresVerification || response?.emailVerified === false || response?.success) {
+            if (user && !session) {
+                // Email verification required
                 setVerificationInfo({
-                    email: response?.email || email,
-                    message: response?.message,
-                    verificationUrl: response?.verificationUrl
+                    email: email,
+                    message: 'تم إرسال رابط التفعيل إلى بريدك الإلكتروني. الرجاء التحقق من بريدك لتفعيل حسابك.',
                 });
                 setShowVerificationMessage(true);
-                // Don't navigate, show verification message instead
-                return;
-            } else {
+                
+                // Navigate to verification pending page
+                setTimeout(() => {
+                    navigate(`/email-verification-pending?email=${encodeURIComponent(email)}`);
+                }, 2000);
+            } else if (session) {
+                // Auto logged in (email confirmation disabled in Supabase)
+                // Store session and navigate
+                localStorage.setItem('supabase.auth.token', session.access_token);
                 navigate('/');
             }
         } catch (err: any) {
-            setShowVerificationMessage(false);
-            setError(err?.message || 'فشل التسجيل. برجاء المحاولة مرة أخرى');
+            console.error('❌ Registration error:', err);
+            
+            // Handle Supabase errors
+            if (err.message?.includes('already registered')) {
+                setError('هذا البريد الإلكتروني مسجل بالفعل');
+            } else if (err.message?.includes('Password')) {
+                setError('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+            } else if (err.message?.includes('Email')) {
+                setError('البريد الإلكتروني غير صحيح');
+            } else {
+                setError(err.message || 'حدث خطأ أثناء التسجيل. حاول مرة أخرى');
+            }
         } finally {
             setIsSubmitting(false);
         }

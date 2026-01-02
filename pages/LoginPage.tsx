@@ -28,24 +28,45 @@ const LoginPage = () => {
         setVerifyStatus('idle');
         setVerifyMessage('');
         setIsSubmitting(true);
+        
         try {
-            const userData = await login({ email: email.trim(), password });
+            // Use Supabase Auth for login
+            const { session, user } = await supabaseAuth.signIn(email.trim(), password);
             
-            // توجيه بناءً على الـ role
-            if (userData?.role === 'delivery') {
+            if (!session) {
+                throw new Error('فشل تسجيل الدخول');
+            }
+            
+            // Store session
+            localStorage.setItem('supabase.auth.token', session.access_token);
+            
+            // Get user role from metadata
+            const userRole = user?.user_metadata?.role || 'customer';
+            
+            // Navigate based on role
+            if (userRole === 'delivery') {
                 navigate('/delivery');
-            } else if (userData?.role === 'distributor') {
+            } else if (userRole === 'distributor') {
                 navigate('/admin/distribution');
-            } else if (['admin', 'manager'].includes(userData?.role || '')) {
+            } else if (['admin', 'manager'].includes(userRole)) {
                 navigate('/admin');
             } else {
                 navigate('/');
             }
-        } catch (err) {
-            const message = err instanceof Error ? err.message : 'Invalid email or password';
-            setError(message);
+        } catch (err: any) {
+            console.error('❌ Login error:', err);
+            
+            if (err.message?.includes('Invalid login')) {
+                setError('البريد الإلكتروني أو كلمة المرور غير صحيحة');
+            } else if (err.message?.includes('Email not confirmed')) {
+                setError('الرجاء تأكيد بريدك الإلكتروني أولاً');
+                setVerifyStatus('idle');
+            } else {
+                setError(err.message || 'حدث خطأ أثناء تسجيل الدخول');
+            }
+        } finally {
+            setIsSubmitting(false);
         }
-        setIsSubmitting(false);
     };
 
     const finalizeSocialLogin = async (provider: 'google' | 'facebook', profile: any) => {
