@@ -13,28 +13,44 @@ if (!process.env.JWT_SECRET) {
 }
 const SECRET_KEY = process.env.JWT_SECRET;
 
+const sendVerificationEmail = async (email, token) => {
+    try {
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const verifyLink = `${frontendUrl}/verify-email?token=${token}`;
+        console.log(`📧 Verification email requested for ${email}`);
+        console.log(`🔗 Verify using: ${verifyLink}`);
+        // TODO: integrate with real email service (SendGrid/Mailgun/etc.)
+    } catch (err) {
+        console.error('Failed to send verification email:', err);
+    }
+};
+
 // Register - with validation
 router.post('/register', validate(registerSchema), async (req, res) => {
     const { name, email, password } = req.body;
     
     // ✅ Security: Use stronger hashing (12 rounds)
     const hashedPassword = bcrypt.hashSync(password, 12);
+    const verificationToken = crypto.randomBytes(32).toString('hex');
 
     try {
         const sql = `
-            INSERT INTO users (name, email, password, role) 
-            VALUES ($1, $2, $3, 'customer') 
-            RETURNING id
+            INSERT INTO users (name, email, password, role, email_verified, email_verification_token, email_verification_sent_at) 
+            VALUES ($1, $2, $3, 'customer', false, $4, NOW()) 
+            RETURNING id, email
         `;
-        const { rows } = await query(sql, [name, email, hashedPassword]);
+        const { rows } = await query(sql, [name, email, hashedPassword, verificationToken]);
         const userId = rows[0].id;
 
         const token = jwt.sign({ id: userId, role: 'customer' }, SECRET_KEY, { expiresIn: 86400 });
 
+        // Fire-and-forget email verification (log for dev)
+        sendVerificationEmail(email, verificationToken);
+
         res.status(200).send({
             auth: true,
             token: token,
-            user: { id: userId, name, email, role: 'customer' }
+            user: { id: userId, name, email, role: 'customer', email_verified: false }
         });
     } catch (err) {
         console.error("Register error:", err);
@@ -57,6 +73,23 @@ router.post('/login', validate(loginSchema), async (req, res) => {
 
         const passwordIsValid = bcrypt.compareSync(password, user.password);
         if (!passwordIsValid) return res.status(401).send({ auth: false, token: null });
+
+        if (user.is_blocked) {
+            return res.status(403).send({ error: 'تم حظر هذا الحساب. يرجى التواصل مع الدعم.' });
+        }
+
+        if (user.hasOwnProperty('email_verified') && user.email_verified === false) {
+            let tokenToUse = user.email_verification_token;
+            if (!tokenToUse) {
+                tokenToUse = crypto.randomBytes(32).toString('hex');
+                await query(
+                    `UPDATE users SET email_verification_token = $1, email_verification_sent_at = NOW() WHERE id = $2`,
+                    [tokenToUse, user.id]
+                );
+            }
+            sendVerificationEmail(user.email, tokenToUse);
+            return res.status(403).send({ error: 'يرجى تفعيل بريدك الإلكتروني أولاً. تم إرسال رابط التفعيل.' });
+        }
 
         const token = jwt.sign({ id: user.id, role: user.role }, SECRET_KEY, { expiresIn: 86400 });
 
@@ -369,6 +402,75 @@ router.post('/facebook', async (req, res) => {
     } catch (err) {
         console.error('Facebook auth error:', err);
         res.status(500).json({ error: 'Server error during Facebook authentication' });
+    }
+});
+
+// Verify email (token from query or body)
+router.post('/verify-email', async (req, res) => {
+    const token = req.body.token || req.query.token;
+    if (!token) {
+        return res.status(400).json({ error: 'Verification token is required' });
+    }
+
+    try {
+        const { rows } = await query(
+            'SELECT id, email_verified FROM users WHERE email_verification_token = $1',
+            [token]
+        );
+        if (rows.length === 0) {
+            return res.status(400).json({ error: 'رمز التفعيل غير صالح أو مستخدم' });
+        }
+
+        const user = rows[0];
+        if (user.email_verified) {
+            return res.status(200).json({ message: 'الحساب مفعل بالفعل' });
+        }
+
+        await query(
+            `UPDATE users 
+             SET email_verified = true, email_verification_token = NULL, email_verification_sent_at = NULL 
+             WHERE id = $1`,
+            [user.id]
+        );
+
+        res.status(200).json({ message: 'تم تفعيل البريد الإلكتروني بنجاح' });
+    } catch (err) {
+        console.error('Email verification error:', err);
+        res.status(500).json({ error: 'فشل تفعيل البريد' });
+    }
+});
+
+// Resend verification link
+router.post('/resend-verification', async (req, res) => {
+    const { email } = req.body;
+    if (!email) {
+        return res.status(400).json({ error: 'البريد الإلكتروني مطلوب' });
+    }
+
+    try {
+        const { rows } = await query(
+            'SELECT id, email_verified FROM users WHERE email = $1',
+            [email]
+        );
+        if (rows.length === 0) {
+            return res.status(404).json({ error: 'الحساب غير موجود' });
+        }
+
+        const user = rows[0];
+        if (user.email_verified) {
+            return res.status(200).json({ message: 'البريد مفعل بالفعل' });
+        }
+
+        const verificationToken = crypto.randomBytes(32).toString('hex');
+        await query(
+            `UPDATE users SET email_verification_token = $1, email_verification_sent_at = NOW() WHERE id = $2`,
+            [verificationToken, user.id]
+        );
+        sendVerificationEmail(email, verificationToken);
+        res.status(200).json({ message: 'تم إرسال رابط التفعيل إلى بريدك الإلكتروني' });
+    } catch (err) {
+        console.error('Resend verification error:', err);
+        res.status(500).json({ error: 'تعذر إرسال رابط التفعيل' });
     }
 });
 

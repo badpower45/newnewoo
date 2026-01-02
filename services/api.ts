@@ -75,6 +75,30 @@ export const api = {
             }
             return data;
         },
+        verifyEmail: async (token: string) => {
+            const res = await fetch(`${API_URL}/auth/verify-email`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data?.error || 'Failed to verify email');
+            }
+            return data;
+        },
+        resendVerification: async (email: string) => {
+            const res = await fetch(`${API_URL}/auth/resend-verification`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data?.error || 'Failed to resend verification');
+            }
+            return data;
+        },
         facebookLogin: async (fbData: { 
             facebookId: string; 
             email?: string; 
@@ -1893,6 +1917,34 @@ export const api = {
             });
             if (!res.ok) throw new Error('Failed to fetch stats');
             return res.json();
+        }
+    },
+
+    // Admin user controls
+    adminUsers: {
+        blockByEmail: async (email: string, reason?: string) => {
+            const res = await fetch(`${API_URL}/users/block-email`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ email, reason })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data?.error || 'Failed to block user');
+            }
+            return data;
+        },
+        unblockByEmail: async (email: string) => {
+            const res = await fetch(`${API_URL}/users/unblock-email`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ email })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data?.error || 'Failed to unblock user');
+            }
+            return data;
         }
     },
 

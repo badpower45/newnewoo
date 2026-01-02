@@ -10,6 +10,9 @@ import BottomNav from './components/BottomNav';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import { BranchProvider } from './context/BranchContext';
+import { useAuth } from './context/AuthContext';
+import { useBranch } from './context/BranchContext';
+import FullPageSkeleton from './components/FullPageSkeleton';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -45,6 +48,7 @@ import FAQPage from './pages/FAQPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import GeneralFAQPage from './pages/GeneralFAQPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
+import VerifyEmailPage from './pages/VerifyEmailPage';
 
 import AdminLayout from './pages/admin/AdminLayout';
 import DashboardOverview from './pages/admin/DashboardOverview';
@@ -101,6 +105,9 @@ function AppContent() {
   const isAdminRoute = location.pathname.startsWith('/admin');
   const isChatPage = location.pathname === '/chat';
   const canonicalUrl = `${getSiteUrl()}${location.pathname}${location.search}`;
+  const { loading: authLoading } = useAuth();
+  const { loading: branchLoading } = useBranch();
+  const globalLoading = authLoading || branchLoading;
 
   // Show splash screen on first load
   if (showSplash) {
@@ -116,6 +123,10 @@ function AppContent() {
         />
       </>
     );
+  }
+
+  if (globalLoading) {
+    return <FullPageSkeleton />;
   }
 
   return (
@@ -146,6 +157,7 @@ function AppContent() {
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
+            <Route path="/verify-email" element={<VerifyEmailPage />} />
             <Route path="/track-order" element={<TrackOrderPage />} />
             <Route path="/smart-returns" element={<SmartReturnsPage />} />
             <Route path="/delivery-policy" element={<DeliveryPolicyPage />} />

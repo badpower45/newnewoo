@@ -14,6 +14,7 @@ interface CustomerAnalytics {
     average_order_value: number;
     customer_rating: 'excellent' | 'good' | 'problematic' | 'banned';
     last_order_date: string;
+    is_blocked?: boolean;
 }
 
 const CustomerAnalyticsPage = () => {
@@ -24,6 +25,8 @@ const CustomerAnalyticsPage = () => {
     const [sortBy, setSortBy] = useState<'rejected' | 'spent' | 'orders' | 'recent'>('rejected');
     const [statsFromApi, setStatsFromApi] = useState<any>(null);
     const [error, setError] = useState('');
+    const [actionMessage, setActionMessage] = useState<string>('');
+    const [actionEmail, setActionEmail] = useState<string | null>(null);
 
     useEffect(() => {
         fetchCustomerAnalytics();
@@ -46,11 +49,16 @@ const CustomerAnalyticsPage = () => {
             ]);
 
             const customersPayload = customersRes?.data ?? customersRes;
-            const normalizedCustomers = Array.isArray(customersPayload)
-                ? customersPayload
-                : Array.isArray(customersPayload?.data)
-                    ? customersPayload.data
-                    : [];
+            const normalizedCustomers = (
+                Array.isArray(customersPayload)
+                    ? customersPayload
+                    : Array.isArray(customersPayload?.data)
+                        ? customersPayload.data
+                        : []
+            ).map((c: any) => ({
+                ...c,
+                customer_rating: c.is_blocked ? 'banned' : c.customer_rating
+            }));
 
             setCustomers(normalizedCustomers);
             setStatsFromApi(statsRes?.data ?? statsRes);
@@ -85,6 +93,28 @@ const CustomerAnalyticsPage = () => {
                 return <span className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-bold">
                     جديد
                 </span>;
+        }
+    };
+
+    const handleBlockToggle = async (customer: CustomerAnalytics, block: boolean) => {
+        setActionEmail(customer.email);
+        setActionMessage('');
+        try {
+            if (block) {
+                await api.adminUsers.blockByEmail(customer.email, 'حظر يدوي من لوحة التحليلات');
+            } else {
+                await api.adminUsers.unblockByEmail(customer.email);
+            }
+            setCustomers(prev => prev.map(c => c.email === customer.email ? {
+                ...c,
+                customer_rating: block ? 'banned' : c.customer_rating === 'banned' ? 'good' : c.customer_rating,
+                is_blocked: block
+            } : c));
+            setActionMessage(block ? 'تم حظر المستخدم' : 'تم إلغاء الحظر');
+        } catch (err: any) {
+            setActionMessage(err?.message || 'تعذر تحديث حالة الحظر');
+        } finally {
+            setActionEmail(null);
         }
     };
 
@@ -160,6 +190,11 @@ const CustomerAnalyticsPage = () => {
                         <div className="flex items-center gap-2 text-red-600 bg-red-50 border border-red-100 px-3 py-2 rounded-xl text-sm">
                             <AlertCircle size={18} />
                             {error}
+                        </div>
+                    )}
+                    {actionMessage && (
+                        <div className="flex items-center gap-2 text-green-700 bg-green-50 border border-green-100 px-3 py-2 rounded-xl text-sm">
+                            {actionMessage}
                         </div>
                     )}
                     <button
@@ -279,6 +314,7 @@ const CustomerAnalyticsPage = () => {
                                 <th className="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase">متوسط الطلب</th>
                                 <th className="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase">التقييم</th>
                                 <th className="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase">آخر طلب</th>
+                                <th className="px-6 py-4 text-center text-xs font-bold text-gray-700 uppercase">إجراءات</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
@@ -326,6 +362,23 @@ const CustomerAnalyticsPage = () => {
                                     </td>
                                     <td className="px-6 py-4 text-center">
                                         <span className="text-sm text-gray-700">{new Date(customer.last_order_date).toLocaleDateString('ar-EG')}</span>
+                                    </td>
+                                    <td className="px-6 py-4 text-center">
+                                        <button
+                                            onClick={() => handleBlockToggle(customer, !customer.is_blocked && customer.customer_rating !== 'banned')}
+                                            disabled={actionEmail === customer.email}
+                                            className={`px-4 py-2 rounded-xl text-sm font-bold transition ${
+                                                customer.is_blocked || customer.customer_rating === 'banned'
+                                                    ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                                    : 'bg-red-100 text-red-700 hover:bg-red-200'
+                                            } ${actionEmail === customer.email ? 'opacity-70 cursor-not-allowed' : ''}`}
+                                        >
+                                            {actionEmail === customer.email
+                                                ? '...'
+                                                : (customer.is_blocked || customer.customer_rating === 'banned')
+                                                    ? 'إلغاء الحظر'
+                                                    : 'حظر العميل'}
+                                        </button>
                                     </td>
                                 </tr>
                             ))}

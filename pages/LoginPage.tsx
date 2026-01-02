@@ -17,12 +17,16 @@ const LoginPage = () => {
     const [profileData, setProfileData] = useState<any>({});
     const [resetStatus, setResetStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
     const [resetError, setResetError] = useState('');
+    const [verifyStatus, setVerifyStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+    const [verifyMessage, setVerifyMessage] = useState('');
     const { login, updateUser } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+        setVerifyStatus('idle');
+        setVerifyMessage('');
         setIsSubmitting(true);
         try {
             const userData = await login({ email: email.trim(), password });
@@ -124,6 +128,24 @@ const LoginPage = () => {
         navigate('/');
     };
 
+    const handleResendVerification = async () => {
+        if (!email) {
+            setVerifyStatus('error');
+            setVerifyMessage('اكتب بريدك الإلكتروني أولاً ثم أعد الإرسال');
+            return;
+        }
+        setVerifyStatus('sending');
+        setVerifyMessage('');
+        try {
+            const res = await api.auth.resendVerification(email.trim());
+            setVerifyStatus('sent');
+            setVerifyMessage(res?.message || 'تم إرسال رابط التفعيل إلى بريدك');
+        } catch (err: any) {
+            setVerifyStatus('error');
+            setVerifyMessage(err?.message || 'تعذر إرسال رابط التفعيل');
+        }
+    };
+
     const handleSendResetLink = async () => {
         if (!email) {
             setResetError('اكتب بريدك الإلكتروني أولاً');
@@ -169,8 +191,21 @@ const LoginPage = () => {
                     </div>
 
                     {error && (
-                        <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-4 text-sm text-center border border-red-100 animate-shake">
-                            {error}
+                        <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-3 text-sm text-center border border-red-100 animate-shake space-y-2">
+                            <div>{error}</div>
+                            <button
+                                type="button"
+                                onClick={handleResendVerification}
+                                className="text-xs font-bold text-purple-700 underline flex items-center justify-center gap-1 mx-auto disabled:opacity-60"
+                                disabled={verifyStatus === 'sending'}
+                            >
+                                {verifyStatus === 'sent' ? 'تم إرسال رابط التفعيل ✉️' : verifyStatus === 'sending' ? 'جاري الإرسال...' : 'إعادة إرسال رابط التفعيل'}
+                            </button>
+                            {verifyMessage && (
+                                <p className={`text-xs ${verifyStatus === 'error' ? 'text-red-600' : 'text-green-700'}`}>
+                                    {verifyMessage}
+                                </p>
+                            )}
                         </div>
                     )}
 
