@@ -133,6 +133,11 @@ const verifyToken = (req, res, next) => {
     }
 };
 
+const isAdmin = (req, res, next) => {
+    if (req.userRole === 'admin' || req.userRole === 'manager') return next();
+    return res.status(403).json({ error: 'Admins only' });
+};
+
 // ===================== AUTH ROUTES =====================
 
 // Register
@@ -180,6 +185,10 @@ app.post('/api/auth/login', async (req, res) => {
 
         if (!passwordValid) return res.status(401).json({ error: 'Invalid password' });
 
+        if (rows[0].is_blocked) {
+            return res.status(403).json({ error: 'تم حظر هذا الحساب. يرجى التواصل مع الدعم.' });
+        }
+
         const token = jwt.sign({ id: rows[0].id, role: rows[0].role }, JWT_SECRET, { expiresIn: '24h' });
         res.json({
             auth: true,
@@ -218,6 +227,45 @@ app.put('/api/auth/profile', verifyToken, async (req, res) => {
         res.json({ user: rows[0] });
     } catch (err) {
         res.status(500).json({ error: 'Failed to update profile' });
+    }
+});
+
+// Admin: block/unblock by email
+app.post('/api/users/block-email', verifyToken, isAdmin, async (req, res) => {
+    const { email, reason } = req.body;
+    if (!email) return res.status(400).json({ error: 'البريد الإلكتروني مطلوب' });
+    try {
+        const { rows } = await query(
+            `UPDATE users 
+             SET is_blocked = TRUE, block_reason = $2, blocked_at = NOW(), blocked_by = $3 
+             WHERE LOWER(email) = LOWER($1) 
+             RETURNING id, email, is_blocked`,
+            [email, reason || null, req.userId || null]
+        );
+        if (rows.length === 0) return res.status(404).json({ error: 'الحساب غير موجود' });
+        res.json({ message: 'تم حظر المستخدم', data: rows[0] });
+    } catch (err) {
+        console.error('Block user error:', err);
+        res.status(500).json({ error: 'تعذر حظر المستخدم' });
+    }
+});
+
+app.post('/api/users/unblock-email', verifyToken, isAdmin, async (req, res) => {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'البريد الإلكتروني مطلوب' });
+    try {
+        const { rows } = await query(
+            `UPDATE users 
+             SET is_blocked = FALSE, block_reason = NULL, blocked_at = NULL, blocked_by = NULL 
+             WHERE LOWER(email) = LOWER($1) 
+             RETURNING id, email, is_blocked`,
+            [email]
+        );
+        if (rows.length === 0) return res.status(404).json({ error: 'الحساب غير موجود' });
+        res.json({ message: 'تم إلغاء الحظر', data: rows[0] });
+    } catch (err) {
+        console.error('Unblock user error:', err);
+        res.status(500).json({ error: 'تعذر إلغاء الحظر' });
     }
 });
 
