@@ -55,6 +55,10 @@ router.post('/login', async (req, res) => {
         const passwordIsValid = bcrypt.compareSync(password, user.password);
         if (!passwordIsValid) return res.status(401).send({ auth: false, token: null });
 
+        if (user.is_blocked) {
+            return res.status(403).json({ error: 'تم حظر هذا الحساب. يرجى التواصل مع الدعم.' });
+        }
+
         const token = jwt.sign({ id: user.id, role: user.role }, SECRET_KEY, { expiresIn: 86400 });
 
         res.status(200).send({
