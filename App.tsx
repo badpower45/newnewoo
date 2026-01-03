@@ -89,7 +89,6 @@ import LoyaltyPage from './pages/LoyaltyPage';
 import LoyaltyBarcodePage from './pages/LoyaltyBarcodePage';
 import AddressesPage from './pages/AddressesPage';
 import BranchesPage from './pages/BranchesPage';
-import CompleteProfilePage from './pages/CompleteProfilePage';
 
 import { FavoritesProvider } from './context/FavoritesContext';
 import { LanguageProvider } from './context/LanguageContext';

@@ -407,15 +407,17 @@ export const api = {
     },
     users: {
         getAll: async () => {
-            const res = await fetch(`${API_URL}/users`, { headers: getHeaders() });
-            return res.json();
+            const res = await fetch(`${API_URL}/api/admin/users`, { headers: getHeaders() });
+            const data = await res.json();
+            // Wrap in data object to match expected format
+            return { data };
         },
         get: async (id: string) => {
-            const res = await fetch(`${API_URL}/users/${id}`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/api/users/${id}`, { headers: getHeaders() });
             return res.json();
         },
         create: async (data: any) => {
-            const res = await fetch(`${API_URL}/users`, {
+            const res = await fetch(`${API_URL}/api/users`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -423,7 +425,7 @@ export const api = {
             return res.json();
         },
         update: async (id: string, data: any) => {
-            const res = await fetch(`${API_URL}/users/${id}`, {
+            const res = await fetch(`${API_URL}/api/users/${id}`, {
                 method: 'PUT',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -431,7 +433,7 @@ export const api = {
             return res.json();
         },
         updateLoyaltyPoints: async (id: string, points: number, operation: 'add' | 'subtract' | 'set' | 'reset') => {
-            const res = await fetch(`${API_URL}/users/${id}/loyalty-points`, {
+            const res = await fetch(`${API_URL}/api/users/${id}/loyalty-points`, {
                 method: 'PUT',
                 headers: getHeaders(),
                 body: JSON.stringify({ points, operation })
@@ -439,7 +441,7 @@ export const api = {
             return res.json();
         },
         delete: async (id: string) => {
-            const res = await fetch(`${API_URL}/users/${id}`, {
+            const res = await fetch(`${API_URL}/api/users/${id}`, {
                 method: 'DELETE',
                 headers: getHeaders()
             });
