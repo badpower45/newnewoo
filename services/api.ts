@@ -286,11 +286,11 @@ export const api = {
     cart: {
         get: async (userId: string, branchId?: number) => {
             const branch = branchId || 1;
-            const res = await fetch(`${API_URL}/cart?userId=${userId}&branchId=${branch}`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/api/cart?userId=${userId}&branchId=${branch}`, { headers: getHeaders() });
             return res.json();
         },
         add: async (data: { userId: string, productId: string, quantity: number, substitutionPreference?: string }) => {
-            const res = await fetch(`${API_URL}/cart/add`, {
+            const res = await fetch(`${API_URL}/api/cart/add`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -298,7 +298,7 @@ export const api = {
             return res.json();
         },
         remove: async (userId: string, productId: string) => {
-            const res = await fetch(`${API_URL}/cart/remove/${productId}`, {
+            const res = await fetch(`${API_URL}/api/cart/remove/${productId}`, {
                 method: 'DELETE',
                 headers: getHeaders(),
                 body: JSON.stringify({ userId })
@@ -306,7 +306,7 @@ export const api = {
             return res.json();
         },
         update: async (data: { userId: string, productId: string, quantity: number, substitutionPreference?: string }) => {
-            const res = await fetch(`${API_URL}/cart/update`, {
+            const res = await fetch(`${API_URL}/api/cart/update`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -314,7 +314,7 @@ export const api = {
             return res.json();
         },
         clear: async (userId: string) => {
-            const res = await fetch(`${API_URL}/cart/clear`, {
+            const res = await fetch(`${API_URL}/api/cart/clear`, {
                 method: 'DELETE',
                 headers: getHeaders(),
                 body: JSON.stringify({ userId })
@@ -324,7 +324,7 @@ export const api = {
     },
     orders: {
         create: async (data: any) => {
-            const res = await fetch(`${API_URL}/orders`, {
+            const res = await fetch(`${API_URL}/api/orders`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -336,24 +336,24 @@ export const api = {
             return json;
         },
         getAll: async (userId?: string) => {
-            const url = userId ? `${API_URL}/orders?userId=${userId}` : `${API_URL}/orders`;
+            const url = userId ? `${API_URL}/api/orders?userId=${userId}` : `${API_URL}/api/orders`;
             const res = await fetch(url, { headers: getHeaders() });
             return res.json();
         },
         // Admin: Get all orders with auth token
         getAllAdmin: async (status?: string, branchId?: number) => {
-            let url = `${API_URL}/orders/admin/all?`;
+            let url = `${API_URL}/api/orders/admin/all?`;
             if (status) url += `status=${status}&`;
             if (branchId) url += `branchId=${branchId}`;
             const res = await fetch(url, { headers: getHeaders() });
             return res.json();
         },
         getOne: async (id: string) => {
-            const res = await fetch(`${API_URL}/orders/${id}`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/api/orders/${id}`, { headers: getHeaders() });
             return res.json();
         },
         getByCode: async (orderCode: string) => {
-            const res = await fetch(`${API_URL}/orders/track/${orderCode}`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/api/orders/track/${orderCode}`, { headers: getHeaders() });
             if (!res.ok) {
                 const error = await res.json();
                 throw { response: { data: error } };
@@ -361,7 +361,7 @@ export const api = {
             return res.json();
         },
         updateStatus: async (id: string, status: string) => {
-            const res = await fetch(`${API_URL}/orders/${id}/status`, {
+            const res = await fetch(`${API_URL}/api/orders/${id}/status`, {
                 method: 'PUT',
                 headers: getHeaders(),
                 body: JSON.stringify({ status })
@@ -383,7 +383,7 @@ export const api = {
     },
     returns: {
         create: async (payload: { order_id: number; items: any[]; return_reason: string; return_notes?: string }) => {
-            const res = await fetch(`${API_URL}/returns/create`, {
+            const res = await fetch(`${API_URL}/api/returns/create`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(payload)
@@ -395,7 +395,7 @@ export const api = {
             return json;
         },
         check: async (code: string) => {
-            const res = await fetch(`${API_URL}/returns/check/${code}`, {
+            const res = await fetch(`${API_URL}/api/returns/check/${code}`, {
                 headers: getHeaders()
             });
             const json = await res.json();

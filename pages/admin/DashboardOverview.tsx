@@ -119,13 +119,21 @@ const DashboardOverview = () => {
                         {products.slice(0, 5).map((product) => (
                             <div key={product.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
                                 <div className="flex items-center space-x-3">
-                                    <img src={product.image} alt={product.name} className="w-10 h-10 rounded-lg object-cover bg-gray-200" />
+                                    <img 
+                                        src={product.image || 'https://placehold.co/400x400?text=Product'} 
+                                        alt={product.name}
+                                        className="w-10 h-10 rounded-lg object-cover bg-gray-200"
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            target.src = 'https://placehold.co/400x400?text=Product';
+                                        }}
+                                    />
                                     <div>
                                         <p className="font-bold text-gray-900">{product.name}</p>
                                         <p className="text-xs text-gray-500">{product.category}</p>
                                     </div>
                                 </div>
-                                <span className="font-bold text-gray-900">{product.price.toFixed(2)} EGP</span>
+                                <span className="font-bold text-gray-900">{(Number(product.price) || 0).toFixed(2)} EGP</span>
                             </div>
                         ))}
                     </div>
