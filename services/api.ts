@@ -11,7 +11,7 @@ const getHeaders = () => {
 export const api = {
     auth: {
         login: async (credentials: any) => {
-            const res = await fetch(`${API_URL}/api/auth/login`, {
+            const res = await fetch(`${API_URL}/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(credentials)
@@ -36,7 +36,7 @@ export const api = {
                 email,
                 phone
             };
-            const res = await fetch(`${API_URL}/api/auth/register`, {
+            const res = await fetch(`${API_URL}/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -48,7 +48,7 @@ export const api = {
             return responseData;
         },
         forgotPassword: async (email: string) => {
-            const res = await fetch(`${API_URL}/api/auth/forgot-password`, {
+            const res = await fetch(`${API_URL}/auth/forgot-password`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email })
@@ -58,7 +58,7 @@ export const api = {
             return data;
         },
         resetPassword: async (token: string, newPassword: string) => {
-            const res = await fetch(`${API_URL}/api/auth/reset-password`, {
+            const res = await fetch(`${API_URL}/auth/reset-password`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token, newPassword })
@@ -77,7 +77,7 @@ export const api = {
             givenName?: string;
             familyName?: string;
         }) => {
-            const res = await fetch(`${API_URL}/api/auth/google`, {
+            const res = await fetch(`${API_URL}/auth/google`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(googleData)
@@ -89,7 +89,7 @@ export const api = {
             return data;
         },
         verifyEmail: async (token: string) => {
-            const res = await fetch(`${API_URL}/api/auth/verify-email`, {
+            const res = await fetch(`${API_URL}/auth/verify-email`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token })
@@ -101,7 +101,7 @@ export const api = {
             return data;
         },
         resendVerification: async (email: string) => {
-            const res = await fetch(`${API_URL}/api/auth/resend-verification`, {
+            const res = await fetch(`${API_URL}/auth/resend-verification`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email })
@@ -122,7 +122,7 @@ export const api = {
             firstName?: string;
             lastName?: string;
         }) => {
-            const res = await fetch(`${API_URL}/api/auth/facebook`, {
+            const res = await fetch(`${API_URL}/auth/facebook`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(fbData)
@@ -137,7 +137,7 @@ export const api = {
             email?: string;
         }) => {
             const token = localStorage.getItem('token');
-            const res = await fetch(`${API_URL}/api/auth/complete-profile`, {
+            const res = await fetch(`${API_URL}/auth/complete-profile`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -154,7 +154,7 @@ export const api = {
     },
     products: {
         getAll: async () => {
-            const res = await fetch(`${API_URL}/api/products`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/products`, { headers: getHeaders() });
             const json = await res.json();
             const normalize = (p: any) => ({ ...p, price: Number(p?.price) || 0 });
             // Backend returns array directly, not wrapped in {data: [...]}
@@ -162,14 +162,14 @@ export const api = {
             return data.map(normalize);
         },
         getAllByBranch: async (branchId: number, options?: { includeMagazine?: boolean }) => {
-            let url = `${API_URL}/api/products?branchId=${branchId}`;
+            let url = `${API_URL}/products?branchId=${branchId}`;
             if (options?.includeMagazine) {
                 url += '&includeMagazine=true';
             }
             const res = await fetch(url, { headers: getHeaders() });
             if (!res.ok && res.status === 404) {
                 // backend missing branch filter; fallback to all products
-                const all = await fetch(`${API_URL}/api/products`, { headers: getHeaders() });
+                const all = await fetch(`${API_URL}/products`, { headers: getHeaders() });
                 const jsonAll = await all.json();
                 const normalize = (p: any) => ({ ...p, price: Number(p?.price) || 0 });
                 const data = Array.isArray(jsonAll) ? jsonAll : (jsonAll.data || []);
@@ -183,8 +183,8 @@ export const api = {
         },
         getOne: async (id: string, branchId?: number) => {
             const url = branchId 
-                ? `${API_URL}/api/products/${id}?branchId=${branchId}`
-                : `${API_URL}/api/products/${id}`;
+                ? `${API_URL}/products/${id}?branchId=${branchId}`
+                : `${API_URL}/products/${id}`;
             const res = await fetch(url, { headers: getHeaders() });
             const json = await res.json();
             // Backend returns product directly, not wrapped
@@ -195,7 +195,7 @@ export const api = {
             return json;
         },
         getByCategory: async (category: string, branchId?: number) => {
-            let url = `${API_URL}/api/products?category=${encodeURIComponent(category)}`;
+            let url = `${API_URL}/products?category=${encodeURIComponent(category)}`;
             if (branchId) {
                 url += `&branchId=${branchId}`;
             }
@@ -208,18 +208,18 @@ export const api = {
         },
         search: async (query: string) => {
             const branchId = localStorage.getItem('selectedBranchId') || '1';
-            const res = await fetch(`${API_URL}/api/products/search?q=${encodeURIComponent(query)}&branchId=${branchId}`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/products/search?q=${encodeURIComponent(query)}&branchId=${branchId}`, { headers: getHeaders() });
             return res.json();
         },
         delete: async (id: string) => {
-            const res = await fetch(`${API_URL}/api/products/${id}`, {
+            const res = await fetch(`${API_URL}/products/${id}`, {
                 method: 'DELETE',
                 headers: getHeaders()
             });
             return res.json();
         },
         create: async (data: any) => {
-            const res = await fetch(`${API_URL}/api/products`, {
+            const res = await fetch(`${API_URL}/products`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -231,7 +231,7 @@ export const api = {
             return result;
         },
         update: async (id: string, data: any) => {
-            const res = await fetch(`${API_URL}/api/products/${id}`, {
+            const res = await fetch(`${API_URL}/products/${id}`, {
                 method: 'PUT',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -243,7 +243,7 @@ export const api = {
             return result;
         },
         upload: async (formData: FormData) => {
-            const res = await fetch(`${API_URL}/api/products/upload`, {
+            const res = await fetch(`${API_URL}/products/upload`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -254,8 +254,8 @@ export const api = {
         },
         getByBarcode: async (barcode: string, branchId?: number) => {
             const url = branchId 
-                ? `${API_URL}/api/products/barcode/${barcode}?branchId=${branchId}`
-                : `${API_URL}/api/products/barcode/${barcode}`;
+                ? `${API_URL}/products/barcode/${barcode}?branchId=${branchId}`
+                : `${API_URL}/products/barcode/${barcode}`;
             const res = await fetch(url, { headers: getHeaders() });
             return res.json();
         }
@@ -266,7 +266,7 @@ export const api = {
             const qs = options?.all ? '?all=true' : '';
             const token = localStorage.getItem('token');
             const headers: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
-            const res = await fetch(`${API_URL}/api/hero-sections${qs}`, { headers });
+            const res = await fetch(`${API_URL}/hero-sections${qs}`, { headers });
             const text = await res.text();
             try {
                 const json = text ? JSON.parse(text) : {};
@@ -286,11 +286,11 @@ export const api = {
     cart: {
         get: async (userId: string, branchId?: number) => {
             const branch = branchId || 1;
-            const res = await fetch(`${API_URL}/api/cart?userId=${userId}&branchId=${branch}`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/cart?userId=${userId}&branchId=${branch}`, { headers: getHeaders() });
             return res.json();
         },
         add: async (data: { userId: string, productId: string, quantity: number, substitutionPreference?: string }) => {
-            const res = await fetch(`${API_URL}/api/cart/add`, {
+            const res = await fetch(`${API_URL}/cart/add`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -298,7 +298,7 @@ export const api = {
             return res.json();
         },
         remove: async (userId: string, productId: string) => {
-            const res = await fetch(`${API_URL}/api/cart/remove/${productId}`, {
+            const res = await fetch(`${API_URL}/cart/remove/${productId}`, {
                 method: 'DELETE',
                 headers: getHeaders(),
                 body: JSON.stringify({ userId })
@@ -306,7 +306,7 @@ export const api = {
             return res.json();
         },
         update: async (data: { userId: string, productId: string, quantity: number, substitutionPreference?: string }) => {
-            const res = await fetch(`${API_URL}/api/cart/update`, {
+            const res = await fetch(`${API_URL}/cart/update`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -314,7 +314,7 @@ export const api = {
             return res.json();
         },
         clear: async (userId: string) => {
-            const res = await fetch(`${API_URL}/api/cart/clear`, {
+            const res = await fetch(`${API_URL}/cart/clear`, {
                 method: 'DELETE',
                 headers: getHeaders(),
                 body: JSON.stringify({ userId })
@@ -324,7 +324,7 @@ export const api = {
     },
     orders: {
         create: async (data: any) => {
-            const res = await fetch(`${API_URL}/api/orders`, {
+            const res = await fetch(`${API_URL}/orders`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -336,24 +336,24 @@ export const api = {
             return json;
         },
         getAll: async (userId?: string) => {
-            const url = userId ? `${API_URL}/api/orders?userId=${userId}` : `${API_URL}/api/orders`;
+            const url = userId ? `${API_URL}/orders?userId=${userId}` : `${API_URL}/orders`;
             const res = await fetch(url, { headers: getHeaders() });
             return res.json();
         },
         // Admin: Get all orders with auth token
         getAllAdmin: async (status?: string, branchId?: number) => {
-            let url = `${API_URL}/api/orders/admin/all?`;
+            let url = `${API_URL}/orders/admin/all?`;
             if (status) url += `status=${status}&`;
             if (branchId) url += `branchId=${branchId}`;
             const res = await fetch(url, { headers: getHeaders() });
             return res.json();
         },
         getOne: async (id: string) => {
-            const res = await fetch(`${API_URL}/api/orders/${id}`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/orders/${id}`, { headers: getHeaders() });
             return res.json();
         },
         getByCode: async (orderCode: string) => {
-            const res = await fetch(`${API_URL}/api/orders/track/${orderCode}`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/orders/track/${orderCode}`, { headers: getHeaders() });
             if (!res.ok) {
                 const error = await res.json();
                 throw { response: { data: error } };
@@ -361,7 +361,7 @@ export const api = {
             return res.json();
         },
         updateStatus: async (id: string, status: string) => {
-            const res = await fetch(`${API_URL}/api/orders/${id}/status`, {
+            const res = await fetch(`${API_URL}/orders/${id}/status`, {
                 method: 'PUT',
                 headers: getHeaders(),
                 body: JSON.stringify({ status })
@@ -383,7 +383,7 @@ export const api = {
     },
     returns: {
         create: async (payload: { order_id: number; items: any[]; return_reason: string; return_notes?: string }) => {
-            const res = await fetch(`${API_URL}/api/returns/create`, {
+            const res = await fetch(`${API_URL}/returns/create`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(payload)
@@ -395,7 +395,7 @@ export const api = {
             return json;
         },
         check: async (code: string) => {
-            const res = await fetch(`${API_URL}/api/returns/check/${code}`, {
+            const res = await fetch(`${API_URL}/returns/check/${code}`, {
                 headers: getHeaders()
             });
             const json = await res.json();
@@ -407,17 +407,17 @@ export const api = {
     },
     users: {
         getAll: async () => {
-            const res = await fetch(`${API_URL}/api/admin/users`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/admin/users`, { headers: getHeaders() });
             const data = await res.json();
             // Wrap in data object to match expected format
             return { data };
         },
         get: async (id: string) => {
-            const res = await fetch(`${API_URL}/api/users/${id}`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/users/${id}`, { headers: getHeaders() });
             return res.json();
         },
         create: async (data: any) => {
-            const res = await fetch(`${API_URL}/api/users`, {
+            const res = await fetch(`${API_URL}/users`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -425,7 +425,7 @@ export const api = {
             return res.json();
         },
         update: async (id: string, data: any) => {
-            const res = await fetch(`${API_URL}/api/users/${id}`, {
+            const res = await fetch(`${API_URL}/users/${id}`, {
                 method: 'PUT',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -433,7 +433,7 @@ export const api = {
             return res.json();
         },
         updateLoyaltyPoints: async (id: string, points: number, operation: 'add' | 'subtract' | 'set' | 'reset') => {
-            const res = await fetch(`${API_URL}/api/users/${id}/loyalty-points`, {
+            const res = await fetch(`${API_URL}/users/${id}/loyalty-points`, {
                 method: 'PUT',
                 headers: getHeaders(),
                 body: JSON.stringify({ points, operation })
@@ -441,21 +441,21 @@ export const api = {
             return res.json();
         },
         delete: async (id: string) => {
-            const res = await fetch(`${API_URL}/api/users/${id}`, {
+            const res = await fetch(`${API_URL}/users/${id}`, {
                 method: 'DELETE',
                 headers: getHeaders()
             });
             return res.json();
         },
         getProfile: async () => {
-            const res = await fetch(`${API_URL}/api/users/profile`, {
+            const res = await fetch(`${API_URL}/users/profile`, {
                 headers: getHeaders()
             });
             if (!res.ok) throw new Error('Failed to fetch profile');
             return res.json();
         },
         updateProfile: async (data: any) => {
-            const res = await fetch(`${API_URL}/api/users/profile`, {
+            const res = await fetch(`${API_URL}/users/profile`, {
                 method: 'PUT',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -466,7 +466,7 @@ export const api = {
     },
     chat: {
         createConversation: async (customerId: number | null, customerName: string) => {
-            const res = await fetch(`${API_URL}/api/chat/conversations`, {
+            const res = await fetch(`${API_URL}/chat/conversations`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify({ customerId, customerName })
@@ -474,7 +474,7 @@ export const api = {
             return res.json();
         },
         getConversations: async (status?: string, agentId?: number) => {
-            let url = `${API_URL}/api/chat/conversations`;
+            let url = `${API_URL}/chat/conversations`;
             const params = new URLSearchParams();
             if (status) params.append('status', status);
             if (agentId) params.append('agentId', agentId.toString());
@@ -484,13 +484,13 @@ export const api = {
             return res.json();
         },
         getConversation: async (id: number) => {
-            const res = await fetch(`${API_URL}/api/chat/conversations/${id}`, {
+            const res = await fetch(`${API_URL}/chat/conversations/${id}`, {
                 headers: getHeaders()
             });
             return res.json();
         },
         assignConversation: async (id: number, agentId: number) => {
-            const res = await fetch(`${API_URL}/api/chat/conversations/${id}/assign`, {
+            const res = await fetch(`${API_URL}/chat/conversations/${id}/assign`, {
                 method: 'PATCH',
                 headers: getHeaders(),
                 body: JSON.stringify({ agentId })
@@ -498,14 +498,14 @@ export const api = {
             return res.json();
         },
         closeConversation: async (id: number) => {
-            const res = await fetch(`${API_URL}/api/chat/conversations/${id}/close`, {
+            const res = await fetch(`${API_URL}/chat/conversations/${id}/close`, {
                 method: 'PATCH',
                 headers: getHeaders()
             });
             return res.json();
         },
         sendMessage: async (conversationId: number, senderId: number | null, senderType: string, message: string) => {
-            const res = await fetch(`${API_URL}/api/chat/messages`, {
+            const res = await fetch(`${API_URL}/chat/messages`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify({ conversationId, senderId, senderType, message })
@@ -513,7 +513,7 @@ export const api = {
             return res.json();
         },
         markAsRead: async (conversationId: number) => {
-            const res = await fetch(`${API_URL}/api/chat/messages/read`, {
+            const res = await fetch(`${API_URL}/chat/messages/read`, {
                 method: 'PATCH',
                 headers: getHeaders(),
                 body: JSON.stringify({ conversationId })
@@ -523,7 +523,7 @@ export const api = {
     },
     branches: {
         getAll: async () => {
-            const res = await fetch(`${API_URL}/api/branches`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/branches`, { headers: getHeaders() });
             if (!res.ok) {
                 throw new Error('Failed to fetch branches');
             }
@@ -532,17 +532,17 @@ export const api = {
             return json.data || json;
         },
         getOne: async (id: number) => {
-            const res = await fetch(`${API_URL}/api/branches/${id}`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/branches/${id}`, { headers: getHeaders() });
             return res.json();
         },
         getNearby: async (lat: number, lng: number, radius: number = 10) => {
-            const res = await fetch(`${API_URL}/api/branches/nearby?lat=${lat}&lng=${lng}&radius=${radius}`, {
+            const res = await fetch(`${API_URL}/branches/nearby?lat=${lat}&lng=${lng}&radius=${radius}`, {
                 headers: getHeaders()
             });
             return res.json();
         },
         checkCoverage: async (id: number, lat: number, lng: number) => {
-            const res = await fetch(`${API_URL}/api/branches/${id}/check-coverage`, {
+            const res = await fetch(`${API_URL}/branches/${id}/check-coverage`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify({ latitude: lat, longitude: lng })
@@ -550,7 +550,7 @@ export const api = {
             return res.json();
         },
         create: async (data: any) => {
-            const res = await fetch(`${API_URL}/api/branches`, {
+            const res = await fetch(`${API_URL}/branches`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -558,7 +558,7 @@ export const api = {
             return res.json();
         },
         update: async (id: number, data: any) => {
-            const res = await fetch(`${API_URL}/api/branches/${id}`, {
+            const res = await fetch(`${API_URL}/branches/${id}`, {
                 method: 'PUT',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -566,7 +566,7 @@ export const api = {
             return res.json();
         },
         delete: async (id: number) => {
-            const res = await fetch(`${API_URL}/api/branches/${id}`, {
+            const res = await fetch(`${API_URL}/branches/${id}`, {
                 method: 'DELETE',
                 headers: getHeaders()
             });
@@ -881,8 +881,8 @@ export const api = {
         // جلب جميع موظفي التوصيل مع إحصائياتهم
         getAllDeliveryStaff: async (branchId?: number) => {
             const url = branchId 
-                ? `${API_URL}/api/distribution/all-delivery-staff?branchId=${branchId}`
-                : `${API_URL}/api/distribution/all-delivery-staff`;
+                ? `${API_URL}/distribution/all-delivery-staff?branchId=${branchId}`
+                : `${API_URL}/distribution/all-delivery-staff`;
             const res = await fetch(url, {
                 headers: getHeaders()
             });
@@ -891,7 +891,7 @@ export const api = {
         
         // تحديث بيانات الفرع
         updateBranchContact: async (branchId: number, data: any) => {
-            const res = await fetch(`${API_URL}/api/distribution/branches/${branchId}/contact`, {
+            const res = await fetch(`${API_URL}/distribution/branches/${branchId}/contact`, {
                 method: 'PUT',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -904,7 +904,7 @@ export const api = {
     deliveryFees: {
         // حساب رسوم التوصيل
         calculate: async (branchId: number, subtotal: number, customerLat?: number, customerLng?: number) => {
-            const res = await fetch(`${API_URL}/api/delivery-fees/calculate`, {
+            const res = await fetch(`${API_URL}/delivery-fees/calculate`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify({ branchId, subtotal, customerLat, customerLng })
@@ -914,7 +914,7 @@ export const api = {
 
         // الحصول على إعدادات رسوم التوصيل لفرع
         getByBranch: async (branchId: number) => {
-            const res = await fetch(`${API_URL}/api/delivery-fees/${branchId}`, {
+            const res = await fetch(`${API_URL}/delivery-fees/${branchId}`, {
                 headers: getHeaders()
             });
             return res.json();
@@ -922,7 +922,7 @@ export const api = {
 
         // تحديث إعدادات رسوم التوصيل (Admin only)
         update: async (id: number, data: any) => {
-            const res = await fetch(`${API_URL}/api/delivery-fees/${id}`, {
+            const res = await fetch(`${API_URL}/delivery-fees/${id}`, {
                 method: 'PUT',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -935,7 +935,7 @@ export const api = {
     coupons: {
         // التحقق من صحة الكوبون وتطبيقه
         validate: async (code: string, subtotal: number) => {
-            const res = await fetch(`${API_URL}/api/coupons/validate`, {
+            const res = await fetch(`${API_URL}/coupons/validate`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify({ code, subtotal })
@@ -945,7 +945,7 @@ export const api = {
 
         // الحصول على جميع الكوبونات (Admin only)
         getAll: async () => {
-            const res = await fetch(`${API_URL}/api/coupons`, {
+            const res = await fetch(`${API_URL}/coupons`, {
                 headers: getHeaders()
             });
             return res.json();
@@ -953,7 +953,7 @@ export const api = {
 
         // إنشاء كوبون جديد (Admin only)
         create: async (data: any) => {
-            const res = await fetch(`${API_URL}/api/coupons`, {
+            const res = await fetch(`${API_URL}/coupons`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -963,7 +963,7 @@ export const api = {
 
         // تحديث كوبون (Admin only)
         update: async (id: number, data: any) => {
-            const res = await fetch(`${API_URL}/api/coupons/${id}`, {
+            const res = await fetch(`${API_URL}/coupons/${id}`, {
                 method: 'PUT',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -973,7 +973,7 @@ export const api = {
 
         // حذف كوبون (Admin only)
         delete: async (id: number) => {
-            const res = await fetch(`${API_URL}/api/coupons/${id}`, {
+            const res = await fetch(`${API_URL}/coupons/${id}`, {
                 method: 'DELETE',
                 headers: getHeaders()
             });
@@ -982,7 +982,7 @@ export const api = {
 
         // الحصول على إحصائيات استخدام كوبون (Admin only)
         getUsage: async (code: string) => {
-            const res = await fetch(`${API_URL}/api/coupons/usage/${code}`, {
+            const res = await fetch(`${API_URL}/coupons/usage/${code}`, {
                 headers: getHeaders()
             });
             return res.json();
@@ -993,7 +993,7 @@ export const api = {
     magazine: {
         // جلب جميع العروض
         getAll: async (category?: string, brandId?: number) => {
-            let url = `${API_URL}/api/magazine`;
+            let url = `${API_URL}/magazine`;
             const params = [];
             if (category) params.push(`category=${encodeURIComponent(category)}`);
             if (brandId) params.push(`brandId=${brandId}`);
@@ -1006,13 +1006,13 @@ export const api = {
 
         // جلب الفئات
         getCategories: async () => {
-            const res = await fetch(`${API_URL}/api/magazine/categories`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/magazine/categories`, { headers: getHeaders() });
             return res.json();
         },
 
         // إنشاء عرض جديد (Admin)
         create: async (data: any) => {
-            const res = await fetch(`${API_URL}/api/magazine`, {
+            const res = await fetch(`${API_URL}/magazine`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -1022,7 +1022,7 @@ export const api = {
 
         // تحديث عرض (Admin)
         update: async (id: number, data: any) => {
-            const res = await fetch(`${API_URL}/api/magazine/${id}`, {
+            const res = await fetch(`${API_URL}/magazine/${id}`, {
                 method: 'PUT',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -1032,7 +1032,7 @@ export const api = {
 
         // حذف عرض (Admin)
         delete: async (id: number) => {
-            const res = await fetch(`${API_URL}/api/magazine/${id}`, {
+            const res = await fetch(`${API_URL}/magazine/${id}`, {
                 method: 'DELETE',
                 headers: getHeaders()
             });
@@ -1043,11 +1043,11 @@ export const api = {
     // Magazine Pages API
     magazinePages: {
         getAll: async () => {
-            const res = await fetch(`${API_URL}/api/magazine/pages`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/magazine/pages`, { headers: getHeaders() });
             return res.json();
         },
         getOne: async (id: number) => {
-            const res = await fetch(`${API_URL}/api/magazine/pages/${id}`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/magazine/pages/${id}`, { headers: getHeaders() });
             return res.json();
         }
     },
@@ -1056,7 +1056,7 @@ export const api = {
     hotDeals: {
         // جلب جميع العروض الساخنة
         getAll: async (brandId?: number) => {
-            let url = `${API_URL}/api/hot-deals`;
+            let url = `${API_URL}/hot-deals`;
             if (brandId) url += `?brandId=${brandId}`;
             const res = await fetch(url, { headers: getHeaders() });
             return res.json();
@@ -1064,13 +1064,13 @@ export const api = {
 
         // جلب العرض السريع (Flash Deal)
         getFlashDeal: async () => {
-            const res = await fetch(`${API_URL}/api/hot-deals/flash`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/hot-deals/flash`, { headers: getHeaders() });
             return res.json();
         },
 
         // إنشاء عرض جديد (Admin)
         create: async (data: any) => {
-            const res = await fetch(`${API_URL}/api/hot-deals`, {
+            const res = await fetch(`${API_URL}/hot-deals`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -1080,7 +1080,7 @@ export const api = {
 
         // تحديث عرض (Admin)
         update: async (id: number, data: any) => {
-            const res = await fetch(`${API_URL}/api/hot-deals/${id}`, {
+            const res = await fetch(`${API_URL}/hot-deals/${id}`, {
                 method: 'PUT',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -1090,7 +1090,7 @@ export const api = {
 
         // تحديث الكمية المباعة
         updateSold: async (id: number, quantity: number = 1) => {
-            const res = await fetch(`${API_URL}/api/hot-deals/${id}/sold`, {
+            const res = await fetch(`${API_URL}/hot-deals/${id}/sold`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify({ quantity })
@@ -1100,7 +1100,7 @@ export const api = {
 
         // حذف عرض (Admin)
         delete: async (id: number) => {
-            const res = await fetch(`${API_URL}/api/hot-deals/${id}`, {
+            const res = await fetch(`${API_URL}/hot-deals/${id}`, {
                 method: 'DELETE',
                 headers: getHeaders()
             });
@@ -1112,7 +1112,7 @@ export const api = {
     favorites: {
         // Get user's favorites
         get: async (userId: string) => {
-            const res = await fetch(`${API_URL}/api/favorites/${userId}`, {
+            const res = await fetch(`${API_URL}/favorites/${userId}`, {
                 headers: getHeaders()
             });
             return res.json();
@@ -1120,7 +1120,7 @@ export const api = {
 
         // Add to favorites
         add: async (userId: string, productId: string) => {
-            const res = await fetch(`${API_URL}/api/favorites`, {
+            const res = await fetch(`${API_URL}/favorites`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify({ userId, productId })
@@ -1130,7 +1130,7 @@ export const api = {
 
         // Remove from favorites
         remove: async (userId: string, productId: string) => {
-            const res = await fetch(`${API_URL}/api/favorites/${userId}/${productId}`, {
+            const res = await fetch(`${API_URL}/favorites/${userId}/${productId}`, {
                 method: 'DELETE',
                 headers: getHeaders()
             });
@@ -1139,7 +1139,7 @@ export const api = {
 
         // Check if product is in favorites
         check: async (userId: string, productId: string) => {
-            const res = await fetch(`${API_URL}/api/favorites/${userId}/check/${productId}`, {
+            const res = await fetch(`${API_URL}/favorites/${userId}/check/${productId}`, {
                 headers: getHeaders()
             });
             return res.json();
@@ -1147,7 +1147,7 @@ export const api = {
 
         // Clear all favorites
         clear: async (userId: string) => {
-            const res = await fetch(`${API_URL}/api/favorites/${userId}`, {
+            const res = await fetch(`${API_URL}/favorites/${userId}`, {
                 method: 'DELETE',
                 headers: getHeaders()
             });
@@ -1160,7 +1160,7 @@ export const api = {
         // Get all active categories
         getAll: async () => {
             console.log('📡 Calling API: GET /categories');
-            const res = await fetch(`${API_URL}/api/categories`, {
+            const res = await fetch(`${API_URL}/categories`, {
                 headers: getHeaders()
             });
             console.log('📡 Response status:', res.status);
@@ -1175,7 +1175,7 @@ export const api = {
 
         // Get single category
         getOne: async (id: number) => {
-            const res = await fetch(`${API_URL}/api/categories/${id}`, {
+            const res = await fetch(`${API_URL}/categories/${id}`, {
                 headers: getHeaders()
             });
             return res.json();
@@ -1183,7 +1183,7 @@ export const api = {
 
         // Get category by name
         getByName: async (name: string) => {
-            const res = await fetch(`${API_URL}/api/categories/name/${encodeURIComponent(name)}`, {
+            const res = await fetch(`${API_URL}/categories/name/${encodeURIComponent(name)}`, {
                 headers: getHeaders()
             });
             return res.json();
@@ -1192,7 +1192,7 @@ export const api = {
         // Admin: Get all categories (including inactive)
         getAllAdmin: async () => {
             console.log('📡 Calling API: GET /categories/admin/all');
-            const res = await fetch(`${API_URL}/api/categories/admin/all`, {
+            const res = await fetch(`${API_URL}/categories/admin/all`, {
                 headers: getHeaders()
             });
             console.log('📡 Admin categories response status:', res.status);
@@ -1217,7 +1217,7 @@ export const api = {
             display_order?: number;
             is_active?: boolean;
         }) => {
-            const res = await fetch(`${API_URL}/api/categories`, {
+            const res = await fetch(`${API_URL}/categories`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -1227,7 +1227,7 @@ export const api = {
 
         // Admin: Update category
         update: async (id: number, data: any) => {
-            const res = await fetch(`${API_URL}/api/categories/${id}`, {
+            const res = await fetch(`${API_URL}/categories/${id}`, {
                 method: 'PUT',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -1237,7 +1237,7 @@ export const api = {
 
         // Admin: Delete category
         delete: async (id: number) => {
-            const res = await fetch(`${API_URL}/api/categories/${id}`, {
+            const res = await fetch(`${API_URL}/categories/${id}`, {
                 method: 'DELETE',
                 headers: getHeaders()
             });
@@ -1246,7 +1246,7 @@ export const api = {
 
         // Admin: Reorder categories
         reorder: async (categories: Array<{ id: number; display_order: number }>) => {
-            const res = await fetch(`${API_URL}/api/categories/reorder`, {
+            const res = await fetch(`${API_URL}/categories/reorder`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify({ categories })
@@ -1256,7 +1256,7 @@ export const api = {
 
         // Get subcategories
         getSubcategories: async (parentId: number) => {
-            const res = await fetch(`${API_URL}/api/categories/${parentId}/subcategories`, {
+            const res = await fetch(`${API_URL}/categories/${parentId}/subcategories`, {
                 headers: getHeaders()
             });
             return res.json();
@@ -1266,21 +1266,21 @@ export const api = {
     // Stories API
     stories: {
         getAll: async () => {
-            const res = await fetch(`${API_URL}/api/stories`, {
+            const res = await fetch(`${API_URL}/stories`, {
                 headers: getHeaders()
             });
             return res.json();
         },
 
         getAllAdmin: async () => {
-            const res = await fetch(`${API_URL}/api/stories/admin/all`, {
+            const res = await fetch(`${API_URL}/stories/admin/all`, {
                 headers: getHeaders()
             });
             return res.json();
         },
 
         getById: async (id: number) => {
-            const res = await fetch(`${API_URL}/api/stories/${id}`, {
+            const res = await fetch(`${API_URL}/stories/${id}`, {
                 headers: getHeaders()
             });
             return res.json();
@@ -1297,7 +1297,7 @@ export const api = {
             priority?: number;
             branch_id?: number;
         }) => {
-            const res = await fetch(`${API_URL}/api/stories`, {
+            const res = await fetch(`${API_URL}/stories`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -1317,7 +1317,7 @@ export const api = {
             is_active: boolean;
             branch_id: number;
         }>) => {
-            const res = await fetch(`${API_URL}/api/stories/${id}`, {
+            const res = await fetch(`${API_URL}/stories/${id}`, {
                 method: 'PUT',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -1326,7 +1326,7 @@ export const api = {
         },
 
         delete: async (id: number) => {
-            const res = await fetch(`${API_URL}/api/stories/${id}`, {
+            const res = await fetch(`${API_URL}/stories/${id}`, {
                 method: 'DELETE',
                 headers: getHeaders()
             });
@@ -1334,7 +1334,7 @@ export const api = {
         },
 
         recordView: async (id: number, userId?: number) => {
-            const res = await fetch(`${API_URL}/api/stories/${id}/view`, {
+            const res = await fetch(`${API_URL}/stories/${id}/view`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify({ userId })
@@ -1346,21 +1346,21 @@ export const api = {
     // Facebook Reels API
     facebookReels: {
         getAll: async () => {
-            const res = await fetch(`${API_URL}/api/facebook-reels`, {
+            const res = await fetch(`${API_URL}/facebook-reels`, {
                 headers: getHeaders()
             });
             return res.json();
         },
 
         getAllAdmin: async () => {
-            const res = await fetch(`${API_URL}/api/facebook-reels/admin/all`, {
+            const res = await fetch(`${API_URL}/facebook-reels/admin/all`, {
                 headers: getHeaders()
             });
             return res.json();
         },
 
         getById: async (id: number) => {
-            const res = await fetch(`${API_URL}/api/facebook-reels/${id}`, {
+            const res = await fetch(`${API_URL}/facebook-reels/${id}`, {
                 headers: getHeaders()
             });
             return res.json();
@@ -1376,7 +1376,7 @@ export const api = {
             is_active?: boolean;
             display_order?: number;
         }) => {
-            const res = await fetch(`${API_URL}/api/facebook-reels`, {
+            const res = await fetch(`${API_URL}/facebook-reels`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -1394,7 +1394,7 @@ export const api = {
             is_active: boolean;
             display_order: number;
         }>) => {
-            const res = await fetch(`${API_URL}/api/facebook-reels/${id}`, {
+            const res = await fetch(`${API_URL}/facebook-reels/${id}`, {
                 method: 'PUT',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -1403,7 +1403,7 @@ export const api = {
         },
 
         delete: async (id: number) => {
-            const res = await fetch(`${API_URL}/api/facebook-reels/${id}`, {
+            const res = await fetch(`${API_URL}/facebook-reels/${id}`, {
                 method: 'DELETE',
                 headers: getHeaders()
             });
@@ -1411,7 +1411,7 @@ export const api = {
         },
 
         reorder: async (reels: Array<{ id: number; display_order: number }>) => {
-            const res = await fetch(`${API_URL}/api/facebook-reels/reorder`, {
+            const res = await fetch(`${API_URL}/facebook-reels/reorder`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify({ reels })
@@ -1423,21 +1423,21 @@ export const api = {
     // Brand Offers API - عروض البراندات
     brandOffers: {
         getAll: async () => {
-            const res = await fetch(`${API_URL}/api/brand-offers`, {
+            const res = await fetch(`${API_URL}/brand-offers`, {
                 headers: getHeaders()
             });
             return res.json();
         },
 
         getAllAdmin: async () => {
-            const res = await fetch(`${API_URL}/api/brand-offers/admin`, {
+            const res = await fetch(`${API_URL}/brand-offers/admin`, {
                 headers: getHeaders()
             });
             return res.json();
         },
 
         getById: async (id: number) => {
-            const res = await fetch(`${API_URL}/api/brand-offers/${id}`, {
+            const res = await fetch(`${API_URL}/brand-offers/${id}`, {
                 headers: getHeaders()
             });
             return res.json();
@@ -1466,7 +1466,7 @@ export const api = {
             starts_at?: string;
             expires_at?: string;
         }) => {
-            const res = await fetch(`${API_URL}/api/brand-offers`, {
+            const res = await fetch(`${API_URL}/brand-offers`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -1497,7 +1497,7 @@ export const api = {
             starts_at: string;
             expires_at: string;
         }>) => {
-            const res = await fetch(`${API_URL}/api/brand-offers/${id}`, {
+            const res = await fetch(`${API_URL}/brand-offers/${id}`, {
                 method: 'PUT',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -1506,7 +1506,7 @@ export const api = {
         },
 
         delete: async (id: number) => {
-            const res = await fetch(`${API_URL}/api/brand-offers/${id}`, {
+            const res = await fetch(`${API_URL}/brand-offers/${id}`, {
                 method: 'DELETE',
                 headers: getHeaders()
             });
@@ -1514,7 +1514,7 @@ export const api = {
         },
 
         reorder: async (orders: Array<{ id: number; display_order: number }>) => {
-            const res = await fetch(`${API_URL}/api/brand-offers/reorder/batch`, {
+            const res = await fetch(`${API_URL}/brand-offers/reorder/batch`, {
                 method: 'PUT',
                 headers: getHeaders(),
                 body: JSON.stringify({ orders })
@@ -1608,14 +1608,14 @@ export const api = {
 
     addresses: {
         getAll: async (userId: number) => {
-            const res = await fetch(`${API_URL}/api/addresses?userId=${userId}`, {
+            const res = await fetch(`${API_URL}/addresses?userId=${userId}`, {
                 headers: getHeaders()
             });
             if (!res.ok) throw new Error('Failed to fetch addresses');
             return res.json();
         },
         create: async (data: any) => {
-            const res = await fetch(`${API_URL}/api/addresses`, {
+            const res = await fetch(`${API_URL}/addresses`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -1624,7 +1624,7 @@ export const api = {
             return res.json();
         },
         update: async (id: number, data: any) => {
-            const res = await fetch(`${API_URL}/api/addresses/${id}`, {
+            const res = await fetch(`${API_URL}/addresses/${id}`, {
                 method: 'PUT',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -1633,7 +1633,7 @@ export const api = {
             return res.json();
         },
         delete: async (id: number) => {
-            const res = await fetch(`${API_URL}/api/addresses/${id}`, {
+            const res = await fetch(`${API_URL}/addresses/${id}`, {
                 method: 'DELETE',
                 headers: getHeaders()
             });
@@ -1641,7 +1641,7 @@ export const api = {
             return res.json();
         },
         setDefault: async (id: number) => {
-            const res = await fetch(`${API_URL}/api/addresses/${id}/set-default`, {
+            const res = await fetch(`${API_URL}/addresses/${id}/set-default`, {
                 method: 'PUT',
                 headers: getHeaders()
             });
@@ -1652,14 +1652,14 @@ export const api = {
 
     loyalty: {
         getTransactions: async (userId: number) => {
-            const res = await fetch(`${API_URL}/api/loyalty/transactions?userId=${userId}`, {
+            const res = await fetch(`${API_URL}/loyalty/transactions?userId=${userId}`, {
                 headers: getHeaders()
             });
             if (!res.ok) throw new Error('Failed to fetch loyalty transactions');
             return res.json();
         },
         redeemPoints: async (pointsToRedeem: number) => {
-            const res = await fetch(`${API_URL}/api/loyalty/redeem`, {
+            const res = await fetch(`${API_URL}/loyalty/redeem`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify({ pointsToRedeem })
@@ -1674,14 +1674,14 @@ export const api = {
 
     brands: {
         getAll: async () => {
-            const res = await fetch(`${API_URL}/api/brands`, {
+            const res = await fetch(`${API_URL}/brands`, {
                 headers: getHeaders()
             });
             if (!res.ok) throw new Error('Failed to fetch brands');
             return res.json();
         },
         create: async (data: any) => {
-            const res = await fetch(`${API_URL}/api/brands`, {
+            const res = await fetch(`${API_URL}/brands`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -1690,7 +1690,7 @@ export const api = {
             return res.json();
         },
         update: async (id: string, data: any) => {
-            const res = await fetch(`${API_URL}/api/brands/${id}`, {
+            const res = await fetch(`${API_URL}/brands/${id}`, {
                 method: 'PUT',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -1699,7 +1699,7 @@ export const api = {
             return res.json();
         },
         delete: async (id: string) => {
-            const res = await fetch(`${API_URL}/api/brands/${id}`, {
+            const res = await fetch(`${API_URL}/brands/${id}`, {
                 method: 'DELETE',
                 headers: getHeaders()
             });
@@ -1711,7 +1711,7 @@ export const api = {
     reviews: {
         getByProduct: async (productId: string, page = 1, limit = 10, sort = 'recent') => {
             const res = await fetch(
-                `${API_URL}/api/reviews/product/${productId}?page=${page}&limit=${limit}&sort=${sort}`, 
+                `${API_URL}/reviews/product/${productId}?page=${page}&limit=${limit}&sort=${sort}`, 
                 { headers: getHeaders() }
             );
             if (!res.ok) throw new Error('Failed to fetch reviews');
@@ -1720,7 +1720,7 @@ export const api = {
             return { data: data.reviews || [], stats: data.stats, distribution: data.distribution };
         },
         create: async (data: { product_id: string; rating: number; comment?: string; images?: string[] }) => {
-            const res = await fetch(`${API_URL}/api/reviews/add`, {
+            const res = await fetch(`${API_URL}/reviews/add`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -1732,7 +1732,7 @@ export const api = {
             return res.json();
         },
         delete: async (id: string) => {
-            const res = await fetch(`${API_URL}/api/reviews/${id}`, {
+            const res = await fetch(`${API_URL}/reviews/${id}`, {
                 method: 'DELETE',
                 headers: getHeaders()
             });
@@ -1740,7 +1740,7 @@ export const api = {
             return res.json();
         },
         markHelpful: async (reviewId: string) => {
-            const res = await fetch(`${API_URL}/api/reviews/helpful/${reviewId}`, {
+            const res = await fetch(`${API_URL}/reviews/helpful/${reviewId}`, {
                 method: 'POST',
                 headers: getHeaders()
             });
@@ -1751,7 +1751,7 @@ export const api = {
 
     loyaltyBarcode: {
         createRedemption: async (points_to_redeem: number) => {
-            const res = await fetch(`${API_URL}/api/loyalty-barcode/create-redemption`, {
+            const res = await fetch(`${API_URL}/loyalty-barcode/create-redemption`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify({ points_to_redeem })
@@ -1763,7 +1763,7 @@ export const api = {
             return res.json();
         },
         useBarcode: async (barcode: string, order_id?: number) => {
-            const res = await fetch(`${API_URL}/api/loyalty-barcode/use-barcode/${barcode}`, {
+            const res = await fetch(`${API_URL}/loyalty-barcode/use-barcode/${barcode}`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify({ order_id })
@@ -1775,7 +1775,7 @@ export const api = {
             return res.json();
         },
         validate: async (barcode: string) => {
-            const res = await fetch(`${API_URL}/api/loyalty-barcode/validate/${barcode}`, {
+            const res = await fetch(`${API_URL}/loyalty-barcode/validate/${barcode}`, {
                 headers: getHeaders()
             });
             if (!res.ok) {
@@ -1785,14 +1785,14 @@ export const api = {
             return res.json();
         },
         getMyBarcodes: async () => {
-            const res = await fetch(`${API_URL}/api/loyalty-barcode/my-barcodes`, {
+            const res = await fetch(`${API_URL}/loyalty-barcode/my-barcodes`, {
                 headers: getHeaders()
             });
             if (!res.ok) throw new Error('Failed to fetch barcodes');
             return res.json();
         },
         cancel: async (barcodeId: string) => {
-            const res = await fetch(`${API_URL}/api/loyalty-barcode/cancel/${barcodeId}`, {
+            const res = await fetch(`${API_URL}/loyalty-barcode/cancel/${barcodeId}`, {
                 method: 'POST',
                 headers: getHeaders()
             });
@@ -1846,8 +1846,8 @@ export const api = {
     homeSections: {
         get: async (branchId?: number) => {
             const url = branchId 
-                ? `${API_URL}/api/home-sections?branchId=${branchId}`
-                : `${API_URL}/api/home-sections`;
+                ? `${API_URL}/home-sections?branchId=${branchId}`
+                : `${API_URL}/home-sections`;
             const res = await fetch(url, {
                 headers: getHeaders()
             });
@@ -1859,21 +1859,21 @@ export const api = {
     // Enhanced Loyalty System
     loyaltyEnhanced: {
         getBalance: async () => {
-            const res = await fetch(`${API_URL}/api/loyalty-enhanced/balance`, {
+            const res = await fetch(`${API_URL}/loyalty-enhanced/balance`, {
                 headers: getHeaders()
             });
             if (!res.ok) throw new Error('Failed to fetch loyalty balance');
             return res.json();
         },
         getTransactions: async (limit = 50, offset = 0) => {
-            const res = await fetch(`${API_URL}/api/loyalty-enhanced/transactions?limit=${limit}&offset=${offset}`, {
+            const res = await fetch(`${API_URL}/loyalty-enhanced/transactions?limit=${limit}&offset=${offset}`, {
                 headers: getHeaders()
             });
             if (!res.ok) throw new Error('Failed to fetch transactions');
             return res.json();
         },
         convert: async (points: number) => {
-            const res = await fetch(`${API_URL}/api/loyalty-enhanced/convert`, {
+            const res = await fetch(`${API_URL}/loyalty-enhanced/convert`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify({ points })
@@ -1882,7 +1882,7 @@ export const api = {
             return res.json();
         },
         calculateOrder: async (subtotal: number, usePoints = 0, address?: any) => {
-            const res = await fetch(`${API_URL}/api/loyalty-enhanced/calculate-order`, {
+            const res = await fetch(`${API_URL}/loyalty-enhanced/calculate-order`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify({ subtotal, usePoints, address })
@@ -1891,7 +1891,7 @@ export const api = {
             return res.json();
         },
         getConfig: async () => {
-            const res = await fetch(`${API_URL}/api/loyalty-enhanced/config`, {
+            const res = await fetch(`${API_URL}/loyalty-enhanced/config`, {
                 headers: getHeaders()
             });
             if (!res.ok) throw new Error('Failed to fetch config');
@@ -1938,7 +1938,7 @@ export const api = {
     // Admin user controls
     adminUsers: {
         blockByEmail: async (email: string, reason?: string) => {
-            const res = await fetch(`${API_URL}/api/users/block-email`, {
+            const res = await fetch(`${API_URL}/users/block-email`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify({ email, reason })
@@ -1950,7 +1950,7 @@ export const api = {
             return data;
         },
         unblockByEmail: async (email: string) => {
-            const res = await fetch(`${API_URL}/api/users/unblock-email`, {
+            const res = await fetch(`${API_URL}/users/unblock-email`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify({ email })
