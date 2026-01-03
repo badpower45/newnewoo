@@ -22,12 +22,13 @@ const DashboardOverview = () => {
         const load = async () => {
             setLoading(true);
             try {
+                // Use branchId=1 for products
                 const [ordersRes, productsRes] = await Promise.all([
-                    api.orders.getAll().catch(err => { console.error('orders fetch failed', err); return []; }),
-                    api.products.getAll().catch(err => { console.error('products fetch failed', err); return []; })
+                    api.orders.getAll().catch(err => { console.error('orders fetch failed', err); return { data: [] }; }),
+                    api.products.getAllByBranch(1).catch(err => { console.error('products fetch failed', err); return []; })
                 ]);
                 const ordersArr = Array.isArray((ordersRes as any)?.data ?? ordersRes) ? ((ordersRes as any).data ?? ordersRes) : [];
-                const productsArr = Array.isArray((productsRes as any)?.data ?? productsRes) ? ((productsRes as any).data ?? productsRes) : [];
+                const productsArr = Array.isArray(productsRes) ? productsRes : (Array.isArray((productsRes as any)?.data) ? (productsRes as any).data : []);
                 setOrders(ordersArr);
                 setProducts(productsArr);
             } catch (e) {
