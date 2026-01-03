@@ -82,13 +82,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const mapSupabaseSessionToUser = (session: any): User => {
         const sUser = session?.user;
+        const role = sUser?.user_metadata?.role || sUser?.app_metadata?.role || 'customer';
         return {
             id: sUser?.id || 'supabase-user',
             email: sUser?.email || '',
-            name: sUser?.user_metadata?.full_name || sUser?.email?.split('@')[0] || 'Supabase User',
+            name: sUser?.user_metadata?.full_name || sUser?.user_metadata?.name || sUser?.email?.split('@')[0] || 'Supabase User',
             phone: sUser?.user_metadata?.phone || sUser?.phone,
             avatar: sUser?.user_metadata?.avatar_url,
-            role: 'customer',
+            role,
             isGuest: false
         };
     };
@@ -232,8 +233,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const updateUser = (userData: Partial<User>) => {
-        if (user) {
-            const updatedUser = { ...user, ...userData };
+        const baseUser = user || (userData.email ? { id: userData.id || 'supabase-user', isGuest: false } as User : null);
+        if (baseUser) {
+            const updatedUser = { ...baseUser, ...userData };
             setUser(updatedUser);
             localStorage.setItem('user', JSON.stringify(updatedUser));
         }

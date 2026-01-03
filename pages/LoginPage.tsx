@@ -60,9 +60,21 @@ const LoginPage = () => {
             
             // Store session
             localStorage.setItem('supabase.auth.token', session.access_token);
-            
-            // Get user role from metadata
-            const userRole = user?.user_metadata?.role || 'customer';
+
+            // Normalize user object with role
+            const userRole = user?.user_metadata?.role || user?.app_metadata?.role || 'customer';
+            const appUser = {
+                id: user?.id || 'supabase-user',
+                email: user?.email || email.trim(),
+                name: user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Supabase User',
+                phone: user?.user_metadata?.phone || user?.phone,
+                role: userRole,
+                isGuest: false
+            };
+
+            // Persist user for AuthContext hydration
+            localStorage.setItem('user', JSON.stringify(appUser));
+            updateUser(appUser);
             
             // Navigate based on role
             if (userRole === 'delivery') {
