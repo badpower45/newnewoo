@@ -154,7 +154,7 @@ export const api = {
     },
     products: {
         getAll: async () => {
-            const res = await fetch(`${API_URL}/products`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/api/products`, { headers: getHeaders() });
             const json = await res.json();
             const normalize = (p: any) => ({ ...p, price: Number(p?.price) || 0 });
             // Backend returns array directly, not wrapped in {data: [...]}
@@ -162,14 +162,14 @@ export const api = {
             return data.map(normalize);
         },
         getAllByBranch: async (branchId: number, options?: { includeMagazine?: boolean }) => {
-            let url = `${API_URL}/products?branchId=${branchId}`;
+            let url = `${API_URL}/api/products?branchId=${branchId}`;
             if (options?.includeMagazine) {
                 url += '&includeMagazine=true';
             }
             const res = await fetch(url, { headers: getHeaders() });
             if (!res.ok && res.status === 404) {
                 // backend missing branch filter; fallback to all products
-                const all = await fetch(`${API_URL}/products`, { headers: getHeaders() });
+                const all = await fetch(`${API_URL}/api/products`, { headers: getHeaders() });
                 const jsonAll = await all.json();
                 const normalize = (p: any) => ({ ...p, price: Number(p?.price) || 0 });
                 const data = Array.isArray(jsonAll) ? jsonAll : (jsonAll.data || []);
@@ -183,8 +183,8 @@ export const api = {
         },
         getOne: async (id: string, branchId?: number) => {
             const url = branchId 
-                ? `${API_URL}/products/${id}?branchId=${branchId}`
-                : `${API_URL}/products/${id}`;
+                ? `${API_URL}/api/products/${id}?branchId=${branchId}`
+                : `${API_URL}/api/products/${id}`;
             const res = await fetch(url, { headers: getHeaders() });
             const json = await res.json();
             // Backend returns product directly, not wrapped
@@ -195,7 +195,7 @@ export const api = {
             return json;
         },
         getByCategory: async (category: string, branchId?: number) => {
-            let url = `${API_URL}/products?category=${encodeURIComponent(category)}`;
+            let url = `${API_URL}/api/products?category=${encodeURIComponent(category)}`;
             if (branchId) {
                 url += `&branchId=${branchId}`;
             }
@@ -208,18 +208,18 @@ export const api = {
         },
         search: async (query: string) => {
             const branchId = localStorage.getItem('selectedBranchId') || '1';
-            const res = await fetch(`${API_URL}/products/search?q=${encodeURIComponent(query)}&branchId=${branchId}`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/api/products/search?q=${encodeURIComponent(query)}&branchId=${branchId}`, { headers: getHeaders() });
             return res.json();
         },
         delete: async (id: string) => {
-            const res = await fetch(`${API_URL}/products/${id}`, {
+            const res = await fetch(`${API_URL}/api/products/${id}`, {
                 method: 'DELETE',
                 headers: getHeaders()
             });
             return res.json();
         },
         create: async (data: any) => {
-            const res = await fetch(`${API_URL}/products`, {
+            const res = await fetch(`${API_URL}/api/products`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -231,7 +231,7 @@ export const api = {
             return result;
         },
         update: async (id: string, data: any) => {
-            const res = await fetch(`${API_URL}/products/${id}`, {
+            const res = await fetch(`${API_URL}/api/products/${id}`, {
                 method: 'PUT',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -243,7 +243,7 @@ export const api = {
             return result;
         },
         upload: async (formData: FormData) => {
-            const res = await fetch(`${API_URL}/products/upload`, {
+            const res = await fetch(`${API_URL}/api/products/upload`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -254,8 +254,8 @@ export const api = {
         },
         getByBarcode: async (barcode: string, branchId?: number) => {
             const url = branchId 
-                ? `${API_URL}/products/barcode/${barcode}?branchId=${branchId}`
-                : `${API_URL}/products/barcode/${barcode}`;
+                ? `${API_URL}/api/products/barcode/${barcode}?branchId=${branchId}`
+                : `${API_URL}/api/products/barcode/${barcode}`;
             const res = await fetch(url, { headers: getHeaders() });
             return res.json();
         }
