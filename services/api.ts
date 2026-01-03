@@ -881,8 +881,8 @@ export const api = {
         // جلب جميع موظفي التوصيل مع إحصائياتهم
         getAllDeliveryStaff: async (branchId?: number) => {
             const url = branchId 
-                ? `${API_URL}/distribution/all-delivery-staff?branchId=${branchId}`
-                : `${API_URL}/distribution/all-delivery-staff`;
+                ? `${API_URL}/api/distribution/all-delivery-staff?branchId=${branchId}`
+                : `${API_URL}/api/distribution/all-delivery-staff`;
             const res = await fetch(url, {
                 headers: getHeaders()
             });
@@ -891,7 +891,7 @@ export const api = {
         
         // تحديث بيانات الفرع
         updateBranchContact: async (branchId: number, data: any) => {
-            const res = await fetch(`${API_URL}/distribution/branches/${branchId}/contact`, {
+            const res = await fetch(`${API_URL}/api/distribution/branches/${branchId}/contact`, {
                 method: 'PUT',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -904,7 +904,7 @@ export const api = {
     deliveryFees: {
         // حساب رسوم التوصيل
         calculate: async (branchId: number, subtotal: number, customerLat?: number, customerLng?: number) => {
-            const res = await fetch(`${API_URL}/delivery-fees/calculate`, {
+            const res = await fetch(`${API_URL}/api/delivery-fees/calculate`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify({ branchId, subtotal, customerLat, customerLng })
@@ -914,7 +914,7 @@ export const api = {
 
         // الحصول على إعدادات رسوم التوصيل لفرع
         getByBranch: async (branchId: number) => {
-            const res = await fetch(`${API_URL}/delivery-fees/${branchId}`, {
+            const res = await fetch(`${API_URL}/api/delivery-fees/${branchId}`, {
                 headers: getHeaders()
             });
             return res.json();
@@ -922,7 +922,7 @@ export const api = {
 
         // تحديث إعدادات رسوم التوصيل (Admin only)
         update: async (id: number, data: any) => {
-            const res = await fetch(`${API_URL}/delivery-fees/${id}`, {
+            const res = await fetch(`${API_URL}/api/delivery-fees/${id}`, {
                 method: 'PUT',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
