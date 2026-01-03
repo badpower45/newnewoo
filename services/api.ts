@@ -1,11 +1,20 @@
 import { API_URL } from '../src/config';
 
+// Enhanced getHeaders with better token handling
 const getHeaders = () => {
     const token = localStorage.getItem('token');
-    return {
-        'Content-Type': 'application/json',
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
     };
+    
+    if (token && token !== 'null' && token !== 'undefined') {
+        headers['Authorization'] = `Bearer ${token}`;
+        console.log('📤 Sending request with token:', token.substring(0, 20) + '...');
+    } else {
+        console.warn('⚠️ No valid token found in localStorage');
+    }
+    
+    return headers;
 };
 
 export const api = {
