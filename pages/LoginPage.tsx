@@ -61,7 +61,7 @@ const LoginPage = () => {
             // Store session
             localStorage.setItem('supabase.auth.token', session.access_token);
 
-            // Normalize user object with role
+            // Normalize user object with role from Supabase metadata
             const userRole = user?.user_metadata?.role || user?.app_metadata?.role || 'customer';
             const appUser = {
                 id: user?.id || 'supabase-user',
@@ -71,6 +71,17 @@ const LoginPage = () => {
                 role: userRole,
                 isGuest: false
             };
+
+            // محاولة الحصول على توكن الباكند لضبط الطلبات المحمية
+            try {
+                const backendLogin = await api.auth.login({ email: email.trim(), password });
+                if (backendLogin?.token) {
+                    localStorage.setItem('token', backendLogin.token);
+                }
+            } catch (e) {
+                // لو فشل لسبب ما، نكمل بتوكن Supabase فقط (لكن بعض الـ APIs هتحتاج إعادة تسجيل)
+                console.warn('Backend login after Supabase sign-in failed:', e);
+            }
 
             // Persist user for AuthContext hydration
             localStorage.setItem('user', JSON.stringify(appUser));
