@@ -61,27 +61,38 @@ const LoginPage = () => {
             // Store session
             localStorage.setItem('supabase.auth.token', session.access_token);
 
-            // Normalize user object with role from Supabase metadata
-            const userRole = user?.user_metadata?.role || user?.app_metadata?.role || 'customer';
+            // محاولة الحصول على توكن الباكند لضبط الطلبات المحمية
+            let backendToken = null;
+            let backendUser = null;
+            
+            try {
+                const backendLogin = await api.auth.login({ email: email.trim(), password });
+                if (backendLogin?.auth && backendLogin?.token) {
+                    backendToken = backendLogin.token;
+                    backendUser = backendLogin.user;
+                    localStorage.setItem('token', backendToken);
+                    console.log('✅ Backend login successful, token stored');
+                } else {
+                    console.warn('⚠️ Backend login returned no token:', backendLogin);
+                }
+            } catch (e) {
+                console.error('❌ Backend login failed:', e);
+                // Use Supabase token as fallback
+                backendToken = session.access_token;
+                localStorage.setItem('token', backendToken);
+                console.log('⚠️ Using Supabase token as fallback');
+            }
+
+            // Normalize user object - prefer backend user data
+            const userRole = backendUser?.role || user?.user_metadata?.role || user?.app_metadata?.role || 'customer';
             const appUser = {
-                id: user?.id || 'supabase-user',
-                email: user?.email || email.trim(),
-                name: user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'Supabase User',
-                phone: user?.user_metadata?.phone || user?.phone,
+                id: backendUser?.id || user?.id || 'supabase-user',
+                email: backendUser?.email || user?.email || email.trim(),
+                name: backendUser?.name || user?.user_metadata?.full_name || user?.user_metadata?.name || user?.email?.split('@')[0] || 'User',
+                phone: backendUser?.phone || user?.user_metadata?.phone || user?.phone,
                 role: userRole,
                 isGuest: false
             };
-
-            // محاولة الحصول على توكن الباكند لضبط الطلبات المحمية
-            try {
-                const backendLogin = await api.auth.login({ email: email.trim(), password });
-                if (backendLogin?.token) {
-                    localStorage.setItem('token', backendLogin.token);
-                }
-            } catch (e) {
-                // لو فشل لسبب ما، نكمل بتوكن Supabase فقط (لكن بعض الـ APIs هتحتاج إعادة تسجيل)
-                console.warn('Backend login after Supabase sign-in failed:', e);
-            }
 
             // Persist user for AuthContext hydration
             localStorage.setItem('user', JSON.stringify(appUser));
