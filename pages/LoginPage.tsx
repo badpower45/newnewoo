@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ChevronLeft, Loader2, Eye, EyeOff, Mail, Lock, LogIn } from 'lucide-react';
+import { ChevronLeft, Loader2, Eye, EyeOff, Mail, Lock, LogIn, Ban } from 'lucide-react';
 import { api } from '../services/api';
 import { supabaseAuth } from '../services/supabaseAuth';
+import { blockingService } from '../services/blockingService';
 import CompleteProfileModal from '../components/CompleteProfileModal';
 
 const LoginPage = () => {
@@ -30,6 +31,26 @@ const LoginPage = () => {
         setIsSubmitting(true);
         
         try {
+            // التحقق من البلوك أولاً بالإيميل
+            const blockCheck = await blockingService.checkIfBlocked(email);
+            
+            if (blockCheck.isBlocked) {
+                // تسجيل المحاولة الفاشلة
+                const userIP = await blockingService.getUserIP();
+                await blockingService.logBlockedAttempt(
+                    email,
+                    undefined,
+                    userIP || undefined,
+                    'login',
+                    blockCheck.reason
+                );
+                
+                // عرض رسالة البلوك
+                setError(blockCheck.message || 'تم حظر هذا الحساب من استخدام النظام');
+                setIsSubmitting(false);
+                return;
+            }
+            
             // Use Supabase Auth for login
             const { session, user } = await supabaseAuth.signIn(email.trim(), password);
             

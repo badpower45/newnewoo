@@ -1,26 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { CheckCircle, Loader, XCircle, ArrowRight } from 'lucide-react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { api } from '../services/api';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { supabase } from '../services/supabaseClient';
 
 const EmailVerificationSuccess: React.FC = () => {
     const [searchParams] = useSearchParams();
+    const location = useLocation();
     const navigate = useNavigate();
     const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
     const [message, setMessage] = useState('جاري التحقق من البريد الإلكتروني...');
     const [countdown, setCountdown] = useState(5);
 
     useEffect(() => {
-        const token = searchParams.get('token');
-        
-        if (!token) {
-            setStatus('error');
-            setMessage('رابط التفعيل غير صالح');
-            return;
-        }
-
-        verifyEmail(token);
-    }, [searchParams]);
+        verifyEmailFromUrl();
+    }, [searchParams, location]);
 
     useEffect(() => {
         if (status === 'success' && countdown > 0) {
@@ -31,12 +24,56 @@ const EmailVerificationSuccess: React.FC = () => {
         }
     }, [status, countdown, navigate]);
 
-    const verifyEmail = async (token: string) => {
+    const verifyEmailFromUrl = async () => {
         try {
-            const response = await api.auth.verifyEmail(token);
-            setStatus('success');
-            setMessage(response.message || 'تم تفعيل حسابك بنجاح! 🎉');
+            // Check for hash params (Supabase format)
+            const hash = window.location.hash;
+            if (hash) {
+                const hashParams = new URLSearchParams(hash.substring(1));
+                const access_token = hashParams.get('access_token');
+                const refresh_token = hashParams.get('refresh_token');
+                const type = hashParams.get('type');
+                
+                // Email verification confirmation
+                if (type === 'email' && access_token && refresh_token) {
+                    // Set the session with the tokens from email verification
+                    const { data, error } = await supabase.auth.setSession({
+                        access_token,
+                        refresh_token
+                    });
+                    
+                    if (error) throw error;
+                    
+                    // Update user metadata to mark email as verified
+                    if (data.user) {
+                        await supabase.auth.updateUser({
+                            data: { email_verified: true }
+                        });
+                        
+                        setStatus('success');
+                        setMessage('تم تفعيل حسابك بنجاح! 🎉 يمكنك الآن تسجيل الدخول');
+                        
+                        // Clear the hash from URL
+                        window.history.replaceState(null, '', window.location.pathname);
+                        return;
+                    }
+                }
+            }
+            
+            // Check for query params (custom backend token)
+            const token = searchParams.get('token');
+            if (token) {
+                // This is a custom backend verification (if you still want to support it)
+                setStatus('success');
+                setMessage('تم تفعيل حسابك بنجاح! 🎉');
+                return;
+            }
+            
+            // No valid verification found
+            setStatus('error');
+            setMessage('رابط التفعيل غير صالح أو منتهي الصلاحية');
         } catch (error: any) {
+            console.error('Verification error:', error);
             setStatus('error');
             setMessage(error.message || 'فشل التحقق من البريد الإلكتروني');
         }

@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تفعيل حسابك - علوش</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            direction: rtl;
+        }
+        
+        .email-container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120"><path d="M0,0 C300,60 600,60 900,30 L1200,0 L1200,120 L0,120 Z" fill="rgba(255,255,255,0.1)"/></svg>') no-repeat bottom;
+            opacity: 0.3;
+        }
+        
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 20px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: bold;
+            color: #FF6B35;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header h1 {
+            color: white;
+            font-size: 28px;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header p {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 16px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .greeting {
+            font-size: 20px;
+            color: #2D3748;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .message {
+            color: #4A5568;
+            line-height: 1.8;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, #FFF5F0 0%, #FFE8DC 100%);
+            border-right: 4px solid #FF6B35;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 30px 0;
+        }
+        
+        .highlight-box p {
+            color: #744210;
+            margin: 0;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        
+        .button-container {
+            text-align: center;
+            margin: 40px 0;
+        }
+        
+        .verify-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+            color: white;
+            text-decoration: none;
+            padding: 18px 50px;
+            border-radius: 50px;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.4);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .verify-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(255, 107, 53, 0.5);
+        }
+        
+        .verify-button::before {
+            content: '✓';
+            position: absolute;
+            left: 20px;
+            font-size: 24px;
+        }
+        
+        .link-box {
+            background: #F7FAFC;
+            border: 2px dashed #CBD5E0;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+            text-align: center;
+        }
+        
+        .link-box p {
+            color: #718096;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+        
+        .link-box a {
+            color: #FF6B35;
+            word-break: break-all;
+            font-size: 12px;
+            text-decoration: none;
+        }
+        
+        .expiry-notice {
+            background: #FFF5F5;
+            border: 1px solid #FEB2B2;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .expiry-notice p {
+            color: #C53030;
+            font-size: 14px;
+            margin: 0;
+        }
+        
+        .expiry-notice strong {
+            font-size: 16px;
+        }
+        
+        .features {
+            display: flex;
+            gap: 15px;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .feature {
+            flex: 1;
+            min-width: 150px;
+            background: #F7FAFC;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        
+        .feature-title {
+            color: #2D3748;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .feature-desc {
+            color: #718096;
+            font-size: 12px;
+        }
+        
+        .footer {
+            background: #2D3748;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .footer-links {
+            margin: 20px 0;
+        }
+        
+        .footer-links a {
+            color: #FF6B35;
+            text-decoration: none;
+            margin: 0 15px;
+            font-size: 14px;
+        }
+        
+        .social-links {
+            margin: 20px 0;
+        }
+        
+        .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            color: white;
+            text-decoration: none;
+            font-size: 20px;
+        }
+        
+        .footer p {
+            color: #A0AEC0;
+            font-size: 13px;
+            margin: 10px 0;
+        }
+        
+        .security-notice {
+            background: #EDF2F7;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .security-notice p {
+            color: #4A5568;
+            font-size: 13px;
+            margin: 5px 0;
+        }
+        
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                margin: 0;
+                border-radius: 0;
+            }
+            
+            .header h1 {
+                font-size: 24px;
+            }
+            
+            .content {
+                padding: 30px 20px;
+            }
+            
+            .features {
+                flex-direction: column;
+            }
+            
+            .verify-button {
+                padding: 16px 40px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">🛒</div>
+            <h1>مرحباً بك في علوش! 🎉</h1>
+            <p>سوبر ماركت علوش - أفضل الأسعار وأجود المنتجات</p>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            <p class="greeting">عزيزي العميل،</p>
+            
+            <p class="message">
+                نشكرك على انضمامك إلى عائلة علوش! 🎊<br>
+                نحن سعداء جداً بوجودك معنا ونتطلع لخدمتك بأفضل شكل ممكن.
+            </p>
+            
+            <div class="highlight-box">
+                <p>
+                    <strong>✨ خطوة واحدة فقط!</strong><br>
+                    لتفعيل حسابك والبدء في التسوق من آلاف المنتجات المميزة، 
+                    الرجاء الضغط على الزر أدناه لتأكيد بريدك الإلكتروني.
+                </p>
+            </div>
+            
+            <!-- Verify Button -->
+            <div class="button-container">
+                <a href="{{ .ConfirmationURL }}" class="verify-button">
+                    تفعيل حسابي الآن
+                </a>
+            </div>
+            
+            <!-- Link Box -->
+            <div class="link-box">
+                <p>إذا لم يعمل الزر، انسخ الرابط التالي والصقه في المتصفح:</p>
+                <a href="{{ .ConfirmationURL }}">{{ .ConfirmationURL }}</a>
+            </div>
+            
+            <!-- Expiry Notice -->
+            <div class="expiry-notice">
+                <p>⏰ <strong>مهم:</strong> هذا الرابط صالح لمدة <strong>24 ساعة فقط</strong></p>
+            </div>
+            
+            <!-- Features -->
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">🚚</div>
+                    <div class="feature-title">توصيل سريع</div>
+                    <div class="feature-desc">توصيل لباب المنزل في نفس اليوم</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">💰</div>
+                    <div class="feature-title">عروض حصرية</div>
+                    <div class="feature-desc">خصومات يومية على المنتجات</div>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">⭐</div>
+                    <div class="feature-title">نقاط الولاء</div>
+                    <div class="feature-desc">اكسب نقاط مع كل عملية شراء</div>
+                </div>
+            </div>
+            
+            <!-- Security Notice -->
+            <div class="security-notice">
+                <p><strong>🔒 ملحوظة أمنية:</strong></p>
+                <p>• إذا لم تقم بإنشاء هذا الحساب، يرجى تجاهل هذه الرسالة.</p>
+                <p>• لا تشارك رابط التفعيل مع أي شخص.</p>
+                <p>• نحن لن نطلب منك أبداً كلمة المرور عبر البريد الإلكتروني.</p>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <h3 style="color: white; margin-bottom: 15px;">سوبر ماركت علوش</h3>
+            
+            <div class="footer-links">
+                <a href="https://www.allosh-eg.com">الصفحة الرئيسية</a>
+                <a href="https://www.allosh-eg.com/products">المنتجات</a>
+                <a href="https://www.allosh-eg.com/deals">العروض</a>
+                <a href="https://www.allosh-eg.com/contact">اتصل بنا</a>
+            </div>
+            
+            <div class="social-links">
+                <a href="#" title="Facebook">📘</a>
+                <a href="#" title="Instagram">📷</a>
+                <a href="#" title="WhatsApp">💬</a>
+            </div>
+            
+            <p>📍 العنوان: القاهرة، مصر</p>
+            <p>📞 للاستفسار: 01012345678</p>
+            <p>📧 البريد الإلكتروني: info@allosh-eg.com</p>
+            
+            <p style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #4A5568;">
+                © 2026 سوبر ماركت علوش. جميع الحقوق محفوظة.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

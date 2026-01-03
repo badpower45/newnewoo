@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ChevronLeft, Loader2, User, Mail, Phone, Lock, Calendar, Eye, EyeOff, UserPlus } from 'lucide-react';
+import { ChevronLeft, Loader2, User, Mail, Phone, Lock, Calendar, Eye, EyeOff, UserPlus, Ban } from 'lucide-react';
 import { supabaseAuth } from '../services/supabaseAuth';
+import { blockingService } from '../services/blockingService';
 
 const RegisterPage = () => {
     const [firstName, setFirstName] = useState('');
@@ -28,6 +29,26 @@ const RegisterPage = () => {
         setIsSubmitting(true);
         
         try {
+            // التحقق من البلوك أولاً
+            const blockCheck = await blockingService.checkIfBlocked(email, phone);
+            
+            if (blockCheck.isBlocked) {
+                // تسجيل المحاولة الفاشلة
+                const userIP = await blockingService.getUserIP();
+                await blockingService.logBlockedAttempt(
+                    email,
+                    phone,
+                    userIP || undefined,
+                    'register',
+                    blockCheck.reason
+                );
+                
+                // عرض رسالة البلوك
+                setError(blockCheck.message || 'تم حظر هذا الحساب من استخدام النظام');
+                setIsSubmitting(false);
+                return;
+            }
+            
             // Use Supabase Auth for registration
             const { user, session } = await supabaseAuth.signUp(email, password, {
                 firstName,
