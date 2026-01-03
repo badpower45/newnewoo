@@ -22,17 +22,36 @@ const DashboardOverview = () => {
         const load = async () => {
             setLoading(true);
             try {
+                console.log('🔄 Loading dashboard data...');
                 // Use branchId=1 for products
                 const [ordersRes, productsRes] = await Promise.all([
-                    api.orders.getAll().catch(err => { console.error('orders fetch failed', err); return { data: [] }; }),
-                    api.products.getAllByBranch(1).catch(err => { console.error('products fetch failed', err); return []; })
+                    api.orders.getAll().catch(err => { 
+                        console.error('❌ Orders fetch failed:', err); 
+                        return { data: [] }; 
+                    }),
+                    api.products.getAllByBranch(1).catch(err => { 
+                        console.error('❌ Products fetch failed:', err); 
+                        return []; 
+                    })
                 ]);
-                const ordersArr = Array.isArray((ordersRes as any)?.data ?? ordersRes) ? ((ordersRes as any).data ?? ordersRes) : [];
-                const productsArr = Array.isArray(productsRes) ? productsRes : (Array.isArray((productsRes as any)?.data) ? (productsRes as any).data : []);
+                
+                console.log('📦 Products response:', productsRes);
+                console.log('📋 Orders response:', ordersRes);
+                
+                const ordersArr = Array.isArray((ordersRes as any)?.data ?? ordersRes) 
+                    ? ((ordersRes as any).data ?? ordersRes) 
+                    : [];
+                const productsArr = Array.isArray(productsRes) 
+                    ? productsRes 
+                    : (Array.isArray((productsRes as any)?.data) ? (productsRes as any).data : []);
+                
+                console.log('✅ Setting orders:', ordersArr.length);
+                console.log('✅ Setting products:', productsArr.length);
+                
                 setOrders(ordersArr);
                 setProducts(productsArr);
             } catch (e) {
-                console.error('Failed to load dashboard data', e);
+                console.error('❌ Failed to load dashboard data', e);
                 setOrders([]);
                 setProducts([]);
             } finally {
