@@ -30,7 +30,7 @@ export const supabaseBlockingService = {
   checkIfBlocked: async (email: string): Promise<BlockStatus> => {
     try {
       const { data, error } = await supabase.rpc('is_user_blocked', {
-        user_email: email
+        p_user_email: email
       });
 
       if (error) {
@@ -43,8 +43,8 @@ export const supabaseBlockingService = {
       }
 
       const blockInfo = data[0];
-      const isBlocked = blockInfo.is_blocked === true;
-      const bannedUntil = blockInfo.banned_until;
+      const isBlocked = blockInfo.out_is_blocked === true;
+      const bannedUntil = blockInfo.out_banned_until;
       
       // Check if temporary ban expired
       if (isBlocked && bannedUntil) {
@@ -64,9 +64,9 @@ export const supabaseBlockingService = {
         
         return {
           isBlocked: true,
-          blockReason: blockInfo.block_reason,
-          blockedAt: blockInfo.blocked_at,
-          bannedUntil: blockInfo.banned_until,
+          blockReason: blockInfo.out_block_reason,
+          blockedAt: blockInfo.out_blocked_at,
+          bannedUntil: blockInfo.out_banned_until,
           banType: 'temporary',
           daysRemaining
         };
@@ -74,9 +74,9 @@ export const supabaseBlockingService = {
 
       return {
         isBlocked,
-        blockReason: blockInfo.block_reason,
-        blockedAt: blockInfo.blocked_at,
-        bannedUntil: blockInfo.banned_until,
+        blockReason: blockInfo.out_block_reason,
+        blockedAt: blockInfo.out_blocked_at,
+        bannedUntil: blockInfo.out_banned_until,
         banType: bannedUntil ? 'temporary' : 'permanent'
       };
     } catch (err) {
@@ -96,10 +96,10 @@ export const supabaseBlockingService = {
   ): Promise<{ success: boolean; message: string; error?: string }> => {
     try {
       const { data, error } = await supabase.rpc('block_user_by_email', {
-        target_email: email,
-        reason: reason,
-        admin_id: adminId || null,
-        ban_duration_days: banDurationDays || null
+        p_target_email: email,
+        p_reason: reason,
+        p_admin_id: adminId || null,
+        p_ban_duration_days: banDurationDays || null
       });
 
       if (error) {
@@ -128,7 +128,7 @@ export const supabaseBlockingService = {
   unblockUser: async (email: string): Promise<{ success: boolean; message: string; error?: string }> => {
     try {
       const { data, error } = await supabase.rpc('unblock_user_by_email', {
-        target_email: email
+        p_target_email: email
       });
 
       if (error) {
@@ -157,12 +157,12 @@ export const supabaseBlockingService = {
   logBlockedAttempt: async (attempt: BlockedAttempt): Promise<{ success: boolean }> => {
     try {
       const { data, error } = await supabase.rpc('log_blocked_attempt', {
-        p_user_email: attempt.userEmail,
+        p_email: attempt.userEmail,
         p_user_id: attempt.userId || null,
-        p_ip_address: attempt.ipAddress || null,
-        p_attempt_type: attempt.attemptType,
-        p_block_reason: attempt.blockReason || null,
-        p_user_agent: attempt.userAgent || navigator.userAgent
+        p_ip: attempt.ipAddress || null,
+        p_type: attempt.attemptType,
+        p_reason: attempt.blockReason || null,
+        p_agent: attempt.userAgent || navigator.userAgent
       });
 
       if (error) {
@@ -211,7 +211,7 @@ export const supabaseBlockingService = {
         .limit(limit);
 
       if (email) {
-        query = query.eq('user_email', email);
+        query = query.eq('attempt_email', email);
       }
 
       const { data, error } = await query;
