@@ -41,6 +41,9 @@ const ProductsManager = () => {
     const [editing, setEditing] = useState<Product | null>(null);
     const [form, setForm] = useState(emptyProduct);
     
+    // 🆕 Branch-specific data (price, stock, etc. per branch)
+    const [branchData, setBranchData] = useState<{[branchId: number]: {price: number, stockQuantity: number, originalPrice: number, isAvailable: boolean}}>({});
+    
     // Dynamic data from API
     const [branches, setBranches] = useState<any[]>([]);
     const [categories, setCategories] = useState<any[]>([]);
@@ -189,10 +192,11 @@ const ProductsManager = () => {
     const openCreate = () => {
         setEditing(null);
         setForm(emptyProduct);
+        setBranchData({}); // 🆕 Clear branch data
         setShowModal(true);
     };
 
-    const openEdit = (p: Product) => {
+    const openEdit = async (p: Product) => {
         setEditing(p);
         
         // Check if brand exists in available brands
@@ -207,31 +211,97 @@ const ProductsManager = () => {
             }
         }
         
-        // 🆕 Load branch IDs from the product
-        let branchIdsList: number[] = [];
-        if (p.branch_id) {
-            branchIdsList = [p.branch_id];
+        // 🆕 Load product data from all branches
+        try {
+            const response = await fetch(`${API_URL}/branch-products/all-branches?productId=${p.id}`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            const result = await response.json();
+            
+            console.log('📦 Branch data loaded:', result);
+            
+            const branchIdsList: number[] = [];
+            const branchDataMap: {[branchId: number]: any} = {};
+            
+            if (result.data && result.data.length > 0) {
+                const productData = result.data[0];
+                productData.branches.forEach((branch: any) => {
+                    if (branch.price && branch.price > 0) {
+                        branchIdsList.push(branch.branch_id);
+                        branchDataMap[branch.branch_id] = {
+                            price: branch.price || 0,
+                            stockQuantity: branch.stock_quantity || 0,
+                            originalPrice: branch.discount_price || 0,
+                            isAvailable: branch.is_available !== false
+                        };
+                    }
+                });
+            } else {
+                // Fallback to single branch from product
+                if (p.branch_id) {
+                    branchIdsList.push(p.branch_id);
+                    branchDataMap[p.branch_id] = {
+                        price: p.price || 0,
+                        stockQuantity: p.stock_quantity || 0,
+                        originalPrice: p.discount_price || p.originalPrice || 0,
+                        isAvailable: true
+                    };
+                }
+            }
+            
+            setBranchData(branchDataMap);
+            
+            setForm({
+                barcode: p.barcode || '',
+                name: p.name,
+                price: p.price,
+                originalPrice: p.discount_price || p.originalPrice || 0,
+                image: p.image,
+                category: p.category,
+                subcategory: p.subcategory || '',
+                expiryDate: p.expiry_date || '',
+                branchIds: branchIdsList,
+                stockQuantity: p.stock_quantity || 0,
+                weight: p.weight,
+                rating: p.rating,
+                reviews: p.reviews,
+                shelfLocation: p.shelf_location || '',
+                brandId: validBrandId
+            });
+        } catch (error) {
+            console.error('❌ Error loading branch data:', error);
+            // Fallback to single branch
+            const branchIdsList = p.branch_id ? [p.branch_id] : [];
+            setBranchData(p.branch_id ? {
+                [p.branch_id]: {
+                    price: p.price || 0,
+                    stockQuantity: p.stock_quantity || 0,
+                    originalPrice: p.discount_price || p.originalPrice || 0,
+                    isAvailable: true
+                }
+            } : {});
+            
+            setForm({
+                barcode: p.barcode || '',
+                name: p.name,
+                price: p.price,
+                originalPrice: p.discount_price || p.originalPrice || 0,
+                image: p.image,
+                category: p.category,
+                subcategory: p.subcategory || '',
+                expiryDate: p.expiry_date || '',
+                branchIds: branchIdsList,
+                stockQuantity: p.stock_quantity || 0,
+                weight: p.weight,
+                rating: p.rating,
+                reviews: p.reviews,
+                shelfLocation: p.shelf_location || '',
+                brandId: validBrandId
+            });
         }
-        // If product has multiple branches, we can load them here
-        // For now, we'll just use the single branch_id
         
-        setForm({
-            barcode: p.barcode || '',
-            name: p.name,
-            price: p.price,
-            originalPrice: p.discount_price || p.originalPrice || 0,
-            image: p.image,
-            category: p.category,
-            subcategory: p.subcategory || '',
-            expiryDate: p.expiry_date || '',
-            branchIds: branchIdsList, // 🆕 Changed to array
-            stockQuantity: p.stock_quantity || 0,
-            weight: p.weight,
-            rating: p.rating,
-            reviews: p.reviews,
-            shelfLocation: p.shelf_location || '',
-            brandId: validBrandId  // 🏷️ تحميل brand_id بعد التحقق
-        });
         setShowModal(true);
     };
 
@@ -274,6 +344,16 @@ const ProductsManager = () => {
         try {
             // Keep brandId as-is to support UUID/text IDs (don't coerce to number)
             const normalizedBrandId = form.brandId ? String(form.brandId) : null;
+            
+            // 🆕 Prepare branch-specific data
+            const branchesData = form.branchIds.map(branchId => ({
+                branchId,
+                price: branchData[branchId]?.price || form.price,
+                originalPrice: branchData[branchId]?.originalPrice || form.originalPrice,
+                stockQuantity: branchData[branchId]?.stockQuantity || form.stockQuantity,
+                isAvailable: branchData[branchId]?.isAvailable !== false
+            }));
+            
             const productData = {
                 barcode: form.barcode,
                 name: form.name,
@@ -283,7 +363,8 @@ const ProductsManager = () => {
                 category: form.category,
                 subcategory: form.subcategory,
                 expiryDate: form.expiryDate,
-                branchIds: form.branchIds, // 🆕 Send array of branch IDs
+                branchIds: form.branchIds,
+                branchesData: branchesData, // 🆕 Send detailed branch data
                 stockQuantity: form.stockQuantity,
                 weight: form.weight,
                 shelfLocation: form.shelfLocation,
@@ -923,6 +1004,155 @@ const ProductsManager = () => {
                                     </div>
                                 )}
                             </div>
+
+                            {/* 🆕 Branch-Specific Data Section */}
+                            {form.branchIds.length > 0 && (
+                                <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-4">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <label className="block text-sm font-bold text-purple-800">
+                                            📊 بيانات كل فرع (السعر والكمية)
+                                        </label>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                // Copy default values to all branches
+                                                const newBranchData: any = {};
+                                                form.branchIds.forEach(branchId => {
+                                                    newBranchData[branchId] = {
+                                                        price: form.price,
+                                                        stockQuantity: form.stockQuantity,
+                                                        originalPrice: form.originalPrice,
+                                                        isAvailable: true
+                                                    };
+                                                });
+                                                setBranchData(newBranchData);
+                                            }}
+                                            className="text-xs px-2 py-1 bg-purple-600 text-white rounded hover:bg-purple-700"
+                                        >
+                                            📋 نسخ البيانات الافتراضية للكل
+                                        </button>
+                                    </div>
+                                    
+                                    <div className="space-y-3 max-h-96 overflow-y-auto">
+                                        {form.branchIds.map(branchId => {
+                                            const branch = branches.find(b => b.id === branchId);
+                                            if (!branch) return null;
+                                            
+                                            const data = branchData[branchId] || {
+                                                price: form.price,
+                                                stockQuantity: form.stockQuantity,
+                                                originalPrice: form.originalPrice,
+                                                isAvailable: true
+                                            };
+                                            
+                                            return (
+                                                <div key={branchId} className="bg-white border-2 border-purple-300 rounded-lg p-3">
+                                                    <div className="font-bold text-purple-900 mb-2 flex items-center gap-2">
+                                                        🏪 {branch.name || branch.name_ar}
+                                                        {branch.address && (
+                                                            <span className="text-xs text-gray-500 font-normal">
+                                                                ({branch.address})
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div>
+                                                            <label className="block text-xs font-medium mb-1">السعر الحالي *</label>
+                                                            <input
+                                                                type="number"
+                                                                step="0.01"
+                                                                min="0.01"
+                                                                value={data.price}
+                                                                onChange={e => {
+                                                                    setBranchData({
+                                                                        ...branchData,
+                                                                        [branchId]: {
+                                                                            ...data,
+                                                                            price: parseFloat(e.target.value) || 0
+                                                                        }
+                                                                    });
+                                                                }}
+                                                                className="w-full px-2 py-1 border rounded text-sm"
+                                                                placeholder="السعر"
+                                                            />
+                                                        </div>
+                                                        
+                                                        <div>
+                                                            <label className="block text-xs font-medium mb-1">السعر قبل الخصم</label>
+                                                            <input
+                                                                type="number"
+                                                                step="0.01"
+                                                                value={data.originalPrice}
+                                                                onChange={e => {
+                                                                    setBranchData({
+                                                                        ...branchData,
+                                                                        [branchId]: {
+                                                                            ...data,
+                                                                            originalPrice: parseFloat(e.target.value) || 0
+                                                                        }
+                                                                    });
+                                                                }}
+                                                                className="w-full px-2 py-1 border rounded text-sm"
+                                                                placeholder="السعر الأصلي"
+                                                            />
+                                                        </div>
+                                                        
+                                                        <div>
+                                                            <label className="block text-xs font-medium mb-1">الكمية المتوفرة *</label>
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                value={data.stockQuantity}
+                                                                onChange={e => {
+                                                                    setBranchData({
+                                                                        ...branchData,
+                                                                        [branchId]: {
+                                                                            ...data,
+                                                                            stockQuantity: parseInt(e.target.value) || 0
+                                                                        }
+                                                                    });
+                                                                }}
+                                                                className="w-full px-2 py-1 border rounded text-sm"
+                                                                placeholder="الكمية"
+                                                            />
+                                                        </div>
+                                                        
+                                                        <div>
+                                                            <label className="block text-xs font-medium mb-1">الحالة</label>
+                                                            <label className="flex items-center gap-2 cursor-pointer">
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={data.isAvailable !== false}
+                                                                    onChange={e => {
+                                                                        setBranchData({
+                                                                            ...branchData,
+                                                                            [branchId]: {
+                                                                                ...data,
+                                                                                isAvailable: e.target.checked
+                                                                            }
+                                                                        });
+                                                                    }}
+                                                                    className="w-4 h-4"
+                                                                />
+                                                                <span className="text-sm">
+                                                                    {data.isAvailable !== false ? '✅ متوفر' : '❌ غير متوفر'}
+                                                                </span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    
+                                    <div className="mt-3 p-2 bg-purple-100 border border-purple-300 rounded">
+                                        <p className="text-xs text-purple-800">
+                                            💡 يمكنك تعديل السعر والكمية لكل فرع بشكل منفصل. إذا تركت الحقول فارغة، سيتم استخدام البيانات الافتراضية.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Stock & Weight Row */}
                             <div className="grid grid-cols-2 gap-4">
