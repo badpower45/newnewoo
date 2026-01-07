@@ -5,6 +5,7 @@ import { ChevronLeft, Loader2, Eye, EyeOff, Mail, Lock, LogIn, Ban } from 'lucid
 import { api } from '../services/api';
 import { supabaseAuth } from '../services/supabaseAuth';
 import { blockingService } from '../services/blockingService';
+import { supabaseBlockingService } from '../services/supabaseBlockingService';
 import CompleteProfileModal from '../components/CompleteProfileModal';
 
 const LoginPage = () => {
@@ -31,10 +32,37 @@ const LoginPage = () => {
         setIsSubmitting(true);
         
         try {
-            // التحقق من البلوك أولاً بالإيميل
-            const blockCheck = await blockingService.checkIfBlocked(email);
+            // 🚫 Check blocking in Supabase FIRST
+            const supabaseBlockCheck = await supabaseBlockingService.checkIfBlocked(email);
             
-            if (blockCheck.isBlocked) {
+            if (supabaseBlockCheck.isBlocked) {
+                // Log blocked attempt in Supabase
+                const userIP = await supabaseBlockingService.getUserIP();
+                await supabaseBlockingService.logBlockedAttempt({
+                    userEmail: email,
+                    ipAddress: userIP || undefined,
+                    attemptType: 'login',
+                    blockReason: supabaseBlockCheck.blockReason
+                });
+                
+                // Show block message with details
+                let blockMessage = 'تم حظر هذا الحساب من استخدام النظام';
+                if (supabaseBlockCheck.blockReason) {
+                    blockMessage += `\nالسبب: ${supabaseBlockCheck.blockReason}`;
+                }
+                if (supabaseBlockCheck.banType === 'temporary' && supabaseBlockCheck.daysRemaining) {
+                    blockMessage += `\nالحظر مؤقت: متبقي ${supabaseBlockCheck.daysRemaining} يوم`;
+                }
+                
+                setError(blockMessage);
+                setIsSubmitting(false);
+                return;
+            }
+            
+            // التحقق من البلوك في الباكند أيضاً (fallback)
+            const backendBlockCheck = await blockingService.checkIfBlocked(email);
+            
+            if (backendBlockCheck.isBlocked) {
                 // تسجيل المحاولة الفاشلة
                 const userIP = await blockingService.getUserIP();
                 await blockingService.logBlockedAttempt(
@@ -42,11 +70,11 @@ const LoginPage = () => {
                     undefined,
                     userIP || undefined,
                     'login',
-                    blockCheck.reason
+                    backendBlockCheck.reason
                 );
                 
                 // عرض رسالة البلوك
-                setError(blockCheck.message || 'تم حظر هذا الحساب من استخدام النظام');
+                setError(backendBlockCheck.message || 'تم حظر هذا الحساب من استخدام النظام');
                 setIsSubmitting(false);
                 return;
             }
@@ -75,8 +103,17 @@ const LoginPage = () => {
                 } else {
                     console.warn('⚠️ Backend login returned no token:', backendLogin);
                 }
-            } catch (e) {
+            } catch (e: any) {
                 console.error('❌ Backend login failed:', e);
+                
+                // Check if user is blocked from backend response
+                if (e?.response?.data?.blocked || e?.response?.status === 403) {
+                    const blockMessage = e?.response?.data?.error || e?.response?.data?.reason || 'تم حظر هذا الحساب من استخدام النظام';
+                    setError(blockMessage);
+                    setIsSubmitting(false);
+                    return;
+                }
+                
                 // Use Supabase token as fallback
                 backendToken = session.access_token;
                 localStorage.setItem('token', backendToken);
@@ -267,16 +304,39 @@ const LoginPage = () => {
                     </div>
 
                     {error && (
-                        <div className="bg-red-50 text-red-600 p-3 rounded-xl mb-3 text-sm text-center border border-red-100 animate-shake space-y-2">
-                            <div>{error}</div>
-                            <button
-                                type="button"
-                                onClick={handleResendVerification}
-                                className="text-xs font-bold text-purple-700 underline flex items-center justify-center gap-1 mx-auto disabled:opacity-60"
-                                disabled={verifyStatus === 'sending'}
-                            >
-                                {verifyStatus === 'sent' ? 'تم إرسال رابط التفعيل ✉️' : verifyStatus === 'sending' ? 'جاري الإرسال...' : 'إعادة إرسال رابط التفعيل'}
-                            </button>
+                        <div className={`p-4 rounded-xl mb-3 text-sm border animate-shake space-y-2 ${
+                            error.includes('حظر') 
+                                ? 'bg-gray-900 text-white border-gray-800' 
+                                : 'bg-red-50 text-red-600 border-red-100'
+                        }`}>
+                            <div className="flex items-start gap-3">
+                                {error.includes('حظر') && (
+                                    <Ban className="text-red-500 mt-0.5 flex-shrink-0" size={20} />
+                                )}
+                                <div className="flex-1">
+                                    <p className="font-bold mb-1">
+                                        {error.includes('حظر') ? '🚫 تم حظر هذا الحساب' : 'خطأ في تسجيل الدخول'}
+                                    </p>
+                                    <p className={error.includes('حظر') ? 'text-gray-300 text-xs' : ''}>
+                                        {error}
+                                    </p>
+                                    {error.includes('حظر') && (
+                                        <p className="text-xs text-gray-400 mt-2">
+                                            للاستفسار، يرجى التواصل مع الدعم الفني
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                            {!error.includes('حظر') && (
+                                <button
+                                    type="button"
+                                    onClick={handleResendVerification}
+                                    className="text-xs font-bold text-purple-700 underline flex items-center justify-center gap-1 mx-auto disabled:opacity-60"
+                                    disabled={verifyStatus === 'sending'}
+                                >
+                                    {verifyStatus === 'sent' ? 'تم إرسال رابط التفعيل ✉️' : verifyStatus === 'sending' ? 'جاري الإرسال...' : 'إعادة إرسال رابط التفعيل'}
+                                </button>
+                            )}
                             {verifyMessage && (
                                 <p className={`text-xs ${verifyStatus === 'error' ? 'text-red-600' : 'text-green-700'}`}>
                                     {verifyMessage}

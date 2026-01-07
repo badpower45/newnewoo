@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Users, TrendingDown, Star, AlertTriangle, CheckCircle, Search, Download, AlertCircle } from 'lucide-react';
 import { api } from '../../services/api';
+import { supabaseBlockingService } from '../../services/supabaseBlockingService';
 
 interface CustomerAnalytics {
     id: number;
@@ -101,17 +102,47 @@ const CustomerAnalyticsPage = () => {
         setActionMessage('');
         try {
             if (block) {
-                await api.adminUsers.blockByEmail(customer.email, 'حظر يدوي من لوحة التحليلات');
+                // Block in both Supabase and Backend
+                const [supabaseResult, backendResult] = await Promise.allSettled([
+                    supabaseBlockingService.blockUser(
+                        customer.email, 
+                        'حظر يدوي من لوحة التحليلات - عميل مشاغب',
+                        undefined,
+                        undefined // permanent ban
+                    ),
+                    api.adminUsers.blockByEmail(customer.email, 'حظر يدوي من لوحة التحليلات')
+                ]);
+                
+                // Check results
+                const supabaseSuccess = supabaseResult.status === 'fulfilled' && supabaseResult.value.success;
+                const backendSuccess = backendResult.status === 'fulfilled';
+                
+                if (!supabaseSuccess && !backendSuccess) {
+                    throw new Error('فشل الحظر في كل من Supabase والباكند');
+                }
+                
+                console.log('✅ Block results:', { supabaseSuccess, backendSuccess });
             } else {
-                await api.adminUsers.unblockByEmail(customer.email);
+                // Unblock in both systems
+                const [supabaseResult, backendResult] = await Promise.allSettled([
+                    supabaseBlockingService.unblockUser(customer.email),
+                    api.adminUsers.unblockByEmail(customer.email)
+                ]);
+                
+                const supabaseSuccess = supabaseResult.status === 'fulfilled' && supabaseResult.value.success;
+                const backendSuccess = backendResult.status === 'fulfilled';
+                
+                console.log('✅ Unblock results:', { supabaseSuccess, backendSuccess });
             }
+            
             setCustomers(prev => prev.map(c => c.email === customer.email ? {
                 ...c,
                 customer_rating: block ? 'banned' : c.customer_rating === 'banned' ? 'good' : c.customer_rating,
                 is_blocked: block
             } : c));
-            setActionMessage(block ? 'تم حظر المستخدم' : 'تم إلغاء الحظر');
+            setActionMessage(block ? '✅ تم حظر المستخدم في Supabase والباكند' : '✅ تم إلغاء الحظر');
         } catch (err: any) {
+            console.error('❌ Block toggle error:', err);
             setActionMessage(err?.message || 'تعذر تحديث حالة الحظر');
         } finally {
             setActionEmail(null);

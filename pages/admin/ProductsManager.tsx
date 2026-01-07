@@ -41,6 +41,9 @@ const ProductsManager = () => {
     const [editing, setEditing] = useState<Product | null>(null);
     const [form, setForm] = useState(emptyProduct);
     
+    // 🆕 Branch filter
+    const [selectedBranchFilter, setSelectedBranchFilter] = useState<string>('all');
+    
     // 🆕 Branch-specific data (price, stock, etc. per branch)
     const [branchData, setBranchData] = useState<{[branchId: number]: {price: number, stockQuantity: number, originalPrice: number, isAvailable: boolean}}>({});
     
@@ -67,11 +70,21 @@ const ProductsManager = () => {
         loadBrands();
     }, []);
 
+    // Reload products when branch filter changes
+    useEffect(() => {
+        loadProducts();
+    }, [selectedBranchFilter]);
+
     const loadProducts = async () => {
         setLoading(true);
         try {
-            // Fetch all products for admin view (not filtered by branch)
-            const response = await fetch(`${API_URL}/products?includeAllBranches=true`, {
+            // Build URL with branch filter if selected
+            let url = `${API_URL}/products?includeAllBranches=true`;
+            if (selectedBranchFilter !== 'all') {
+                url = `${API_URL}/branch-products/all-branches?branchId=${selectedBranchFilter}`;
+            }
+            
+            const response = await fetch(url, {
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -80,7 +93,27 @@ const ProductsManager = () => {
             const data = await response.json();
             console.log('📦 Products loaded:', data);
             
-            if (Array.isArray(data?.data)) {
+            // Handle branch-specific response format
+            if (selectedBranchFilter !== 'all' && Array.isArray(data?.data)) {
+                // Transform branch-products format to products format
+                const transformedProducts = data.data.map((item: any) => {
+                    const branch = item.branches?.[0]; // Get first branch data
+                    return {
+                        id: item.product_id,
+                        name: item.product_name,
+                        category: item.category,
+                        subcategory: item.subcategory,
+                        barcode: item.barcode,
+                        image: item.image,
+                        weight: item.weight,
+                        price: branch?.price || 0,
+                        stockQuantity: branch?.stock_quantity || 0,
+                        originalPrice: branch?.discount_price || branch?.price || 0,
+                        branchId: branch?.branch_id
+                    };
+                });
+                setProducts(transformedProducts);
+            } else if (Array.isArray(data?.data)) {
                 setProducts(data.data);
             } else if (Array.isArray(data)) {
                 setProducts(data);
@@ -557,18 +590,49 @@ const ProductsManager = () => {
                 </div>
             </div>
 
-            {/* Search Bar */}
+            {/* Search Bar & Branch Filter */}
             <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6">
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                    <input
-                        type="text"
-                        placeholder="Search products..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange"
-                    />
+                <div className="flex flex-col md:flex-row gap-4">
+                    {/* Search Input */}
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                        <input
+                            type="text"
+                            placeholder="ابحث عن منتج..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange"
+                        />
+                    </div>
+                    
+                    {/* Branch Filter */}
+                    <div className="w-full md:w-64">
+                        <select
+                            value={selectedBranchFilter}
+                            onChange={(e) => setSelectedBranchFilter(e.target.value)}
+                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange bg-white"
+                        >
+                            <option value="all">🏪 جميع الفروع</option>
+                            {branches.map(branch => (
+                                <option key={branch.id} value={branch.id}>
+                                    {branch.name_ar || branch.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
+            </div>
+
+            {/* Product Count Badge */}
+            <div className="mb-4 flex items-center gap-2">
+                <span className="text-sm text-gray-600">
+                    عرض {filteredProducts.length} منتج
+                    {selectedBranchFilter !== 'all' && (
+                        <span className="text-brand-orange font-semibold">
+                            {' '}في {branches.find(b => String(b.id) === selectedBranchFilter)?.name_ar || 'الفرع'}
+                        </span>
+                    )}
+                </span>
             </div>
 
             {/* Products Table */}

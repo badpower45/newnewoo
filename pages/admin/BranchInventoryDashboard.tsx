@@ -70,18 +70,43 @@ const BranchInventoryDashboard: React.FC = () => {
       
       for (const branch of branches) {
         try {
-          const response = await fetch(`${API_URL}/branch-products/all-branches?branchId=${branch.id}`);
+          const response = await fetch(`${API_URL}/branch-products/all-branches?branchId=${branch.id}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`,
+              'Content-Type': 'application/json'
+            }
+          });
           const data = await response.json();
+          console.log(`📊 Branch ${branch.id} data:`, data);
+          
+          // Handle the response format from API
           const products = Array.isArray(data?.data) ? data.data : [];
           
-          const totalProducts = products.length;
-          const totalStock = products.reduce((sum: number, p: any) => sum + (p.stock_quantity || 0), 0);
-          const lowStockProducts = products.filter((p: any) => (p.stock_quantity || 0) < 10).length;
-          const totalValue = products.reduce((sum: number, p: any) => 
-            sum + ((p.price || 0) * (p.stock_quantity || 0)), 0
-          );
-          const averagePrice = totalProducts > 0 ? 
-            products.reduce((sum: number, p: any) => sum + (p.price || 0), 0) / totalProducts : 0;
+          let totalProducts = 0;
+          let totalStock = 0;
+          let lowStockProducts = 0;
+          let totalValue = 0;
+          let totalPrice = 0;
+          
+          // Each product has branches array
+          products.forEach((item: any) => {
+            const branchData = item.branches?.[0]; // Get first branch (should be current branch)
+            if (branchData) {
+              totalProducts++;
+              const stock = branchData.stock_quantity || 0;
+              const price = branchData.price || 0;
+              
+              totalStock += stock;
+              totalValue += price * stock;
+              totalPrice += price;
+              
+              if (stock < 10) {
+                lowStockProducts++;
+              }
+            }
+          });
+          
+          const averagePrice = totalProducts > 0 ? totalPrice / totalProducts : 0;
           
           stats.push({
             branchId: branch.id,
