@@ -96,7 +96,6 @@ const BranchesManager: React.FC = () => {
     if (!navigator.geolocation) return;
     
     navigator.geolocation.getCurrentPosition(
-      await loadBranchStats();
       (position) => {
         setUserLocation({
           lat: position.coords.latitude,
