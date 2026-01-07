@@ -21,18 +21,23 @@ const initTranslator = () => {
   isTranslatorReady = true;
   new googleObj.translate.TranslateElement(
     {
-      pageLanguage: 'ar',
+      pageLanguage: 'en', // Set base page language to English
       includedLanguages: 'ar,en',
-      autoDisplay: false
+      autoDisplay: false,
+      layout: googleObj.translate.TranslateElement.InlineLayout.SIMPLE
     },
     TRANSLATE_CONTAINER_ID
   );
 
+  // Apply pending language immediately
   if (pendingLang) {
     const langToApply = pendingLang;
     pendingLang = null;
-    // Slight delay to let the widget render its select element
-    setTimeout(() => translateTo(langToApply), 60);
+    // Immediate translation
+    setTimeout(() => translateTo(langToApply), 100);
+  } else {
+    // Default to Arabic
+    setTimeout(() => translateTo('ar'), 100);
   }
 };
 
@@ -64,7 +69,19 @@ export const translateTo = (lang: Lang) => {
     return;
   }
 
-  if (select.value === lang) return;
-  select.value = lang;
+  // Translate to Arabic or back to English
+  const targetValue = lang === 'ar' ? 'ar' : 'en';
+  
+  if (select.value === targetValue) return;
+  
+  select.value = targetValue;
   select.dispatchEvent(new Event('change'));
+  
+  // Force a second trigger to ensure translation
+  setTimeout(() => {
+    if (select.value !== targetValue) {
+      select.value = targetValue;
+      select.dispatchEvent(new Event('change'));
+    }
+  }, 200);
 };

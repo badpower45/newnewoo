@@ -27,24 +27,31 @@ interface LanguageProviderProps {
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
     const [language, setLanguageState] = useState<Language>('ar');
+    const [isReady, setIsReady] = useState(false);
 
     useEffect(() => {
-        // Load saved language
-        const savedLang = localStorage.getItem('language') as Language;
-        // Ensure Google widget starts loading early
+        // Load Google Translate script first
         loadGoogleTranslate();
 
-        if (savedLang && (savedLang === 'ar' || savedLang === 'en')) {
-            setLanguageState(savedLang);
-            applyLanguage(savedLang);
-        } else {
-            // Default to Arabic
-            setLanguageState('ar');
-            applyLanguage('ar');
-        }
+        // Check for saved language or default to Arabic
+        const savedLang = localStorage.getItem('language') as Language;
+        const initialLang = (savedLang && (savedLang === 'ar' || savedLang === 'en')) ? savedLang : 'ar';
+        
+        // Set initial language
+        setLanguageState(initialLang);
+        
+        // Apply language settings immediately
+        applyLanguage(initialLang);
+        
+        // Wait a bit for Google Translate to be ready, then apply again
+        setTimeout(() => {
+            applyLanguage(initialLang);
+            setIsReady(true);
+        }, 1500);
     }, []);
 
     const applyLanguage = (lang: Language) => {
+        // Set document direction and language
         document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
         document.documentElement.lang = lang;
         
@@ -52,8 +59,13 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
         document.body.classList.remove('lang-ar', 'lang-en');
         document.body.classList.add(`lang-${lang}`);
 
-        // Trigger browser-level translate to mirror the toggle (hidden widget)
+        // Apply Google Translate
         translateTo(lang);
+        
+        // Force translate all text content after a short delay
+        setTimeout(() => {
+            translateTo(lang);
+        }, 100);
     };
 
     const setLanguage = (lang: Language) => {
