@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Search, Upload, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Upload, X, FileSpreadsheet, Download } from 'lucide-react';
 import { api } from '../../services/api';
 import { Product } from '../../types';
 import { useNavigate } from 'react-router-dom';
 import { TableSkeleton } from '../../components/Skeleton';
 import { API_URL } from '../../src/config';
+import * as XLSX from 'xlsx';
 
 const emptyProduct = {
     barcode: '',
@@ -97,7 +98,15 @@ const ProductsManager = () => {
             if (selectedBranchFilter !== 'all' && Array.isArray(data?.data)) {
                 // Transform branch-products format to products format
                 const transformedProducts = data.data.map((item: any) => {
-                    const branch = item.branches?.[0]; // Get first branch data
+                    // Find the selected branch data
+                    const selectedBranch = item.branches?.find((b: any) => 
+                        String(b.branch_id) === String(selectedBranchFilter)
+                    );
+                    
+                    if (!selectedBranch) {
+                        console.warn(`⚠️ Branch ${selectedBranchFilter} not found for product ${item.product_id}`);
+                    }
+                    
                     return {
                         id: item.product_id,
                         name: item.product_name,
@@ -106,12 +115,17 @@ const ProductsManager = () => {
                         barcode: item.barcode,
                         image: item.image,
                         weight: item.weight,
-                        price: branch?.price || 0,
-                        stockQuantity: branch?.stock_quantity || 0,
-                        originalPrice: branch?.discount_price || branch?.price || 0,
-                        branchId: branch?.branch_id
+                        brand_id: item.brand_id,
+                        brand_name: item.brand_name,
+                        price: selectedBranch?.price || 0,
+                        stockQuantity: selectedBranch?.stock_quantity || 0,
+                        originalPrice: selectedBranch?.discount_price || selectedBranch?.price || 0,
+                        isAvailable: selectedBranch?.is_available !== false,
+                        branchId: selectedBranch?.branch_id,
+                        branchName: selectedBranch?.branch_name
                     };
                 });
+                console.log('✅ Transformed products for branch:', transformedProducts);
                 setProducts(transformedProducts);
             } else if (Array.isArray(data?.data)) {
                 setProducts(data.data);
@@ -531,51 +545,188 @@ const ProductsManager = () => {
         }
     };
 
+    // 🔥 Export all products to Excel with ALL details
+    const exportAllToExcel = async () => {
+        try {
+            console.log('📄 Exporting all products to Excel...');
+            
+            // Fetch ALL products without filters
+            const res = await fetch(`${API_URL}/products`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!res.ok) throw new Error('Failed to fetch products');
+            const data = await res.json();
+            const allProducts = data.data || data;
+
+            // Fetch branch-products data for each product
+            const productsWithFullDetails = await Promise.all(
+                allProducts.map(async (product: any) => {
+                    try {
+                        const branchRes = await fetch(`${API_URL}/branch-products/product/${product.id}`, {
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            }
+                        });
+                        const branchData = await branchRes.json();
+                        const branches = branchData.data || branchData || [];
+
+                        return {
+                            // Basic Info
+                            'ID': product.id,
+                            'Barcode': product.barcode || '',
+                            'Name': product.name || '',
+                            'Name (EN)': product.name_en || '',
+                            'Description': product.description || '',
+                            'Description (EN)': product.description_en || '',
+                            
+                            // Category & Brand
+                            'Category': product.category || '',
+                            'Category (EN)': product.category_en || '',
+                            'Subcategory': product.subcategory || '',
+                            'Subcategory (EN)': product.subcategory_en || '',
+                            'Brand ID': product.brand_id || '',
+                            'Brand Name': product.brand_name || '',
+                            
+                            // Pricing
+                            'Price': product.price || 0,
+                            'Original Price': product.original_price || product.price || 0,
+                            'Cost Price': product.cost_price || 0,
+                            'Discount %': product.discount_percentage || 0,
+                            
+                            // Stock & Availability
+                            'Total Stock': product.stock_quantity || 0,
+                            'Min Stock Level': product.min_stock_level || 0,
+                            'Max Stock Level': product.max_stock_level || 0,
+                            'Is Available': product.is_available ? 'Yes' : 'No',
+                            'Is Featured': product.is_featured ? 'Yes' : 'No',
+                            'Is Hot Deal': product.is_hot_deal ? 'Yes' : 'No',
+                            'Is Offer Only': product.is_offer_only ? 'Yes' : 'No',
+                            
+                            // Product Details
+                            'Weight': product.weight || '',
+                            'Unit': product.unit || '',
+                            'Size': product.size || '',
+                            'Color': product.color || '',
+                            'Flavor': product.flavor || '',
+                            'Package Type': product.package_type || '',
+                            
+                            // Ratings & Reviews
+                            'Rating': product.rating || 0,
+                            'Reviews Count': product.reviews || 0,
+                            'Total Sales': product.total_sales || 0,
+                            
+                            // Images
+                            'Main Image': product.image || '',
+                            'Gallery Images': product.images ? product.images.join(', ') : '',
+                            
+                            // Dates
+                            'Expiry Date': product.expiry_date || '',
+                            'Manufacturing Date': product.manufacturing_date || '',
+                            'Created At': product.created_at || '',
+                            'Updated At': product.updated_at || '',
+                            
+                            // Location
+                            'Shelf Location': product.shelf_location || '',
+                            'Aisle': product.aisle || '',
+                            
+                            // Additional Info
+                            'SKU': product.sku || '',
+                            'Tags': product.tags ? product.tags.join(', ') : '',
+                            'Keywords': product.keywords || '',
+                            'Meta Title': product.meta_title || '',
+                            'Meta Description': product.meta_description || '',
+                            
+                            // Loyalty & Points
+                            'Loyalty Points': product.loyalty_points || 0,
+                            'Min Purchase Quantity': product.min_purchase_quantity || 1,
+                            'Max Purchase Quantity': product.max_purchase_quantity || '',
+                            
+                            // Branch-specific data (first 5 branches)
+                            ...branches.slice(0, 5).reduce((acc: any, branch: any, idx: number) => {
+                                acc[`Branch ${idx + 1} Name`] = branch.branch_name || '';
+                                acc[`Branch ${idx + 1} Price`] = branch.price || 0;
+                                acc[`Branch ${idx + 1} Stock`] = branch.stock_quantity || 0;
+                                acc[`Branch ${idx + 1} Available`] = branch.is_available ? 'Yes' : 'No';
+                                return acc;
+                            }, {}),
+                            
+                            // Total Branches
+                            'Total Branches': branches.length
+                        };
+                    } catch (err) {
+                        console.error(`Error fetching branch data for product ${product.id}:`, err);
+                        return {
+                            'ID': product.id,
+                            'Barcode': product.barcode,
+                            'Name': product.name,
+                            'Price': product.price,
+                            'Stock': product.stock_quantity,
+                            'Category': product.category,
+                            'Error': 'Failed to load branch details'
+                        };
+                    }
+                })
+            );
+
+            // Create worksheet
+            const ws = XLSX.utils.json_to_sheet(productsWithFullDetails);
+            
+            // Auto-size columns
+            const colWidths = Object.keys(productsWithFullDetails[0] || {}).map(key => ({
+                wch: Math.max(key.length, 15)
+            }));
+            ws['!cols'] = colWidths;
+
+            // Create workbook
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'All Products');
+
+            // Add summary sheet
+            const summary = [{
+                'Total Products': allProducts.length,
+                'Total Branches': branches.length,
+                'Total Categories': [...new Set(allProducts.map((p: any) => p.category))].length,
+                'Export Date': new Date().toLocaleString('ar-EG'),
+                'Exported By': 'Admin'
+            }];
+            const wsSummary = XLSX.utils.json_to_sheet(summary);
+            XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+
+            // Generate filename with timestamp
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+            const filename = `All_Products_${timestamp}.xlsx`;
+
+            // Download
+            XLSX.writeFile(wb, filename);
+            
+            alert(`✅ تم تصدير ${allProducts.length} منتج بنجاح!\nاسم الملف: ${filename}`);
+        } catch (err) {
+            console.error('❌ Excel export failed:', err);
+            alert('فشل تصدير Excel: ' + (err instanceof Error ? err.message : 'خطأ غير معروف'));
+        }
+    };
+
     return (
         <div>
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold text-gray-900">Products Management</h1>
                 <div className="flex flex-wrap gap-2">
+                    {/* Export to Excel Button */}
                     <button
-                        onClick={fixPrices}
-                        className="flex items-center space-x-2 px-3 py-2 bg-red-600 text-white text-sm rounded-lg hover:bg-red-700 transition-colors font-bold"
+                        onClick={exportAllToExcel}
+                        className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors font-bold shadow-md"
                     >
-                        <span>🔧</span>
-                        <span>إصلاح الأسعار</span>
+                        <FileSpreadsheet size={18} />
+                        <span>تصدير كل المنتجات Excel</span>
                     </button>
-                    <button
-                        onClick={seedBranches}
-                        className="flex items-center space-x-2 px-3 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700 transition-colors"
-                    >
-                        <Plus size={16} />
-                        <span>إضافة فروع</span>
-                    </button>
-                    <button
-                        onClick={seedCategories}
-                        className="flex items-center space-x-2 px-3 py-2 bg-indigo-600 text-white text-sm rounded-lg hover:bg-indigo-700 transition-colors"
-                    >
-                        <Plus size={16} />
-                        <span>إضافة تصنيفات</span>
-                    </button>
-                    <button
-                        onClick={async ()=>{
-                            try {
-                                const res = await fetch(`${import.meta.env.VITE_API_URL || 'https://bkaa.vercel.app/api'}/products/dev/seed-sample`, { method: 'POST' });
-                                const j = await res.json();
-                                console.log('Seed result', j);
-                                loadProducts();
-                            } catch (e) {
-                                console.error('Seed failed', e);
-                            }
-                        }}
-                        className="flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                        <Upload size={16} />
-                        <span>Seed Products</span>
-                    </button>
+                    
                     <button
                         onClick={() => navigate('/admin/upload')}
-                        className="flex items-center space-x-2 px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors"
+                        className="flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
                     >
                         <Upload size={16} />
                         <span>Import Excel</span>
