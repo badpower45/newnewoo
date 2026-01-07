@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Save, X, ImagePlus, Loader2, ExternalLink, Eye } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, X, ImagePlus, Loader2, ExternalLink, Eye, Upload, Loader } from 'lucide-react';
 import { api } from '../../services/api';
 import { pushNotificationService } from '../../services/pushNotifications';
 import ErrorMessage from '../../components/ErrorMessage';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import { API_URL } from '../../src/config';
 
 interface Category {
     id: number;
@@ -26,6 +27,7 @@ const CategoryBannersManager: React.FC = () => {
     const [editingId, setEditingId] = useState<number | null>(null);
     const [editForm, setEditForm] = useState<Partial<Category>>({});
     const [saving, setSaving] = useState(false);
+    const [uploadingImage, setUploadingImage] = useState(false);
 
     useEffect(() => {
         fetchCategories();
@@ -105,6 +107,51 @@ const CategoryBannersManager: React.FC = () => {
             console.error(err);
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate file
+        if (file.size > 5 * 1024 * 1024) {
+            alert('حجم الصورة كبير جداً. الحد الأقصى 5 ميجابايت');
+            return;
+        }
+
+        if (!file.type.startsWith('image/')) {
+            alert('الرجاء اختيار صورة');
+            return;
+        }
+
+        setUploadingImage(true);
+        const originalImage = editForm.banner_image;
+
+        try {
+            const formData = new FormData();
+            formData.append('image', file);
+            formData.append('productId', `banner_${editingId || Date.now()}`);
+
+            const response = await fetch(`${API_URL}/upload/image`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success && result.data?.url) {
+                setEditForm({ ...editForm, banner_image: result.data.url });
+                alert('✅ تم رفع الصورة بنجاح!');
+            } else {
+                throw new Error(result.error || 'فشل رفع الصورة');
+            }
+        } catch (error: any) {
+            console.error('Upload error:', error);
+            alert('❌ فشل رفع الصورة: ' + error.message);
+            setEditForm({ ...editForm, banner_image: originalImage });
+        } finally {
+            setUploadingImage(false);
         }
     };
 
@@ -298,14 +345,44 @@ const CategoryBannersManager: React.FC = () => {
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
                                             رابط صورة البانر
                                         </label>
-                                        <input
-                                            type="url"
-                                            value={editForm.banner_image || ''}
-                                            onChange={(e) => setEditForm({ ...editForm, banner_image: e.target.value })}
-                                            placeholder="https://example.com/image.jpg"
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            dir="ltr"
-                                        />
+                                        <div className="space-y-2">
+                                            <input
+                                                type="url"
+                                                value={editForm.banner_image || ''}
+                                                onChange={(e) => setEditForm({ ...editForm, banner_image: e.target.value })}
+                                                placeholder="https://example.com/image.jpg"
+                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                dir="ltr"
+                                            />
+                                            <div className="flex items-center gap-2">
+                                                <label className="flex-1 cursor-pointer">
+                                                    <div className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg border-2 border-dashed transition-colors ${
+                                                        uploadingImage 
+                                                            ? 'border-gray-300 bg-gray-50' 
+                                                            : 'border-blue-500 hover:border-blue-600 hover:bg-blue-50'
+                                                    }`}>
+                                                        {uploadingImage ? (
+                                                            <>
+                                                                <Loader className="w-4 h-4 animate-spin" />
+                                                                <span className="text-sm">جاري الرفع...</span>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <Upload className="w-4 h-4" />
+                                                                <span className="text-sm font-medium">رفع صورة</span>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        onChange={handleImageUpload}
+                                                        disabled={uploadingImage}
+                                                        className="hidden"
+                                                    />
+                                                </label>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     {/* Background Color */}

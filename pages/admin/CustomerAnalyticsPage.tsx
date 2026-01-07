@@ -28,6 +28,9 @@ const CustomerAnalyticsPage = () => {
     const [error, setError] = useState('');
     const [actionMessage, setActionMessage] = useState<string>('');
     const [actionEmail, setActionEmail] = useState<string | null>(null);
+    const [showBlockModal, setShowBlockModal] = useState(false);
+    const [selectedCustomer, setSelectedCustomer] = useState<CustomerAnalytics | null>(null);
+    const [blockReason, setBlockReason] = useState('');
 
     useEffect(() => {
         fetchCustomerAnalytics();
@@ -97,21 +100,39 @@ const CustomerAnalyticsPage = () => {
         }
     };
 
-    const handleBlockToggle = async (customer: CustomerAnalytics, block: boolean) => {
-        setActionEmail(customer.email);
+    const openBlockModal = (customer: CustomerAnalytics) => {
+        setSelectedCustomer(customer);
+        setBlockReason('');
+        setShowBlockModal(true);
+    };
+
+    const closeBlockModal = () => {
+        setShowBlockModal(false);
+        setSelectedCustomer(null);
+        setBlockReason('');
+    };
+
+    const confirmBlock = async () => {
+        if (!selectedCustomer || !blockReason.trim()) {
+            alert('الرجاء كتابة سبب الحظر');
+            return;
+        }
+
+        setActionEmail(selectedCustomer.email);
         setActionMessage('');
+        closeBlockModal();
+
         try {
-            if (block) {
-                // Block in both Supabase and Backend
-                const [supabaseResult, backendResult] = await Promise.allSettled([
-                    supabaseBlockingService.blockUser(
-                        customer.email, 
-                        'حظر يدوي من لوحة التحليلات - عميل مشاغب',
-                        undefined,
-                        undefined // permanent ban
-                    ),
-                    api.adminUsers.blockByEmail(customer.email, 'حظر يدوي من لوحة التحليلات')
-                ]);
+            // Block in both Supabase and Backend
+            const [supabaseResult, backendResult] = await Promise.allSettled([
+                supabaseBlockingService.blockUser(
+                    selectedCustomer.email, 
+                    blockReason,
+                    undefined,
+                    undefined // permanent ban
+                ),
+                api.adminUsers.blockByEmail(selectedCustomer.email, blockReason)
+            ]);
                 
                 // Check results
                 const supabaseSuccess = supabaseResult.status === 'fulfilled' && supabaseResult.value.success;
@@ -122,28 +143,45 @@ const CustomerAnalyticsPage = () => {
                 }
                 
                 console.log('✅ Block results:', { supabaseSuccess, backendSuccess });
-            } else {
-                // Unblock in both systems
-                const [supabaseResult, backendResult] = await Promise.allSettled([
-                    supabaseBlockingService.unblockUser(customer.email),
-                    api.adminUsers.unblockByEmail(customer.email)
-                ]);
-                
-                const supabaseSuccess = supabaseResult.status === 'fulfilled' && supabaseResult.value.success;
-                const backendSuccess = backendResult.status === 'fulfilled';
-                
-                console.log('✅ Unblock results:', { supabaseSuccess, backendSuccess });
-            }
+            
+            setCustomers(prev => prev.map(c => c.email === selectedCustomer.email ? {
+                ...c,
+                customer_rating: 'banned',
+                is_blocked: true
+            } : c));
+            setActionMessage('✅ تم حظر المستخدم بنجاح');
+        } catch (err: any) {
+            console.error('❌ Block error:', err);
+            setActionMessage(err?.message || 'تعذر حظر المستخدم');
+        } finally {
+            setActionEmail(null);
+        }
+    };
+
+    const handleUnblock = async (customer: CustomerAnalytics) => {
+        setActionEmail(customer.email);
+        setActionMessage('');
+        try {
+            // Unblock in both systems
+            const [supabaseResult, backendResult] = await Promise.allSettled([
+                supabaseBlockingService.unblockUser(customer.email),
+                api.adminUsers.unblockByEmail(customer.email)
+            ]);
+            
+            const supabaseSuccess = supabaseResult.status === 'fulfilled' && supabaseResult.value.success;
+            const backendSuccess = backendResult.status === 'fulfilled';
+            
+            console.log('✅ Unblock results:', { supabaseSuccess, backendSuccess });
             
             setCustomers(prev => prev.map(c => c.email === customer.email ? {
                 ...c,
-                customer_rating: block ? 'banned' : c.customer_rating === 'banned' ? 'good' : c.customer_rating,
-                is_blocked: block
+                customer_rating: c.customer_rating === 'banned' ? 'good' : c.customer_rating,
+                is_blocked: false
             } : c));
-            setActionMessage(block ? '✅ تم حظر المستخدم في Supabase والباكند' : '✅ تم إلغاء الحظر');
+            setActionMessage('✅ تم إلغاء الحظر بنجاح');
         } catch (err: any) {
-            console.error('❌ Block toggle error:', err);
-            setActionMessage(err?.message || 'تعذر تحديث حالة الحظر');
+            console.error('❌ Unblock error:', err);
+            setActionMessage(err?.message || 'تعذر إلغاء الحظر');
         } finally {
             setActionEmail(null);
         }
@@ -360,7 +398,13 @@ const CustomerAnalyticsPage = () => {
                                                 <p className="font-bold text-gray-900">{customer.name}</p>
                                                 <p className="text-xs text-gray-500">ID: {customer.id}</p>
                                                 <button
-                                                    onClick={() => handleBlockToggle(customer, !(customer.is_blocked || customer.customer_rating === 'banned'))}
+                                                    onClick={() => {
+                                                        if (customer.is_blocked || customer.customer_rating === 'banned') {
+                                                            handleUnblock(customer);
+                                                        } else {
+                                                            openBlockModal(customer);
+                                                        }
+                                                    }}
                                                     disabled={actionEmail === customer.email}
                                                     className={`mt-1 px-3 py-1 rounded-lg text-xs font-bold transition ${
                                                         customer.is_blocked || customer.customer_rating === 'banned'
@@ -411,7 +455,13 @@ const CustomerAnalyticsPage = () => {
                                     </td>
                                     <td className="px-6 py-4 text-center">
                                         <button
-                                            onClick={() => handleBlockToggle(customer, !customer.is_blocked && customer.customer_rating !== 'banned')}
+                                            onClick={() => {
+                                                if (customer.is_blocked || customer.customer_rating === 'banned') {
+                                                    handleUnblock(customer);
+                                                } else {
+                                                    openBlockModal(customer);
+                                                }
+                                            }}
                                             disabled={actionEmail === customer.email}
                                             className={`px-4 py-2 rounded-xl text-sm font-bold transition ${
                                                 customer.is_blocked || customer.customer_rating === 'banned'
@@ -439,6 +489,56 @@ const CustomerAnalyticsPage = () => {
                     </div>
                 )}
             </div>
+
+            {/* Block Modal */}
+            {showBlockModal && selectedCustomer && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 animate-fade-in">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+                                <AlertCircle className="text-red-600" size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold text-gray-900">حظر العميل</h3>
+                                <p className="text-sm text-gray-600">{selectedCustomer.name}</p>
+                            </div>
+                        </div>
+
+                        <div className="mb-6">
+                            <label className="block text-sm font-bold text-gray-700 mb-2">
+                                سبب الحظر <span className="text-red-500">*</span>
+                            </label>
+                            <textarea
+                                value={blockReason}
+                                onChange={(e) => setBlockReason(e.target.value)}
+                                placeholder="مثال: طلبات ملغاة متكررة، سلوك غير لائق، احتيال، إلخ..."
+                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+                                rows={4}
+                                dir="rtl"
+                            />
+                            <p className="text-xs text-gray-500 mt-2">
+                                ⚠️ سيتم عرض السبب للعميل عند محاولة الدخول
+                            </p>
+                        </div>
+
+                        <div className="flex gap-3">
+                            <button
+                                onClick={confirmBlock}
+                                disabled={!blockReason.trim()}
+                                className="flex-1 bg-red-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                تأكيد الحظر
+                            </button>
+                            <button
+                                onClick={closeBlockModal}
+                                className="flex-1 bg-gray-100 text-gray-700 px-6 py-3 rounded-xl font-bold hover:bg-gray-200 transition"
+                            >
+                                إلغاء
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
