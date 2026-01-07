@@ -15,7 +15,7 @@ const emptyProduct = {
     category: 'Food',
     subcategory: '',
     expiryDate: '',
-    branchId: 1,
+    branchIds: [] as number[], // 🆕 Changed to array for multiple branches
     stockQuantity: 0,
     weight: '',
     rating: 0,
@@ -207,6 +207,14 @@ const ProductsManager = () => {
             }
         }
         
+        // 🆕 Load branch IDs from the product
+        let branchIdsList: number[] = [];
+        if (p.branch_id) {
+            branchIdsList = [p.branch_id];
+        }
+        // If product has multiple branches, we can load them here
+        // For now, we'll just use the single branch_id
+        
         setForm({
             barcode: p.barcode || '',
             name: p.name,
@@ -216,7 +224,7 @@ const ProductsManager = () => {
             category: p.category,
             subcategory: p.subcategory || '',
             expiryDate: p.expiry_date || '',
-            branchId: p.branch_id || 1,
+            branchIds: branchIdsList, // 🆕 Changed to array
             stockQuantity: p.stock_quantity || 0,
             weight: p.weight,
             rating: p.rating,
@@ -238,6 +246,12 @@ const ProductsManager = () => {
         
         if (!form.price || form.price <= 0) {
             alert('❌ يرجى إدخال سعر صحيح للمنتج (يجب أن يكون أكبر من صفر)');
+            return;
+        }
+        
+        // 🆕 Validate branch selection
+        if (!form.branchIds || form.branchIds.length === 0) {
+            alert('❌ يرجى اختيار فرع واحد على الأقل');
             return;
         }
         
@@ -269,7 +283,7 @@ const ProductsManager = () => {
                 category: form.category,
                 subcategory: form.subcategory,
                 expiryDate: form.expiryDate,
-                branchId: form.branchId || 1,
+                branchIds: form.branchIds, // 🆕 Send array of branch IDs
                 stockQuantity: form.stockQuantity,
                 weight: form.weight,
                 shelfLocation: form.shelfLocation,
@@ -283,13 +297,13 @@ const ProductsManager = () => {
                 if (result.error) {
                     throw new Error(result.error);
                 }
-                alert('✅ تم تعديل المنتج بنجاح');
+                alert('✅ تم تعديل المنتج بنجاح في ' + form.branchIds.length + ' فرع');
             } else {
                 const result = await api.products.create(productData);
                 if (result.error) {
                     throw new Error(result.message || result.error);
                 }
-                alert('✅ تم إضافة المنتج بنجاح');
+                alert('✅ تم إضافة المنتج بنجاح في ' + form.branchIds.length + ' فرع');
             }
             setShowModal(false);
             // Force reload products after save
@@ -789,22 +803,125 @@ const ProductsManager = () => {
                                         className="w-full px-3 py-2 border rounded-md"
                                     />
                                 </div>
+                                {/* 🆕 Multi-Select Branches */}
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">الفرع *</label>
-                                    <select
-                                        value={form.branchId}
-                                        onChange={e => setForm({ ...form, branchId: parseInt(e.target.value) })}
-                                        className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                                        required
-                                    >
-                                        <option value="">اختر فرع</option>
-                                        {branches.map(branch => (
-                                            <option key={branch.id} value={branch.id}>
-                                                {branch.name || branch.name_ar || `فرع ${branch.id}`}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <label className="block text-sm font-bold mb-1 text-orange-800">
+                                        🏪 الفروع *
+                                    </label>
+                                    <div className="text-xs text-gray-600 mb-2">
+                                        اختر فرع أو أكثر (Ctrl/Cmd + Click)
+                                    </div>
                                 </div>
+                            </div>
+
+                            {/* 🆕 Branch Selection with Checkboxes (Better UX) */}
+                            <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+                                <div className="flex items-center justify-between mb-3">
+                                    <label className="block text-sm font-bold text-blue-800">
+                                        🏪 اختر الفروع المتاحة للمنتج *
+                                    </label>
+                                    <div className="flex gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const allBranchIds = branches.map(b => b.id);
+                                                setForm({ ...form, branchIds: allBranchIds });
+                                            }}
+                                            className="text-xs px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                        >
+                                            ✓ تحديد الكل
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setForm({ ...form, branchIds: [] })}
+                                            className="text-xs px-2 py-1 bg-gray-400 text-white rounded hover:bg-gray-500"
+                                        >
+                                            ✕ إلغاء الكل
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                {branches.length === 0 ? (
+                                    <div className="p-3 bg-yellow-100 border border-yellow-300 rounded">
+                                        <p className="text-sm text-yellow-800">⚠️ لا توجد فروع متاحة. يرجى إضافة فروع أولاً.</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+                                        {branches.map(branch => {
+                                            const isSelected = form.branchIds.includes(branch.id);
+                                            return (
+                                                <label
+                                                    key={branch.id}
+                                                    className={`
+                                                        flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all
+                                                        ${isSelected 
+                                                            ? 'bg-blue-600 text-white shadow-md' 
+                                                            : 'bg-white border-2 border-blue-200 hover:bg-blue-100'
+                                                        }
+                                                    `}
+                                                >
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={isSelected}
+                                                        onChange={(e) => {
+                                                            if (e.target.checked) {
+                                                                setForm({ 
+                                                                    ...form, 
+                                                                    branchIds: [...form.branchIds, branch.id] 
+                                                                });
+                                                            } else {
+                                                                setForm({ 
+                                                                    ...form, 
+                                                                    branchIds: form.branchIds.filter(id => id !== branch.id) 
+                                                                });
+                                                            }
+                                                        }}
+                                                        className="w-5 h-5 rounded border-2"
+                                                    />
+                                                    <div className="flex-1">
+                                                        <div className="font-bold">
+                                                            {branch.name || branch.name_ar || `فرع ${branch.id}`}
+                                                        </div>
+                                                        {branch.address && (
+                                                            <div className={`text-xs ${isSelected ? 'text-blue-100' : 'text-gray-500'}`}>
+                                                                📍 {branch.address}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </label>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                                
+                                {form.branchIds.length > 0 && (
+                                    <div className="mt-3 p-3 bg-green-100 border border-green-300 rounded-lg">
+                                        <p className="text-sm text-green-800 font-bold">
+                                            ✅ تم اختيار {form.branchIds.length} فرع
+                                        </p>
+                                        <div className="flex flex-wrap gap-1 mt-2">
+                                            {form.branchIds.map(branchId => {
+                                                const branch = branches.find(b => b.id === branchId);
+                                                return branch ? (
+                                                    <span 
+                                                        key={branchId}
+                                                        className="px-2 py-1 bg-green-200 text-green-800 rounded text-xs"
+                                                    >
+                                                        {branch.name || branch.name_ar}
+                                                    </span>
+                                                ) : null;
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {form.branchIds.length === 0 && (
+                                    <div className="mt-3 p-3 bg-red-100 border border-red-300 rounded-lg">
+                                        <p className="text-sm text-red-800 font-bold">
+                                            ⚠️ يجب اختيار فرع واحد على الأقل
+                                        </p>
+                                    </div>
+                                )}
                             </div>
 
                             {/* Stock & Weight Row */}
