@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Edit, Trash2, MapPin, Phone, ToggleLeft, ToggleRight, Navigation, Link2 } from 'lucide-react';
+import { Plus, Edit, Trash2, MapPin, Phone, ToggleLeft, ToggleRight, Navigation, Link2, Package, DollarSign, AlertCircle, TrendingUp, Activity } from 'lucide-react';
 import { api } from '../../services/api';
+
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
 interface Branch {
   id: number;
@@ -13,6 +15,16 @@ interface Branch {
   longitude?: number;
   delivery_radius?: number;
   is_active?: boolean;
+}
+
+interface BranchStats {
+  branchId: number;
+  branchName: string;
+  totalProducts: number;
+  totalStock: number;
+  lowStockProducts: number;
+  totalValue: number;
+  averagePrice: number;
 }
 
 const emptyBranch: Omit<Branch, 'id'> = {
@@ -34,6 +46,11 @@ const BranchesManager: React.FC = () => {
   const [editing, setEditing] = useState<Branch | null>(null);
   const [form, setForm] = useState<Omit<Branch, 'id'>>(emptyBranch);
   const [locationInput, setLocationInput] = useState('');
+  const [branchStats, setBranchStats] = useState<BranchStats[]>([]);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [nearestBranch, setNearestBranch] = useState<number | null>(null);
+  const [showDashboard, setShowDashboard] = useState(true);
 
   const load = async () => {
     setLoading(true);
@@ -49,7 +66,116 @@ const BranchesManager: React.FC = () => {
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { 
+    load(); 
+    loadBranchStats();
+    detectUserLocation();
+  }, []);
+
+  useEffect(() => {
+    if (userLocation && branches.length > 0) {
+      findNearestBranch();
+    }
+  }, [userLocation, branches]);
+
+  // Calculate distance between two coordinates using Haversine formula
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371; // Radius of the Earth in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
+  // Detect user's current location
+  const detectUserLocation = () => {
+    if (!navigator.geolocation) return;
+    
+    navigator.geolocation.getCurrentPosition(
+      await loadBranchStats();
+      (position) => {
+        setUserLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        });
+      },
+      (error) => {
+        console.error('Error getting location:', error);
+      }
+    );
+  };
+
+  // Find nearest branch to user
+  const findNearestBranch = () => {
+    if (!userLocation) return;
+    
+    let nearest: number | null = null;
+    let minDistance = Infinity;
+    
+    branches.forEach(branch => {
+      if (branch.latitude && branch.longitude) {
+        const distance = calculateDistance(
+          userLocation.lat,
+          userLocation.lng,
+          branch.latitude,
+          branch.longitude
+        );
+        if (distance < minDistance) {
+          minDistance = distance;
+          nearest = branch.id;
+        }
+      }
+    });
+    
+    setNearestBranch(nearest);
+  };
+
+  // Load statistics for all branches
+  const loadBranchStats = async () => {
+    setStatsLoading(true);
+    try {
+      const stats: BranchStats[] = [];
+      
+      for (const branch of branches) {
+        try {
+          const response = await fetch(`${API_URL}/branch-products/all-branches?branchId=${branch.id}`);
+          const data = await response.json();
+          const products = Array.isArray(data?.data) ? data.data : [];
+          
+          const totalProducts = products.length;
+          const totalStock = products.reduce((sum: number, p: any) => sum + (p.stock_quantity || 0), 0);
+          const lowStockProducts = products.filter((p: any) => (p.stock_quantity || 0) < 10).length;
+          const totalValue = products.reduce((sum: number, p: any) => 
+            sum + ((p.price || 0) * (p.stock_quantity || 0)), 0
+          );
+          const averagePrice = totalProducts > 0 ? 
+            products.reduce((sum: number, p: any) => sum + (p.price || 0), 0) / totalProducts : 0;
+          
+          stats.push({
+            branchId: branch.id,
+            branchName: branch.name_ar || branch.name,
+            totalProducts,
+            totalStock,
+            lowStockProducts,
+            totalValue,
+            averagePrice
+          });
+        } catch (err) {
+          console.error(`Error loading stats for branch ${branch.id}:`, err);
+        }
+      }
+      
+      setBranchStats(stats);
+    } catch (error) {
+      console.error('Error loading branch stats:', error);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
 
   const openCreate = () => { setEditing(null); setForm(emptyBranch); setShowModal(true); };
   const openEdit = (b: Branch) => {
@@ -89,6 +215,7 @@ const BranchesManager: React.FC = () => {
     if (!confirm('Delete this branch?')) return;
     try {
       await api.branches.delete(id);
+      await loadBranchStats();
       await load();
     } catch (e) {
       console.error(e);
@@ -175,14 +302,277 @@ const BranchesManager: React.FC = () => {
     } catch (e) {
       alert('خطأ في تحليل الموقع');
     }
+  const getBranchStats = (branchId: number) => {
+    return branchStats.find(s => s.branchId === branchId);
   };
 
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Branches</h1>
-        <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-          <Plus size={18} /> New Branch
+  const getBranchDistance = (branch: Branch) => {
+    if (!userLocation || !branch.latitude || !branch.longitude) return null;
+    return calculateDistance(userLocation.lat, userLocation.lng, branch.latitude, branch.longitude);
+  };
+
+  const totalOverallProducts = branchStats.reduce((sum, s) => sum + s.totalProducts, 0);
+  cons  {/* Table View */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <table className="w-full text-left">
+            <thead className="bg-gray-50 border-b border-gray-100">
+              <tr>
+                <th className="px-6 py-4 font-semibold text-gray-600">Name</th>
+                <th className="px-6 py-4 font-semibold text-gray-600">Address</th>
+                <th className="px-6 py-4 font-semibold text-gray-600">Phone</th>
+                <th className="px-6 py-4 font-semibold text-gray-600">Products</th>
+                <th className="px-6 py-4 font-semibold text-gray-600">Stock</th>
+                <th className="px-6 py-4 font-semibold text-gray-600">Active</th>
+                <th className="px-6 py-4 font-semibold text-gray-600 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {branches.map(b => {
+                const stats = getBranchStats(b.id);
+                const distance = getBranchDistance(b);
+                const isNearest = nearestBranch === b.id;
+
+                return (
+                  <tr key={b.id} className={`hover:bg-gray-50 ${isNearest ? 'bg-green-50' : ''}`}>
+                    <td className="px-6 py-4">
+                      <div>
+                        <p className="font-medium text-gray-900">{b.name}</p>
+                        <p className="text-sm text-gray-500">{b.name_ar}</p>
+                        {isNearest && (
+                          <span className="text-xs text-green-600 font-medium">الأقرب لك</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <MapPin size={16} className="text-gray-400" />
+                        <span className="text-sm">{b.address}</span>
+                      </div>
+                      {distance && (
+                        <span className="text-xs text-green-600 flex items-center gap-1 mt-1">
+                          <Navigation size={12} />
+                          {distance.toFixed(1)} كم
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-gray-600">
+                      <div className="flex items-center gap-2">
+                        <Phone size={16} className="text-gray-400" />
+                        <span className="text-sm" dir="ltr">{b.phone}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      {stats ? (
+                        <div>
+                          <p className="font-semibold text-gray-900">{stats.totalProducts}</p>
+                          {stats.lowStockProducts > 0 && (
+                            <p className="text-xs text-orange-600">{stats.lowStockProducts} ناقص</p>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      {stats ? (
+                        <p className="font-semibold text-gray-900">{stats.totalStock.toLocaleString()}</p>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <button onClick={() => toggleActive(b)} className="flex items-center gap-1 text-sm">
+                        {b.is_active ? <ToggleRight className="text-green-600" /> : <ToggleLeft className="text-gray-400" />}
+                        <span>{b.is_active ? 'نشط' : 'غير نشط'}</span>
+                      </button>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex justify-end gap-2">
+                        <button onClick={() => openEdit(b)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit size={18} /></button>
+                        <button onClick={() => remove(b.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={18} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}    <p className="text-sm text-blue-600 font-medium">إجمالي الفروع</p>
+                <h3 className="text-3xl font-bold text-blue-900 mt-1">{branches.length}</h3>
+                <p className="text-xs text-blue-600 mt-1">{activeBranches} نشط</p>
+              </div>
+              <MapPin className="text-blue-600" size={40} />
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl border border-green-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-green-600 font-medium">إجمالي المنتجات</p>
+                <h3 className="text-3xl font-bold text-green-900 mt-1">{totalOverallProducts}</h3>
+                <p className="text-xs text-green-600 mt-1">في جميع الفروع</p>
+              </div>
+              <Package className="text-green-600" size={40} />
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-purple-600 font-medium">إجمالي المخزون</p>
+                <h3 className="text-3xl font-bold text-purple-900 mt-1">{totalOverallStock.toLocaleString()}</h3>
+                <p className="text-xs text-purple-600 mt-1">وحدة</p>
+              </div>
+              <TrendingUp className="text-purple-600" size={40} />
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-xl border border-orange-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-orange-600 font-medium">إجمالي القيمة</p>
+                <h3 className="text-3xl font-bold text-orange-900 mt-1">
+                  {totalOverallValue.toLocaleString('ar-EG', { maximumFractionDigits: 0 })}
+                </h3>
+                <p className="text-xs text-orange-600 mt-1">جنيه مصري</p>
+              </div>
+              <DollarSign className="text-orange-600" size={40} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dashboard View */}
+      {showDashboard ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {branches.map(branch => {
+            const stats = getBranchStats(branch.id);
+            const distance = getBranchDistance(branch);
+            const isNearest = nearestBranch === branch.id;
+
+            return (
+              <div 
+                key={branch.id} 
+                className={`bg-white rounded-xl shadow-md border-2 hover:shadow-xl transition-all ${
+                  isNearest ? 'border-green-500 ring-2 ring-green-200' : 'border-gray-200'
+                }`}
+              >
+                {/* Branch Header */}
+                <div className="p-6 border-b border-gray-100">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-gray-900">{branch.name_ar || branch.name}</h3>
+                      <p className="text-sm text-gray-500">{branch.name}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {isNearest && (
+                        <div className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium">
+                          الأقرب لك
+                        </div>
+                      )}
+                      <button 
+                        onClick={() => toggleActive(branch)}
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          branch.is_active 
+                            ? 'bg-green-100 text-green-700' 
+                            : 'bg-gray-100 text-gray-500'
+                        }`}
+                      >
+                        {branch.is_active ? 'نشط' : 'غير نشط'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <MapPin size={14} className="text-gray-400" />
+                      <span className="text-xs">{branch.address}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Phone size={14} className="text-gray-400" />
+                      <span className="text-xs" dir="ltr">{branch.phone}</span>
+                    </div>
+                    {distance && (
+                      <div className="flex items-center gap-2">
+                        <Navigation size={14} className="text-green-500" />
+                        <span className="text-xs text-green-600 font-medium">
+                          {distance.toFixed(1)} كم منك
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Statistics */}
+                {stats && (
+                  <div className="p-6 bg-gray-50">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-white p-3 rounded-lg">
+                        <p className="text-xs text-gray-500">المنتجات</p>
+                        <p className="text-2xl font-bold text-gray-900">{stats.totalProducts}</p>
+                      </div>
+                      <div className="bg-white p-3 rounded-lg">
+                        <p className="text-xs text-gray-500">المخزون</p>
+                        <p className="text-2xl font-bold text-gray-900">{stats.totalStock.toLocaleString()}</p>
+                      </div>
+                      <div className="bg-white p-3 rounded-lg">
+                        <p className="text-xs text-gray-500">القيمة</p>
+                        <p className="text-xl font-bold text-gray-900">
+                          {(stats.totalValue / 1000).toFixed(1)}k
+                        </p>
+                      </div>
+                      <div className="bg-white p-3 rounded-lg">
+                        <p className="text-xs text-gray-500">متوسط السعر</p>
+                        <p className="text-xl font-bold text-gray-900">
+                          {stats.averagePrice.toFixed(0)}
+                        </p>
+                      </div>
+                    </div>
+
+                    {stats.lowStockProducts > 0 && (
+                      <div className="mt-4 bg-orange-50 border border-orange-200 rounded-lg p-3 flex items-center gap-2">
+                        <AlertCircle size={16} className="text-orange-600" />
+                        <span className="text-xs text-orange-700 font-medium">
+                          {stats.lowStockProducts} منتج ناقص مخزون
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="p-4 border-t border-gray-100 flex gap-2">
+                  <button 
+                    onClick={() => openEdit(branch)}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 text-sm font-medium"
+                  >
+                    <Edit size={16} />
+                    تعديل
+                  </button>
+                  {branch.google_maps_link && (
+                    <a 
+                      href={branch.google_maps_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 text-sm font-medium"
+                    >
+                      <Link2 size={16} />
+                      الخريطة
+                    </a>
+                  )}
+                  <button 
+                    onClick={() => remove(branch.id)}
+                    className="flex items-center justify-center px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (lus size={18} /> New Branch
         </button>
       </div>
 
