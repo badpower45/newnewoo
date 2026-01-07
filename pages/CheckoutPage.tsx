@@ -62,6 +62,7 @@ export default function CheckoutPage() {
         floor: '',
         apartment: '',
         address: '',
+        governorate: '', // إضافة المحافظة
         notes: '',
         googleMapsLink: ''
     });
@@ -78,7 +79,7 @@ export default function CheckoutPage() {
         }
     }, [user]);
 
-    // Calculate delivery fee when branch or total changes (skip for branch pickup)
+    // Calculate delivery fee when branch, total, or governorate changes (skip for branch pickup)
     useEffect(() => {
         const calculateDeliveryFee = async () => {
             if (!selectedBranch) return;
@@ -91,24 +92,45 @@ export default function CheckoutPage() {
             }
 
             try {
-                // قاعدة ثابتة: فوق 600 شحن مجاني، غير كده 25 جنيه
-                const baseFee = totalPrice >= 600 ? 0 : 25;
+                // إذا المستخدم اختار محافظة، نستخدم رسوم المحافظة
+                if (formData.governorate && formData.governorate.trim()) {
+                    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/delivery-fees/calculate-by-governorate`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            governorate: formData.governorate.trim(),
+                            subtotal: totalPrice
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        setDeliveryFee(data.deliveryFee || 0);
+                        setFreeDelivery(data.freeDelivery || false);
+                        setDeliveryMessage(data.message || '');
+                        setCanDeliver(data.canDeliver !== false);
+                        return;
+                    }
+                }
+                
+                // القيم الافتراضية إذا لم يتم اختيار محافظة
+                const baseFee = totalPrice >= 600 ? 0 : 20;
                 setDeliveryFee(baseFee);
                 setFreeDelivery(baseFee === 0);
-                setDeliveryMessage(baseFee === 0 ? 'الشحن مجاني للطلبات فوق 600 جنيه' : 'رسوم التوصيل 25 جنيه للطلبات أقل من 600');
+                setDeliveryMessage(baseFee === 0 ? 'الشحن مجاني للطلبات فوق 600 جنيه' : 'رسوم التوصيل 20 جنيه للطلبات أقل من 600');
                 setCanDeliver(true);
             } catch (err) {
                 console.error('Failed to calculate delivery fee:', err);
-                const fallback = totalPrice >= 600 ? 0 : 25;
+                const fallback = totalPrice >= 600 ? 0 : 20;
                 setDeliveryFee(fallback);
                 setFreeDelivery(fallback === 0);
-                setDeliveryMessage(fallback === 0 ? 'الشحن مجاني للطلبات فوق 600 جنيه' : 'رسوم التوصيل 25 جنيه');
+                setDeliveryMessage(fallback === 0 ? 'الشحن مجاني للطلبات فوق 600 جنيه' : 'رسوم التوصيل 20 جنيه');
                 setCanDeliver(true);
             }
         };
 
         calculateDeliveryFee();
-    }, [selectedBranch, totalPrice, locationCoords, isPickup]);
+    }, [selectedBranch, totalPrice, locationCoords, isPickup, formData.governorate]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -501,6 +523,41 @@ export default function CheckoutPage() {
                                 className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
                                 placeholder="01xxxxxxxxx"
                             />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-bold text-slate-700">المحافظة <span className="text-red-500">*</span></label>
+                            <select
+                                required
+                                name="governorate"
+                                value={formData.governorate}
+                                onChange={handleInputChange}
+                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all bg-white"
+                            >
+                                <option value="">اختر المحافظة</option>
+                                <option value="بورسعيد">بورسعيد</option>
+                                <option value="بور فؤاد">بور فؤاد</option>
+                                <option value="القاهرة">القاهرة</option>
+                                <option value="الجيزة">الجيزة</option>
+                                <option value="الإسكندرية">الإسكندرية</option>
+                                <option value="الدقهلية">الدقهلية</option>
+                                <option value="المنصورة">المنصورة</option>
+                                <option value="الشرقية">الشرقية</option>
+                                <option value="الغربية">الغربية</option>
+                                <option value="البحيرة">البحيرة</option>
+                                <option value="كفر الشيخ">كفر الشيخ</option>
+                                <option value="دمياط">دمياط</option>
+                                <option value="السويس">السويس</option>
+                                <option value="الإسماعيلية">الإسماعيلية</option>
+                            </select>
+                            {formData.governorate && (
+                                <p className="text-xs text-gray-500">
+                                    {formData.governorate === 'بورسعيد' && '🚚 رسوم التوصيل: 25 جنيه'}
+                                    {formData.governorate === 'بور فؤاد' && '🚚 رسوم التوصيل: 30 جنيه'}
+                                    {!['بورسعيد', 'بور فؤاد'].includes(formData.governorate) && '🚚 رسوم التوصيل: 20 جنيه'}
+                                    {totalPrice >= 600 && ' (مجاني للطلبات فوق 600 جنيه)'}
+                                </p>
+                            )}
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
