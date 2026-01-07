@@ -548,9 +548,15 @@ const ProductsManager = () => {
     // 🔥 Export all products to Excel with ALL details
     const exportAllToExcel = async () => {
         try {
-            console.log('📄 Exporting all products to Excel...');
+            console.log('📄 Starting Excel export...');
+            console.log('🔗 API_URL:', API_URL);
+            console.log('🔑 Token:', localStorage.getItem('token') ? 'Present' : 'Missing');
+            
+            // Show loading indicator
+            const loadingAlert = alert('⏳ جاري تحميل المنتجات...');
             
             // Fetch ALL products without filters
+            console.log('📡 Fetching products from:', `${API_URL}/products`);
             const res = await fetch(`${API_URL}/products`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`,
@@ -558,21 +564,55 @@ const ProductsManager = () => {
                 }
             });
             
-            if (!res.ok) throw new Error('Failed to fetch products');
+            console.log('📊 Response status:', res.status);
+            
+            if (!res.ok) {
+                const errorText = await res.text();
+                console.error('❌ API Error:', errorText);
+                throw new Error(`Failed to fetch products: ${res.status} ${errorText}`);
+            }
+            
             const data = await res.json();
-            const allProducts = data.data || data;
+            console.log('📦 Raw data:', data);
+            
+            const allProducts = Array.isArray(data) ? data : (data.data || []);
+            console.log(`✅ Loaded ${allProducts.length} products`);
+            
+            if (allProducts.length === 0) {
+                alert('⚠️ لا توجد منتجات للتصدير!');
+                return;
+            }
 
+            console.log('🔄 Fetching branch details for each product...');
+            
             // Fetch branch-products data for each product
             const productsWithFullDetails = await Promise.all(
-                allProducts.map(async (product: any) => {
+                allProducts.map(async (product: any, index: number) => {
                     try {
+                        console.log(`📍 Fetching branches for product ${index + 1}/${allProducts.length}: ${product.name}`);
+                        
                         const branchRes = await fetch(`${API_URL}/branch-products/product/${product.id}`, {
                             headers: {
                                 'Authorization': `Bearer ${localStorage.getItem('token')}`
                             }
                         });
+                        
+                        if (!branchRes.ok) {
+                            console.warn(`⚠️ Failed to fetch branches for product ${product.id}`);
+                            return {
+                                'ID': product.id,
+                                'Barcode': product.barcode || '',
+                                'Name': product.name || '',
+                                'Price': product.price || 0,
+                                'Stock': product.stock_quantity || 0,
+                                'Category': product.category || '',
+                                'Note': 'Branch data not available'
+                            };
+                        }
+                        
                         const branchData = await branchRes.json();
-                        const branches = branchData.data || branchData || [];
+                        const branches = Array.isArray(branchData) ? branchData : (branchData.data || []);
+                        console.log(`  ✓ Product ${product.id} has ${branches.length} branches`);
 
                         return {
                             // Basic Info
@@ -658,22 +698,31 @@ const ProductsManager = () => {
                             'Total Branches': branches.length
                         };
                     } catch (err) {
-                        console.error(`Error fetching branch data for product ${product.id}:`, err);
+                        console.error(`❌ Error fetching branch data for product ${product.id}:`, err);
                         return {
                             'ID': product.id,
-                            'Barcode': product.barcode,
-                            'Name': product.name,
-                            'Price': product.price,
-                            'Stock': product.stock_quantity,
-                            'Category': product.category,
-                            'Error': 'Failed to load branch details'
+                            'Barcode': product.barcode || '',
+                            'Name': product.name || '',
+                            'Price': product.price || 0,
+                            'Stock': product.stock_quantity || 0,
+                            'Category': product.category || '',
+                            'Error': `Failed to load branch details: ${err instanceof Error ? err.message : 'Unknown'}`
                         };
                     }
                 })
             );
 
+            console.log('📊 Creating Excel workbook...');
+            console.log(`✅ Processed ${productsWithFullDetails.length} products with full details`);
+            
+            if (productsWithFullDetails.length === 0) {
+                alert('⚠️ لم يتم معالجة أي منتجات!');
+                return;
+            }
+
             // Create worksheet
             const ws = XLSX.utils.json_to_sheet(productsWithFullDetails);
+            console.log('✅ Worksheet created');
             
             // Auto-size columns
             const colWidths = Object.keys(productsWithFullDetails[0] || {}).map(key => ({
@@ -684,6 +733,7 @@ const ProductsManager = () => {
             // Create workbook
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'All Products');
+            console.log('✅ Workbook created with products sheet');
 
             // Add summary sheet
             const summary = [{
@@ -695,18 +745,26 @@ const ProductsManager = () => {
             }];
             const wsSummary = XLSX.utils.json_to_sheet(summary);
             XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+            console.log('✅ Summary sheet added');
 
             // Generate filename with timestamp
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
             const filename = `All_Products_${timestamp}.xlsx`;
 
-            // Download
-            XLSX.writeFile(wb, filename);
+            console.log('💾 Downloading file:', filename);
             
+            // Download using writeFileXLSX (better browser support)
+            XLSX.writeFileXLSX(wb, filename, { compression: true });
+            
+            console.log('✅ Excel file downloaded successfully!');
             alert(`✅ تم تصدير ${allProducts.length} منتج بنجاح!\nاسم الملف: ${filename}`);
         } catch (err) {
             console.error('❌ Excel export failed:', err);
-            alert('فشل تصدير Excel: ' + (err instanceof Error ? err.message : 'خطأ غير معروف'));
+            console.error('Error details:', {
+                message: err instanceof Error ? err.message : 'Unknown',
+                stack: err instanceof Error ? err.stack : undefined
+            });
+            alert('❌ فشل تصدير Excel:\n\n' + (err instanceof Error ? err.message : 'خطأ غير معروف') + '\n\nتحقق من Console للمزيد من التفاصيل');
         }
     };
 
