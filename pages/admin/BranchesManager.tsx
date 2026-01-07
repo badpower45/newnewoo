@@ -301,6 +301,8 @@ const BranchesManager: React.FC = () => {
     } catch (e) {
       alert('خطأ في تحليل الموقع');
     }
+  };
+
   const getBranchStats = (branchId: number) => {
     return branchStats.find(s => s.branchId === branchId);
   };
@@ -311,7 +313,215 @@ const BranchesManager: React.FC = () => {
   };
 
   const totalOverallProducts = branchStats.reduce((sum, s) => sum + s.totalProducts, 0);
-  cons  {/* Table View */}
+  const totalOverallStock = branchStats.reduce((sum, s) => sum + s.totalStock, 0);
+  const totalOverallValue = branchStats.reduce((sum, s) => sum + s.totalValue, 0);
+  const activeBranches = branches.filter(b => b.is_active).length;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">إدارة الفروع</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            {branches.length} فرع إجمالي • {activeBranches} فرع نشط
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <button 
+            onClick={() => setShowDashboard(!showDashboard)} 
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            <Activity size={18} />
+            {showDashboard ? 'عرض الجدول' : 'عرض اللوحة'}
+          </button>
+          <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+            <Plus size={18} /> فرع جديد
+          </button>
+        </div>
+      </div>
+
+      {/* Overall Statistics */}
+      {showDashboard && (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-blue-600 font-medium">إجمالي الفروع</p>
+                <h3 className="text-3xl font-bold text-blue-900 mt-1">{branches.length}</h3>
+                <p className="text-xs text-blue-600 mt-1">{activeBranches} نشط</p>
+              </div>
+              <MapPin className="text-blue-600" size={40} />
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl border border-green-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-green-600 font-medium">إجمالي المنتجات</p>
+                <h3 className="text-3xl font-bold text-green-900 mt-1">{totalOverallProducts}</h3>
+                <p className="text-xs text-green-600 mt-1">في جميع الفروع</p>
+              </div>
+              <Package className="text-green-600" size={40} />
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-purple-600 font-medium">إجمالي المخزون</p>
+                <h3 className="text-3xl font-bold text-purple-900 mt-1">{totalOverallStock.toLocaleString()}</h3>
+                <p className="text-xs text-purple-600 mt-1">وحدة</p>
+              </div>
+              <TrendingUp className="text-purple-600" size={40} />
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-xl border border-orange-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-orange-600 font-medium">إجمالي القيمة</p>
+                <h3 className="text-3xl font-bold text-orange-900 mt-1">
+                  {totalOverallValue.toLocaleString('ar-EG', { maximumFractionDigits: 0 })}
+                </h3>
+                <p className="text-xs text-orange-600 mt-1">جنيه مصري</p>
+              </div>
+              <DollarSign className="text-orange-600" size={40} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dashboard View */}
+      {showDashboard ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {branches.map(branch => {
+            const stats = getBranchStats(branch.id);
+            const distance = getBranchDistance(branch);
+            const isNearest = nearestBranch === branch.id;
+
+            return (
+              <div 
+                key={branch.id} 
+                className={`bg-white rounded-xl shadow-md border-2 hover:shadow-xl transition-all ${
+                  isNearest ? 'border-green-500 ring-2 ring-green-200' : 'border-gray-200'
+                }`}
+              >
+                {/* Branch Header */}
+                <div className="p-6 border-b border-gray-100">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-gray-900">{branch.name_ar || branch.name}</h3>
+                      <p className="text-sm text-gray-500">{branch.name}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {isNearest && (
+                        <div className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full font-medium">
+                          الأقرب لك
+                        </div>
+                      )}
+                      <button 
+                        onClick={() => toggleActive(branch)}
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          branch.is_active 
+                            ? 'bg-green-100 text-green-700' 
+                            : 'bg-gray-100 text-gray-500'
+                        }`}
+                      >
+                        {branch.is_active ? 'نشط' : 'غير نشط'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <MapPin size={14} className="text-gray-400" />
+                      <span className="text-xs">{branch.address}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Phone size={14} className="text-gray-400" />
+                      <span className="text-xs" dir="ltr">{branch.phone}</span>
+                    </div>
+                    {distance && (
+                      <div className="flex items-center gap-2">
+                        <Navigation size={14} className="text-green-500" />
+                        <span className="text-xs text-green-600 font-medium">
+                          {distance.toFixed(1)} كم منك
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Statistics */}
+                {stats && (
+                  <div className="p-6 bg-gray-50">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-white p-3 rounded-lg">
+                        <p className="text-xs text-gray-500">المنتجات</p>
+                        <p className="text-2xl font-bold text-gray-900">{stats.totalProducts}</p>
+                      </div>
+                      <div className="bg-white p-3 rounded-lg">
+                        <p className="text-xs text-gray-500">المخزون</p>
+                        <p className="text-2xl font-bold text-gray-900">{stats.totalStock.toLocaleString()}</p>
+                      </div>
+                      <div className="bg-white p-3 rounded-lg">
+                        <p className="text-xs text-gray-500">القيمة</p>
+                        <p className="text-xl font-bold text-gray-900">
+                          {(stats.totalValue / 1000).toFixed(1)}k
+                        </p>
+                      </div>
+                      <div className="bg-white p-3 rounded-lg">
+                        <p className="text-xs text-gray-500">متوسط السعر</p>
+                        <p className="text-xl font-bold text-gray-900">
+                          {stats.averagePrice.toFixed(0)}
+                        </p>
+                      </div>
+                    </div>
+
+                    {stats.lowStockProducts > 0 && (
+                      <div className="mt-4 bg-orange-50 border border-orange-200 rounded-lg p-3 flex items-center gap-2">
+                        <AlertCircle size={16} className="text-orange-600" />
+                        <span className="text-xs text-orange-700 font-medium">
+                          {stats.lowStockProducts} منتج ناقص مخزون
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="p-4 border-t border-gray-100 flex gap-2">
+                  <button 
+                    onClick={() => openEdit(branch)}
+                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 text-sm font-medium"
+                  >
+                    <Edit size={16} />
+                    تعديل
+                  </button>
+                  {branch.google_maps_link && (
+                    <a 
+                      href={branch.google_maps_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 px-4 py-2 bg-green-50 text-green-600 rounded-lg hover:bg-green-100 text-sm font-medium"
+                    >
+                      <Link2 size={16} />
+                      الخريطة
+                    </a>
+                  )}
+                  <button 
+                    onClick={() => remove(branch.id)}
+                    className="flex items-center justify-center px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        /* Table View */
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <table className="w-full text-left">
             <thead className="bg-gray-50 border-b border-gray-100">
@@ -397,55 +607,9 @@ const BranchesManager: React.FC = () => {
             </tbody>
           </table>
         </div>
-      )}    <p className="text-sm text-blue-600 font-medium">إجمالي الفروع</p>
-                <h3 className="text-3xl font-bold text-blue-900 mt-1">{branches.length}</h3>
-                <p className="text-xs text-blue-600 mt-1">{activeBranches} نشط</p>
-              </div>
-              <MapPin className="text-blue-600" size={40} />
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl border border-green-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-green-600 font-medium">إجمالي المنتجات</p>
-                <h3 className="text-3xl font-bold text-green-900 mt-1">{totalOverallProducts}</h3>
-                <p className="text-xs text-green-600 mt-1">في جميع الفروع</p>
-              </div>
-              <Package className="text-green-600" size={40} />
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-6 rounded-xl border border-purple-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-purple-600 font-medium">إجمالي المخزون</p>
-                <h3 className="text-3xl font-bold text-purple-900 mt-1">{totalOverallStock.toLocaleString()}</h3>
-                <p className="text-xs text-purple-600 mt-1">وحدة</p>
-              </div>
-              <TrendingUp className="text-purple-600" size={40} />
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-xl border border-orange-200">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-orange-600 font-medium">إجمالي القيمة</p>
-                <h3 className="text-3xl font-bold text-orange-900 mt-1">
-                  {totalOverallValue.toLocaleString('ar-EG', { maximumFractionDigits: 0 })}
-                </h3>
-                <p className="text-xs text-orange-600 mt-1">جنيه مصري</p>
-              </div>
-              <DollarSign className="text-orange-600" size={40} />
-            </div>
-          </div>
-        </div>
       )}
 
-      {/* Dashboard View */}
-      {showDashboard ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {branches.map(branch => {
+      {showModal && (
             const stats = getBranchStats(branch.id);
             const distance = getBranchDistance(branch);
             const isNearest = nearestBranch === branch.id;
