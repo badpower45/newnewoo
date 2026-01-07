@@ -549,34 +549,29 @@ const ProductsManager = () => {
     const exportAllToExcel = async () => {
         try {
             console.log('📄 Starting Excel export...');
-            console.log('🔗 API_URL:', API_URL);
-            console.log('🔑 Token:', localStorage.getItem('token') ? 'Present' : 'Missing');
             
-            // Show loading indicator
-            const loadingAlert = alert('⏳ جاري تحميل المنتجات...');
+            // Use products from state first, fallback to API
+            let allProducts = products;
             
-            // Fetch ALL products without filters
-            console.log('📡 Fetching products from:', `${API_URL}/products`);
-            const res = await fetch(`${API_URL}/products`, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                    'Content-Type': 'application/json'
+            // If filtered or no products loaded, fetch all
+            if (selectedBranchFilter !== 'all' || allProducts.length === 0) {
+                console.log('📡 Fetching all products from API...');
+                const res = await fetch(`${API_URL}/products`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!res.ok) {
+                    throw new Error(`فشل تحميل المنتجات: ${res.status}`);
                 }
-            });
-            
-            console.log('📊 Response status:', res.status);
-            
-            if (!res.ok) {
-                const errorText = await res.text();
-                console.error('❌ API Error:', errorText);
-                throw new Error(`Failed to fetch products: ${res.status} ${errorText}`);
+                
+                const data = await res.json();
+                allProducts = Array.isArray(data) ? data : (data.data || []);
             }
             
-            const data = await res.json();
-            console.log('📦 Raw data:', data);
-            
-            const allProducts = Array.isArray(data) ? data : (data.data || []);
-            console.log(`✅ Loaded ${allProducts.length} products`);
+            console.log(`✅ Found ${allProducts.length} products to export`);
             
             if (allProducts.length === 0) {
                 alert('⚠️ لا توجد منتجات للتصدير!');
@@ -589,30 +584,22 @@ const ProductsManager = () => {
             const productsWithFullDetails = await Promise.all(
                 allProducts.map(async (product: any, index: number) => {
                     try {
-                        console.log(`📍 Fetching branches for product ${index + 1}/${allProducts.length}: ${product.name}`);
-                        
                         const branchRes = await fetch(`${API_URL}/branch-products/product/${product.id}`, {
                             headers: {
                                 'Authorization': `Bearer ${localStorage.getItem('token')}`
                             }
                         });
                         
-                        if (!branchRes.ok) {
-                            console.warn(`⚠️ Failed to fetch branches for product ${product.id}`);
-                            return {
-                                'ID': product.id,
-                                'Barcode': product.barcode || '',
-                                'Name': product.name || '',
-                                'Price': product.price || 0,
-                                'Stock': product.stock_quantity || 0,
-                                'Category': product.category || '',
-                                'Note': 'Branch data not available'
-                            };
+                        let branches: any[] = [];
+                        
+                        if (branchRes.ok) {
+                            const branchData = await branchRes.json();
+                            branches = Array.isArray(branchData) ? branchData : (branchData.data || []);
                         }
                         
-                        const branchData = await branchRes.json();
-                        const branches = Array.isArray(branchData) ? branchData : (branchData.data || []);
-                        console.log(`  ✓ Product ${product.id} has ${branches.length} branches`);
+                        if (index % 10 === 0) {
+                            console.log(`📍 Progress: ${index + 1}/${allProducts.length} products`);
+                        }
 
                         return {
                             // Basic Info
