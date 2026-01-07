@@ -279,6 +279,11 @@ const CustomerChatPage: React.FC = () => {
 
   // Handle quick response click
   const handleQuickResponse = (text: string) => {
+    // منع الإرسال المتكرر
+    if (isSendingQuickRef.current) {
+      console.log('⚠️ Already sending quick response, ignoring...');
+      return;
+    }
     sendMessage(text, true);
   };
 

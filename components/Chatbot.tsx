@@ -167,11 +167,14 @@ export default function Chatbot() {
         return null;
     };
 
-    const handleSend = async () => {
-        if (!input.trim()) return;
+    const handleSend = async (quickText?: string) => {
+        const messageText = quickText || input.trim();
+        if (!messageText) return;
 
-        const messageText = input.trim();
-        setInput("");
+        // Clear input only if not from quick response
+        if (!quickText) {
+            setInput("");
+        }
         setShowQuickResponses(false);
 
         // Add user message immediately
@@ -266,8 +269,14 @@ export default function Chatbot() {
     };
 
     const handleQuickResponse = (text: string) => {
-        setInput(text);
+        // إرسال مباشر بدلاً من ملء حقل الإدخال
+        if (!text.trim() || isLoading) return;
+        
         setShowQuickResponses(false);
+        setInput(''); // مسح أي نص موجود
+        
+        // إرسال الرسالة مباشرة
+        handleSend(text);
     };
 
     const formatTime = (timestamp: string) => {

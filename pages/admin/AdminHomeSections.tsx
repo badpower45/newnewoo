@@ -72,8 +72,19 @@ const AdminHomeSections = () => {
                         };
                     });
                 
+                // إزالة التصنيفات المكررة بناءً على categoryName
+                const uniqueCategories = formattedCategories.reduce((acc, current) => {
+                    const exists = acc.find(item => item.categoryName === current.categoryName);
+                    if (!exists) {
+                        acc.push(current);
+                    }
+                    return acc;
+                }, []);
+                
                 console.log('✅ Formatted categories (' + formattedCategories.length + '):', formattedCategories);
-                setCategories(formattedCategories);
+                console.log('✅ Unique categories (' + uniqueCategories.length + '):', uniqueCategories);
+                console.log('✅ Unique categories (' + uniqueCategories.length + '):', uniqueCategories);
+                setCategories(uniqueCategories);
             } else {
                 console.warn('⚠️ No categories found, using fallback');
                 // Fallback categories from products
