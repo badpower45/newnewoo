@@ -416,10 +416,10 @@ export const api = {
     },
     users: {
         getAll: async () => {
-            const res = await fetch(`${API_URL}/admin/users`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/users`, { headers: getHeaders() });
             const data = await res.json();
             // Wrap in data object to match expected format
-            return { data };
+            return { data: data.data || data };
         },
         get: async (id: string) => {
             const res = await fetch(`${API_URL}/users/${id}`, { headers: getHeaders() });

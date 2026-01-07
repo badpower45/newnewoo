@@ -99,6 +99,7 @@ import { DebugProvider } from './context/DebugLogContext';
 import DebugPanel from './components/DebugPanel';
 import SplashScreen from './pages/SplashScreen';
 import CartErrorBoundary from './components/CartErrorBoundary';
+import BlockedUserGuard from './components/BlockedUserGuard';
 import Seo, { getSiteUrl } from './components/Seo';
 
 function AppContent() {
@@ -140,11 +141,12 @@ function AppContent() {
   return (
     <>
       <Seo url={canonicalUrl} />
-      <div className="min-h-screen bg-gray-50 font-sans text-slate-900 relative flex flex-col">
-        <main className={`flex-grow ${!hideBottomNav ? 'pb-16 md:pb-0' : ''}`}>
-        <div className={!isAdminRoute ? "max-w-7xl mx-auto w-full" : "w-full"}>
-          <PhoneNumberGuard>
-            <Routes>
+      <BlockedUserGuard>
+        <div className="min-h-screen bg-gray-50 font-sans text-slate-900 relative flex flex-col">
+          <main className={`flex-grow ${!hideBottomNav ? 'pb-16 md:pb-0' : ''}`}>
+          <div className={!isAdminRoute ? "max-w-7xl mx-auto w-full" : "w-full"}>
+            <PhoneNumberGuard>
+              <Routes>
               <Route path="/" element={<HomePage />} />
             <Route path="/products" element={<ProductsPage />} />
             <Route path="/product/:id" element={<ProductDetailsPage />} />
@@ -233,6 +235,7 @@ function AppContent() {
         {/* Debug panel - Only in development */}
         {import.meta.env.DEV && <DebugPanel />}
       </div>
+      </BlockedUserGuard>
     </>
   );
 }
