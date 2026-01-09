@@ -26,64 +26,6 @@ interface BrandOffer {
     display_order: number;
 }
 
-// Fallback static offers in case API fails
-const staticBrandOffers: BrandOffer[] = [
-    {
-        id: 1,
-        title: 'Galaxy Chocolate',
-        title_ar: 'شوكولاتة جالاكسي',
-        subtitle: 'Exclusive offers on all Galaxy products',
-        subtitle_ar: 'عروض حصرية على كل منتجات جالاكسي',
-        discount_text: 'Up to 30% OFF',
-        discount_text_ar: 'خصم يصل إلى 30%',
-        background_type: 'gradient',
-        background_value: 'linear-gradient(135deg, #8B4513 0%, #5D3A1A 50%, #3D2610 100%)',
-        text_color: '#FEF3C7',
-        badge_color: '#EF4444',
-        badge_text_color: '#FFFFFF',
-        image_url: 'https://images.unsplash.com/photo-1606312619070-d48b4c652a52?w=400&h=300&fit=crop',
-        link_type: 'brand',
-        is_active: true,
-        display_order: 1
-    },
-    {
-        id: 2,
-        title: 'Cadbury Dairy Milk',
-        title_ar: 'كادبوري ديري ميلك',
-        subtitle: 'Buy 2 Get 1 Free',
-        subtitle_ar: 'اشتري 2 واحصل على 1 مجاناً',
-        discount_text: '2+1 Offer',
-        discount_text_ar: 'عرض 2+1',
-        background_type: 'gradient',
-        background_value: 'linear-gradient(135deg, #4B0082 0%, #6B238E 50%, #8B008B 100%)',
-        text_color: '#E9D5FF',
-        badge_color: '#EF4444',
-        badge_text_color: '#FFFFFF',
-        image_url: 'https://images.unsplash.com/photo-1587132137056-bfbf0166836e?w=400&h=300&fit=crop',
-        link_type: 'brand',
-        is_active: true,
-        display_order: 2
-    },
-    {
-        id: 3,
-        title: 'Pepsi Drinks',
-        title_ar: 'مشروبات بيبسي',
-        subtitle: 'Ramadan offers on all Pepsi drinks',
-        subtitle_ar: 'عروض رمضان على كل مشروبات بيبسي',
-        discount_text: '25% OFF',
-        discount_text_ar: 'خصم 25%',
-        background_type: 'gradient',
-        background_value: 'linear-gradient(135deg, #001F5C 0%, #003087 50%, #0056B3 100%)',
-        text_color: '#BFDBFE',
-        badge_color: '#EF4444',
-        badge_text_color: '#FFFFFF',
-        image_url: 'https://images.unsplash.com/photo-1629203851122-3726ecdf080e?w=400&h=300&fit=crop',
-        link_type: 'brand',
-        is_active: true,
-        display_order: 3
-    }
-];
-
 interface BrandOfferCardProps {
     offer: BrandOffer;
     index: number;
@@ -213,15 +155,7 @@ export default function BrandOffersSection() {
     const [scrollPosition, setScrollPosition] = useState(0);
     const scrollContainerRef = React.useRef<HTMLDivElement>(null);
 
-    // Try backend first, fall back to static data if unavailable
-    const USE_REMOTE = true;
-
     useEffect(() => {
-        if (!USE_REMOTE) {
-            setOffers(staticBrandOffers);
-            setLoading(false);
-            return;
-        }
         fetchOffers();
     }, []);
 
@@ -231,13 +165,11 @@ export default function BrandOffersSection() {
             if (res.data && res.data.length > 0) {
                 setOffers(res.data);
             } else {
-                // Use static offers as fallback
-                setOffers(staticBrandOffers);
+                setOffers([]);
             }
         } catch (err) {
             console.error('Error fetching brand offers:', err);
-            // Use static offers as fallback
-            setOffers(staticBrandOffers);
+            setOffers([]);
         } finally {
             setLoading(false);
         }

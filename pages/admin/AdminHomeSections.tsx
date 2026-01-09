@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Image as ImageIcon, Save, X, MoveUp, MoveDown } from 'lucide-react';
+import { Plus, Edit2, Trash2, Image as ImageIcon, Save, X, MoveUp, MoveDown, Upload, Loader } from 'lucide-react';
 import { api } from '../../services/api';
+import { API_URL } from '../../src/config';
 
 const AdminHomeSections = () => {
     const [sections, setSections] = useState([]);
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [editingSection, setEditingSection] = useState(null);
+    const [uploadingImage, setUploadingImage] = useState(false);
     const [formData, setFormData] = useState({
         section_name: '',
         section_name_ar: '',
@@ -176,6 +178,50 @@ const AdminHomeSections = () => {
         });
     };
 
+    const handleImageUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+            alert('حجم الصورة كبير جداً. الحد الأقصى 5 ميجابايت');
+            return;
+        }
+
+        if (!file.type.startsWith('image/')) {
+            alert('الرجاء اختيار صورة');
+            return;
+        }
+
+        setUploadingImage(true);
+        const originalImage = formData.banner_image;
+
+        try {
+            const uploadData = new FormData();
+            uploadData.append('image', file);
+            uploadData.append('productId', `home_section_${editingSection?.id || Date.now()}`);
+
+            const response = await fetch(`${API_URL}/upload/image`, {
+                method: 'POST',
+                body: uploadData
+            });
+
+            const result = await response.json();
+
+            if (result.success && result.data?.url) {
+                setFormData({ ...formData, banner_image: result.data.url });
+                alert('✅ تم رفع الصورة بنجاح!');
+            } else {
+                throw new Error(result.error || 'فشل رفع الصورة');
+            }
+        } catch (error) {
+            console.error('Upload error:', error);
+            alert('❌ فشل رفع الصورة: ' + error.message);
+            setFormData({ ...formData, banner_image: originalImage });
+        } finally {
+            setUploadingImage(false);
+        }
+    };
+
     const moveSection = async (index, direction) => {
         const newSections = [...sections];
         const targetIndex = direction === 'up' ? index - 1 : index + 1;
@@ -336,14 +382,44 @@ const AdminHomeSections = () => {
                             <ImageIcon size={16} className="inline ml-1" />
                             رابط صورة البانر
                         </label>
-                        <input
-                            type="url"
-                            required
-                            value={formData.banner_image}
-                            onChange={(e) => setFormData({ ...formData, banner_image: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                            placeholder="https://example.com/banner.jpg"
-                        />
+                        <div className="space-y-2">
+                            <input
+                                type="url"
+                                required
+                                value={formData.banner_image}
+                                onChange={(e) => setFormData({ ...formData, banner_image: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
+                                placeholder="https://example.com/banner.jpg"
+                            />
+                            <div className="flex items-center gap-2">
+                                <label className="flex-1 cursor-pointer">
+                                    <div className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg border-2 border-dashed transition-colors ${
+                                        uploadingImage 
+                                            ? 'border-gray-300 bg-gray-50' 
+                                            : 'border-primary hover:border-primary hover:bg-blue-50'
+                                    }`}>
+                                        {uploadingImage ? (
+                                            <>
+                                                <Loader className="w-4 h-4 animate-spin" />
+                                                <span className="text-sm">جاري الرفع...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Upload className="w-4 h-4" />
+                                                <span className="text-sm font-medium">رفع صورة</span>
+                                            </>
+                                        )}
+                                    </div>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageUpload}
+                                        disabled={uploadingImage}
+                                        className="hidden"
+                                    />
+                                </label>
+                            </div>
+                        </div>
                         {formData.banner_image && (
                             <img
                                 src={formData.banner_image}

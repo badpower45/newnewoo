@@ -78,12 +78,41 @@ const CustomerChatPage: React.FC = () => {
   const [conversation, setConversation] = useState<ChatConversation | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isSendingQuickRef = useRef(false);
+  const pendingMessagesRef = useRef<Array<{ tempId: string; sender: DisplayMessage['sender']; content: string; createdAt: number }>>([]);
   const handleBack = () => {
     if (typeof window !== 'undefined' && window.history.length > 1) {
       navigate(-1);
     } else {
       navigate('/more');
     }
+  };
+
+  const normalizeContent = (content: string) => content.trim().replace(/\s+/g, ' ').toLowerCase();
+
+  const registerPendingMessage = (tempId: string, sender: DisplayMessage['sender'], content: string) => {
+    pendingMessagesRef.current.push({
+      tempId,
+      sender,
+      content: normalizeContent(content),
+      createdAt: Date.now()
+    });
+  };
+
+  const resolvePendingMessage = (incoming: DisplayMessage) => {
+    const incomingTime = incoming.timestamp.getTime();
+    const incomingContent = normalizeContent(incoming.content);
+    const index = pendingMessagesRef.current.findIndex((pending) => {
+      return (
+        pending.sender === incoming.sender &&
+        pending.content === incomingContent &&
+        Math.abs(incomingTime - pending.createdAt) < 15000
+      );
+    });
+
+    if (index === -1) return null;
+
+    const [{ tempId }] = pendingMessagesRef.current.splice(index, 1);
+    return tempId;
   };
 
   // Initialize chat
@@ -119,9 +148,19 @@ const CustomerChatPage: React.FC = () => {
               timestamp: new Date(newMessage.timestamp),
               status: 'delivered'
             };
+            const pendingMatchId = resolvePendingMessage(displayMsg);
             setMessages(prev => {
               // Avoid duplicates
               if (prev.find(m => m.id === displayMsg.id)) return prev;
+              if (pendingMatchId) {
+                let replaced = false;
+                const updated = prev.map(msg => {
+                  if (msg.id !== pendingMatchId) return msg;
+                  replaced = true;
+                  return { ...displayMsg, status: displayMsg.status };
+                });
+                return replaced ? updated : [...prev, displayMsg];
+              }
               return [...prev, displayMsg];
             });
           });
@@ -140,17 +179,6 @@ const CustomerChatPage: React.FC = () => {
     };
 
     initChat();
-
-    // Add initial welcome message
-    if (messages.length === 0) {
-      setMessages([{
-        id: 'welcome',
-        content: 'مرحباً بك في خدمة العملاء! 👋 كيف يمكنني مساعدتك اليوم؟',
-        sender: 'bot',
-        timestamp: new Date(),
-        status: 'delivered'
-      }]);
-    }
 
     return () => {
       supabaseChatService.unsubscribeFromMessages();
@@ -184,6 +212,7 @@ const CustomerChatPage: React.FC = () => {
     try {
       // Send to Supabase if connected
       if (conversation && isConnected) {
+        registerPendingMessage(tempId, 'user', content);
         const sentMessage = await supabaseChatService.sendMessage(
           conversation.id,
           user?.id ? Number(user.id) : null,
@@ -217,18 +246,20 @@ const CustomerChatPage: React.FC = () => {
         const botResponse = getBotResponse(content);
         
         if (botResponse) {
+          const botTempId = `bot_${Date.now()}`;
           const botMessage: DisplayMessage = {
-            id: `bot_${Date.now()}`,
+            id: botTempId,
             content: botResponse,
             sender: 'bot',
             timestamp: new Date(),
             status: 'delivered'
           };
-          
+
           setMessages(prev => [...prev, botMessage]);
 
           // Save bot message to Supabase
           if (conversation && isConnected) {
+            registerPendingMessage(botTempId, 'bot', botResponse);
             await supabaseChatService.sendMessage(
               conversation.id,
               null,
@@ -238,22 +269,25 @@ const CustomerChatPage: React.FC = () => {
           }
         } else {
           // Default response if no keyword match
+          const defaultText = 'شكراً لرسالتك! سيتواصل معك أحد ممثلي خدمة العملاء قريباً. في الأثناء، هل يمكنني مساعدتك بأي شيء آخر؟';
+          const botTempId = `bot_${Date.now()}`;
           const defaultResponse: DisplayMessage = {
-            id: `bot_${Date.now()}`,
-            content: 'شكراً لرسالتك! سيتواصل معك أحد ممثلي خدمة العملاء قريباً. في الأثناء، هل يمكنني مساعدتك بأي شيء آخر؟',
+            id: botTempId,
+            content: defaultText,
             sender: 'bot',
             timestamp: new Date(),
             status: 'delivered'
           };
-          
+
           setMessages(prev => [...prev, defaultResponse]);
 
           if (conversation && isConnected) {
+            registerPendingMessage(botTempId, 'bot', defaultText);
             await supabaseChatService.sendMessage(
               conversation.id,
               null,
               'bot',
-              defaultResponse.content
+              defaultText
             );
           }
         }

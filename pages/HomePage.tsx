@@ -2,12 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import TopBar from '../components/TopBar';
 import Banner from '../components/Banner';
-import CategoryCard from '../components/CategoryCard';
 import ProductCard from '../components/ProductCard';
-import SponsoredAds from '../components/SponsoredAds';
-import FlyerCarousel from '../components/FlyerCarousel';
-import ErrorMessage from '../components/ErrorMessage';
-import { ProductGridSkeleton, BannerSkeleton, CategoriesGridSkeleton } from '../components/Skeleton';
 import FullPageSkeleton from '../components/FullPageSkeleton';
 import BrandsCarousel from '../components/BrandsCarousel';
 import BrandOffersSection from '../components/BrandOffersSection';
@@ -15,7 +10,6 @@ import StoriesSection from '../components/StoriesSection';
 import FacebookReelsGrid from '../components/FacebookReelsGrid';
 import HeroCarousel from '../components/HeroCarousel';
 import { ChevronRight, Flame, BookOpen } from 'lucide-react';
-import { CATEGORIES, SPONSORED_ADS, FLYER_PAGES } from '../data/mockData';
 import { api } from '../services/api';
 import { Product } from '../types';
 import { useAuth } from '../context/AuthContext';
@@ -57,10 +51,9 @@ const HomePage = () => {
     const [error, setError] = useState<string | null>(null);
     const { isAuthenticated } = useAuth();
     const { selectedBranch } = useBranch();
-    const { t, isRTL } = useLanguage();
-    const wavePalette = ['#FDF2E9', '#EEF2FF', '#ECFDF3', '#FFF7ED', '#E0F2FE'];
+    const { t } = useLanguage();
     const siteUrl = getSiteUrl();
-    const heroImage = FLYER_PAGES?.[0]?.image || 'https://images.unsplash.com/photo-1582719478248-48c1e9e4f1d5?w=1200&auto=format&fit=crop&q=80';
+    const heroImage = homeSections[0]?.banner_image || categories[0]?.image || '';
     const featuredCategories = categories.slice(0, 6).map(cat => cat.name_ar || cat.name).filter(Boolean);
     const homeStructuredData = {
         '@context': 'https://schema.org',
@@ -89,11 +82,7 @@ const HomePage = () => {
                     const transformedCategories = data.map((name: string, index: number) => ({
                         id: index + 1,
                         name: name,
-                        name_ar: translateCategoryName(name),
-                        image: getCategoryImage(name),
-                        icon: '📦',
-                        bg_color: getCategoryColor(index),
-                        products_count: 0
+                        name_ar: translateCategoryName(name)
                     }));
                     setCategories(transformedCategories);
                 } else {
@@ -128,40 +117,6 @@ const HomePage = () => {
             'Personal Care': 'العناية الشخصية'
         };
         return translations[name] || name;
-    };
-
-    // Helper function to get category image
-    const getCategoryImage = (name: string): string => {
-        const images: Record<string, string> = {
-            'Bakery': 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400',
-            'Beverages': 'https://images.unsplash.com/photo-1437418747212-8d9709afab22?w=400',
-            'Dairy': 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400',
-            'Grains': 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400',
-            'Snacks': 'https://images.unsplash.com/photo-1621939514649-280e2ee25f60?w=400',
-            'Vegetables': 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=400',
-            'Fruits': 'https://images.unsplash.com/photo-1619566636858-adf3ef46400b?w=400',
-            'Meat': 'https://images.unsplash.com/photo-1603048588665-791ca8aea617?w=400',
-            'Seafood': 'https://images.unsplash.com/photo-1565680018434-b513d5e5fd47?w=400',
-            'Frozen': 'https://images.unsplash.com/photo-1476887334197-56adbf254e1a?w=400',
-            'Cleaning': 'https://images.unsplash.com/photo-1585421514738-01798e348b17?w=400',
-            'Personal Care': 'https://images.unsplash.com/photo-1556228578-dd339359d39f?w=400'
-        };
-        return images[name] || 'https://images.unsplash.com/photo-1543168256-418811576931?w=400';
-    };
-
-    // Helper function to get category color
-    const getCategoryColor = (index: number): string => {
-        const colors = [
-            'bg-gradient-to-br from-orange-50 to-orange-100',
-            'bg-gradient-to-br from-blue-50 to-blue-100',
-            'bg-gradient-to-br from-green-50 to-green-100',
-            'bg-gradient-to-br from-purple-50 to-purple-100',
-            'bg-gradient-to-br from-pink-50 to-pink-100',
-            'bg-gradient-to-br from-yellow-50 to-yellow-100',
-            'bg-gradient-to-br from-red-50 to-red-100',
-            'bg-gradient-to-br from-indigo-50 to-indigo-100'
-        ];
-        return colors[index % colors.length];
     };
 
     // Fetch home sections from API
@@ -372,8 +327,6 @@ const HomePage = () => {
                     </div>
                 ) : homeSections.length > 0 ? (
                     homeSections.map((section, sectionIndex) => {
-                        const waveColor = wavePalette[sectionIndex % wavePalette.length];
-
                         return (
                             <section key={section.id} className="relative mt-12">
                                 <div className="rounded-[28px] overflow-hidden shadow-[0_12px_30px_rgba(0,0,0,0.06)] border border-white/60 bg-white/90 backdrop-blur-[2px]">
@@ -448,33 +401,6 @@ const HomePage = () => {
                     <div className="text-center py-12">
                         <p className="text-gray-500">لا توجد أقسام متاحة حالياً</p>
                     </div>
-                )}
-
-                {/* قسم المجمدات (fallback if no dynamic sections) */}
-                {!sectionsLoading && homeSections.length === 0 && (
-                <section className="space-y-4">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-xl font-bold text-gray-900">مجمدات</h2>
-                        <Link to="/products?category=مجمدات" className="text-[#FF4500] text-sm font-semibold flex items-center gap-1 hover:gap-2 transition-all">
-                            عرض المزيد <ChevronRight className="w-4 h-4" />
-                        </Link>
-                    </div>
-                    <div className="relative rounded-2xl overflow-hidden h-40 bg-gradient-to-br from-indigo-100 via-indigo-200 to-blue-200">
-                        <img src="https://images.unsplash.com/photo-1476887334197-56adbf254e1a?w=1200" alt="مجمدات" className="w-full h-full object-cover opacity-90" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-                        <div className="absolute bottom-4 right-4 text-white">
-                            <h3 className="text-2xl font-bold">Frozen</h3>
-                            <p className="text-sm">أطعمة مجمدة وآيس كريم</p>
-                        </div>
-                    </div>
-                    <div className="flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible">
-                        {products.filter(p => p.category === 'مجمدات').slice(0, 8).map(product => (
-                            <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
-                                <ProductCard product={product} />
-                            </div>
-                        ))}
-                    </div>
-                </section>
                 )}
 
                 {/* Facebook Reels Section */}

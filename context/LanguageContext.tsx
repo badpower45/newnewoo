@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { translations as nestedTranslations } from '../constants';
 import { loadGoogleTranslate, translateTo } from '../utils/googleTranslate';
 
@@ -28,6 +28,7 @@ interface LanguageProviderProps {
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
     const [language, setLanguageState] = useState<Language>('ar');
     const [isReady, setIsReady] = useState(false);
+    const translateTimeoutsRef = useRef<number[]>([]);
 
     useEffect(() => {
         // Load Google Translate script first
@@ -50,6 +51,18 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
         }, 1500);
     }, []);
 
+    const scheduleTranslate = (lang: Language) => {
+        translateTimeoutsRef.current.forEach(timeoutId => window.clearTimeout(timeoutId));
+        translateTimeoutsRef.current = [];
+
+        [0, 250, 800, 1500].forEach((delay) => {
+            const timeoutId = window.setTimeout(() => {
+                translateTo(lang, { force: true });
+            }, delay);
+            translateTimeoutsRef.current.push(timeoutId);
+        });
+    };
+
     const applyLanguage = (lang: Language) => {
         // Set document direction and language
         document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
@@ -59,13 +72,8 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
         document.body.classList.remove('lang-ar', 'lang-en');
         document.body.classList.add(`lang-${lang}`);
 
-        // Apply Google Translate
-        translateTo(lang);
-        
-        // Force translate all text content after a short delay
-        setTimeout(() => {
-            translateTo(lang);
-        }, 100);
+        // Apply Google Translate with retries for dynamic content
+        scheduleTranslate(lang);
     };
 
     const setLanguage = (lang: Language) => {

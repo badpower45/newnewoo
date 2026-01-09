@@ -55,61 +55,8 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
 
     const facebookPageUrl = `https://www.facebook.com/${pageUsername}`;
     const facebookReelsUrl = `https://www.facebook.com/${pageUsername}/reels`;
-    // Use remote API when available; fallback to local samples if it fails
-    const USE_REMOTE = true;
-
-    // Default reels (fallback) - with sample MP4 videos
-    const defaultReels: Reel[] = [
-        {
-            id: '1',
-            thumbnail: 'https://images.unsplash.com/photo-1606312619070-d48b4c652a52?w=400&h=700&fit=crop',
-            title: 'شوكولاتة فاخرة 🍫',
-            views: '12K',
-            duration: '0:30',
-            // Free sample video for testing
-            video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'
-        },
-        {
-            id: '2',
-            thumbnail: 'https://images.unsplash.com/photo-1587132137056-bfbf0166836e?w=400&h=700&fit=crop',
-            title: 'عروض حصرية 🔥',
-            views: '8.5K',
-            duration: '0:25',
-            video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4'
-        },
-        {
-            id: '3',
-            thumbnail: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400&h=700&fit=crop',
-            title: 'منتجات الألبان الطازجة 🥛',
-            views: '15K',
-            duration: '0:20',
-            video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4'
-        },
-        {
-            id: '4',
-            thumbnail: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=700&fit=crop',
-            title: 'فواكه وخضروات طازجة 🥬',
-            views: '9.2K',
-            duration: '0:35',
-            video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4'
-        },
-        {
-            id: '5',
-            thumbnail: 'https://images.unsplash.com/photo-1534353473418-4cfa6c56fd38?w=400&h=700&fit=crop',
-            title: 'مشروبات منعشة 🍹',
-            views: '11K',
-            duration: '0:40',
-            video_url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4'
-        }
-    ];
-
     // Fetch reels from API
     useEffect(() => {
-        if (!USE_REMOTE) {
-            setReels(defaultReels);
-            setLoading(false);
-            return;
-        }
         const fetchReels = async () => {
             try {
                 const response = await api.facebookReels.getAll();
@@ -126,11 +73,11 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
                     }));
                     setReels(transformedReels);
                 } else {
-                    setReels(defaultReels);
+                    setReels([]);
                 }
             } catch (error) {
                 console.error('Failed to fetch reels:', error);
-                setReels(defaultReels);
+                setReels([]);
             } finally {
                 setLoading(false);
             }
@@ -197,7 +144,7 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
         setIsPlaying(true);
     };
 
-    const reelsData = reels.length > 0 ? reels : defaultReels;
+    const reelsData = reels;
 
     return (
         <section className="py-4">
@@ -230,19 +177,28 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
 
             {/* Reels Carousel */}
             <div className="relative">
+                {!loading && reelsData.length === 0 && (
+                    <div className="text-center text-sm text-gray-500 py-6">
+                        لا توجد فيديوهات حالياً
+                    </div>
+                )}
                 {/* Navigation Buttons */}
-                <button
-                    onClick={() => scroll('right')}
-                    className="absolute -right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white shadow-lg rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors"
-                >
-                    <ChevronRight className="w-5 h-5 text-gray-600" />
-                </button>
-                <button
-                    onClick={() => scroll('left')}
-                    className="absolute -left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white shadow-lg rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors"
-                >
-                    <ChevronLeft className="w-5 h-5 text-gray-600" />
-                </button>
+                {reelsData.length > 0 && (
+                    <>
+                        <button
+                            onClick={() => scroll('right')}
+                            className="absolute -right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white shadow-lg rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors"
+                        >
+                            <ChevronRight className="w-5 h-5 text-gray-600" />
+                        </button>
+                        <button
+                            onClick={() => scroll('left')}
+                            className="absolute -left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white shadow-lg rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors"
+                        >
+                            <ChevronLeft className="w-5 h-5 text-gray-600" />
+                        </button>
+                    </>
+                )}
 
                 {/* Scrollable Container */}
                 <div 
