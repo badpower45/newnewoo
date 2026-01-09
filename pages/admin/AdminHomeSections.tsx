@@ -43,7 +43,7 @@ const AdminHomeSections = () => {
             // Try getAllAdmin first
             let response;
             try {
-                response = await api.categories.getAllAdmin();
+                response = await api.categories.getAllAdmin({ includeOfferOnly: true });
                 console.log('📦 getAllAdmin response:', response);
             } catch (adminError) {
                 console.warn('⚠️ getAllAdmin failed, trying getAll:', adminError);

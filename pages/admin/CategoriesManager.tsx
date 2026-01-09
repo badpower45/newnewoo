@@ -18,6 +18,43 @@ interface Category {
     created_at: string;
 }
 
+const normalizeCategoryKey = (cat: Category) => {
+    const label = (cat.name_ar || cat.name || '').trim().toLowerCase();
+    const parentKey = cat.parent_id ?? 0;
+    return `${parentKey}:${label}`;
+};
+
+const scoreCategory = (cat: Category) => {
+    let score = 0;
+    if (cat.image) score += 4;
+    if (cat.icon) score += 2;
+    if (cat.description) score += 1;
+    if (cat.is_active) score += 1;
+    return score;
+};
+
+const mergeDuplicateCategories = (items: Category[]) => {
+    const map = new Map<string, Category>();
+    items.forEach(cat => {
+        const key = normalizeCategoryKey(cat);
+        const normalizedCount = Number(cat.products_count || 0);
+        const existing = map.get(key);
+        if (!existing) {
+            map.set(key, { ...cat, products_count: normalizedCount });
+            return;
+        }
+
+        const preferred = scoreCategory(cat) > scoreCategory(existing) ? cat : existing;
+        map.set(key, {
+            ...preferred,
+            products_count: Math.max(Number(existing.products_count || 0), normalizedCount),
+            display_order: Math.min(existing.display_order ?? 0, cat.display_order ?? 0),
+            is_active: existing.is_active || cat.is_active
+        });
+    });
+    return Array.from(map.values());
+};
+
 const emptyCategory = {
     name: '',
     name_ar: '',
@@ -60,9 +97,9 @@ const CategoriesManager: React.FC = () => {
     const loadCategories = async () => {
         setLoading(true);
         try {
-            const res = await api.categories.getAllAdmin();
+            const res = await api.categories.getAllAdmin({ includeOfferOnly: true });
             if (res.success && res.data) {
-                setCategories(res.data);
+                setCategories(mergeDuplicateCategories(res.data));
             }
         } catch (err) {
             console.error('Failed to load categories:', err);

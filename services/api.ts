@@ -1199,9 +1199,10 @@ export const api = {
         },
 
         // Admin: Get all categories (including inactive)
-        getAllAdmin: async () => {
+        getAllAdmin: async (options?: { includeOfferOnly?: boolean }) => {
             console.log('📡 Calling API: GET /categories/admin/all');
-            const res = await fetch(`${API_URL}/categories/admin/all`, {
+            const query = options?.includeOfferOnly ? '?includeOfferOnly=true' : '';
+            const res = await fetch(`${API_URL}/categories/admin/all${query}`, {
                 headers: getHeaders()
             });
             console.log('📡 Admin categories response status:', res.status);
