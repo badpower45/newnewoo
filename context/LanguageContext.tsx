@@ -37,6 +37,9 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
         // Check for saved language or default to Arabic
         const savedLang = localStorage.getItem('language') as Language;
         const initialLang = (savedLang && (savedLang === 'ar' || savedLang === 'en')) ? savedLang : 'ar';
+        if (!savedLang || (savedLang !== 'ar' && savedLang !== 'en')) {
+            localStorage.setItem('language', initialLang);
+        }
         
         // Set initial language
         setLanguageState(initialLang);
@@ -77,9 +80,13 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     };
 
     const setLanguage = (lang: Language) => {
+        if (lang === language) return;
         setLanguageState(lang);
         localStorage.setItem('language', lang);
         applyLanguage(lang);
+        if (typeof window !== 'undefined') {
+            window.location.reload();
+        }
     };
 
     const resolveNestedTranslation = (lang: Language, key: string) => {

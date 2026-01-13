@@ -10,6 +10,62 @@ const router = express.Router();
 // ✅ Security: Use secure file upload middleware
 const secureExcelUpload = createExcelUploader();
 
+const normalizeCategoryValue = (value = '') =>
+    value
+        .toString()
+        .trim()
+        .toLowerCase()
+        .replace(/أ|إ|آ/g, 'ا')
+        .replace(/ة/g, 'ه')
+        .replace(/ى/g, 'ي')
+        .replace(/\s+/g, '')
+        .replace(/[-_]/g, '');
+
+const buildCategoryIndex = async () => {
+    const { rows } = await query('SELECT id, name, name_ar, parent_id FROM categories');
+    const byId = new Map();
+    const rootMap = new Map();
+    const subMapByParent = new Map();
+    const subMapGlobal = new Map();
+
+    rows.forEach((row) => {
+        byId.set(row.id, row);
+        const keys = [row.name, row.name_ar].filter(Boolean).map(normalizeCategoryValue);
+        if (row.parent_id) {
+            const map = subMapByParent.get(row.parent_id) || new Map();
+            keys.forEach((key) => {
+                if (!map.has(key)) map.set(key, row);
+                if (!subMapGlobal.has(key)) subMapGlobal.set(key, row);
+            });
+            subMapByParent.set(row.parent_id, map);
+        } else {
+            keys.forEach((key) => {
+                if (!rootMap.has(key)) rootMap.set(key, row);
+            });
+        }
+    });
+
+    return { byId, rootMap, subMapByParent, subMapGlobal };
+};
+
+const mapCategoryValues = (rawCategory, rawSubcategory, categoryIndex) => {
+    const categoryKey = rawCategory ? normalizeCategoryValue(rawCategory) : '';
+    const subcategoryKey = rawSubcategory ? normalizeCategoryValue(rawSubcategory) : '';
+    const matchedCategory = categoryKey ? categoryIndex.rootMap.get(categoryKey) : null;
+    const subMap = matchedCategory ? categoryIndex.subMapByParent.get(matchedCategory.id) : null;
+    const matchedSubcategory = subcategoryKey
+        ? (subMap?.get(subcategoryKey) || categoryIndex.subMapGlobal.get(subcategoryKey))
+        : null;
+    const parentCategory = !matchedCategory && matchedSubcategory?.parent_id
+        ? categoryIndex.byId.get(matchedSubcategory.parent_id)
+        : null;
+
+    return {
+        category: (matchedCategory || parentCategory)?.name_ar || (matchedCategory || parentCategory)?.name || rawCategory || null,
+        subcategory: matchedSubcategory?.name_ar || matchedSubcategory?.name || rawSubcategory || null
+    };
+};
+
 // Dev-only: Seed sample products + branch inventory for quick testing
 router.post('/dev/seed-sample', async (req, res) => {
     try {
@@ -629,6 +685,7 @@ router.post('/upload', [verifyToken, isAdmin, secureExcelUpload.single('file'), 
 
         let successCount = 0;
         let errorCount = 0;
+        const categoryIndex = await buildCategoryIndex();
 
         // Start transaction
         await query('BEGIN');
@@ -644,8 +701,11 @@ router.post('/upload', [verifyToken, isAdmin, secureExcelUpload.single('file'), 
                 const isOrganic = p.isOrganic === 'true' || p.isOrganic === 1 || p.isOrganic === true;
                 const isNew = p.isNew === 'true' || p.isNew === 1 || p.isNew === true;
                 const barcode = p.barcode || p.parcode || null; // Support both spellings
-                const subcategory = p.subcategory || p["التصنيف الفرعي"] || null;
-                const category = p.category || p["التصنيف الاساسي"] || 'Uncategorized';
+                const rawSubcategory = p.subcategory || p["التصنيف الفرعي"] || null;
+                const rawCategory = p.category || p["التصنيف الاساسي"] || p["التصنيف الأساسي"] || null;
+                const mappedCategory = mapCategoryValues(rawCategory, rawSubcategory, categoryIndex);
+                const category = mappedCategory.category || rawCategory || 'Uncategorized';
+                const subcategory = mappedCategory.subcategory || rawSubcategory || null;
 
                 const sql = `
                     INSERT INTO products (id, name, category, subcategory, image, weight, rating, reviews, is_organic, is_new, barcode)

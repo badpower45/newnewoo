@@ -50,6 +50,64 @@ const COLUMN_MAPPING = {
     'expiry_date': ['expiry_date', 'تاريخ الصلاحيه', 'تاريخ الصلاحية', 'صلاحيه', 'صلاحية']
 };
 
+const normalizeCategoryValue = (value = '') =>
+    value
+        .toString()
+        .trim()
+        .toLowerCase()
+        .replace(/أ|إ|آ/g, 'ا')
+        .replace(/ة/g, 'ه')
+        .replace(/ى/g, 'ي')
+        .replace(/\s+/g, '')
+        .replace(/[-_]/g, '');
+
+const buildCategoryIndex = async () => {
+    const { rows } = await query('SELECT id, name, name_ar, parent_id FROM categories');
+    const byId = new Map();
+    const rootMap = new Map();
+    const subMapByParent = new Map();
+    const subMapGlobal = new Map();
+
+    rows.forEach((row) => {
+        byId.set(row.id, row);
+        const keys = [row.name, row.name_ar].filter(Boolean).map(normalizeCategoryValue);
+        if (row.parent_id) {
+            const map = subMapByParent.get(row.parent_id) || new Map();
+            keys.forEach((key) => {
+                if (!map.has(key)) map.set(key, row);
+                if (!subMapGlobal.has(key)) subMapGlobal.set(key, row);
+            });
+            subMapByParent.set(row.parent_id, map);
+        } else {
+            keys.forEach((key) => {
+                if (!rootMap.has(key)) rootMap.set(key, row);
+            });
+        }
+    });
+
+    return { byId, rootMap, subMapByParent, subMapGlobal };
+};
+
+const mapCategoryValues = (rawCategory, rawSubcategory, categoryIndex) => {
+    const categoryKey = rawCategory ? normalizeCategoryValue(rawCategory) : '';
+    const subcategoryKey = rawSubcategory ? normalizeCategoryValue(rawSubcategory) : '';
+    const matchedCategory = categoryKey ? categoryIndex.rootMap.get(categoryKey) : null;
+    const subMap = matchedCategory ? categoryIndex.subMapByParent.get(matchedCategory.id) : null;
+    const matchedSubcategory = subcategoryKey
+        ? (subMap?.get(subcategoryKey) || categoryIndex.subMapGlobal.get(subcategoryKey))
+        : null;
+    const parentCategory = !matchedCategory && matchedSubcategory?.parent_id
+        ? categoryIndex.byId.get(matchedSubcategory.parent_id)
+        : null;
+
+    return {
+        category: (matchedCategory || parentCategory)?.name_ar || (matchedCategory || parentCategory)?.name || rawCategory || null,
+        subcategory: matchedSubcategory?.name_ar || matchedSubcategory?.name || rawSubcategory || null,
+        matchedCategory: Boolean(matchedCategory || parentCategory),
+        matchedSubcategory: Boolean(matchedSubcategory)
+    };
+};
+
 // Find column value by multiple possible names
 function findColumnValue(row, possibleNames) {
     for (const name of possibleNames) {
@@ -225,6 +283,7 @@ router.post('/bulk-import', [verifyToken, isAdmin, upload.single('file')], async
         // Generate batch ID for this import
         const batchId = uuidv4();
         const userId = req.user?.id || null;
+        const categoryIndex = await buildCategoryIndex();
         
         // Parse and save ALL rows as drafts (flexible approach)
         const savedDrafts = [];
@@ -232,6 +291,17 @@ router.post('/bulk-import', [verifyToken, isAdmin, upload.single('file')], async
         
         rows.forEach((row, index) => {
             const { product, errors, warnings, rowIndex } = mapRowToProduct(row, index + 2);
+            const rawCategory = product.category || null;
+            const rawSubcategory = product.subcategory || null;
+            const mappedCategory = mapCategoryValues(rawCategory, rawSubcategory, categoryIndex);
+            product.category = mappedCategory.category;
+            product.subcategory = mappedCategory.subcategory;
+            if (rawCategory && !mappedCategory.matchedCategory) {
+                warnings.push(`التصنيف الأساسي غير مطابق: ${rawCategory}`);
+            }
+            if (rawSubcategory && !mappedCategory.matchedSubcategory) {
+                warnings.push(`التصنيف الفرعي غير مطابق: ${rawSubcategory}`);
+            }
             
             // Save even if there are warnings - we'll let user fix them later
             savedDrafts.push({
@@ -246,49 +316,171 @@ router.post('/bulk-import', [verifyToken, isAdmin, upload.single('file')], async
         
         // Save all as draft products
         const imported = [];
+        const updated = [];
         const importErrors = [];
+        const newCategories = [];
         
         await query('BEGIN');
         
         try {
-            for (const { product, warnings, errors } of savedDrafts) {
+            // First, create any new categories that don't exist
+            const existingCategories = new Set();
+            const categoriesResult = await query('SELECT name, name_ar FROM categories WHERE parent_id IS NULL');
+            categoriesResult.rows.forEach(cat => {
+                existingCategories.add(normalizeCategoryValue(cat.name));
+                existingCategories.add(normalizeCategoryValue(cat.name_ar));
+            });
+            
+            // Collect unique categories from products
+            const categoriesToAdd = new Map();
+            for (const { product } of savedDrafts) {
+                if (product.category) {
+                    const normalized = normalizeCategoryValue(product.category);
+                    if (!existingCategories.has(normalized) && !categoriesToAdd.has(normalized)) {
+                        categoriesToAdd.set(normalized, product.category);
+                    }
+                }
+            }
+            
+            // Insert new categories
+            for (const [normalized, originalName] of categoriesToAdd.entries()) {
                 try {
-                    // Insert into draft_products table (accepting incomplete data)
-                    const { rows: insertedDraft } = await query(`
-                        INSERT INTO draft_products (
-                            name, category, subcategory, image, barcode,
-                            old_price, price, discount_percentage,
-                            branch_id, stock_quantity, expiry_date,
-                            status, import_batch_id, imported_by,
-                            validation_errors, created_at, updated_at
-                        ) VALUES (
-                            $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11,
-                            $12, $13, $14, $15, NOW(), NOW()
-                        ) RETURNING id, name, category, status
+                    console.log(`Creating new category: ${originalName}`);
+                    const { rows: newCat } = await query(`
+                        INSERT INTO categories (name, name_ar, icon, bg_color, display_order, is_active, parent_id)
+                        VALUES ($1, $2, $3, $4, (SELECT COALESCE(MAX(display_order), 0) + 1 FROM categories WHERE parent_id IS NULL), true, NULL)
+                        RETURNING id, name, name_ar
                     `, [
-                        product.name || 'منتج بدون اسم',
-                        product.category || null,
-                        product.subcategory || null,
-                        product.image || null,
-                        product.barcode || null,
-                        product.old_price || null,
-                        product.price || null,
-                        product.discount_percentage || 0,
-                        product.branch_id || 1,
-                        product.stock_quantity || 0,
-                        product.expiry_date || null,
-                        errors.length > 0 ? 'draft' : 'validated',
-                        batchId,
-                        userId,
-                        JSON.stringify({ errors, warnings })
+                        originalName,
+                        originalName,
+                        '📦',
+                        'bg-gray-50'
                     ]);
                     
-                    imported.push({
-                        id: insertedDraft[0].id,
-                        name: insertedDraft[0].name,
-                        category: insertedDraft[0].category,
-                        status: insertedDraft[0].status
-                    });
+                    newCategories.push(newCat[0]);
+                    existingCategories.add(normalized);
+                    console.log(`✅ Created category: ${originalName} (ID: ${newCat[0].id})`);
+                } catch (err) {
+                    console.error(`Error creating category ${originalName}:`, err.message);
+                }
+            }
+            
+            for (const { product, warnings, errors } of savedDrafts) {
+                try {
+                    // Check if product exists (by barcode or name)
+                    let existingProduct = null;
+                    
+                    if (product.barcode && product.barcode.trim() !== '') {
+                        // Try to find by barcode first
+                        const { rows } = await query(
+                            'SELECT id FROM draft_products WHERE barcode = $1 AND status != $2 LIMIT 1',
+                            [product.barcode.trim(), 'rejected']
+                        );
+                        if (rows.length > 0) {
+                            existingProduct = rows[0];
+                        }
+                    }
+                    
+                    // If not found by barcode, try by name
+                    if (!existingProduct && product.name && product.name.trim() !== '') {
+                        const { rows } = await query(
+                            'SELECT id FROM draft_products WHERE LOWER(TRIM(name)) = LOWER(TRIM($1)) AND status != $2 LIMIT 1',
+                            [product.name.trim(), 'rejected']
+                        );
+                        if (rows.length > 0) {
+                            existingProduct = rows[0];
+                        }
+                    }
+                    
+                    if (existingProduct) {
+                        // UPDATE existing product
+                        const { rows: updatedDraft } = await query(`
+                            UPDATE draft_products SET
+                                name = COALESCE($1, name),
+                                category = COALESCE($2, category),
+                                subcategory = COALESCE($3, subcategory),
+                                image = COALESCE($4, image),
+                                barcode = COALESCE($5, barcode),
+                                old_price = COALESCE($6, old_price),
+                                price = COALESCE($7, price),
+                                discount_percentage = COALESCE($8, discount_percentage),
+                                branch_id = COALESCE($9, branch_id),
+                                stock_quantity = COALESCE($10, stock_quantity),
+                                expiry_date = COALESCE($11, expiry_date),
+                                status = $12,
+                                import_batch_id = $13,
+                                imported_by = $14,
+                                validation_errors = $15,
+                                updated_at = NOW()
+                            WHERE id = $16
+                            RETURNING id, name, category, status
+                        `, [
+                            product.name || null,
+                            product.category || null,
+                            product.subcategory || null,
+                            product.image || null,
+                            product.barcode || null,
+                            product.old_price || null,
+                            product.price || null,
+                            product.discount_percentage || 0,
+                            product.branch_id || null,
+                            product.stock_quantity || null,
+                            product.expiry_date || null,
+                            errors.length > 0 ? 'draft' : 'validated',
+                            batchId,
+                            userId,
+                            JSON.stringify({ errors, warnings }),
+                            existingProduct.id
+                        ]);
+                        
+                        updated.push({
+                            id: updatedDraft[0].id,
+                            name: updatedDraft[0].name,
+                            category: updatedDraft[0].category,
+                            status: updatedDraft[0].status
+                        });
+                        
+                        console.log(`📝 Updated product: ${product.name} (ID: ${updatedDraft[0].id})`);
+                    } else {
+                        // INSERT new product
+                        const { rows: insertedDraft } = await query(`
+                            INSERT INTO draft_products (
+                                name, category, subcategory, image, barcode,
+                                old_price, price, discount_percentage,
+                                branch_id, stock_quantity, expiry_date,
+                                status, import_batch_id, imported_by,
+                                validation_errors, created_at, updated_at
+                            ) VALUES (
+                                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11,
+                                $12, $13, $14, $15, NOW(), NOW()
+                            ) RETURNING id, name, category, status
+                        `, [
+                            product.name || 'منتج بدون اسم',
+                            product.category || null,
+                            product.subcategory || null,
+                            product.image || null,
+                            product.barcode || null,
+                            product.old_price || null,
+                            product.price || null,
+                            product.discount_percentage || 0,
+                            product.branch_id || 1,
+                            product.stock_quantity || 0,
+                            product.expiry_date || null,
+                            errors.length > 0 ? 'draft' : 'validated',
+                            batchId,
+                            userId,
+                            JSON.stringify({ errors, warnings })
+                        ]);
+                        
+                        imported.push({
+                            id: insertedDraft[0].id,
+                            name: insertedDraft[0].name,
+                            category: insertedDraft[0].category,
+                            status: insertedDraft[0].status
+                        });
+                        
+                        console.log(`➕ Added new product: ${product.name} (ID: ${insertedDraft[0].id})`);
+                    }
                 } catch (err) {
                     console.error('Error saving draft product:', product.name, err);
                     importErrors.push({
@@ -300,18 +492,36 @@ router.post('/bulk-import', [verifyToken, isAdmin, upload.single('file')], async
             
             await query('COMMIT');
             
-            console.log(`Successfully saved ${imported.length} products as drafts`);
+            const totalProcessed = imported.length + updated.length;
+            console.log(`Successfully processed ${totalProcessed} products (${imported.length} new, ${updated.length} updated, ${newCategories.length} categories created)`);
+            
+            let message = `تم معالجة ${totalProcessed} منتج بنجاح`;
+            if (imported.length > 0) {
+                message += ` (${imported.length} جديد`;
+            }
+            if (updated.length > 0) {
+                message += imported.length > 0 ? `, ${updated.length} محدّث)` : ` (${updated.length} محدّث)`;
+            } else if (imported.length > 0) {
+                message += ')';
+            }
+            if (newCategories.length > 0) {
+                message += `. تم إنشاء ${newCategories.length} تصنيف جديد`;
+            }
             
             res.json({
                 success: true,
-                message: `تم حفظ ${imported.length} منتج كمسودات. يمكنك الآن مراجعتها وتعديلها قبل النشر.`,
+                message: message,
                 imported: imported.length,
+                updated: updated.length,
                 failed: importErrors.length,
                 total: rows.length,
+                newCategories: newCategories.length,
                 batchId: batchId,
                 redirectTo: `/admin/draft-products/${batchId}`,
                 details: {
                     imported: imported,
+                    updated: updated,
+                    newCategories: newCategories.map(c => ({ name: c.name_ar || c.name, id: c.id })),
                     validationErrors: [],
                     importErrors: importErrors
                 }

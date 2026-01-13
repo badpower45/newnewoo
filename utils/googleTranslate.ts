@@ -25,7 +25,7 @@ const initTranslator = () => {
   isTranslatorReady = true;
   new googleObj.translate.TranslateElement(
     {
-      pageLanguage: 'en', // Set base page language to English
+      pageLanguage: 'ar', // Set base page language to Arabic
       includedLanguages: 'ar,en',
       autoDisplay: false,
       layout: googleObj.translate.TranslateElement.InlineLayout.SIMPLE

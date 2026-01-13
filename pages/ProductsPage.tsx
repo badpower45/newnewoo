@@ -331,9 +331,42 @@ export default function ProductsPage() {
     const filteredAndSortedProducts = useMemo(() => {
         let filtered = [...allProducts];
 
-        // Filter by category
+        // Filter by category with flexible matching
         if (selectedCategory) {
-            filtered = filtered.filter(p => p.category === selectedCategory);
+            console.log('🔍 Filtering by category:', selectedCategory);
+            console.log('📦 Total products before filter:', filtered.length);
+            
+            filtered = filtered.filter(p => {
+                const productCategory = (p.category || '').trim();
+                const selectedCat = selectedCategory.trim();
+                
+                // Exact match (case-insensitive)
+                if (productCategory.toLowerCase() === selectedCat.toLowerCase()) {
+                    return true;
+                }
+                
+                // Check if product category matches any variant in mapping
+                const mappedCategory = categoryMapping[productCategory];
+                if (mappedCategory && mappedCategory.toLowerCase() === selectedCat.toLowerCase()) {
+                    return true;
+                }
+                
+                // Check if selected category has a reverse mapping
+                const reverseMapped = Object.entries(categoryMapping).find(
+                    ([key, value]) => value.toLowerCase() === selectedCat.toLowerCase()
+                );
+                if (reverseMapped && productCategory.toLowerCase() === reverseMapped[0].toLowerCase()) {
+                    return true;
+                }
+                
+                return false;
+            });
+            
+            console.log('✅ Products after category filter:', filtered.length);
+            
+            // Debug: Show unique categories in filtered products
+            const uniqueCategories = [...new Set(filtered.map(p => p.category))];
+            console.log('📊 Categories in filtered products:', uniqueCategories);
         }
 
         // Filter by brand
