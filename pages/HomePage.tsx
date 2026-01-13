@@ -175,6 +175,17 @@ const HomePage = () => {
         }
     };
 
+    const normalizeCategoryValue = (value: string = '') =>
+        value
+            .toString()
+            .trim()
+            .toLowerCase()
+            .replace(/أ|إ|آ/g, 'ا')
+            .replace(/ة/g, 'ه')
+            .replace(/ى/g, 'ي')
+            .replace(/\s+/g, '')
+            .replace(/[-_]/g, '');
+
     useEffect(() => {
         fetchProducts();
         fetchCategories();
@@ -327,13 +338,22 @@ const HomePage = () => {
                     </div>
                 ) : homeSections.length > 0 ? (
                     homeSections.map((section, sectionIndex) => {
-                        // Find matching category to get Arabic name
-                        const matchingCategory = categories.find(cat => 
-                            cat.name === section.category || 
-                            cat.name_ar === section.category ||
-                            cat.name?.toLowerCase() === section.category?.toLowerCase()
-                        );
-                        const categoryParam = matchingCategory?.name_ar || matchingCategory?.name || section.category;
+                        const categoryCandidates = [
+                            section.category,
+                            section.section_name_ar,
+                            section.section_name
+                        ].filter(Boolean) as string[];
+                        const normalizedCandidates = categoryCandidates.map(normalizeCategoryValue);
+                        const matchingCategory = categories.find(cat => {
+                            const normalizedName = normalizeCategoryValue(cat.name || '');
+                            const normalizedNameAr = normalizeCategoryValue(cat.name_ar || '');
+                            return normalizedCandidates.some(candidate =>
+                                candidate === normalizedName || candidate === normalizedNameAr
+                            );
+                        });
+                        const categoryParam = matchingCategory?.name_ar || matchingCategory?.name || section.section_name_ar || section.category;
+                        const categoryLabel = matchingCategory?.name_ar || section.section_name_ar || section.category;
+                        const resolvedCategoryKey = normalizeCategoryValue(categoryParam || section.category || '');
                         
                         return (
                             <section key={section.id} className="relative mt-12">
@@ -376,16 +396,14 @@ const HomePage = () => {
                                             ) : (
                                                 // Fallback: البحث في المنتجات المحلية باستخدام مطابقة أكثر مرونة
                                                 products.filter(p => {
-                                                    if (!p.category || !section.category) return false;
-                                                    const pCat = p.category.trim().toLowerCase();
-                                                    const sCat = section.category.trim().toLowerCase();
-                                                    return pCat === sCat || pCat.includes(sCat) || sCat.includes(pCat);
+                                                    if (!p.category || !resolvedCategoryKey) return false;
+                                                    const pCat = normalizeCategoryValue(p.category);
+                                                    return pCat === resolvedCategoryKey;
                                                 }).slice(0, section.max_products || 8).length > 0 ? (
                                                     products.filter(p => {
-                                                        if (!p.category || !section.category) return false;
-                                                        const pCat = p.category.trim().toLowerCase();
-                                                        const sCat = section.category.trim().toLowerCase();
-                                                        return pCat === sCat || pCat.includes(sCat) || sCat.includes(pCat);
+                                                        if (!p.category || !resolvedCategoryKey) return false;
+                                                        const pCat = normalizeCategoryValue(p.category);
+                                                        return pCat === resolvedCategoryKey;
                                                     }).slice(0, section.max_products || 8).map(product => (
                                                         <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
                                                             <ProductCard product={product} />
@@ -394,7 +412,7 @@ const HomePage = () => {
                                                 ) : (
                                                     <div className="col-span-full text-center py-8">
                                                         <p className="text-gray-500 text-sm">
-                                                            لا توجد منتجات متاحة في فئة "{section.category}" حالياً
+                                                            لا توجد منتجات متاحة في فئة "{categoryLabel}" حالياً
                                                         </p>
                                                     </div>
                                                 )

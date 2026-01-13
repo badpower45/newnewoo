@@ -202,6 +202,12 @@ export default function ProductsPage() {
         'Fruit': 'فواكه',
         'فواكه': 'فواكه',
         'فاكهة': 'فواكه',
+        // Biscuit
+        'Biscuit': 'بسكويت',
+        'Biscuits': 'بسكويت',
+        'biscuit': 'بسكويت',
+        'biscuits': 'بسكويت',
+        'بسكويت': 'بسكويت',
         // Grains
         'Grains': 'حبوب',
         'حبوب': 'حبوب',
@@ -247,6 +253,20 @@ export default function ProductsPage() {
         'meat': 'لحوم',
         'فواكه وخضار': 'فواكه وخضار'
     };
+
+    useEffect(() => {
+        if (!selectedCategory || categories.length === 0) return;
+        const normalizedSelected = normalizeCategoryValue(selectedCategory);
+        const matched = categories.find((cat) => {
+            return (
+                normalizeCategoryValue(cat.id || '') === normalizedSelected ||
+                normalizeCategoryValue(cat.name || '') === normalizedSelected
+            );
+        });
+        if (matched && matched.id !== selectedCategory) {
+            setSelectedCategory(matched.id);
+        }
+    }, [categories, selectedCategory]);
 
     const fetchProducts = useCallback(async () => {
         setLoading(true);
