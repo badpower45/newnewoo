@@ -25,6 +25,18 @@ const SORT_OPTIONS = [
 
 const ITEMS_PER_PAGE = 20;
 
+// Category normalization function - same as backend
+const normalizeCategoryValue = (value: string = '') =>
+    value
+        .toString()
+        .trim()
+        .toLowerCase()
+        .replace(/أ|إ|آ/g, 'ا')
+        .replace(/ة/g, 'ه')
+        .replace(/ى/g, 'ي')
+        .replace(/\s+/g, '')
+        .replace(/[-_]/g, '');
+
 export default function ProductsPage() {
     const [allProducts, setAllProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<{id: string, name: string, icon: string, color: string}[]>([]);
@@ -240,11 +252,18 @@ export default function ProductsPage() {
         setLoading(true);
         try {
             const branchId = selectedBranch?.id || 1;
+            console.log('📦 Fetching products for branch:', branchId);
             const data = await api.products.getAllByBranch(branchId);
             const list = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
+            console.log('✅ Loaded products:', list.length);
+            
+            // Show unique categories in loaded products
+            const uniqueCategories = [...new Set(list.map((p: any) => p.category))];
+            console.log('📊 All available categories:', uniqueCategories);
+            
             setAllProducts(list);
         } catch (err) {
-            console.error(err);
+            console.error('❌ Error fetching products:', err);
         } finally {
             setLoading(false);
         }
@@ -358,34 +377,69 @@ export default function ProductsPage() {
     const filteredAndSortedProducts = useMemo(() => {
         let filtered = [...allProducts];
 
+        console.log('🔧 Starting filter - Total products:', filtered.length);
+        console.log('🔧 Selected category:', selectedCategory);
+
         // Filter by category with flexible matching
         if (selectedCategory) {
             console.log('🔍 Filtering by category:', selectedCategory);
             console.log('📦 Total products before filter:', filtered.length);
             
+            // First, let's see what categories exist in products
+            const productCategories = [...new Set(filtered.map(p => p.category))];
+            console.log('📊 Available product categories:', productCategories);
+            
             filtered = filtered.filter(p => {
                 const productCategory = (p.category || '').trim();
                 const selectedCat = selectedCategory.trim();
                 
-                // Exact match (case-insensitive)
+                // Normalize both for comparison
+                const normalizedProduct = normalizeCategoryValue(productCategory);
+                const normalizedSelected = normalizeCategoryValue(selectedCat);
+                
+                console.log(`🔍 Comparing: product="${productCategory}" (${normalizedProduct}) vs selected="${selectedCat}" (${normalizedSelected})`);
+                
+                // 1. Exact match after normalization
+                if (normalizedProduct === normalizedSelected) {
+                    console.log('✅ MATCH: Normalized exact match');
+                    return true;
+                }
+                
+                // 2. Exact match (case-insensitive) without normalization
                 if (productCategory.toLowerCase() === selectedCat.toLowerCase()) {
+                    console.log('✅ MATCH: Direct exact match');
                     return true;
                 }
                 
-                // Check if product category matches any variant in mapping
+                // 3. Check if product category matches any variant in mapping
                 const mappedCategory = categoryMapping[productCategory];
-                if (mappedCategory && mappedCategory.toLowerCase() === selectedCat.toLowerCase()) {
-                    return true;
+                if (mappedCategory) {
+                    const normalizedMapped = normalizeCategoryValue(mappedCategory);
+                    if (normalizedMapped === normalizedSelected) {
+                        console.log(`✅ MATCH: Mapped ${productCategory} → ${mappedCategory} (normalized)`);
+                        return true;
+                    }
                 }
                 
-                // Check if selected category has a reverse mapping
+                // 4. Check if selected category has a reverse mapping
                 const reverseMapped = Object.entries(categoryMapping).find(
-                    ([key, value]) => value.toLowerCase() === selectedCat.toLowerCase()
+                    ([key, value]) => normalizeCategoryValue(value) === normalizedSelected
                 );
-                if (reverseMapped && productCategory.toLowerCase() === reverseMapped[0].toLowerCase()) {
+                if (reverseMapped) {
+                    const normalizedKey = normalizeCategoryValue(reverseMapped[0]);
+                    if (normalizedProduct === normalizedKey) {
+                        console.log(`✅ MATCH: Reverse mapped ${selectedCat} → ${reverseMapped[0]} (normalized)`);
+                        return true;
+                    }
+                }
+                
+                // 5. Partial match (contains) as last resort
+                if (normalizedProduct.includes(normalizedSelected) || normalizedSelected.includes(normalizedProduct)) {
+                    console.log('✅ MATCH: Partial match');
                     return true;
                 }
                 
+                console.log('❌ NO MATCH');
                 return false;
             });
             
