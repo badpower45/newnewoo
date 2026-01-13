@@ -404,23 +404,23 @@ const ProductDetailsPage = () => {
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-[#6B7280] text-xs mb-1 font-semibold uppercase tracking-wide">السعر الحالي</p>
-                                <div className="flex items-baseline gap-2">
+                                <div className="flex items-end flex-wrap gap-x-2 gap-y-1">
                                     <span className="text-4xl text-[#F97316] leading-none font-black">
                                         {(displayPrice || 0).toFixed(0)}
                                     </span>
                                     <span className="text-[#23110C] text-base font-semibold">جنيه</span>
+                                    {oldPrice > displayPrice && (
+                                        <>
+                                            <span className="text-[#9CA3AF] line-through text-base font-semibold">
+                                                {(oldPrice || 0).toFixed(0)} جنيه
+                                            </span>
+                                            <span className="bg-[#EF4444] text-white text-[11px] px-2 py-0.5 rounded-full font-bold">
+                                                -{discountPercentage}%
+                                            </span>
+                                        </>
+                                    )}
                                 </div>
                                 <p className="text-xs text-gray-500 mt-1">شامل الضريبة</p>
-                                {oldPrice > displayPrice && (
-                                    <div className="flex items-center gap-2 mt-1">
-                                        <span className="text-[#9CA3AF] line-through text-base font-semibold">
-                                            {(oldPrice || 0).toFixed(0)} جنيه
-                                        </span>
-                                        <span className="bg-[#EF4444] text-white text-xs px-2 py-0.5 rounded-full font-bold">
-                                            -{discountPercentage}%
-                                        </span>
-                                    </div>
-                                )}
                             </div>
                             {savings > 0 && (
                                 <div className="text-center">
