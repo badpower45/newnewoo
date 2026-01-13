@@ -85,45 +85,54 @@ const DashboardOverview = () => {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <div className="text-gray-500">Loading dashboard...</div>
+            <div className="admin-page-container">
+                <div className="flex items-center justify-center h-64">
+                    <div className="admin-spinner"></div>
+                </div>
             </div>
         );
     }
 
     return (
-        <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-8">Dashboard Overview</h1>
+        <div className="admin-page-container">
+            <div className="admin-page-header">
+                <h1 className="admin-page-title">لوحة التحكم الرئيسية</h1>
+                <p className="admin-page-subtitle">نظرة عامة على الأداء والإحصائيات</p>
+            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="admin-grid-4 mb-6">
                 {stats.map((stat, idx) => (
-                    <div key={idx} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center space-x-4">
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${stat.color}`}>
-                            {stat.icon}
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-500 font-medium">{stat.label}</p>
-                            <h3 className="text-2xl font-bold text-gray-900">{stat.value}</h3>
+                    <div key={idx} className="admin-stat-card">
+                        <div className="flex items-center gap-3 sm:gap-4">
+                            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center ${stat.color}`}>
+                                {stat.icon}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="admin-stat-label">{stat.label}</p>
+                                <h3 className="admin-stat-value truncate">{stat.value}</h3>
+                            </div>
                         </div>
                     </div>
                 ))}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="admin-grid-2">
                 {/* Recent Orders */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <h2 className="text-lg font-bold text-gray-900 mb-4">Recent Orders</h2>
-                    <div className="space-y-4">
+                <div className="admin-card">
+                    <h2 className="admin-card-title mb-4">آخر الطلبات</h2>
+                    <div className="space-y-3">
                         {recentOrders.length === 0 ? (
-                            <p className="text-gray-500 text-center py-4">No orders yet</p>
+                            <div className="admin-empty-state py-6">
+                                <p className="admin-empty-text">لا توجد طلبات حتى الآن</p>
+                            </div>
                         ) : (
                             recentOrders.map((order) => (
-                                <div key={order.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                                    <div>
-                                        <p className="font-bold text-gray-900">Order #{order.id}</p>
-                                        <p className="text-xs text-gray-500">{new Date(order.date || order.created_at || Date.now()).toLocaleString()}</p>
+                                <div key={order.id} className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg sm:rounded-xl">
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-bold text-gray-900 text-sm sm:text-base truncate">طلب #{order.id}</p>
+                                        <p className="text-xs text-gray-500 truncate">{new Date(order.date || order.created_at || Date.now()).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' })}</p>
                                     </div>
-                                    <span className={`px-3 py-1 text-xs font-bold rounded-full ${getStatusColor(order.status)}`}>
+                                    <span className={`admin-badge ${getStatusColor(order.status)} mr-2`}>
                                         {ORDER_STATUS_LABELS[order.status] || order.status}
                                     </span>
                                 </div>
@@ -133,27 +142,27 @@ const DashboardOverview = () => {
                 </div>
 
                 {/* Top Products */}
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <h2 className="text-lg font-bold text-gray-900 mb-4">Products Overview</h2>
-                    <div className="space-y-4">
+                <div className="admin-card">
+                    <h2 className="admin-card-title mb-4">نظرة على المنتجات</h2>
+                    <div className="space-y-3">
                         {products.slice(0, 5).map((product) => (
-                            <div key={product.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                                <div className="flex items-center space-x-3">
+                            <div key={product.id} className="flex items-center justify-between gap-3 p-3 sm:p-4 bg-gray-50 rounded-lg sm:rounded-xl">
+                                <div className="flex items-center gap-3 flex-1 min-w-0">
                                     <img 
                                         src={product.image || 'https://placehold.co/400x400?text=Product'} 
                                         alt={product.name}
-                                        className="w-10 h-10 rounded-lg object-cover bg-gray-200"
+                                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover bg-gray-200 flex-shrink-0"
                                         onError={(e) => {
                                             const target = e.target as HTMLImageElement;
                                             target.src = 'https://placehold.co/400x400?text=Product';
                                         }}
                                     />
-                                    <div>
-                                        <p className="font-bold text-gray-900">{product.name}</p>
-                                        <p className="text-xs text-gray-500">{product.category}</p>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-bold text-gray-900 text-sm sm:text-base truncate">{product.name}</p>
+                                        <p className="text-xs text-gray-500 truncate">{product.category}</p>
                                     </div>
                                 </div>
-                                <span className="font-bold text-gray-900">{(Number(product.price) || 0).toFixed(2)} EGP</span>
+                                <span className="font-bold text-gray-900 text-sm sm:text-base whitespace-nowrap">{(Number(product.price) || 0).toFixed(2)} ج.م</span>
                             </div>
                         ))}
                     </div>

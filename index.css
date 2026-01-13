@@ -10,6 +10,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import Admin Responsive Styles */
+@import './styles/admin-responsive.css';
+
 @layer base {
   body {
     @apply bg-light text-dark font-sans antialiased;

@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { 
-    ArrowLeft, Tag, Star, Percent, ShoppingBag, 
-    Gift, Sparkles, ChevronRight, Heart, Share2,
-    Clock, TrendingUp, Award, Zap, Timer, Flame,
-    Package, Truck, BadgePercent, Crown
+import {
+    ArrowLeft, Percent, ShoppingBag,
+    Gift, Heart, Share2,
+    Award, Zap, Flame,
+    BadgePercent
 } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
-import TopBar from '../components/TopBar';
 import { api } from '../services/api';
 import { useBranch } from '../context/BranchContext';
 import { useCart } from '../context/CartContext';
@@ -634,7 +633,7 @@ const BrandPage = () => {
             {/* Stats Bar */}
             <div className="bg-white border-b">
                 <div className="max-w-7xl mx-auto px-4 py-4">
-                    <div className="flex items-center justify-around">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">
                         <div className="text-center">
                             <div className="flex items-center justify-center gap-1 text-2xl font-bold" style={{ color: brand.primaryColor }}>
                                 <ShoppingBag size={20} />
@@ -643,71 +642,19 @@ const BrandPage = () => {
                             <p className="text-xs text-gray-500">منتج</p>
                         </div>
                         <div className="text-center">
-                            <div className="flex items-center justify-center gap-1 text-2xl font-bold text-yellow-500">
-                                <Star size={20} fill="currentColor" />
-                                4.8
-                            </div>
-                            <p className="text-xs text-gray-500">تقييم</p>
-                        </div>
-                        <div className="text-center">
                             <div className="flex items-center justify-center gap-1 text-2xl font-bold text-green-500">
                                 <Percent size={20} />
-                                {products.filter(p => p.discount_price).length}
+                                {products.filter(p => p.discount_price && p.discount_price > p.price).length}
                             </div>
                             <p className="text-xs text-gray-500">عرض</p>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Flash Sale Banner */}
-            <div className="max-w-7xl mx-auto px-4 py-4">
-                <div 
-                    className="relative rounded-2xl overflow-hidden p-6"
-                    style={{ background: `linear-gradient(135deg, ${brand.gradientFrom}dd, ${brand.gradientTo}dd)` }}
-                >
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16" />
-                    <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full -ml-12 -mb-12" />
-                    
-                    <div className="relative flex items-center justify-between">
-                        <div className="text-white">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Flame className="text-yellow-300 animate-pulse" size={24} />
-                                <span className="text-sm font-bold bg-white/20 px-3 py-1 rounded-full">عرض محدود</span>
+                        <div className="text-center sm:block hidden">
+                            <div className="flex items-center justify-center gap-1 text-2xl font-bold text-orange-500">
+                                <BadgePercent size={20} />
+                                {magazineOffers.length + brandHotDeals.length}
                             </div>
-                            <h3 className="text-xl md:text-2xl font-bold mb-1">عروض {brand.name} الحصرية!</h3>
-                            <p className="text-white/80 text-sm">وفّر حتى 40% على منتجات مختارة</p>
+                            <p className="text-xs text-gray-500">عروض إضافية</p>
                         </div>
-                        <div className="hidden md:flex items-center gap-2 bg-white text-gray-900 px-4 py-2 rounded-full">
-                            <Timer size={18} className="text-red-500" />
-                            <span className="font-bold">ينتهي قريباً</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Quick Offers Grid */}
-            <div className="max-w-7xl mx-auto px-4 py-2">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl p-4 text-white text-center">
-                        <BadgePercent size={28} className="mx-auto mb-2" />
-                        <p className="font-bold text-lg">خصم 30%</p>
-                        <p className="text-xs text-white/80">على المشروبات</p>
-                    </div>
-                    <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-4 text-white text-center">
-                        <Package size={28} className="mx-auto mb-2" />
-                        <p className="font-bold text-lg">2+1 مجاناً</p>
-                        <p className="text-xs text-white/80">على العبوات الكبيرة</p>
-                    </div>
-                    <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-4 text-white text-center">
-                        <Truck size={28} className="mx-auto mb-2" />
-                        <p className="font-bold text-lg">توصيل مجاني</p>
-                        <p className="text-xs text-white/80">للطلبات +200 ج.م</p>
-                    </div>
-                    <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-4 text-white text-center">
-                        <Crown size={28} className="mx-auto mb-2" />
-                        <p className="font-bold text-lg">نقاط مضاعفة</p>
-                        <p className="text-xs text-white/80">x2 نقاط ولاء</p>
                     </div>
                 </div>
             </div>
@@ -716,23 +663,6 @@ const BrandPage = () => {
             <div className="max-w-7xl mx-auto px-4 py-4">
                 <div className="bg-white rounded-2xl p-6 shadow-sm border">
                     <p className="text-gray-600 text-center">{brand.description}</p>
-                </div>
-            </div>
-
-            {/* Promotional Banner */}
-            <div className="max-w-7xl mx-auto px-4 py-2">
-                <div className="relative h-32 md:h-40 rounded-2xl overflow-hidden bg-gradient-to-r from-gray-900 to-gray-700">
-                    <img 
-                        src={brand.banner} 
-                        alt="Promo" 
-                        className="absolute inset-0 w-full h-full object-cover opacity-40"
-                    />
-                    <div className="relative h-full flex items-center justify-center text-center px-4">
-                        <div>
-                            <p className="text-white/80 text-sm mb-1">اكتشف تشكيلتنا الجديدة</p>
-                            <h3 className="text-white text-xl md:text-2xl font-bold">منتجات {brand.name} الجديدة</h3>
-                        </div>
-                    </div>
                 </div>
             </div>
 

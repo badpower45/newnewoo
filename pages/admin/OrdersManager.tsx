@@ -65,8 +65,11 @@ const OrdersManager = () => {
     });
 
     return (
-        <div>
-            <h1 className="admin-page-title">إدارة الطلبات</h1>
+        <div className="admin-page-container">
+            <div className="admin-page-header">
+                <h1 className="admin-page-title">إدارة الطلبات</h1>
+                <p className="admin-page-subtitle">عرض وإدارة جميع الطلبات</p>
+            </div>
 
             {/* Filters */}
             <div className="admin-card mb-4 sm:mb-6">
@@ -86,9 +89,9 @@ const OrdersManager = () => {
                         <select
                             value={statusFilter}
                             onChange={(e) => setStatusFilter(e.target.value)}
-                            className="admin-form-select flex-1 sm:flex-initial"
+                            className="admin-form-select flex-1 sm:flex-initial min-w-[150px]"
                         >
-                        <option value="all">All Statuses</option>
+                        <option value="all">جميع الحالات</option>
                         <option value="pending">بانتظار التأكيد</option>
                         <option value="confirmed">تم التأكيد</option>
                         <option value="preparing">جاري التحضير</option>
@@ -98,6 +101,7 @@ const OrdersManager = () => {
                         <option value="cancelled">ملغي</option>
                     </select>
                 </div>
+            </div>
             </div>
 
             {/* Orders Table */}
@@ -183,57 +187,57 @@ const OrdersManager = () => {
 
             {/* Order Details Modal */}
             {showModal && selectedOrder && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-                        <div className="sticky top-0 bg-white border-b p-6 flex items-center justify-between">
-                            <h2 className="text-2xl font-bold text-gray-900">Order #{selectedOrder.id}</h2>
-                            <button onClick={() => setShowModal(false)} className="p-2 hover:bg-gray-100 rounded-lg">
-                                <X size={24} />
+                <div className="admin-modal-overlay">
+                    <div className="admin-modal-container">
+                        <div className="admin-modal-header">
+                            <h2 className="admin-modal-title">طلب #{selectedOrder.id}</h2>
+                            <button onClick={() => setShowModal(false)} className="admin-modal-close">
+                                <X className="w-5 h-5 sm:w-6 sm:h-6" />
                             </button>
                         </div>
                         
-                        <div className="p-6 space-y-6">
+                        <div className="admin-modal-body">
                             {/* Status & Date */}
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                 <div>
-                                    <p className="text-sm text-gray-500 mb-1">Status</p>
-                                    <span className={`inline-block px-3 py-1 text-sm font-bold rounded-full ${getStatusColor(selectedOrder.status)}`}>
+                                    <p className="text-xs sm:text-sm text-gray-500 mb-1">الحالة</p>
+                                    <span className={`inline-block px-2 sm:px-3 py-1 text-xs sm:text-sm font-bold rounded-full ${getStatusColor(selectedOrder.status)}`}>
                                         {ORDER_STATUS_LABELS[selectedOrder.status] || selectedOrder.status}
                                     </span>
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-500 mb-1">Date</p>
-                                    <p className="font-medium">{new Date(selectedOrder.date || selectedOrder.created_at || Date.now()).toLocaleString()}</p>
+                                    <p className="text-xs sm:text-sm text-gray-500 mb-1">التاريخ</p>
+                                    <p className="font-medium text-xs sm:text-sm">{new Date(selectedOrder.date || selectedOrder.created_at || Date.now()).toLocaleDateString('ar-EG')}</p>
                                 </div>
                             </div>
 
                             {/* Customer Info */}
-                            <div className="bg-gray-50 p-4 rounded-xl">
-                                <h3 className="font-bold text-gray-900 mb-3">Customer Details</h3>
-                                <div className="space-y-2 text-sm">
-                                    <p><span className="text-gray-500">User ID:</span> <span className="font-medium">#{selectedOrder.userId}</span></p>
-                                    <p><span className="text-gray-500">Address:</span> <span className="font-medium">{selectedOrder.deliveryAddress || selectedOrder.delivery_address || 'N/A'}</span></p>
+                            <div className="bg-gray-50 p-3 sm:p-4 rounded-lg sm:rounded-xl">
+                                <h3 className="font-bold text-gray-900 mb-2 sm:mb-3 text-sm sm:text-base">تفاصيل العميل</h3>
+                                <div className="space-y-2 text-xs sm:text-sm">
+                                    <p><span className="text-gray-500">رقم العميل:</span> <span className="font-medium">#{selectedOrder.userId}</span></p>
+                                    <p className="break-words"><span className="text-gray-500">العنوان:</span> <span className="font-medium">{selectedOrder.deliveryAddress || selectedOrder.delivery_address || 'غير محدد'}</span></p>
                                 </div>
                             </div>
 
                             {/* Branch & Slot */}
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-gray-50 p-4 rounded-xl">
-                                    <h3 className="font-bold text-gray-900 mb-2">Branch</h3>
-                                    <p className="text-sm">Branch #{selectedOrder.branchId || selectedOrder.branch_id || 'N/A'}</p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                <div className="bg-gray-50 p-3 sm:p-4 rounded-lg sm:rounded-xl">
+                                    <h3 className="font-bold text-gray-900 mb-2 text-sm sm:text-base">الفرع</h3>
+                                    <p className="text-xs sm:text-sm">#{selectedOrder.branchId || selectedOrder.branch_id || 'غير محدد'}</p>
                                 </div>
-                                <div className="bg-gray-50 p-4 rounded-xl">
-                                    <h3 className="font-bold text-gray-900 mb-2">Delivery Slot</h3>
-                                    <p className="text-sm">Slot #{selectedOrder.deliverySlotId || selectedOrder.delivery_slot_id || 'N/A'}</p>
+                                <div className="bg-gray-50 p-3 sm:p-4 rounded-lg sm:rounded-xl">
+                                    <h3 className="font-bold text-gray-900 mb-2 text-sm sm:text-base">وقت التوصيل</h3>
+                                    <p className="text-xs sm:text-sm">#{selectedOrder.deliverySlotId || selectedOrder.delivery_slot_id || 'غير محدد'}</p>
                                 </div>
                             </div>
 
                             {/* Payment */}
-                            <div className="bg-gray-50 p-4 rounded-xl">
-                                <h3 className="font-bold text-gray-900 mb-3">Payment</h3>
-                                <div className="grid grid-cols-2 gap-4 text-sm">
-                                    <p><span className="text-gray-500">Method:</span> <span className="font-medium">{selectedOrder.paymentMethod || selectedOrder.payment_method || 'COD'}</span></p>
-                                    <p><span className="text-gray-500">Status:</span> <span className="font-medium">{selectedOrder.paymentStatus || selectedOrder.payment_status || 'Pending'}</span></p>
+                            <div className="bg-gray-50 p-3 sm:p-4 rounded-lg sm:rounded-xl">
+                                <h3 className="font-bold text-gray-900 mb-2 sm:mb-3 text-sm sm:text-base">الدفع</h3>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-xs sm:text-sm">
+                                    <p><span className="text-gray-500">الطريقة:</span> <span className="font-medium">{selectedOrder.paymentMethod || selectedOrder.payment_method || 'كاش'}</span></p>
+                                    <p><span className="text-gray-500">الحالة:</span> <span className="font-medium">{selectedOrder.paymentStatus || selectedOrder.payment_status || 'معلق'}</span></p>
                                 </div>
                             </div>
 

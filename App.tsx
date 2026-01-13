@@ -113,7 +113,7 @@ function AppContent() {
   const isEmployeeRoute = ['/customer-service', '/delivery', '/smart-returns'].some(route =>
     path.startsWith(route)
   );
-  const hideBottomNav = isAdminRoute || isEmployeeRoute;
+  const hideBottomNav = isAdminRoute || isEmployeeRoute || isChatPage;
   const canonicalUrl = `${getSiteUrl()}${path}${location.search}`;
   const { loading: authLoading } = useAuth();
   const { loading: branchLoading } = useBranch();

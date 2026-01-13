@@ -422,7 +422,7 @@ const CustomerChatPage: React.FC = () => {
   return (
     <div className="min-h-[100dvh] bg-[#F6F7FB] flex flex-col" dir="rtl">
       <header className="sticky top-0 z-20 bg-white/95 backdrop-blur border-b border-gray-200">
-        <div className="max-w-3xl mx-auto px-3 py-2 flex items-center justify-between" dir="ltr">
+        <div className="max-w-3xl mx-auto px-3 py-1.5 sm:py-2.5 flex items-center justify-between" dir="ltr">
           <button
             onClick={handleBack}
             className="w-9 h-9 rounded-xl border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
@@ -458,20 +458,20 @@ const CustomerChatPage: React.FC = () => {
         </div>
       </header>
 
-      <main className="flex-1 w-full px-3 sm:px-4 py-2 pb-3 min-h-0">
+      <main className="flex-1 w-full px-3 sm:px-4 py-1.5 sm:py-3 pb-2 min-h-0">
         <div className="max-w-3xl mx-auto h-full flex flex-col gap-3 min-h-0">
           <div className="bg-white border border-gray-200 rounded-2xl shadow-sm flex-1 flex flex-col overflow-hidden min-h-0">
-            <div className="px-3 sm:px-4 pt-2.5 pb-2 sticky top-0 bg-white/95 backdrop-blur supports-[backdrop-filter]:backdrop-blur-md border-b border-gray-100 z-10">
+            <div className="px-3 sm:px-4 pt-2 pb-2 sticky top-0 bg-white/95 backdrop-blur supports-[backdrop-filter]:backdrop-blur-md border-b border-gray-100 z-10">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-semibold text-gray-900">ردود سريعة</p>
-                <p className="text-xs text-gray-400">اختصار للردود الشائعة</p>
+                <p className="text-[13px] sm:text-sm font-semibold text-gray-900">ردود سريعة</p>
+                <p className="text-[11px] sm:text-xs text-gray-400">اختصار للردود الشائعة</p>
               </div>
               <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
                 {QUICK_RESPONSES.map((response) => (
                   <button
                     key={response.id}
                     onClick={() => handleQuickResponse(response.text)}
-                    className="min-w-fit flex items-center gap-2 px-2.5 py-1.5 rounded-full border border-gray-200 bg-gray-50 text-[12px] sm:text-sm text-gray-700 whitespace-nowrap hover:border-orange-300 hover:bg-orange-50 transition-all shadow-sm"
+                    className="min-w-fit flex items-center gap-2 px-2.5 py-1 rounded-full border border-gray-200 bg-gray-50 text-[11px] sm:text-sm text-gray-700 whitespace-nowrap hover:border-orange-300 hover:bg-orange-50 transition-all shadow-sm"
                   >
                     <span>{response.icon}</span>
                     <span>{response.text}</span>
@@ -487,17 +487,17 @@ const CustomerChatPage: React.FC = () => {
                   className={`flex ${message.sender === 'user' ? 'justify-start' : 'justify-end'}`}
                 >
                   <div
-                    className={`max-w-[85%] sm:max-w-[70%] rounded-2xl px-4 py-3 shadow-sm ${
+                    className={`max-w-[85%] sm:max-w-[70%] rounded-2xl px-3 py-2.5 sm:px-4 sm:py-3 shadow-sm ${
                       message.sender === 'user'
                         ? 'bg-gradient-to-br from-orange-500 to-orange-600 text-white rounded-br-md'
                         : 'bg-white text-gray-800 rounded-bl-md border border-gray-100'
                     }`}
                   >
-                    <p className="text-[13px] sm:text-base leading-relaxed whitespace-pre-wrap">
+                    <p className="text-[12.5px] sm:text-base leading-relaxed whitespace-pre-wrap">
                       {message.content}
                     </p>
                     <div
-                      className={`flex items-center gap-1 mt-2 text-xs ${
+                      className={`flex items-center gap-1 mt-2 text-[10px] sm:text-xs ${
                         message.sender === 'user' ? 'text-white/80' : 'text-gray-500'
                       }`}
                     >
@@ -526,7 +526,7 @@ const CustomerChatPage: React.FC = () => {
           </div>
 
           <div
-            className="sticky bottom-0"
+            className="sticky bottom-0 bg-[#F6F7FB]"
             style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 6px)' }}
           >
             <form
@@ -538,12 +538,12 @@ const CustomerChatPage: React.FC = () => {
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
                 placeholder="اكتب رسالتك هنا..."
-                className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 sm:px-4 sm:py-3 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent text-right text-sm"
+                className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2 sm:px-4 sm:py-3 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent text-right text-[13px]"
               />
               <button
                 type="submit"
                 disabled={!inputMessage.trim()}
-                className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2.5 sm:py-3 rounded-xl hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2 sm:py-3 rounded-xl hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 aria-label="إرسال"
               >
                 <Send size={18} />

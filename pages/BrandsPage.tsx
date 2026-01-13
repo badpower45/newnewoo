@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, ChevronRight, Star, Package } from 'lucide-react';
+import { Search, Star } from 'lucide-react';
 import { api } from '../services/api';
 import Seo, { getSiteUrl } from '../components/Seo';
 
@@ -98,7 +98,7 @@ const BrandsPage: React.FC = () => {
                 {/* Page Header */}
                 <div className="mb-6">
                     <h1 className="text-2xl font-bold text-gray-900 mb-2">جميع البراندات</h1>
-                    <p className="text-gray-500 text-sm">اكتشف منتجات براندك المفضل</p>
+                    <p className="text-gray-500 text-sm">تصفح البراندات المتاحة واختر براندك المفضل</p>
                 </div>
 
                 {/* Unified Search Bar */}
@@ -137,53 +137,29 @@ const BrandsPage: React.FC = () => {
                                 to={`/brand/${brand.name_en.toLowerCase().replace(/\s+/g, '-')}`}
                                 className="group"
                             >
-                                <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all">
-                                    {/* Brand Image */}
-                                    <div className="relative aspect-[4/3] overflow-hidden">
-                                        <img
-                                            src={brand.banner_url || brand.logo_url || 'https://images.unsplash.com/photo-1606312619070-d48b4c652a52?w=400'}
-                                            alt={brand.name_ar}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                        />
-                                        {/* Overlay */}
-                                        <div 
-                                            className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
-                                            style={{
-                                                background: brand.primary_color 
-                                                    ? `linear-gradient(to top, ${brand.primary_color}CC, ${brand.primary_color}33, transparent)` 
-                                                    : undefined
-                                            }}
-                                        />
-                                        
-                                        {/* Featured Badge */}
+                                <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all border border-gray-100">
+                                    <div className="relative aspect-square bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+                                        {brand.logo_url || brand.banner_url ? (
+                                            <img
+                                                src={brand.logo_url || brand.banner_url || 'https://images.unsplash.com/photo-1606312619070-d48b4c652a52?w=400'}
+                                                alt={brand.name_ar}
+                                                className="w-full h-full object-contain"
+                                            />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-gray-400">
+                                                {(brand.name_ar || brand.name_en || '?').charAt(0)}
+                                            </div>
+                                        )}
                                         {brand.is_featured && (
                                             <span className="absolute top-2 right-2 bg-orange-500 text-white text-[10px] px-2 py-1 rounded-full font-bold flex items-center gap-1">
                                                 <Star size={10} fill="white" />
                                                 مميز
                                             </span>
                                         )}
-                                        
-                                        {/* Brand Name on Image */}
-                                        <div className="absolute bottom-0 left-0 right-0 p-3">
-                                            <h3 className="text-white font-bold text-lg">{brand.name_ar}</h3>
-                                            <p className="text-white/80 text-xs">{brand.name_en}</p>
-                                        </div>
                                     </div>
-                                    
-                                    {/* Brand Info */}
-                                    <div className="p-3">
-                                        <div className="flex items-center justify-between text-sm">
-                                            <span className="text-gray-500 flex items-center gap-1">
-                                                <Package size={14} />
-                                                {brand.products_count} منتج
-                                            </span>
-                                            <span 
-                                                className="font-medium flex items-center"
-                                                style={{ color: brand.primary_color || '#f97316' }}
-                                            >
-                                                تسوق <ChevronRight size={16} />
-                                            </span>
-                                        </div>
+                                    <div className="p-3 text-center">
+                                        <h3 className="text-sm font-bold text-gray-900">{brand.name_ar}</h3>
+                                        <p className="text-xs text-gray-500">{brand.name_en}</p>
                                     </div>
                                 </div>
                             </Link>

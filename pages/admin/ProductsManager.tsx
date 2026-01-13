@@ -756,48 +756,55 @@ const ProductsManager = () => {
     };
 
     return (
-        <div>
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-gray-900">Products Management</h1>
-                <div className="flex flex-wrap gap-2">
-                    {/* Export to Excel Button */}
-                    <button
-                        onClick={exportAllToExcel}
-                        className="flex items-center space-x-2 px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors font-bold shadow-md"
-                    >
-                        <FileSpreadsheet size={18} />
-                        <span>تصدير كل المنتجات Excel</span>
-                    </button>
-                    
-                    <button
-                        onClick={() => navigate('/admin/upload')}
-                        className="flex items-center space-x-2 px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                        <Upload size={16} />
-                        <span>Import Excel</span>
-                    </button>
-                    <button
-                        onClick={openCreate}
-                        className="flex items-center space-x-2 px-4 py-2 bg-brand-orange text-white rounded-lg hover:bg-orange-700 transition-colors"
-                    >
-                        <Plus size={18} />
-                        <span>Add Product</span>
-                    </button>
+        <div className="admin-page-container">
+            <div className="admin-page-header">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+                    <div>
+                        <h1 className="admin-page-title mb-0">إدارة المنتجات</h1>
+                        <p className="admin-page-subtitle">عرض وتحرير وإضافة المنتجات</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                        {/* Export to Excel Button */}
+                        <button
+                            onClick={exportAllToExcel}
+                            className="admin-btn-secondary flex-1 sm:flex-initial"
+                        >
+                            <FileSpreadsheet size={18} />
+                            <span className="hidden sm:inline">تصدير Excel</span>
+                            <span className="sm:hidden">Excel</span>
+                        </button>
+                        
+                        <button
+                            onClick={() => navigate('/admin/upload')}
+                            className="admin-btn-secondary flex-1 sm:flex-initial"
+                        >
+                            <Upload size={16} />
+                            <span className="hidden sm:inline">استيراد Excel</span>
+                            <span className="sm:hidden">استيراد</span>
+                        </button>
+                        <button
+                            onClick={openCreate}
+                            className="admin-btn-primary flex-1 sm:flex-initial"
+                        >
+                            <Plus size={18} />
+                            <span>إضافة منتج</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
             {/* Search Bar & Branch Filter */}
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6">
-                <div className="flex flex-col md:flex-row gap-4">
+            <div className="admin-card mb-4 sm:mb-6">
+                <div className="flex flex-col md:flex-row gap-3 sm:gap-4">
                     {/* Search Input */}
                     <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                         <input
                             type="text"
                             placeholder="ابحث عن منتج..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange"
+                            className="admin-form-input pl-10"
                         />
                     </div>
                     
@@ -806,7 +813,7 @@ const ProductsManager = () => {
                         <select
                             value={selectedBranchFilter}
                             onChange={(e) => setSelectedBranchFilter(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange bg-white"
+                            className="admin-form-select"
                         >
                             <option value="all">🏪 جميع الفروع</option>
                             {branches.map(branch => (
