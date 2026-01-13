@@ -267,6 +267,49 @@ export const api = {
                 : `${API_URL}/products/barcode/${barcode}`;
             const res = await fetch(url, { headers: getHeaders() });
             return res.json();
+        },
+        // Frame management APIs
+        uploadFrame: async (formData: FormData) => {
+            const res = await fetch(`${API_URL}/products/upload-frame`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: formData
+            });
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.message || 'فشل رفع الإطار');
+            }
+            return res.json();
+        },
+        getFrames: async () => {
+            const res = await fetch(`${API_URL}/products/frames`, { headers: getHeaders() });
+            if (!res.ok) {
+                throw new Error('فشل تحميل الإطارات');
+            }
+            return res.json();
+        },
+        deleteFrame: async (frameId: number) => {
+            const res = await fetch(`${API_URL}/products/frames/${frameId}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+            if (!res.ok) {
+                throw new Error('فشل حذف الإطار');
+            }
+            return res.json();
+        },
+        updateProductFrame: async (productId: string, frameData: { frame_overlay_url: string; frame_enabled: boolean }) => {
+            const res = await fetch(`${API_URL}/products/${productId}/frame`, {
+                method: 'PATCH',
+                headers: getHeaders(),
+                body: JSON.stringify(frameData)
+            });
+            if (!res.ok) {
+                throw new Error('فشل تحديث إطار المنتج');
+            }
+            return res.json();
         }
     },
     heroSections: {
