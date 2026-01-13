@@ -62,7 +62,7 @@ const emptyCategory = {
     icon: '',
     bg_color: 'bg-orange-50',
     description: '',
-    parent_id: null as number | null,
+    parent_id: null as number | null, // تلقائيًا = تصنيف أب
     display_order: 0,
     is_active: true
 };
@@ -110,7 +110,8 @@ const CategoriesManager: React.FC = () => {
 
     const openCreate = () => {
         setEditing(null);
-        setForm(emptyCategory);
+        // تصنيف جديد = تصنيف أب تلقائيًا (parent_id = null)
+        setForm({ ...emptyCategory, parent_id: null });
         setShowModal(true);
     };
 
@@ -465,11 +466,16 @@ const CategoriesManager: React.FC = () => {
                                     onChange={(e) => setForm({ ...form, parent_id: e.target.value ? parseInt(e.target.value) : null })}
                                     className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange/20"
                                 >
-                                    <option value="">بدون (تصنيف رئيسي)</option>
+                                    <option value="">بدون (تصنيف رئيسي) ⭐</option>
                                     {parentCategories.filter(c => c.id !== editing?.id).map(cat => (
                                         <option key={cat.id} value={cat.id}>{cat.name_ar || cat.name}</option>
                                     ))}
                                 </select>
+                                {!editing && (
+                                    <p className="text-xs text-green-600 mt-1">
+                                        💡 التصنيف الجديد سيكون تصنيفًا رئيسيًا تلقائيًا (Parent Category)
+                                    </p>
+                                )}
                             </div>
 
                             <div>

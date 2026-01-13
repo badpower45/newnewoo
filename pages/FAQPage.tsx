@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import { HelpCircle, ChevronDown, ChevronUp, Search, Phone, MessageCircle, Truck, CreditCard, Package, RefreshCw, User, Shield, ArrowLeft } from 'lucide-react';
+import { HelpCircle, ChevronDown, ChevronUp, Search, Phone, MessageCircle, Truck, CreditCard, Package, RefreshCw, User, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import TopBar from '../components/TopBar';
-import Footer from '../components/Footer';
 
 interface FAQItem {
     question: string;
@@ -168,127 +166,146 @@ export default function FAQPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <TopBar />
-            
-            {/* Hero Section */}
-            <div className="bg-gradient-to-r from-brand-brown to-brand-orange py-16 px-4">
-                <div className="max-w-4xl mx-auto text-center relative">
+        <div className="min-h-screen bg-[#F6F7FB] flex flex-col pb-4" dir="rtl">
+            <header className="sticky top-0 z-20 bg-white/95 backdrop-blur border-b border-gray-200">
+                <div className="max-w-3xl mx-auto px-3 py-2.5 flex items-center justify-between" dir="ltr">
                     <button
                         onClick={handleBack}
-                        className="absolute left-0 top-4 w-10 h-10 bg-white/15 rounded-full flex items-center justify-center hover:bg-white/25 transition"
-                        dir="ltr"
+                        className="w-9 h-9 rounded-xl border border-gray-200 flex items-center justify-center hover:bg-gray-50 transition-colors"
+                        aria-label="رجوع"
                     >
-                        <ArrowLeft size={22} className="text-white" />
+                        <ArrowLeft size={16} className="text-gray-700" />
                     </button>
-                    <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <HelpCircle size={40} className="text-white" />
-                    </div>
-                    <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                        الأسئلة الشائعة ❓
-                    </h1>
-                    <p className="text-white/80 max-w-2xl mx-auto mb-8">
-                        ابحث عن إجابة سؤالك أو تصفح الأسئلة حسب الفئة
-                    </p>
-
-                    {/* Search */}
-                    <div className="relative max-w-md mx-auto">
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="ابحث عن سؤالك..."
-                            className="w-full px-6 py-4 pr-14 rounded-2xl text-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-white/30 shadow-xl"
-                        />
-                        <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" size={24} />
-                    </div>
-                </div>
-            </div>
-
-            {/* Content */}
-            <div className="max-w-4xl mx-auto px-4 py-12">
-                {/* Categories */}
-                <div className="flex gap-2 overflow-x-auto pb-4 mb-8 scrollbar-hide">
-                    {CATEGORIES.map((cat) => (
-                        <button
-                            key={cat}
-                            onClick={() => setSelectedCategory(cat)}
-                            className={`px-4 py-2 rounded-full whitespace-nowrap transition-all ${
-                                selectedCategory === cat
-                                    ? 'bg-brand-orange text-white'
-                                    : 'bg-white text-gray-700 hover:bg-gray-100'
-                            }`}
-                        >
-                            {cat}
-                        </button>
-                    ))}
-                </div>
-
-                {/* FAQ List */}
-                <div className="space-y-4">
-                    {filteredFAQs.length === 0 ? (
-                        <div className="text-center py-12">
-                            <HelpCircle size={48} className="text-gray-300 mx-auto mb-4" />
-                            <h3 className="text-lg font-bold text-gray-700 mb-2">لم يتم العثور على نتائج</h3>
-                            <p className="text-gray-500">جرب البحث بكلمات مختلفة أو تواصل معنا</p>
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white flex items-center justify-center shadow-sm">
+                            <HelpCircle size={20} />
                         </div>
-                    ) : (
-                        filteredFAQs.map((faq, index) => {
-                            const Icon = getCategoryIcon(faq.category);
-                            const isOpen = openQuestions.includes(index);
-                            
-                            return (
-                                <div 
-                                    key={index}
-                                    className="bg-white rounded-2xl shadow-lg overflow-hidden"
-                                >
-                                    <button
-                                        onClick={() => toggleQuestion(index)}
-                                        className="w-full p-6 flex items-center gap-4 text-right hover:bg-gray-50 transition-colors"
-                                    >
-                                        <div className="w-10 h-10 bg-brand-orange/10 rounded-full flex items-center justify-center flex-shrink-0">
-                                            <Icon size={20} className="text-brand-orange" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <span className="text-xs text-brand-orange font-medium">{faq.category}</span>
-                                            <h3 className="font-bold text-gray-800">{faq.question}</h3>
-                                        </div>
-                                        {isOpen ? (
-                                            <ChevronUp className="text-gray-400 flex-shrink-0" size={24} />
-                                        ) : (
-                                            <ChevronDown className="text-gray-400 flex-shrink-0" size={24} />
-                                        )}
-                                    </button>
-                                    
-                                    {isOpen && (
-                                        <div className="px-6 pb-6 pr-20">
-                                            <p className="text-gray-600 leading-relaxed">{faq.answer}</p>
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })
-                    )}
+                        <div>
+                            <p className="text-[11px] text-gray-500">مركز المساعدة</p>
+                            <div className="text-sm font-semibold text-gray-900">الأسئلة الشائعة</div>
+                        </div>
+                    </div>
+                    <a
+                        href="tel:19999"
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl border border-gray-200 text-xs text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                        <Phone size={14} />
+                        <span className="hidden sm:inline">اتصل بنا</span>
+                    </a>
                 </div>
+            </header>
 
-                {/* Contact Section */}
-                <div className="mt-12 bg-gradient-to-r from-brand-brown to-brand-orange rounded-2xl p-8 text-center text-white">
-                    <h3 className="text-xl font-bold mb-4">لم تجد إجابة سؤالك؟</h3>
-                    <p className="text-white/80 mb-6">فريق خدمة العملاء متاح على مدار الساعة لمساعدتك</p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <a href="tel:19999" className="inline-flex items-center justify-center gap-3 bg-white text-brand-brown px-8 py-4 rounded-xl font-bold hover:bg-gray-100 transition-colors">
-                            <Phone size={24} />
-                            اتصل بنا: 19999
-                        </a>
-                        <a href="/chat" className="inline-flex items-center justify-center gap-3 bg-white/20 text-white px-8 py-4 rounded-xl font-bold hover:bg-white/30 transition-colors">
-                            <MessageCircle size={24} />
-                            إرسال اقتراح
-                        </a>
+            <main className="flex-1 w-full px-3 sm:px-4 py-4">
+                <div className="max-w-3xl mx-auto flex flex-col gap-4">
+                    <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                        <div className="px-4 pt-3 pb-3 border-b border-gray-100">
+                            <div className="flex items-center justify-between mb-3">
+                                <p className="text-sm font-semibold text-gray-900">ابحث عن إجابة</p>
+                                <p className="text-xs text-gray-400">ردود مختصرة وسريعة</p>
+                            </div>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    placeholder="ابحث عن سؤالك..."
+                                    className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 pr-10 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
+                                />
+                                <Search className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                            </div>
+                            <div className="flex gap-2 overflow-x-auto pb-1 mt-3 scrollbar-hide -mx-1 px-1">
+                                {CATEGORIES.map((cat) => (
+                                    <button
+                                        key={cat}
+                                        onClick={() => setSelectedCategory(cat)}
+                                        className={`min-w-fit px-3 py-1.5 rounded-full whitespace-nowrap border text-xs transition-all ${
+                                            selectedCategory === cat
+                                                ? 'bg-orange-500 text-white border-orange-500'
+                                                : 'bg-white text-gray-600 border-gray-200 hover:border-orange-300 hover:bg-orange-50'
+                                        }`}
+                                    >
+                                        {cat}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="px-4 py-3 space-y-3 bg-gradient-to-b from-white to-gray-50">
+                            {filteredFAQs.length === 0 ? (
+                                <div className="text-center py-10">
+                                    <HelpCircle size={40} className="text-gray-300 mx-auto mb-3" />
+                                    <h3 className="text-base font-bold text-gray-700 mb-1">لم يتم العثور على نتائج</h3>
+                                    <p className="text-sm text-gray-500">جرّب كلمات مختلفة أو تواصل معنا</p>
+                                </div>
+                            ) : (
+                                filteredFAQs.map((faq, index) => {
+                                    const Icon = getCategoryIcon(faq.category);
+                                    const isOpen = openQuestions.includes(index);
+
+                                    return (
+                                        <div
+                                            key={index}
+                                            className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
+                                        >
+                                            <button
+                                                onClick={() => toggleQuestion(index)}
+                                                className="w-full p-4 flex items-center gap-3 text-right hover:bg-gray-50 transition-colors"
+                                            >
+                                                <div className="w-9 h-9 bg-orange-50 rounded-full flex items-center justify-center flex-shrink-0">
+                                                    <Icon size={18} className="text-orange-500" />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <span className="text-[11px] text-orange-500 font-medium">{faq.category}</span>
+                                                    <h3 className="font-semibold text-gray-800 text-sm sm:text-base">{faq.question}</h3>
+                                                </div>
+                                                {isOpen ? (
+                                                    <ChevronUp className="text-gray-400 flex-shrink-0" size={20} />
+                                                ) : (
+                                                    <ChevronDown className="text-gray-400 flex-shrink-0" size={20} />
+                                                )}
+                                            </button>
+
+                                            {isOpen && (
+                                                <div className="px-4 pb-4 pr-12">
+                                                    <p className="text-sm text-gray-600 leading-relaxed">{faq.answer}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5">
+                        <div className="flex items-center gap-3 mb-3">
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-600 text-white flex items-center justify-center shadow-sm">
+                                <MessageCircle size={20} />
+                            </div>
+                            <div>
+                                <h3 className="text-base font-semibold text-gray-900">لم تجد إجابة سؤالك؟</h3>
+                                <p className="text-xs text-gray-500">فريق خدمة العملاء متاح دائماً</p>
+                            </div>
+                        </div>
+                        <div className="flex flex-col sm:flex-row gap-3">
+                            <a
+                                href="tel:19999"
+                                className="flex-1 inline-flex items-center justify-center gap-2 bg-gray-900 text-white px-4 py-3 rounded-xl font-semibold hover:bg-gray-800 transition-colors text-sm"
+                            >
+                                <Phone size={18} />
+                                اتصل بنا
+                            </a>
+                            <a
+                                href="/chat"
+                                className="flex-1 inline-flex items-center justify-center gap-2 bg-orange-500 text-white px-4 py-3 rounded-xl font-semibold hover:bg-orange-600 transition-colors text-sm"
+                            >
+                                <MessageCircle size={18} />
+                                إرسال مقترح
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <Footer />
+            </main>
         </div>
     );
 }

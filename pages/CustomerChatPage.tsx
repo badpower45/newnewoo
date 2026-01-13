@@ -78,6 +78,7 @@ const CustomerChatPage: React.FC = () => {
   const [conversation, setConversation] = useState<ChatConversation | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isSendingQuickRef = useRef(false);
+  const lastQuickResponseRef = useRef<{ text: string; sentAt: number } | null>(null);
   const pendingMessagesRef = useRef<Array<{ tempId: string; sender: DisplayMessage['sender']; content: string; createdAt: number }>>([]);
   const handleBack = () => {
     if (typeof window !== 'undefined' && window.history.length > 1) {
@@ -113,6 +114,18 @@ const CustomerChatPage: React.FC = () => {
 
     const [{ tempId }] = pendingMessagesRef.current.splice(index, 1);
     return tempId;
+  };
+
+  const isDuplicateMessage = (incoming: DisplayMessage, existing: DisplayMessage[]) => {
+    const incomingTime = incoming.timestamp.getTime();
+    const incomingContent = normalizeContent(incoming.content);
+    return existing.some((message) => {
+      return (
+        message.sender === incoming.sender &&
+        normalizeContent(message.content) === incomingContent &&
+        Math.abs(message.timestamp.getTime() - incomingTime) < 8000
+      );
+    });
   };
 
   // Initialize chat
@@ -152,6 +165,7 @@ const CustomerChatPage: React.FC = () => {
             setMessages(prev => {
               // Avoid duplicates
               if (prev.find(m => m.id === displayMsg.id)) return prev;
+              if (isDuplicateMessage(displayMsg, prev)) return prev;
               if (pendingMatchId) {
                 let replaced = false;
                 const updated = prev.map(msg => {
@@ -192,10 +206,9 @@ const CustomerChatPage: React.FC = () => {
 
   // Send message
   const sendMessage = async (content: string, blockIfSending = false) => {
+    if (!content.trim()) return;
     if (blockIfSending && isSendingQuickRef.current) return;
     if (blockIfSending) isSendingQuickRef.current = true;
-
-    if (!content.trim()) return;
 
     const tempId = `temp_${Date.now()}`;
     const newMessage: DisplayMessage = {
@@ -318,6 +331,11 @@ const CustomerChatPage: React.FC = () => {
       console.log('⚠️ Already sending quick response, ignoring...');
       return;
     }
+    const now = Date.now();
+    if (lastQuickResponseRef.current?.text === text && now - lastQuickResponseRef.current.sentAt < 1200) {
+      return;
+    }
+    lastQuickResponseRef.current = { text, sentAt: now };
     sendMessage(text, true);
   };
 

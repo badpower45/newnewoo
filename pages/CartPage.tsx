@@ -65,18 +65,52 @@ const CartPage = () => {
 
     if (items.length === 0) {
         return (
-            <div className="min-h-screen bg-[#f9fafb] flex items-center justify-center">
-                <div
-                    className="relative w-full h-[70vh] overflow-hidden bg-white"
-                >
-                    <iframe
-                        src="https://player.vimeo.com/video/1150683918?background=1&autoplay=1&loop=1&muted=1&playsinline=1&controls=0&title=0&byline=0&portrait=0"
-                        className="absolute inset-0 w-full h-full"
-                        allow="autoplay; fullscreen"
-                        referrerPolicy="strict-origin-when-cross-origin"
-                        allowFullScreen
-                        title="Cart empty splash"
-                    />
+            <div className="min-h-screen bg-[#F6F7FB] flex items-center justify-center px-4 py-10">
+                <div className="relative w-full max-w-3xl">
+                    <div className="absolute -top-10 -right-8 w-40 h-40 bg-orange-200/40 rounded-full blur-3xl"></div>
+                    <div className="absolute -bottom-12 -left-8 w-44 h-44 bg-amber-200/40 rounded-full blur-3xl"></div>
+                    <div className="relative bg-white border border-gray-200 rounded-3xl shadow-lg p-6 sm:p-10 text-center overflow-hidden">
+                        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600"></div>
+                        <div className="mx-auto w-24 h-24 rounded-3xl bg-gradient-to-br from-orange-500 to-orange-600 text-white flex items-center justify-center shadow-md">
+                            <ShoppingCart size={42} />
+                        </div>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mt-5">سلتك فاضية حالياً</h1>
+                        <p className="text-sm text-gray-500 mt-2">
+                            اختَر منتجاتك المفضلة وابدأ طلبك في ثواني.
+                        </p>
+
+                        <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
+                            <button
+                                onClick={() => navigate('/products')}
+                                className="inline-flex items-center justify-center gap-2 bg-gray-900 text-white px-6 py-3 rounded-xl font-semibold hover:bg-gray-800 transition-colors"
+                            >
+                                <ShoppingCart size={18} />
+                                تصفح المنتجات
+                            </button>
+                            <button
+                                onClick={() => navigate('/deals')}
+                                className="inline-flex items-center justify-center gap-2 bg-orange-500 text-white px-6 py-3 rounded-xl font-semibold hover:bg-orange-600 transition-colors"
+                            >
+                                <Gift size={18} />
+                                شوف العروض
+                            </button>
+                        </div>
+
+                        <div className="mt-6 grid sm:grid-cols-3 gap-3 text-xs text-gray-600">
+                            <div className="bg-gray-50 rounded-xl p-3">
+                                <p className="font-semibold text-gray-900 mb-1">توصيل سريع</p>
+                                <p>نوصل خلال 24-48 ساعة</p>
+                            </div>
+                            <div className="bg-gray-50 rounded-xl p-3">
+                                <p className="font-semibold text-gray-900 mb-1">أمان وموثوقية</p>
+                                <p>دفع مرن وخيارات متعددة</p>
+                            </div>
+                            <div className="bg-gray-50 rounded-xl p-3">
+                                <p className="font-semibold text-gray-900 mb-1">نقاط الولاء</p>
+                                <p>اكسب نقاط مع كل طلب</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         );

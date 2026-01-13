@@ -89,7 +89,7 @@ const MorePage = () => {
         },
         {
             icon: MessageSquare,
-            label: 'إرسال الاقتراح',
+            label: 'إرسال مقترحات',
             iconBg: 'bg-indigo-100',
             iconColor: 'text-indigo-600',
             route: '/chat',
