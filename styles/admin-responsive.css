@@ -359,11 +359,20 @@
   transition: all 0.2s ease-in-out;
 }
 
-/* Better focus states for accessibility */
-input:focus,
-select:focus,
-textarea:focus,
-button:focus {
+/* Smooth transitions for better UX */
+.admin-card,
+.admin-modal-container,
+.admin-stat-card {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Better focus states for accessibility - only for admin elements */
+.admin-form-input:focus,
+.admin-form-select:focus,
+.admin-form-textarea:focus,
+.admin-btn-primary:focus,
+.admin-btn-secondary:focus,
+.admin-btn-danger:focus {
   @apply outline-none ring-2 ring-brand-orange ring-offset-2;
 }
 
@@ -385,10 +394,3 @@ button:focus {
     @apply p-0;
   }
 }
-- ONLY for admin elements */
-.admin-form-input:focus,
-.admin-form-select:focus,
-.admin-form-textarea:focus,
-.admin-btn-primary:focus,
-.admin-btn-secondary:focus,
-.admin-btn-danger
