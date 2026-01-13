@@ -78,6 +78,7 @@ import StoriesManager from './pages/admin/StoriesManager';
 import CategoriesManager from './pages/admin/CategoriesManager';
 import CategoryBannersManager from './pages/admin/CategoryBannersManager';
 import FacebookReelsManager from './pages/admin/FacebookReelsManager';
+import ProductFramesManager from './pages/admin/ProductFramesManager';
 import BrandOffersAdminPage from './pages/admin/BrandOffersAdminPage';
 import BrandsManager from './pages/admin/BrandsManager';
 import HeroSectionsManager from './pages/admin/HeroSectionsManager';
@@ -202,6 +203,7 @@ function AppContent() {
               <Route path="drafts/:batchId?" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><DraftProductsReview /></ProtectedRoute>} />
               <Route path="categories" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><CategoriesManager /></ProtectedRoute>} />
               <Route path="category-banners" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><CategoryBannersManager /></ProtectedRoute>} />
+              <Route path="product-frames" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><ProductFramesManager /></ProtectedRoute>} />
               <Route path="upload" element={<ProductUploadPage />} />
               <Route path="orders" element={<OrdersManager />} />
               <Route path="branches" element={<BranchesManager />} />

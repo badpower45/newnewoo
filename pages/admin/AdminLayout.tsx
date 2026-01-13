@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingBag, Users, Settings, LogOut, Upload, MessageCircle, Store, CalendarClock, ClipboardList, Truck, Tag, Menu, X, BookOpen, Flame, CircleDot, FolderTree, Facebook, Gift, FileSpreadsheet, LayoutGrid, Briefcase, BarChart3, RotateCcw } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, Users, Settings, LogOut, Upload, MessageCircle, Store, CalendarClock, ClipboardList, Truck, Tag, Menu, X, BookOpen, Flame, CircleDot, FolderTree, Facebook, Gift, FileSpreadsheet, LayoutGrid, Briefcase, BarChart3, RotateCcw, ImageIcon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const AdminLayout = () => {
@@ -48,6 +48,7 @@ const AdminLayout = () => {
                 { path: '/admin/products', icon: <Package size={20} />, label: 'المنتجات', roles: ['admin', 'manager'] },
                 { path: '/admin/categories', icon: <FolderTree size={20} />, label: 'التصنيفات', roles: ['admin', 'manager'] },
                 { path: '/admin/brands', icon: <Briefcase size={20} />, label: 'إدارة البراندات', roles: ['admin', 'manager'] },
+                { path: '/admin/product-frames', icon: <ImageIcon size={20} />, label: 'إطارات المنتجات', roles: ['admin', 'manager'] },
                 { path: '/admin/product-importer', icon: <FileSpreadsheet size={20} />, label: 'استيراد Excel', roles: ['admin', 'manager'] },
             ]
         },

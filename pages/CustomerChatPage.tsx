@@ -79,6 +79,7 @@ const CustomerChatPage: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isSendingQuickRef = useRef(false);
   const lastQuickResponseRef = useRef<{ text: string; sentAt: number } | null>(null);
+  const lastOutgoingRef = useRef<{ sender: DisplayMessage['sender']; content: string; sentAt: number } | null>(null);
   const pendingMessagesRef = useRef<Array<{ tempId: string; sender: DisplayMessage['sender']; content: string; createdAt: number }>>([]);
   const handleBack = () => {
     if (typeof window !== 'undefined' && window.history.length > 1) {
@@ -89,6 +90,24 @@ const CustomerChatPage: React.FC = () => {
   };
 
   const normalizeContent = (content: string) => content.trim().replace(/\s+/g, ' ').toLowerCase();
+
+  const isRecentOutgoingDuplicate = (sender: DisplayMessage['sender'], content: string, windowMs = 1500) => {
+    const last = lastOutgoingRef.current;
+    if (!last) return false;
+    return (
+      last.sender === sender &&
+      last.content === normalizeContent(content) &&
+      Date.now() - last.sentAt < windowMs
+    );
+  };
+
+  const recordOutgoing = (sender: DisplayMessage['sender'], content: string) => {
+    lastOutgoingRef.current = {
+      sender,
+      content: normalizeContent(content),
+      sentAt: Date.now()
+    };
+  };
 
   const registerPendingMessage = (tempId: string, sender: DisplayMessage['sender'], content: string) => {
     pendingMessagesRef.current.push({
@@ -119,6 +138,14 @@ const CustomerChatPage: React.FC = () => {
   const isDuplicateMessage = (incoming: DisplayMessage, existing: DisplayMessage[]) => {
     const incomingTime = incoming.timestamp.getTime();
     const incomingContent = normalizeContent(incoming.content);
+    const lastMessage = existing[existing.length - 1];
+    if (
+      lastMessage &&
+      lastMessage.sender === incoming.sender &&
+      normalizeContent(lastMessage.content) === incomingContent
+    ) {
+      return true;
+    }
     return existing.some((message) => {
       return (
         message.sender === incoming.sender &&
@@ -208,7 +235,9 @@ const CustomerChatPage: React.FC = () => {
   const sendMessage = async (content: string, blockIfSending = false) => {
     if (!content.trim()) return;
     if (blockIfSending && isSendingQuickRef.current) return;
+    if (isRecentOutgoingDuplicate('user', content, 2000)) return;
     if (blockIfSending) isSendingQuickRef.current = true;
+    recordOutgoing('user', content);
 
     const tempId = `temp_${Date.now()}`;
     const newMessage: DisplayMessage = {
@@ -260,6 +289,8 @@ const CustomerChatPage: React.FC = () => {
         
         if (botResponse) {
           const botTempId = `bot_${Date.now()}`;
+          if (isRecentOutgoingDuplicate('bot', botResponse, 3000)) return;
+          recordOutgoing('bot', botResponse);
           const botMessage: DisplayMessage = {
             id: botTempId,
             content: botResponse,
@@ -273,17 +304,24 @@ const CustomerChatPage: React.FC = () => {
           // Save bot message to Supabase
           if (conversation && isConnected) {
             registerPendingMessage(botTempId, 'bot', botResponse);
-            await supabaseChatService.sendMessage(
+            const sentBotMessage = await supabaseChatService.sendMessage(
               conversation.id,
               null,
               'bot',
               botResponse
             );
+            if (sentBotMessage) {
+              setMessages(prev => prev.map(msg =>
+                msg.id === botTempId ? { ...msg, id: String(sentBotMessage.id) } : msg
+              ));
+            }
           }
         } else {
           // Default response if no keyword match
           const defaultText = 'شكراً لرسالتك! سيتواصل معك أحد ممثلي خدمة العملاء قريباً. في الأثناء، هل يمكنني مساعدتك بأي شيء آخر؟';
           const botTempId = `bot_${Date.now()}`;
+          if (isRecentOutgoingDuplicate('bot', defaultText, 3000)) return;
+          recordOutgoing('bot', defaultText);
           const defaultResponse: DisplayMessage = {
             id: botTempId,
             content: defaultText,
@@ -296,12 +334,17 @@ const CustomerChatPage: React.FC = () => {
 
           if (conversation && isConnected) {
             registerPendingMessage(botTempId, 'bot', defaultText);
-            await supabaseChatService.sendMessage(
+            const sentBotMessage = await supabaseChatService.sendMessage(
               conversation.id,
               null,
               'bot',
               defaultText
             );
+            if (sentBotMessage) {
+              setMessages(prev => prev.map(msg =>
+                msg.id === botTempId ? { ...msg, id: String(sentBotMessage.id) } : msg
+              ));
+            }
           }
         }
       }, 1000 + Math.random() * 1000);
