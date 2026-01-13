@@ -358,7 +358,7 @@ const HomePage = () => {
                                         <div className="flex items-center justify-between mb-4">
                                             <h2 className="text-xl font-bold text-gray-900">{section.section_name_ar}</h2>
                                             <Link
-                                                to={`/products?category=${encodeURIComponent(section.category)}`}
+                                                to={`/products?category=${encodeURIComponent(categoryParam)}`}
                                                 className="text-[#FF4500] text-sm font-semibold flex items-center gap-1 hover:gap-2 transition-all"
                                             >
                                                 عرض المزيد <ChevronRight className="w-4 h-4" />
