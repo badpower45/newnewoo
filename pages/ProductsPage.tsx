@@ -252,14 +252,27 @@ export default function ProductsPage() {
         setLoading(true);
         try {
             const branchId = selectedBranch?.id || 1;
-            console.log('📦 Fetching products for branch:', branchId);
-            const data = await api.products.getAllByBranch(branchId);
+            console.log('📦 Fetching products for branch:', branchId, 'category:', selectedCategory);
+            
+            let data;
+            if (selectedCategory && selectedCategory !== '') {
+                // Fetch products by category from API
+                console.log('🎯 Using API category filter:', selectedCategory);
+                data = await api.products.getByCategory(selectedCategory, branchId);
+            } else {
+                // Fetch all products
+                console.log('🎯 Fetching all products');
+                data = await api.products.getAllByBranch(branchId);
+            }
+            
             const list = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
             console.log('✅ Loaded products:', list.length);
             
             // Show unique categories in loaded products
-            const uniqueCategories = [...new Set(list.map((p: any) => p.category))];
-            console.log('📊 All available categories:', uniqueCategories);
+            if (list.length > 0) {
+                const uniqueCategories = [...new Set(list.map((p: any) => p.category))];
+                console.log('📊 Categories in loaded products:', uniqueCategories);
+            }
             
             setAllProducts(list);
         } catch (err) {
@@ -267,7 +280,7 @@ export default function ProductsPage() {
         } finally {
             setLoading(false);
         }
-    }, [selectedBranch]);
+    }, [selectedBranch, selectedCategory]);
 
     const [scannedProduct, setScannedProduct] = useState<Product | null>(null);
     const [showProductModal, setShowProductModal] = useState(false);
@@ -353,8 +366,10 @@ export default function ProductsPage() {
         if (category) {
             // Map the category name to match database values
             const mappedCategory = categoryMapping[category] || category;
-            console.log('🔍 Category mapping:', category, '→', mappedCategory);
+            console.log('🔍 Category from URL:', category, '→ Mapped to:', mappedCategory);
             setSelectedCategory(mappedCategory);
+        } else {
+            setSelectedCategory('');
         }
 
         // Handle barcode from URL (from TopBar navigation)
@@ -370,88 +385,27 @@ export default function ProductsPage() {
             return;
         }
         
+        // Fetch products will be called automatically when selectedCategory changes
+    }, [searchParams, handleSearch, handleBarcodeScanned]);
+
+    // Separate effect to fetch products when category or branch changes
+    useEffect(() => {
         fetchProducts();
-    }, [searchParams, selectedBranch, handleSearch, handleBarcodeScanned, fetchProducts]);
+    }, [fetchProducts]);
 
     // Filter and sort products
     const filteredAndSortedProducts = useMemo(() => {
         let filtered = [...allProducts];
 
-        console.log('🔧 Starting filter - Total products:', filtered.length);
-        console.log('🔧 Selected category:', selectedCategory);
+        console.log('🔧 Client-side filter - Total products:', filtered.length);
+        console.log('🔧 Selected category:', selectedCategory || 'All');
 
-        // Filter by category with flexible matching
-        if (selectedCategory) {
-            console.log('🔍 Filtering by category:', selectedCategory);
-            console.log('📦 Total products before filter:', filtered.length);
-            
-            // First, let's see what categories exist in products
-            const productCategories = [...new Set(filtered.map(p => p.category))];
-            console.log('📊 Available product categories:', productCategories);
-            
-            filtered = filtered.filter(p => {
-                const productCategory = (p.category || '').trim();
-                const selectedCat = selectedCategory.trim();
-                
-                // Normalize both for comparison
-                const normalizedProduct = normalizeCategoryValue(productCategory);
-                const normalizedSelected = normalizeCategoryValue(selectedCat);
-                
-                console.log(`🔍 Comparing: product="${productCategory}" (${normalizedProduct}) vs selected="${selectedCat}" (${normalizedSelected})`);
-                
-                // 1. Exact match after normalization
-                if (normalizedProduct === normalizedSelected) {
-                    console.log('✅ MATCH: Normalized exact match');
-                    return true;
-                }
-                
-                // 2. Exact match (case-insensitive) without normalization
-                if (productCategory.toLowerCase() === selectedCat.toLowerCase()) {
-                    console.log('✅ MATCH: Direct exact match');
-                    return true;
-                }
-                
-                // 3. Check if product category matches any variant in mapping
-                const mappedCategory = categoryMapping[productCategory];
-                if (mappedCategory) {
-                    const normalizedMapped = normalizeCategoryValue(mappedCategory);
-                    if (normalizedMapped === normalizedSelected) {
-                        console.log(`✅ MATCH: Mapped ${productCategory} → ${mappedCategory} (normalized)`);
-                        return true;
-                    }
-                }
-                
-                // 4. Check if selected category has a reverse mapping
-                const reverseMapped = Object.entries(categoryMapping).find(
-                    ([key, value]) => normalizeCategoryValue(value) === normalizedSelected
-                );
-                if (reverseMapped) {
-                    const normalizedKey = normalizeCategoryValue(reverseMapped[0]);
-                    if (normalizedProduct === normalizedKey) {
-                        console.log(`✅ MATCH: Reverse mapped ${selectedCat} → ${reverseMapped[0]} (normalized)`);
-                        return true;
-                    }
-                }
-                
-                // 5. Partial match (contains) as last resort
-                if (normalizedProduct.includes(normalizedSelected) || normalizedSelected.includes(normalizedProduct)) {
-                    console.log('✅ MATCH: Partial match');
-                    return true;
-                }
-                
-                console.log('❌ NO MATCH');
-                return false;
-            });
-            
-            console.log('✅ Products after category filter:', filtered.length);
-            
-            // Debug: Show unique categories in filtered products
-            const uniqueCategories = [...new Set(filtered.map(p => p.category))];
-            console.log('📊 Categories in filtered products:', uniqueCategories);
-        }
-
+        // Note: Category filtering is now done server-side via API
+        // This client-side filter is only for additional filters (brand, price, etc.)
+        
         // Filter by brand
         if (selectedBrand) {
+            console.log('🔍 Filtering by brand:', selectedBrand);
             filtered = filtered.filter(p => {
                 const productBrand = (p.brand || '').toLowerCase();
                 const productName = (p.name || '').toLowerCase();
