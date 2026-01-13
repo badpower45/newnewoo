@@ -327,6 +327,14 @@ const HomePage = () => {
                     </div>
                 ) : homeSections.length > 0 ? (
                     homeSections.map((section, sectionIndex) => {
+                        // Find matching category to get Arabic name
+                        const matchingCategory = categories.find(cat => 
+                            cat.name === section.category || 
+                            cat.name_ar === section.category ||
+                            cat.name?.toLowerCase() === section.category?.toLowerCase()
+                        );
+                        const categoryParam = matchingCategory?.name_ar || matchingCategory?.name || section.category;
+                        
                         return (
                             <section key={section.id} className="relative mt-12">
                                 <div className="rounded-[28px] overflow-hidden shadow-[0_12px_30px_rgba(0,0,0,0.06)] border border-white/60 bg-white/90 backdrop-blur-[2px]">
