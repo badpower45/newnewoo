@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, X, Image as ImageIcon, Trash2, Eye, Plus } from 'lucide-react';
 import api from '../../services/api';
+import '../../styles/admin-responsive.css';
 
 interface Frame {
     id: number;
@@ -104,54 +105,57 @@ const ProductFramesManager: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
+        <div className="admin-page-container">
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
-                <div className="bg-white rounded-xl shadow-md p-6 mb-6">
-                    <div className="flex justify-between items-center">
+                <div className="admin-card mb-4 sm:mb-6">
+                    <div className="admin-card-header">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-800">إدارة إطارات المنتجات</h1>
-                            <p className="text-gray-600 mt-2">رفع وإدارة إطارات PNG الشفافة</p>
+                            <h1 className="admin-page-title">إدارة إطارات المنتجات</h1>
+                            <p className="admin-page-subtitle">رفع وإدارة إطارات PNG الشفافة</p>
                         </div>
                         <button
                             onClick={() => setUploadModalOpen(true)}
-                            className="flex items-center gap-2 bg-brand-orange text-white px-6 py-3 rounded-lg font-bold hover:bg-orange-600 transition-all"
+                            className="admin-btn-primary"
                         >
-                            <Plus className="w-5 h-5" />
-                            رفع إطار جديد
+                            <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                            <span className="hidden sm:inline">رفع إطار جديد</span>
+                            <span className="sm:hidden">رفع إطار</span>
                         </button>
                     </div>
 
                     {/* المواصفات الموصى بها */}
-                    <div className="mt-4 bg-blue-50 border-r-4 border-blue-500 p-4 rounded">
-                        <h3 className="font-bold text-blue-800 mb-2">📐 المواصفات الموصى بها:</h3>
-                        <ul className="text-sm text-blue-700 space-y-1">
+                    <div className="admin-alert admin-alert-info">
+                        <h3 className="font-bold text-blue-800 mb-2 text-sm sm:text-base">📐 المواصفات الموصى بها:</h3>
+                        <ul className="text-xs sm:text-sm text-blue-700 space-y-1">
                             <li>✅ <strong>الحجم:</strong> 500 × 500 بكسل (مربع)</li>
                             <li>✅ <strong>النوع:</strong> PNG شفاف (Transparent)</li>
                             <li>✅ <strong>الحجم:</strong> أقل من 500KB</li>
-                            <li>✅ <strong>الاستخدام:</strong> يظهر فوق صورة المنتج مباشرة</li>
+                            <li className="hidden sm:list-item">✅ <strong>الاستخدام:</strong> يظهر فوق صورة المنتج مباشرة</li>
                         </ul>
                     </div>
                 </div>
 
                 {/* Frames Grid */}
                 {loading && frames.length === 0 ? (
-                    <div className="text-center py-12">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-orange mx-auto"></div>
-                        <p className="mt-4 text-gray-600">جاري التحميل...</p>
+                    <div className="admin-empty-state">
+                        <div className="admin-spinner"></div>
+                        <p className="mt-4 text-gray-600 text-sm sm:text-base">جاري التحميل...</p>
                     </div>
                 ) : frames.length === 0 ? (
-                    <div className="bg-white rounded-xl shadow-md p-12 text-center">
-                        <ImageIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                        <h3 className="text-xl font-bold text-gray-600 mb-2">لا توجد إطارات</h3>
-                        <p className="text-gray-500">ابدأ برفع أول إطار PNG</p>
+                    <div className="admin-card">
+                        <div className="admin-empty-state">
+                            <ImageIcon className="admin-empty-icon" />
+                            <h3 className="admin-empty-title">لا توجد إطارات</h3>
+                            <p className="admin-empty-text">ابدأ برفع أول إطار PNG</p>
+                        </div>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <div className="admin-grid-4">
                         {frames.map((frame) => (
-                            <div key={frame.id} className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow">
+                            <div key={frame.id} className="admin-card p-0 overflow-hidden">
                                 {/* Frame Preview */}
-                                <div className="relative h-48 bg-gray-100">
+                                <div className="relative h-32 sm:h-40 md:h-48 bg-gray-100">
                                     <div className="absolute inset-0 flex items-center justify-center">
                                         {/* Background Product Image (Example) */}
                                         <div className="w-40 h-40 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg opacity-50"></div>
@@ -171,29 +175,33 @@ const ProductFramesManager: React.FC = () => {
                                 </div>
 
                                 {/* Frame Info */}
-                                <div className="p-4">
-                                    <h3 className="font-bold text-gray-800 mb-1">{frame.name_ar}</h3>
-                                    <p className="text-sm text-gray-500 mb-2">{frame.name}</p>
+                                <div className="p-3 sm:p-4">
+                                    <h3 className="font-bold text-gray-800 mb-1 text-sm sm:text-base truncate">
+                                        {frame.name_ar}
+                                    </h3>
+                                    <p className="text-xs sm:text-sm text-gray-500 mb-2 truncate">
+                                        {frame.name}
+                                    </p>
                                     <div className="flex items-center gap-2 mb-3">
-                                        <span className="px-2 py-1 bg-brand-orange/10 text-brand-orange text-xs rounded-full">
+                                        <span className="admin-badge-orange text-xs">
                                             {frame.category}
                                         </span>
                                     </div>
 
-                                    {/* Actions */}
-                                    <div className="flex gap-2">
+                                    {/* Actions - Stack on mobile */}
+                                    <div className="flex flex-col sm:flex-row gap-2">
                                         <a
                                             href={frame.frame_url}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="flex-1 flex items-center justify-center gap-1 bg-blue-100 text-blue-600 py-2 rounded-lg hover:bg-blue-200 transition-colors text-sm font-medium"
+                                            className="admin-btn-secondary flex-1 text-xs sm:text-sm"
                                         >
-                                            <Eye className="w-4 h-4" />
-                                            عرض
+                                            <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
+                                            <span className="hidden sm:inline">عرض</span>
                                         </a>
                                         <button
                                             onClick={() => handleDelete(frame.id)}
-                                            className="flex-1 flex items-center justify-center gap-1 bg-red-100 text-red-600 py-2 rounded-lg hover:bg-red-200 transition-colors text-sm font-medium"
+                                            className="admin-btn-danger flex-1 text-xs sm:text-sm"
                                         >
                                             <Trash2 className="w-4 h-4" />
                                             حذف
@@ -208,42 +216,44 @@ const ProductFramesManager: React.FC = () => {
 
             {/* Upload Modal */}
             {uploadModalOpen && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                        <div className="sticky top-0 bg-white border-b p-6 flex justify-between items-center">
-                            <h3 className="text-2xl font-bold">رفع إطار جديد</h3>
+                <div className="admin-modal-overlay">
+                    <div className="admin-modal-container">
+                        {/* Modal Header */}
+                        <div className="admin-modal-header">
+                            <h3 className="admin-modal-title">رفع إطار جديد</h3>
                             <button
                                 onClick={() => {
                                     setUploadModalOpen(false);
                                     resetForm();
                                 }}
-                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                                className="admin-modal-close"
                             >
-                                <X className="w-6 h-6" />
+                                <X className="w-5 h-5 sm:w-6 sm:h-6" />
                             </button>
                         </div>
 
-                        <div className="p-6 space-y-4">
+                        {/* Modal Body */}
+                        <div className="admin-modal-body">
                             {/* اسم الإطار بالإنجليزي */}
                             <div>
-                                <label className="block text-sm font-medium mb-2">اسم الإطار (EN) *</label>
+                                <label className="admin-form-label">اسم الإطار (EN) *</label>
                                 <input
                                     type="text"
                                     value={frameName}
                                     onChange={(e) => setFrameName(e.target.value)}
-                                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand-orange"
+                                    className="admin-form-input"
                                     placeholder="Gold Border"
                                 />
                             </div>
 
                             {/* اسم الإطار بالعربي */}
                             <div>
-                                <label className="block text-sm font-medium mb-2">اسم الإطار (AR) *</label>
+                                <label className="admin-form-label">اسم الإطار (AR) *</label>
                                 <input
                                     type="text"
                                     value={frameNameAr}
                                     onChange={(e) => setFrameNameAr(e.target.value)}
-                                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand-orange"
+                                    className="admin-form-input"
                                     placeholder="إطار ذهبي"
                                     dir="rtl"
                                 />
@@ -251,11 +261,11 @@ const ProductFramesManager: React.FC = () => {
 
                             {/* الفئة */}
                             <div>
-                                <label className="block text-sm font-medium mb-2">الفئة</label>
+                                <label className="admin-form-label">الفئة</label>
                                 <select
                                     value={frameCategory}
                                     onChange={(e) => setFrameCategory(e.target.value)}
-                                    className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand-orange"
+                                    className="admin-form-select"
                                 >
                                     <option value="general">عام</option>
                                     <option value="premium">مميز</option>
@@ -267,23 +277,23 @@ const ProductFramesManager: React.FC = () => {
 
                             {/* رفع الملف */}
                             <div>
-                                <label className="block text-sm font-medium mb-2">صورة PNG الشفافة *</label>
+                                <label className="admin-form-label">صورة PNG الشفافة *</label>
                                 <input
                                     type="file"
                                     accept="image/png"
                                     onChange={handleFileChange}
-                                    className="w-full px-4 py-2 border rounded-lg"
+                                    className="admin-form-input"
                                 />
-                                <p className="text-xs text-gray-500 mt-1">
+                                <p className="admin-form-hint">
                                     500×500 بكسل، PNG فقط، أقل من 500KB
                                 </p>
                             </div>
 
                             {/* معاينة */}
                             {preview && (
-                                <div className="border-2 border-dashed rounded-lg p-4">
+                                <div className="border-2 border-dashed rounded-lg p-3 sm:p-4">
                                     <p className="text-sm text-gray-600 mb-2 font-medium">معاينة:</p>
-                                    <div className="relative w-64 h-64 mx-auto">
+                                    <div className="relative w-48 h-48 sm:w-64 sm:h-64 mx-auto">
                                         {/* خلفية تجريبية */}
                                         <div className="absolute inset-0 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg"></div>
                                         {/* الإطار */}
@@ -300,10 +310,10 @@ const ProductFramesManager: React.FC = () => {
                             <button
                                 onClick={handleUpload}
                                 disabled={loading || !selectedFile || !frameName || !frameNameAr}
-                                className="w-full py-3 bg-brand-orange text-white rounded-lg font-bold hover:bg-orange-600 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all"
+                                className="admin-btn-primary w-full"
                             >
-                                <Upload className="w-5 h-5" />
-                                {loading ? 'جاري الرفع...' : 'رفع الإطار'}
+                                <Upload className="w-4 h-4 sm:w-5 sm:h-5" />
+                                <span className="text-sm sm:text-base">{loading ? 'جاري الرفع...' : 'رفع الإطار'}</span>
                             </button>
                         </div>
                     </div>

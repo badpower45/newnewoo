@@ -3,6 +3,7 @@ import { Search, Filter, Eye, X, Info } from 'lucide-react';
 import { api } from '../../services/api';
 import { ORDER_STATUS_LABELS } from '../../src/config';
 import { TableSkeleton } from '../../components/Skeleton';
+import '../../styles/admin-responsive.css';
 
 const OrdersManager = () => {
     const [orders, setOrders] = useState<any[]>([]);
@@ -65,27 +66,28 @@ const OrdersManager = () => {
 
     return (
         <div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-6">Orders Management</h1>
+            <h1 className="admin-page-title">إدارة الطلبات</h1>
 
             {/* Filters */}
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6 flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-4">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                    <input
-                        type="text"
-                        placeholder="Search by Order ID or User ID..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange"
-                    />
-                </div>
-                <div className="flex items-center space-x-2">
-                    <Filter size={20} className="text-gray-400" />
-                    <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className="border border-gray-200 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-brand-orange/20 focus:border-brand-orange"
-                    >
+            <div className="admin-card mb-4 sm:mb-6">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <input
+                            type="text"
+                            placeholder="بحث برقم الطلب..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="admin-form-input pl-10"
+                        />
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Filter size={18} className="text-gray-400 hidden sm:block" />
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="admin-form-select flex-1 sm:flex-initial"
+                        >
                         <option value="all">All Statuses</option>
                         <option value="pending">بانتظار التأكيد</option>
                         <option value="confirmed">تم التأكيد</option>
@@ -102,26 +104,32 @@ const OrdersManager = () => {
             {loading ? (
                 <TableSkeleton rows={6} cols={6} />
             ) : (
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <table className="w-full text-left">
-                    <thead className="bg-gray-50 border-b border-gray-100">
+            <div className="admin-table-container">
+                <table className="admin-table">
+                    <thead>
                         <tr>
-                            <th className="px-6 py-4 font-semibold text-gray-600">Order ID</th>
-                            <th className="px-6 py-4 font-semibold text-gray-600">Date</th>
-                            <th className="px-6 py-4 font-semibold text-gray-600">Customer</th>
-                            <th className="px-6 py-4 font-semibold text-gray-600">Total</th>
-                            <th className="px-6 py-4 font-semibold text-gray-600">Status</th>
-                            <th className="px-6 py-4 font-semibold text-gray-600 text-right">Actions</th>
+                            <th className="px-3 sm:px-6 py-3 sm:py-4">رقم الطلب</th>
+                            <th className="px-3 sm:px-6 py-3 sm:py-4 hidden sm:table-cell">التاريخ</th>
+                            <th className="px-3 sm:px-6 py-3 sm:py-4 hidden md:table-cell">العميل</th>
+                            <th className="px-3 sm:px-6 py-3 sm:py-4">الإجمالي</th>
+                            <th className="px-3 sm:px-6 py-3 sm:py-4">الحالة</th>
+                            <th className="px-3 sm:px-6 py-3 sm:py-4 text-right">إجراءات</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody>
                         {filteredOrders.map((order) => (
-                            <tr key={order.id} className="hover:bg-gray-50 transition-colors">
-                                <td className="px-6 py-4 font-medium text-gray-900">#{order.id}</td>
-                                <td className="px-6 py-4 text-gray-600">{new Date(order.date || order.created_at || Date.now()).toLocaleDateString()}</td>
-                                <td className="px-6 py-4 text-gray-600">User #{order.userId || order.user_id}</td>
-                                <td className="px-6 py-4 font-medium text-gray-900">{(Number(order.total) || 0).toFixed(2)} EGP</td>
-                                <td className="px-6 py-4">
+                            <tr key={order.id}>
+                                <td className="px-3 sm:px-6 py-3 sm:py-4 font-medium text-xs sm:text-sm">#{order.id}</td>
+                                <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm hidden sm:table-cell">
+                                    {new Date(order.date || order.created_at || Date.now()).toLocaleDateString('ar-EG')}
+                                </td>
+                                <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm hidden md:table-cell">
+                                    {order.userId || order.user_id}
+                                </td>
+                                <td className="px-3 sm:px-6 py-3 sm:py-4 font-medium text-xs sm:text-sm">
+                                    {(Number(order.total) || 0).toFixed(0)} ج
+                                </td>
+                                <td className="px-3 sm:px-6 py-3 sm:py-4">
                                     <span
                                         onClick={() => order.rejection_reason && setReasonModal({ orderId: order.id, reason: order.rejection_reason })}
                                         className={`px-2 py-1 text-xs font-bold rounded-full ${getStatusColor(order.status)} ${
@@ -129,24 +137,32 @@ const OrdersManager = () => {
                                         }`}
                                         title={order.rejection_reason ? 'عرض سبب الإلغاء' : undefined}
                                     >
-                                        {ORDER_STATUS_LABELS[order.status] || order.status}
+                                        <span className="hidden sm:inline">
+                                            {ORDER_STATUS_LABELS[order.status] || order.status}
+                                        </span>
+                                        <span className="sm:hidden">
+                                            {order.status === 'pending' ? '⏳' : 
+                                             order.status === 'confirmed' ? '✓' :
+                                             order.status === 'delivered' ? '✅' :
+                                             order.status === 'cancelled' ? '❌' : '📦'}
+                                        </span>
                                         {order.rejection_reason && (
-                                            <Info size={14} className="inline-block ml-1 align-middle" />
+                                            <Info size={12} className="inline-block ml-1 align-middle" />
                                         )}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 text-right">
-                                    <div className="flex items-center justify-end space-x-2">
+                                <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
+                                    <div className="flex items-center justify-end gap-1 sm:gap-2">
                                         <button
                                             onClick={() => { setSelectedOrder(order); setShowModal(true); }}
-                                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                            className="p-1.5 sm:p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                         >
-                                            <Eye size={18} />
+                                            <Eye size={16} className="sm:w-5 sm:h-5" />
                                         </button>
                                         <select
                                             value={order.status}
                                             onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
-                                            className="text-sm border border-gray-200 rounded px-2 py-1"
+                                            className="text-xs sm:text-sm border border-gray-200 rounded px-1 sm:px-2 py-1"
                                         >
                                             <option value="pending">بانتظار التأكيد</option>
                                             <option value="confirmed">تم التأكيد</option>
