@@ -151,13 +151,16 @@ export default function ProductsPage() {
         'Chocolate': 'شيكولاتة',
         'Chocolates': 'شيكولاتة', 
         'شوكولاتة': 'شيكولاتة',
+        'شيكولاتة': 'شيكولاتة',
         // Dairy variants
         'Dairy': 'ألبان',
         'Milk': 'ألبان',
         'ألبان': 'ألبان',
+        'البان': 'ألبان',
         // Cheese
         'Cheese': 'جبن',
         'جبن': 'جبن',
+        'جبنة': 'جبن',
         // Snacks
         'Snacks': 'سناكس',
         'سناكس': 'سناكس',
@@ -174,12 +177,22 @@ export default function ProductsPage() {
         'drinks': 'مشروبات',
         'مشروبات': 'مشروبات',
         // Bakery
-        'Bakery': 'Bakery',
+        'Bakery': 'مخبوزات',
+        'بيكري': 'مخبوزات',
+        'مخبوزات': 'مخبوزات',
         // Vegetables
-        'Vegetables': 'Vegetables',
-        'Vegetable': 'Vegetables',
+        'Vegetables': 'خضروات',
+        'Vegetable': 'خضروات',
+        'خضروات': 'خضروات',
+        'خضار': 'خضروات',
+        // Fruits
+        'Fruits': 'فواكه',
+        'Fruit': 'فواكه',
+        'فواكه': 'فواكه',
+        'فاكهة': 'فواكه',
         // Grains
-        'Grains': 'Grains',
+        'Grains': 'حبوب',
+        'حبوب': 'حبوب',
         // Frozen
         'Frozen': 'مجمدات',
         'مجمدات': 'مجمدات',
@@ -188,21 +201,35 @@ export default function ProductsPage() {
         'Beauty': 'تجميل',
         'تجميل': 'تجميل',
         // Canned food
-        'Cannedfood': 'Cannedfood',
+        'Cannedfood': 'معلبات',
+        'معلبات': 'معلبات',
         // Legumes
-        'Legumes': 'Legumes',
+        'Legumes': 'بقوليات',
+        'بقوليات': 'بقوليات',
+        // Grocery/Pantry
+        'Grocery': 'بقالة',
+        'بقالة': 'بقالة',
         // Healthy products
         'healthy': 'منتجات صحيه',
         'صحي': 'منتجات صحيه',
         'منتجات صحيه': 'منتجات صحيه',
         // Dates
-        'Dates': 'Dates',
+        'Dates': 'تمور',
+        'تمور': 'تمور',
         // Oils
-        'Oils': 'Oils',
+        'Oils': 'زيوت',
+        'Oil': 'زيوت',
+        'زيوت': 'زيوت',
+        'زيت': 'زيوت',
+        // Cleaning
+        'Cleaning': 'منظفات',
+        'منظفات': 'منظفات',
+        // Personal Care
+        'Personal Care': 'عناية شخصية',
+        'عناية شخصية': 'عناية شخصية',
         // Others
         'الورقيات': 'الورقيات',
         'المساحيق': 'المساحيق',
-        'بيكري': 'بيكري',
         'لحوم': 'لحوم',
         'Meat': 'لحوم',
         'meat': 'لحوم',

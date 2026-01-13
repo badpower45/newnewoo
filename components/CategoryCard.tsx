@@ -26,8 +26,10 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
     const initial = displayName.charAt(0).toUpperCase();
 
     const handleClick = () => {
-        const categoryName = nameEn || name;
+        // Use Arabic name (name) first, then English (nameEn) as fallback
+        const categoryName = name || nameEn;
         if (!categoryName) return;
+        console.log('🎯 Navigating to category:', categoryName);
         navigate(`/products?category=${encodeURIComponent(categoryName)}`);
     };
 
