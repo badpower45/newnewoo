@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Package, ShoppingBag, Users, Settings, LogOut, Upload, MessageCircle, Store, CalendarClock, ClipboardList, Truck, Tag, Menu, X, BookOpen, Flame, CircleDot, FolderTree, Facebook, Gift, FileSpreadsheet, LayoutGrid, Briefcase, BarChart3, RotateCcw, ImageIcon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import '../../styles/admin-responsive.css';
 
 const AdminLayout = () => {
     const location = useLocation();
