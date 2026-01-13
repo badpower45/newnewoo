@@ -23,6 +23,7 @@ export interface ChatConversation {
 class SupabaseChatService {
     private conversationId: number | null = null;
     private messageSubscription: any = null;
+    private lastSendMap = new Map<string, { content: string; sentAt: number; promise: Promise<ChatMessage | null> }>();
 
     // إنشاء محادثة جديدة أو الحصول على محادثة موجودة
     async getOrCreateConversation(customerId: number | null, customerName: string): Promise<ChatConversation | null> {
@@ -83,31 +84,49 @@ class SupabaseChatService {
         message: string
     ): Promise<ChatMessage | null> {
         try {
-            const { data, error } = await supabase
-                .from('messages')
-                .insert({
-                    conversation_id: conversationId,
-                    sender_id: senderId,
-                    sender_type: senderType,
-                    message: message,
-                    timestamp: new Date().toISOString(),
-                    is_read: senderType === 'bot' ? true : false
-                })
-                .select()
-                .single();
-
-            if (error) {
-                console.error('Error sending message:', error);
-                return null;
+            const normalized = message.trim().replace(/\s+/g, ' ').toLowerCase();
+            const key = `${conversationId}:${senderType}:${senderId ?? 'null'}`;
+            const now = Date.now();
+            const lastSend = this.lastSendMap.get(key);
+            if (lastSend && lastSend.content === normalized && now - lastSend.sentAt < 2000) {
+                return lastSend.promise;
             }
 
-            // تحديث last_message_at في المحادثة
-            await supabase
-                .from('conversations')
-                .update({ last_message_at: new Date().toISOString() })
-                .eq('id', conversationId);
+            const sendPromise = (async () => {
+                const { data, error } = await supabase
+                    .from('messages')
+                    .insert({
+                        conversation_id: conversationId,
+                        sender_id: senderId,
+                        sender_type: senderType,
+                        message: message,
+                        timestamp: new Date().toISOString(),
+                        is_read: senderType === 'bot' ? true : false
+                    })
+                    .select()
+                    .single();
 
-            return data as ChatMessage;
+                if (error) {
+                    console.error('Error sending message:', error);
+                    return null;
+                }
+
+                // تحديث last_message_at في المحادثة
+                await supabase
+                    .from('conversations')
+                    .update({ last_message_at: new Date().toISOString() })
+                    .eq('id', conversationId);
+
+                return data as ChatMessage;
+            })();
+
+            this.lastSendMap.set(key, { content: normalized, sentAt: now, promise: sendPromise });
+
+            const result = await sendPromise;
+            if (!result && this.lastSendMap.get(key)?.promise === sendPromise) {
+                this.lastSendMap.delete(key);
+            }
+            return result;
         } catch (error) {
             console.error('Error in sendMessage:', error);
             return null;

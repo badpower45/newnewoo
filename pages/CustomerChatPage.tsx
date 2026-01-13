@@ -77,6 +77,7 @@ const CustomerChatPage: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [conversation, setConversation] = useState<ChatConversation | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesRef = useRef<DisplayMessage[]>([]);
   const isSendingQuickRef = useRef(false);
   const lastQuickResponseRef = useRef<{ text: string; sentAt: number } | null>(null);
   const lastOutgoingRef = useRef<{ sender: DisplayMessage['sender']; content: string; sentAt: number } | null>(null);
@@ -118,16 +119,28 @@ const CustomerChatPage: React.FC = () => {
     });
   };
 
+  const isRecentLocalDuplicate = (sender: DisplayMessage['sender'], content: string, windowMs = 5000) => {
+    const normalized = normalizeContent(content);
+    const lastMessage = messagesRef.current[messagesRef.current.length - 1];
+    if (!lastMessage) return false;
+    return (
+      lastMessage.sender === sender &&
+      normalizeContent(lastMessage.content) === normalized &&
+      Date.now() - lastMessage.timestamp.getTime() < windowMs
+    );
+  };
+
   const resolvePendingMessage = (incoming: DisplayMessage) => {
-    const incomingTime = incoming.timestamp.getTime();
     const incomingContent = normalizeContent(incoming.content);
-    const index = pendingMessagesRef.current.findIndex((pending) => {
-      return (
-        pending.sender === incoming.sender &&
-        pending.content === incomingContent &&
-        Math.abs(incomingTime - pending.createdAt) < 15000
-      );
-    });
+    const index = (() => {
+      for (let i = pendingMessagesRef.current.length - 1; i >= 0; i -= 1) {
+        const pending = pendingMessagesRef.current[i];
+        if (pending.sender === incoming.sender && pending.content === incomingContent) {
+          return i;
+        }
+      }
+      return -1;
+    })();
 
     if (index === -1) return null;
 
@@ -231,11 +244,16 @@ const CustomerChatPage: React.FC = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  useEffect(() => {
+    messagesRef.current = messages;
+  }, [messages]);
+
   // Send message
   const sendMessage = async (content: string, blockIfSending = false) => {
     if (!content.trim()) return;
     if (blockIfSending && isSendingQuickRef.current) return;
     if (isRecentOutgoingDuplicate('user', content, 2000)) return;
+    if (isRecentLocalDuplicate('user', content, 5000)) return;
     if (blockIfSending) isSendingQuickRef.current = true;
     recordOutgoing('user', content);
 
