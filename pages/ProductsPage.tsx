@@ -37,6 +37,112 @@ const normalizeCategoryValue = (value: string = '') =>
         .replace(/\s+/g, '')
         .replace(/[-_]/g, '');
 
+const categoryMapping: Record<string, string> = {
+    // Chocolate variants
+    Chocolate: 'شيكولاتة',
+    Chocolates: 'شيكولاتة',
+    شوكولاتة: 'شيكولاتة',
+    شيكولاتة: 'شيكولاتة',
+    // Dairy variants
+    Dairy: 'ألبان',
+    Milk: 'ألبان',
+    ألبان: 'ألبان',
+    البان: 'ألبان',
+    // Cheese
+    Cheese: 'جبن',
+    جبن: 'جبن',
+    جبنة: 'جبن',
+    // Snacks
+    Snacks: 'سناكس',
+    سناكس: 'سناكس',
+    // Candy
+    Candy: 'كاندي',
+    كاندي: 'كاندي',
+    // Sweets/Desserts
+    حلويات: 'حلويات',
+    Desserts: 'حلويات',
+    Sweets: 'حلويات',
+    // Beverages/Drinks
+    Beverages: 'مشروبات',
+    Drinks: 'مشروبات',
+    drinks: 'مشروبات',
+    مشروبات: 'مشروبات',
+    // Bakery
+    Bakery: 'مخبوزات',
+    بيكري: 'مخبوزات',
+    مخبوزات: 'مخبوزات',
+    // Vegetables
+    Vegetables: 'خضروات',
+    Vegetable: 'خضروات',
+    خضروات: 'خضروات',
+    خضار: 'خضروات',
+    // Fruits
+    Fruits: 'فواكه',
+    Fruit: 'فواكه',
+    فواكه: 'فواكه',
+    فاكهة: 'فواكه',
+    // Biscuit
+    Biscuit: 'بسكويت',
+    Biscuits: 'بسكويت',
+    biscuit: 'بسكويت',
+    biscuits: 'بسكويت',
+    بسكويت: 'بسكويت',
+    // Grains
+    Grains: 'حبوب',
+    حبوب: 'حبوب',
+    // Frozen
+    Frozen: 'مجمدات',
+    مجمدات: 'مجمدات',
+    // Beauty/Cosmetics
+    Cosmetics: 'تجميل',
+    Beauty: 'تجميل',
+    تجميل: 'تجميل',
+    // Canned food
+    Cannedfood: 'معلبات',
+    معلبات: 'معلبات',
+    // Legumes
+    Legumes: 'بقوليات',
+    بقوليات: 'بقوليات',
+    // Grocery/Pantry
+    Grocery: 'بقالة',
+    بقالة: 'بقالة',
+    // Healthy products
+    healthy: 'منتجات صحيه',
+    صحي: 'منتجات صحيه',
+    'منتجات صحيه': 'منتجات صحيه',
+    // Dates
+    Dates: 'تمور',
+    تمور: 'تمور',
+    // Oils
+    Oils: 'زيوت',
+    Oil: 'زيوت',
+    زيوت: 'زيوت',
+    زيت: 'زيوت',
+    // Cleaning
+    Cleaning: 'منظفات',
+    منظفات: 'منظفات',
+    // Personal Care
+    'Personal Care': 'عناية شخصية',
+    'عناية شخصية': 'عناية شخصية',
+    // Others
+    الورقيات: 'الورقيات',
+    المساحيق: 'المساحيق',
+    لحوم: 'لحوم',
+    Meat: 'لحوم',
+    meat: 'لحوم',
+    'فواكه وخضار': 'فواكه وخضار'
+};
+
+const hasArabicChars = (value: string = '') => /[\u0600-\u06FF]/.test(value);
+
+const mapCategoryLabel = (value: string = '') => {
+    const trimmed = value.toString().trim();
+    if (!trimmed) return '';
+    const lower = trimmed.toLowerCase();
+    const capitalized = lower ? `${lower.charAt(0).toUpperCase()}${lower.slice(1)}` : lower;
+    return categoryMapping[trimmed] || categoryMapping[lower] || categoryMapping[capitalized] || trimmed;
+};
+
 export default function ProductsPage() {
     const [allProducts, setAllProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<{id: string, name: string, icon: string, color: string}[]>([]);
@@ -72,18 +178,53 @@ export default function ProductsPage() {
                     const categoriesFromDB = apiCategories
                         .filter((cat: any) => cat.is_active !== false && !cat.parent_id) // Only active parent categories
                         .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
-                        .map((cat: any) => ({
-                            id: cat.name || cat.name_ar,
-                            name: cat.name_ar || cat.name,
-                            icon: cat.icon || '📦',
-                            color: cat.bg_color || 'from-brand-orange to-amber-500'
-                        }));
+                        .map((cat: any) => {
+                            const rawName = cat.name_ar || cat.name || '';
+                            const displayName = mapCategoryLabel(rawName);
+                            return {
+                                id: rawName,
+                                name: displayName,
+                                icon: cat.icon || '📦',
+                                color: cat.bg_color || 'from-brand-orange to-amber-500',
+                                product_count: cat.products_count || 0
+                            };
+                        })
+                        .filter((cat: any) => cat.id);
+
+                    const uniqueCategories = Array.from(
+                        categoriesFromDB.reduce((acc, current) => {
+                            const key = normalizeCategoryValue(current.name || current.id);
+                            if (!key) return acc;
+                            const existing = acc.get(key);
+                            if (!existing) {
+                                acc.set(key, current);
+                                return acc;
+                            }
+                            const existingCount = existing.product_count || 0;
+                            const currentCount = current.product_count || 0;
+                            const existingIsArabic = hasArabicChars(existing.id || existing.name);
+                            const currentIsArabic = hasArabicChars(current.id || current.name);
+                            if (currentCount > existingCount) {
+                                acc.set(key, current);
+                                return acc;
+                            }
+                            if (currentCount === existingCount && currentIsArabic && !existingIsArabic) {
+                                acc.set(key, current);
+                                return acc;
+                            }
+                            if (!existing.icon && current.icon) {
+                                acc.set(key, { ...existing, icon: current.icon });
+                            }
+                            return acc;
+                        }, new Map())
+                        .values()
+                    );
                     
                     console.log('✅ Loaded', categoriesFromDB.length, 'categories from database');
                     
                     setCategories([
                         { id: '', name: 'الكل', icon: '🛒', color: 'from-brand-brown to-brand-brown/80' },
-                        ...categoriesFromDB
+                        ...uniqueCategories
                     ]);
                 } else {
                     console.warn('⚠️ No categories from API, falling back to "All"');
@@ -134,7 +275,7 @@ export default function ProductsPage() {
             
             try {
                 console.log('🎨 Fetching banner for category:', selectedCategory);
-                const response = await api.categories.getByName(selectedCategory);
+                const response = await api.categories.getByName(mapCategoryLabel(selectedCategory) || selectedCategory);
                 console.log('🎨 Category data:', response);
                 
                 if (response.success && response.data) {
@@ -157,110 +298,13 @@ export default function ProductsPage() {
         fetchCategoryBanner();
     }, [selectedCategory]);
 
-    // Category name mapping between English and Arabic
-    const categoryMapping: Record<string, string> = {
-        // Chocolate variants
-        'Chocolate': 'شيكولاتة',
-        'Chocolates': 'شيكولاتة', 
-        'شوكولاتة': 'شيكولاتة',
-        'شيكولاتة': 'شيكولاتة',
-        // Dairy variants
-        'Dairy': 'ألبان',
-        'Milk': 'ألبان',
-        'ألبان': 'ألبان',
-        'البان': 'ألبان',
-        // Cheese
-        'Cheese': 'جبن',
-        'جبن': 'جبن',
-        'جبنة': 'جبن',
-        // Snacks
-        'Snacks': 'سناكس',
-        'سناكس': 'سناكس',
-        // Candy
-        'Candy': 'كاندي',
-        'كاندي': 'كاندي',
-        // Sweets/Desserts
-        'حلويات': 'حلويات',
-        'Desserts': 'حلويات',
-        'Sweets': 'حلويات',
-        // Beverages/Drinks
-        'Beverages': 'مشروبات',
-        'Drinks': 'مشروبات',
-        'drinks': 'مشروبات',
-        'مشروبات': 'مشروبات',
-        // Bakery
-        'Bakery': 'مخبوزات',
-        'بيكري': 'مخبوزات',
-        'مخبوزات': 'مخبوزات',
-        // Vegetables
-        'Vegetables': 'خضروات',
-        'Vegetable': 'خضروات',
-        'خضروات': 'خضروات',
-        'خضار': 'خضروات',
-        // Fruits
-        'Fruits': 'فواكه',
-        'Fruit': 'فواكه',
-        'فواكه': 'فواكه',
-        'فاكهة': 'فواكه',
-        // Biscuit
-        'Biscuit': 'بسكويت',
-        'Biscuits': 'بسكويت',
-        'biscuit': 'بسكويت',
-        'biscuits': 'بسكويت',
-        'بسكويت': 'بسكويت',
-        // Grains
-        'Grains': 'حبوب',
-        'حبوب': 'حبوب',
-        // Frozen
-        'Frozen': 'مجمدات',
-        'مجمدات': 'مجمدات',
-        // Beauty/Cosmetics
-        'Cosmetics': 'تجميل',
-        'Beauty': 'تجميل',
-        'تجميل': 'تجميل',
-        // Canned food
-        'Cannedfood': 'معلبات',
-        'معلبات': 'معلبات',
-        // Legumes
-        'Legumes': 'بقوليات',
-        'بقوليات': 'بقوليات',
-        // Grocery/Pantry
-        'Grocery': 'بقالة',
-        'بقالة': 'بقالة',
-        // Healthy products
-        'healthy': 'منتجات صحيه',
-        'صحي': 'منتجات صحيه',
-        'منتجات صحيه': 'منتجات صحيه',
-        // Dates
-        'Dates': 'تمور',
-        'تمور': 'تمور',
-        // Oils
-        'Oils': 'زيوت',
-        'Oil': 'زيوت',
-        'زيوت': 'زيوت',
-        'زيت': 'زيوت',
-        // Cleaning
-        'Cleaning': 'منظفات',
-        'منظفات': 'منظفات',
-        // Personal Care
-        'Personal Care': 'عناية شخصية',
-        'عناية شخصية': 'عناية شخصية',
-        // Others
-        'الورقيات': 'الورقيات',
-        'المساحيق': 'المساحيق',
-        'لحوم': 'لحوم',
-        'Meat': 'لحوم',
-        'meat': 'لحوم',
-        'فواكه وخضار': 'فواكه وخضار'
-    };
-
     useEffect(() => {
         if (!selectedCategory || categories.length === 0) return;
-        const normalizedSelected = normalizeCategoryValue(selectedCategory);
+        const normalizedSelected = normalizeCategoryValue(mapCategoryLabel(selectedCategory) || selectedCategory);
         const matched = categories.find((cat) => {
             return (
-                normalizeCategoryValue(cat.id || '') === normalizedSelected ||
-                normalizeCategoryValue(cat.name || '') === normalizedSelected
+                normalizeCategoryValue(mapCategoryLabel(cat.id || '')) === normalizedSelected ||
+                normalizeCategoryValue(mapCategoryLabel(cat.name || '')) === normalizedSelected
             );
         });
         if (matched && matched.id !== selectedCategory) {
@@ -384,8 +428,7 @@ export default function ProductsPage() {
         const search = searchParams.get('search');
         
         if (category) {
-            // Map the category name to match database values
-            const mappedCategory = categoryMapping[category] || category;
+            const mappedCategory = mapCategoryLabel(category) || category;
             console.log('🔍 Category from URL:', category, '→ Mapped to:', mappedCategory);
             setSelectedCategory(mappedCategory);
         } else {

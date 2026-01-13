@@ -36,6 +36,19 @@ const AdminHomeSections = () => {
         }
     };
 
+    const normalizeCategoryValue = (value: string = '') =>
+        value
+            .toString()
+            .trim()
+            .toLowerCase()
+            .replace(/أ|إ|آ/g, 'ا')
+            .replace(/ة/g, 'ه')
+            .replace(/ى/g, 'ي')
+            .replace(/\s+/g, '')
+            .replace(/[-_]/g, '');
+
+    const hasArabicChars = (value: string = '') => /[\u0600-\u06FF]/.test(value);
+
     const fetchCategories = async () => {
         console.log('🔴 START: fetchCategories called');
         
@@ -62,8 +75,7 @@ const AdminHomeSections = () => {
                 const formattedCategories = categoriesData
                     .filter(cat => !cat.parent_id) // Only main categories, not subcategories
                     .map(cat => {
-                        // استخدم name كـ categoryName لأنه ما يُخزن في products.category
-                        const categoryName = cat.name || cat.name_ar;
+                        const categoryName = cat.name_ar || cat.name;
                         const displayName = cat.name_ar || cat.name;
                         console.log(`🏷️ Category formatted: name="${cat.name}", name_ar="${cat.name_ar}", using="${categoryName}"`);
                         return {
@@ -74,17 +86,33 @@ const AdminHomeSections = () => {
                         };
                     });
                 
-                // إزالة التصنيفات المكررة بناءً على categoryName
-                const uniqueCategories = formattedCategories.reduce((acc, current) => {
-                    const exists = acc.find(item => item.categoryName === current.categoryName);
-                    if (!exists) {
-                        acc.push(current);
-                    }
-                    return acc;
-                }, []);
+                // إزالة التصنيفات المكررة بناءً على قيمة مطبّعة
+                const uniqueCategories = Array.from(
+                    formattedCategories.reduce((acc, current) => {
+                        const key = normalizeCategoryValue(current.categoryName || current.category);
+                        if (!key) return acc;
+                        const existing = acc.get(key);
+                        if (!existing) {
+                            acc.set(key, current);
+                            return acc;
+                        }
+                        const existingIsArabic = hasArabicChars(existing.categoryName || existing.category);
+                        const currentIsArabic = hasArabicChars(current.categoryName || current.category);
+                        if (currentIsArabic && !existingIsArabic) {
+                            acc.set(key, current);
+                            return acc;
+                        }
+                        if ((current.product_count || 0) > (existing.product_count || 0)) {
+                            acc.set(key, { ...existing, product_count: current.product_count });
+                        } else if (!existing.icon && current.icon) {
+                            acc.set(key, { ...existing, icon: current.icon });
+                        }
+                        return acc;
+                    }, new Map())
+                    .values()
+                );
                 
                 console.log('✅ Formatted categories (' + formattedCategories.length + '):', formattedCategories);
-                console.log('✅ Unique categories (' + uniqueCategories.length + '):', uniqueCategories);
                 console.log('✅ Unique categories (' + uniqueCategories.length + '):', uniqueCategories);
                 setCategories(uniqueCategories);
             } else {
