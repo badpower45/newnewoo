@@ -77,7 +77,8 @@ const COLUMN_MAPPING = {
         'المخزون'
     ],
     'image': ['image', 'image_url', 'Main Image', 'Image URL', 'Image Url', 'الصورة', 'صورة', 'صوره', 'Image', 'لينك الصوره'],
-    'expiry_date': ['expiry_date', 'expiryDate', 'Expiry Date', 'Expiration Date', 'تاريخ الصلاحيه', 'تاريخ الصلاحية', 'صلاحيه', 'صلاحية', 'Expiry']
+    'expiry_date': ['expiry_date', 'expiryDate', 'Expiry Date', 'Expiration Date', 'تاريخ الصلاحيه', 'تاريخ الصلاحية', 'صلاحيه', 'صلاحية', 'Expiry'],
+    'brand': ['brand', 'brand_name', 'Brand Name', 'brand_id', 'البراند', 'الماركة', 'اسم البراند', 'Brand']
 };
 
 const normalizeCategoryValue = (value = '') =>
@@ -142,6 +143,57 @@ const mapCategoryValues = (rawCategory, rawSubcategory, categoryIndex) => {
     };
 };
 
+const normalizeBrandValue = (value = '') => normalizeCategoryValue(value);
+
+const buildBrandIndex = async () => {
+    const { rows } = await query('SELECT id, name_ar, name_en FROM brands');
+    const brandMap = new Map();
+    rows.forEach((row) => {
+        [row.name_ar, row.name_en].filter(Boolean).forEach((name) => {
+            const key = normalizeBrandValue(name);
+            if (!brandMap.has(key)) {
+                brandMap.set(key, row);
+            }
+        });
+    });
+    return brandMap;
+};
+
+const ensureBrand = async (brandName, brandIndex) => {
+    if (!brandName) {
+        return null;
+    }
+    const key = normalizeBrandValue(brandName);
+    const cached = brandIndex.get(key);
+    if (cached) {
+        return cached.id;
+    }
+
+    const { rows } = await query(
+        `SELECT id, name_ar, name_en
+         FROM brands
+         WHERE LOWER(TRIM(name_ar)) = LOWER(TRIM($1))
+            OR LOWER(TRIM(name_en)) = LOWER(TRIM($1))
+         LIMIT 1`,
+        [brandName]
+    );
+    if (rows.length > 0) {
+        brandIndex.set(key, rows[0]);
+        return rows[0].id;
+    }
+
+    const { rows: inserted } = await query(
+        'INSERT INTO brands (name_ar, name_en) VALUES ($1, $1) RETURNING id, name_ar, name_en',
+        [brandName]
+    );
+    if (inserted.length > 0) {
+        brandIndex.set(key, inserted[0]);
+        return inserted[0].id;
+    }
+
+    return null;
+};
+
 const buildRowLookup = (row) => {
     const lookup = new Map();
     for (const [key, value] of Object.entries(row)) {
@@ -186,7 +238,8 @@ function mapRowToProduct(row, rowIndex) {
     // Required fields (but we'll be flexible)
     const allFields = [
         'name', 'barcode', 'old_price', 'price', 'category', 
-        'subcategory', 'branch_id', 'stock_quantity', 'image', 'expiry_date'
+        'subcategory', 'branch_id', 'stock_quantity', 'image', 'expiry_date',
+        'brand'
     ];
     
     // Extract all available fields
@@ -194,7 +247,7 @@ function mapRowToProduct(row, rowIndex) {
         let value = findColumnValue(rowLookup, COLUMN_MAPPING[field]);
         if (value || value === 0) {
             // Convert to string if needed (for barcode, name, category, etc.)
-            if (['barcode', 'name', 'category', 'subcategory', 'image'].includes(field) && typeof value === 'number') {
+            if (['barcode', 'name', 'category', 'subcategory', 'image', 'brand'].includes(field) && typeof value === 'number') {
                 value = String(value);
             }
             product[field] = value;
@@ -348,12 +401,14 @@ router.post('/bulk-import', [verifyToken, isAdmin, upload.single('file')], async
         const batchId = uuidv4();
         const userId = req.user?.id || null;
         let categoryIndex = await buildCategoryIndex();
+        let brandIndex = await buildBrandIndex();
         
         // Parse and save ALL rows as drafts (flexible approach)
         const savedDrafts = [];
         const parseErrors = [];
         const missingRootCategories = new Map();
         const missingSubcategories = [];
+        const missingBrands = new Map();
         
         rows.forEach((row, index) => {
             const { product, errors, warnings, rowIndex } = mapRowToProduct(row, index + 2);
@@ -375,6 +430,12 @@ router.post('/bulk-import', [verifyToken, isAdmin, upload.single('file')], async
                     subName: rawSubcategory
                 });
             }
+            if (product.brand) {
+                const brandKey = normalizeBrandValue(product.brand);
+                if (!brandIndex.has(brandKey)) {
+                    missingBrands.set(brandKey, product.brand);
+                }
+            }
             
             // Save even if there are warnings - we'll let user fix them later
             savedDrafts.push({
@@ -392,6 +453,7 @@ router.post('/bulk-import', [verifyToken, isAdmin, upload.single('file')], async
         const updated = [];
         const importErrors = [];
         const newCategories = [];
+        const newBrands = [];
         
         await query('BEGIN');
         
@@ -466,6 +528,18 @@ router.post('/bulk-import', [verifyToken, isAdmin, upload.single('file')], async
                     console.error(`Error creating subcategory ${subcategory.name}:`, err.message);
                 }
             }
+
+            for (const brandName of missingBrands.values()) {
+                try {
+                    const brandId = await ensureBrand(brandName, brandIndex);
+                    if (brandId) {
+                        newBrands.push({ id: brandId, name: brandName });
+                        console.log(`✅ Created brand: ${brandName} (ID: ${brandId})`);
+                    }
+                } catch (err) {
+                    console.error(`Error creating brand ${brandName}:`, err.message);
+                }
+            }
             
             for (const { product, warnings, errors } of savedDrafts) {
                 try {
@@ -514,12 +588,13 @@ router.post('/bulk-import', [verifyToken, isAdmin, upload.single('file')], async
                                 branch_id = COALESCE($9, branch_id),
                                 stock_quantity = COALESCE($10, stock_quantity),
                                 expiry_date = COALESCE($11, expiry_date),
-                                status = $12,
-                                import_batch_id = $13,
-                                imported_by = $14,
-                                validation_errors = $15,
+                                brand_name = COALESCE($12, brand_name),
+                                status = $13,
+                                import_batch_id = $14,
+                                imported_by = $15,
+                                validation_errors = $16,
                                 updated_at = NOW()
-                            WHERE id = $16
+                            WHERE id = $17
                             RETURNING id, name, category, status
                         `, [
                             product.name || null,
@@ -533,6 +608,7 @@ router.post('/bulk-import', [verifyToken, isAdmin, upload.single('file')], async
                             product.branch_id || null,
                             product.stock_quantity || null,
                             product.expiry_date || null,
+                            product.brand || null,
                             errors.length > 0 ? 'draft' : 'validated',
                             batchId,
                             userId,
@@ -554,12 +630,12 @@ router.post('/bulk-import', [verifyToken, isAdmin, upload.single('file')], async
                             INSERT INTO draft_products (
                                 name, category, subcategory, image, barcode,
                                 old_price, price, discount_percentage,
-                                branch_id, stock_quantity, expiry_date,
+                                branch_id, stock_quantity, expiry_date, brand_name,
                                 status, import_batch_id, imported_by,
                                 validation_errors, created_at, updated_at
                             ) VALUES (
-                                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11,
-                                $12, $13, $14, $15, NOW(), NOW()
+                                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
+                                $13, $14, $15, $16, NOW(), NOW()
                             ) RETURNING id, name, category, status
                         `, [
                             product.name || 'منتج بدون اسم',
@@ -573,6 +649,7 @@ router.post('/bulk-import', [verifyToken, isAdmin, upload.single('file')], async
                             product.branch_id || 1,
                             product.stock_quantity || 0,
                             product.expiry_date || null,
+                            product.brand || null,
                             errors.length > 0 ? 'draft' : 'validated',
                             batchId,
                             userId,
@@ -614,6 +691,9 @@ router.post('/bulk-import', [verifyToken, isAdmin, upload.single('file')], async
             if (newCategories.length > 0) {
                 message += `. تم إنشاء ${newCategories.length} تصنيف جديد`;
             }
+            if (newBrands.length > 0) {
+                message += `. تم إنشاء ${newBrands.length} براند جديد`;
+            }
             
             res.json({
                 success: true,
@@ -623,12 +703,14 @@ router.post('/bulk-import', [verifyToken, isAdmin, upload.single('file')], async
                 failed: importErrors.length,
                 total: rows.length,
                 newCategories: newCategories.length,
+                newBrands: newBrands.length,
                 batchId: batchId,
                 redirectTo: `/admin/draft-products/${batchId}`,
                 details: {
                     imported: imported,
                     updated: updated,
                     newCategories: newCategories.map(c => ({ name: c.name_ar || c.name, id: c.id })),
+                    newBrands: newBrands,
                     validationErrors: [],
                     importErrors: importErrors
                 }
