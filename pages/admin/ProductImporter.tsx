@@ -108,7 +108,17 @@ const ProductImporter: React.FC = () => {
             'text/csv'
         ];
 
-        if (!validTypes.includes(file.type)) {
+        // Some browsers/OSes may provide an empty or generic MIME type (e.g. application/octet-stream)
+        // so we fall back to checking the file extension.
+        const lowerName = (file.name || '').toLowerCase();
+        const hasValidExtension =
+            lowerName.endsWith('.xlsx') ||
+            lowerName.endsWith('.xls') ||
+            lowerName.endsWith('.csv');
+
+        const hasValidMime = validTypes.includes(file.type);
+
+        if (!hasValidMime && !hasValidExtension) {
             alert('نوع الملف غير صحيح. يرجى رفع ملف Excel (.xlsx أو .xls) أو CSV');
             return;
         }
