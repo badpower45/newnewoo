@@ -24,6 +24,7 @@ interface DraftProduct {
     id: number;
     name: string;
     barcode: string;
+    brand_name: string;
     price_before: number;
     price_after: number;
     category: string;
@@ -629,6 +630,7 @@ const ProductImporter: React.FC = () => {
                                         <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">#</th>
                                         <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">الصورة</th>
                                         <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">اسم المنتج</th>
+                                        <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">البراند</th>
                                         <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">الباركود</th>
                                         <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">السعر قبل</th>
                                         <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">السعر بعد</th>
@@ -675,6 +677,19 @@ const ProductImporter: React.FC = () => {
                                                         />
                                                     ) : (
                                                         <span className="text-sm font-medium text-gray-900">{product.name}</span>
+                                                    )}
+                                                </td>
+                                                <td className="px-4 py-4">
+                                                    {isEditing ? (
+                                                        <input
+                                                            type="text"
+                                                            value={editedProduct.brand_name || ''}
+                                                            onChange={(e) => setEditedProduct(prev => ({ ...prev, brand_name: e.target.value }))}
+                                                            placeholder="اسم البراند"
+                                                            className="w-32 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
+                                                        />
+                                                    ) : (
+                                                        <span className="text-sm text-blue-600 font-medium">{product.brand_name || '-'}</span>
                                                     )}
                                                 </td>
                                                 <td className="px-4 py-4">
