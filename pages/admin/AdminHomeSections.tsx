@@ -215,7 +215,12 @@ const AdminHomeSections = () => {
             return;
         }
 
-        if (!file.type.startsWith('image/')) {
+        const hasValidMime = file.type?.startsWith('image/');
+        const lowerName = file.name.toLowerCase();
+        const hasValidExtension = ['.jpg', '.jpeg', '.png', '.webp', '.gif'].some((ext) =>
+            lowerName.endsWith(ext)
+        );
+        if (!hasValidMime && !hasValidExtension) {
             alert('الرجاء اختيار صورة');
             return;
         }

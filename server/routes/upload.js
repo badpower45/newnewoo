@@ -21,9 +21,14 @@ const upload = multer({
         fileSize: 5 * 1024 * 1024, // 5MB max file size
     },
     fileFilter: (req, file, cb) => {
-        // Allow only images
+        // Allow only images (fallback to extension if MIME is missing)
         const allowedMimes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/gif'];
-        if (allowedMimes.includes(file.mimetype)) {
+        const hasValidMime = allowedMimes.includes(file.mimetype);
+        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+        const fileExtension = file.originalname.toLowerCase().slice(file.originalname.lastIndexOf('.'));
+        const hasValidExtension = allowedExtensions.includes(fileExtension);
+
+        if (hasValidMime || hasValidExtension) {
             cb(null, true);
         } else {
             cb(new Error('Invalid file type. Only JPEG, PNG, WEBP, and GIF are allowed.'));
