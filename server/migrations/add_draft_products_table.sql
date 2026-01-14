@@ -150,7 +150,7 @@ BEGIN
     END IF;
     
     -- Delete draft product
-    DELETE FROM draft_products WHERE id = draft_id;
+    DELETE FROM draft_products WHERE id::text = draft_id;
     
     RETURN QUERY SELECT v_product_id, TRUE, 'Product published successfully';
 END;
