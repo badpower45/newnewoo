@@ -266,27 +266,51 @@ const ProductImporter: React.FC = () => {
 
         setPublishing(true);
         try {
-            const response = await fetch(`${API_URL}/products/drafts/${result.batchId}/publish-all`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+            let totalPublished = 0;
+            let remaining = draftProducts.length;
+            let attempts = 0;
+            const batchLimit = 150;
 
-            const data = await response.json();
+            while (remaining > 0 && attempts < 10) {
+                const response = await fetch(
+                    `${API_URL}/products/drafts/${result.batchId}/publish-all?limit=${batchLimit}`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
 
-            if (response.ok && data.success) {
-                alert(`✅ ${data.message || `تم نشر ${data.publishedCount} منتج بنجاح!`}`);
-                setResult(null);
-                setDraftProducts([]);
-                setFile(null);
-                // Optionally navigate to products page
-                if (confirm('هل تريد الانتقال إلى صفحة المنتجات؟')) {
-                    navigate('/admin/products');
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    alert(`❌ فشل النشر: ${data.message || 'حدث خطأ'}`);
+                    return;
                 }
-            } else {
-                alert(`❌ فشل النشر: ${data.message || 'حدث خطأ'}`);
+
+                totalPublished += data.publishedCount || 0;
+                remaining = typeof data.remaining === 'number' ? data.remaining : 0;
+                attempts += 1;
+
+                if (remaining > 0 && (data.publishedCount || 0) === 0) {
+                    break;
+                }
+            }
+
+            if (remaining > 0) {
+                await loadDraftProducts(result.batchId);
+                alert(`✅ تم نشر ${totalPublished} منتج. تبقّى ${remaining} منتج يحتاج مراجعة (غالبًا سعر ناقص أو بيانات غير مكتملة).`);
+                return;
+            }
+
+            alert(`✅ تم نشر ${totalPublished} منتج بنجاح!`);
+            setResult(null);
+            setDraftProducts([]);
+            setFile(null);
+            if (confirm('هل تريد الانتقال إلى صفحة المنتجات؟')) {
+                navigate('/admin/products');
             }
         } catch (err) {
             console.error('Publishing error:', err);
