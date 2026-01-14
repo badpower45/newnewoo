@@ -8,6 +8,8 @@ interface Brand {
     id: string;
     name_ar: string;
     name_en: string;
+    slogan_ar?: string;
+    slogan_en?: string;
     logo_url?: string;
     banner_url?: string;
     primary_color?: string;
@@ -28,6 +30,8 @@ const BrandsManager: React.FC = () => {
     const [formData, setFormData] = useState<Partial<Brand>>({
         name_ar: '',
         name_en: '',
+        slogan_ar: '',
+        slogan_en: '',
         description_ar: '',
         description_en: '',
         primary_color: '#F57C00',
@@ -75,6 +79,8 @@ const BrandsManager: React.FC = () => {
             setFormData({
                 name_ar: '',
                 name_en: '',
+                slogan_ar: '',
+                slogan_en: '',
                 description_ar: '',
                 description_en: '',
                 primary_color: '#F57C00',
@@ -174,6 +180,8 @@ const BrandsManager: React.FC = () => {
                                     setFormData({
                                         name_ar: '',
                                         name_en: '',
+                                        slogan_ar: '',
+                                        slogan_en: '',
                                         description_ar: '',
                                         description_en: '',
                                         primary_color: '#F57C00',
@@ -224,6 +232,35 @@ const BrandsManager: React.FC = () => {
                                         autoCorrect="off"
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
                                         required
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Slogans */}
+                            <div className="grid md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        السلوغان بالعربية
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.slogan_ar || ''}
+                                        onChange={(e) => setFormData({ ...formData, slogan_ar: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                        placeholder="مثال: عيش اللحظة"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                                        English Slogan
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={formData.slogan_en || ''}
+                                        onChange={(e) => setFormData({ ...formData, slogan_en: e.target.value })}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
+                                        placeholder="Example: Live for Now"
                                     />
                                 </div>
                             </div>
