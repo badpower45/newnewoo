@@ -434,6 +434,7 @@ export default function ProductsPage() {
             console.log('🔍 Category from URL:', category, '→ Mapped to:', mappedCategory);
             setSelectedCategory(mappedCategory);
         } else {
+            console.log('🔍 No category in URL, setting to empty');
             setSelectedCategory('');
         }
 
@@ -692,23 +693,41 @@ export default function ProductsPage() {
                     </div>
                 </div>
                 <div className="max-w-7xl mx-auto px-4 pb-3 overflow-x-auto scrollbar-hide flex gap-2">
-                    {categories.map((cat) => (
-                        <button
-                            key={cat.id}
-                            onClick={() => {
-                                setSelectedCategory(cat.id);
-                                setCurrentPage(1);
-                            }}
-                            className={`flex items-center gap-2 px-3 py-2 rounded-full whitespace-nowrap border text-sm ${
-                                selectedCategory === cat.id
-                                    ? 'bg-brand-orange text-white border-brand-orange'
-                                    : 'border-gray-200 text-gray-700'
-                            }`}
-                        >
-                            <span>{cat.icon}</span>
-                            <span>{cat.name}</span>
-                        </button>
-                    ))}
+                    {categories.map((cat) => {
+                        // Normalize both values for comparison
+                        const catIdNormalized = normalizeCategoryValue(cat.id || '');
+                        const selectedNormalized = normalizeCategoryValue(selectedCategory || '');
+                        const isSelected = selectedCategory === cat.id || 
+                                         selectedCategory === cat.name || 
+                                         catIdNormalized === selectedNormalized ||
+                                         (selectedCategory === '' && cat.id === '');
+                        
+                        return (
+                            <button
+                                key={cat.id}
+                                onClick={() => {
+                                    console.log('🎯 Selecting category:', cat.id, cat.name);
+                                    setSelectedCategory(cat.id);
+                                    setCurrentPage(1);
+                                }}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-full whitespace-nowrap border text-sm transition-all ${
+                                    isSelected
+                                        ? 'bg-brand-orange text-white border-brand-orange shadow-md scale-105'
+                                        : 'border-gray-200 text-gray-700 hover:border-brand-orange/50 hover:bg-orange-50'
+                                }`}
+                            >
+                                <span>{cat.icon}</span>
+                                <span className="font-medium">{cat.name}</span>
+                                {cat.product_count > 0 && (
+                                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                                        isSelected ? 'bg-white/20' : 'bg-gray-100 text-gray-600'
+                                    }`}>
+                                        {cat.product_count}
+                                    </span>
+                                )}
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
 
