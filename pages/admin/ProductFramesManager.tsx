@@ -30,10 +30,14 @@ const ProductFramesManager: React.FC = () => {
     const loadFrames = async () => {
         try {
             setLoading(true);
+            console.log('📥 Loading frames...');
             const response = await api.products.getFrames();
-            setFrames(response.data || []);
+            console.log('📦 Frames response:', response);
+            const framesList = response.data || [];
+            console.log('✅ Loaded frames count:', framesList.length);
+            setFrames(framesList);
         } catch (error) {
-            console.error('Error loading frames:', error);
+            console.error('❌ Error loading frames:', error);
             alert('فشل تحميل الإطارات');
         } finally {
             setLoading(false);
@@ -47,8 +51,8 @@ const ProductFramesManager: React.FC = () => {
                 alert('⚠️ يرجى اختيار صورة PNG فقط');
                 return;
             }
-            if (file.size > 500 * 1024) {
-                alert('⚠️ حجم الملف يجب أن يكون أقل من 500KB');
+            if (file.size > 5 * 1024 * 1024) {
+                alert('⚠️ حجم الملف يجب أن يكون أقل من 5MB');
                 return;
             }
             setSelectedFile(file);
@@ -70,14 +74,15 @@ const ProductFramesManager: React.FC = () => {
 
         try {
             setLoading(true);
-            await api.products.uploadFrame(formData);
-            alert('✅ تم رفع الإطار بنجاح!');
+            const result = await api.products.uploadFrame(formData);
+            console.log('✅ Frame uploaded:', result);
+            alert(`✅ تم رفع الإطار بنجاح!\n${result.data?.name || ''}`);
             setUploadModalOpen(false);
             resetForm();
-            loadFrames();
-        } catch (error) {
+            await loadFrames(); // Wait for frames to reload
+        } catch (error: any) {
             console.error('Error uploading frame:', error);
-            alert('❌ فشل رفع الإطار');
+            alert(`❌ فشل رفع الإطار: ${error.message || 'خطأ غير معروف'}`);
         } finally {
             setLoading(false);
         }
@@ -162,7 +167,7 @@ const ProductFramesManager: React.FC = () => {
                         <ul className="text-xs sm:text-sm text-blue-700 space-y-1">
                             <li>✅ <strong>الحجم:</strong> 500 × 500 بكسل (مربع)</li>
                             <li>✅ <strong>النوع:</strong> PNG شفاف (Transparent)</li>
-                            <li>✅ <strong>الحجم:</strong> أقل من 500KB</li>
+                            <li>✅ <strong>الحجم:</strong> أقل من 5MB</li>
                             <li className="hidden sm:list-item">✅ <strong>الاستخدام:</strong> يظهر فوق صورة المنتج مباشرة</li>
                         </ul>
                     </div>
@@ -327,7 +332,7 @@ const ProductFramesManager: React.FC = () => {
                                     className="admin-form-input"
                                 />
                                 <p className="admin-form-hint">
-                                    500×500 بكسل، PNG فقط، أقل من 500KB
+                                    500×500 بكسل، PNG فقط، أقل من 5MB
                                 </p>
                             </div>
 
