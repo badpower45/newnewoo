@@ -95,29 +95,38 @@ const authLimiter = rateLimit({
     message: { error: 'Too many authentication attempts, please try again later.' }
 });
 
+// CORS - Handle preflight requests FIRST
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    
+    // Allow all origins (Vercel domains and localhost)
+    if (origin) {
+        res.header('Access-Control-Allow-Origin', origin);
+    } else {
+        res.header('Access-Control-Allow-Origin', '*');
+    }
+    
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, apikey, Accept');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Max-Age', '86400');
+    
+    // Handle preflight
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+    next();
+});
+
 // Middleware
 app.use(cors({
-    origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps or Postman)
-        if (!origin) return callback(null, true);
-        // Allow listed origins or Vercel preview domains for this project
-        const isAllowed = allowedOrigins.includes(origin) || /\.vercel\.app$/.test(origin);
-        if (isAllowed) {
-            callback(null, true);
-        } else {
-            console.log('CORS blocked origin:', origin);
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
+    origin: true, // Allow all origins
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'apikey'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'apikey', 'Accept'],
     exposedHeaders: ['Content-Length', 'Content-Type'],
-    maxAge: 86400 // 24 hours
+    maxAge: 86400
 }));
-
-// Handle preflight requests explicitly
-app.options('*', cors());
 
 app.use(bodyParser.json({ limit: '10mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
@@ -157,15 +166,6 @@ app.use('/api/reviews', reviewsRoutes);
 // Image Upload Route
 import uploadRoutes from './routes/upload.js';
 app.use('/api/upload', uploadRoutes);
-
-// Add CORS headers to all responses as backup
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, apikey');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    next();
-});
 
 // Health check endpoint (moved under /api for serverless route consistency)
 app.get('/api/health', async (req, res) => {
