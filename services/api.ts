@@ -18,6 +18,7 @@ const getHeaders = () => {
 };
 
 export const api = {
+    API_URL, // Export API_URL for direct use
     auth: {
         login: async (credentials: any) => {
             const res = await fetch(`${API_URL}/auth/login`, {

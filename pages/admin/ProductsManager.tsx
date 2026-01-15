@@ -53,6 +53,11 @@ const ProductsManager = () => {
     const [categories, setCategories] = useState<any[]>([]);
     const [brands, setBrands] = useState<any[]>([]);
     const [subcategories, setSubcategories] = useState<{ [key: string]: any[] }>({});
+    
+    // 🖼️ Frames state
+    const [frames, setFrames] = useState<any[]>([]);
+    const [selectedFrame, setSelectedFrame] = useState<string>('');
+    const [frameEnabled, setFrameEnabled] = useState<boolean>(false);
 
     // Clean invalid brand selection when brand list changes
     useEffect(() => {
@@ -69,6 +74,7 @@ const ProductsManager = () => {
         loadBranches();
         loadCategories();
         loadBrands();
+        loadFrames();
     }, []);
 
     // Reload products when branch filter changes
@@ -224,6 +230,18 @@ const ProductsManager = () => {
         }
     };
 
+    const loadFrames = async () => {
+        try {
+            const response = await api.products.getFrames();
+            console.log('🖼️ Frames loaded:', response);
+            const framesData = response.data || [];
+            setFrames(framesData);
+        } catch (error) {
+            console.error('Error loading frames:', error);
+            setFrames([]);
+        }
+    };
+
     const handleDelete = async (id: string) => {
         if (window.confirm('Are you sure you want to delete this product?')) {
             try {
@@ -257,6 +275,12 @@ const ProductsManager = () => {
                 validBrandId = undefined;
             }
         }
+        
+        // 🖼️ Load frame data
+        const productFrameUrl = (p as any).frame_overlay_url || '';
+        const productFrameEnabled = (p as any).frame_enabled || false;
+        setSelectedFrame(productFrameUrl);
+        setFrameEnabled(productFrameEnabled);
         
         // 🆕 Load product data from all branches
         try {
@@ -415,7 +439,9 @@ const ProductsManager = () => {
                 stockQuantity: form.stockQuantity,
                 weight: form.weight,
                 shelfLocation: form.shelfLocation,
-                brandId: normalizedBrandId  // 🏷️ إرسال brand_id كما هو (يدعم UUID)
+                brandId: normalizedBrandId,  // 🏷️ إرسال brand_id كما هو (يدعم UUID)
+                frame_overlay_url: frameEnabled && selectedFrame ? selectedFrame : null, // 🖼️ رابط الإطار
+                frame_enabled: frameEnabled // 🖼️ تفعيل/إيقاف الإطار
             };
             
             console.log('📦 Saving product with data:', productData);
@@ -1455,6 +1481,136 @@ const ProductsManager = () => {
                                     className="w-full px-3 py-2 border rounded-md"
                                     placeholder="مثال: صف 3 - رف A"
                                 />
+                            </div>
+
+                            {/* 🖼️ Product Frames Section */}
+                            <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300 rounded-xl p-4">
+                                <div className="flex items-center justify-between mb-3">
+                                    <label className="block text-sm font-bold text-purple-900 flex items-center gap-2">
+                                        🖼️ إطار المنتج
+                                        <span className="text-xs font-normal text-purple-600">(اختياري)</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={frameEnabled}
+                                            onChange={e => setFrameEnabled(e.target.checked)}
+                                            className="w-4 h-4 text-purple-600"
+                                        />
+                                        <span className="text-sm font-medium">
+                                            {frameEnabled ? '✅ تفعيل الإطار' : '⚪ إيقاف الإطار'}
+                                        </span>
+                                    </label>
+                                </div>
+                                
+                                {frameEnabled && (
+                                    <>
+                                        <select
+                                            value={selectedFrame}
+                                            onChange={e => setSelectedFrame(e.target.value)}
+                                            className="w-full px-4 py-3 border-2 border-purple-300 rounded-lg focus:ring-4 focus:ring-purple-500 focus:border-purple-500 bg-white font-medium mb-3"
+                                        >
+                                            <option value="">اختر إطاراً...</option>
+                                            {frames.map(frame => (
+                                                <option key={frame.id} value={frame.frame_url}>
+                                                    🖼️ {frame.name_ar} - {frame.name} ({frame.category})
+                                                </option>
+                                            ))}
+                                        </select>
+                                        
+                                        {selectedFrame && (
+                                            <div className="mt-3 p-3 bg-white border-2 border-purple-300 rounded-lg">
+                                                <p className="text-sm text-purple-800 font-bold mb-2">معاينة الإطار:</p>
+                                                <div className="relative w-32 h-32 mx-auto">
+                                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg opacity-30"></div>
+                                                    <img
+                                                        src={selectedFrame}
+                                                        alt="Frame preview"
+                                                        className="absolute inset-0 w-full h-full object-contain"
+                                                        onError={e => {
+                                                            (e.target as HTMLImageElement).src = 'https://placehold.co/200x200?text=Frame';
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                                
+                                {frames.length === 0 && (
+                                    <div className="p-3 bg-yellow-100 border border-yellow-300 rounded-lg">
+                                        <p className="text-xs text-yellow-800">⚠️ لا توجد إطارات متاحة. يرجى إضافة إطارات من صفحة إدارة الإطارات.</p>
+                                    </div>
+                                )}
+                                
+                                <p className="text-xs text-purple-600 mt-2">
+                                    💡 الإطارات تظهر فوق صورة المنتج مباشرة في الواجهة الأمامية
+                                </p>
+                            </div>
+
+                            {/* 🖼️ Product Frames Section */}
+                            <div className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300 rounded-xl p-4">
+                                <div className="flex items-center justify-between mb-3">
+                                    <label className="block text-sm font-bold text-purple-900 flex items-center gap-2">
+                                        🖼️ إطار المنتج
+                                        <span className="text-xs font-normal text-purple-600">(اختياري)</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={frameEnabled}
+                                            onChange={e => setFrameEnabled(e.target.checked)}
+                                            className="w-4 h-4 text-purple-600"
+                                        />
+                                        <span className="text-sm font-medium">
+                                            {frameEnabled ? '✅ تفعيل الإطار' : '⚪ إيقاف الإطار'}
+                                        </span>
+                                    </label>
+                                </div>
+                                
+                                {frameEnabled && (
+                                    <>
+                                        <select
+                                            value={selectedFrame}
+                                            onChange={e => setSelectedFrame(e.target.value)}
+                                            className="w-full px-4 py-3 border-2 border-purple-300 rounded-lg focus:ring-4 focus:ring-purple-500 focus:border-purple-500 bg-white font-medium mb-3"
+                                        >
+                                            <option value="">اختر إطاراً...</option>
+                                            {frames.map(frame => (
+                                                <option key={frame.id} value={frame.frame_url}>
+                                                    🖼️ {frame.name_ar} - {frame.name} ({frame.category})
+                                                </option>
+                                            ))}
+                                        </select>
+                                        
+                                        {selectedFrame && (
+                                            <div className="mt-3 p-3 bg-white border-2 border-purple-300 rounded-lg">
+                                                <p className="text-sm text-purple-800 font-bold mb-2">معاينة الإطار:</p>
+                                                <div className="relative w-32 h-32 mx-auto">
+                                                    <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg opacity-30"></div>
+                                                    <img
+                                                        src={selectedFrame}
+                                                        alt="Frame preview"
+                                                        className="absolute inset-0 w-full h-full object-contain"
+                                                        onError={e => {
+                                                            (e.target as HTMLImageElement).src = 'https://placehold.co/200x200?text=Frame';
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
+                                
+                                {frames.length === 0 && (
+                                    <div className="p-3 bg-yellow-100 border border-yellow-300 rounded-lg">
+                                        <p className="text-xs text-yellow-800">⚠️ لا توجد إطارات متاحة. يرجى إضافة إطارات من صفحة إدارة الإطارات.</p>
+                                    </div>
+                                )}
+                                
+                                <p className="text-xs text-purple-600 mt-2">
+                                    💡 الإطارات تظهر فوق صورة المنتج مباشرة في الواجهة الأمامية
+                                </p>
                             </div>
 
                             <div className="flex gap-2 pt-4 border-t">

@@ -96,6 +96,38 @@ const ProductFramesManager: React.FC = () => {
         }
     };
 
+    const applyFrameToAllProducts = async (frameUrl: string, frameName: string) => {
+        if (!confirm(`هل أنت متأكد من تطبيق إطار "${frameName}" على جميع المنتجات؟\n\nسيتم تطبيق الإطار على كل المنتجات الموجودة في النظام.`)) return;
+
+        try {
+            setLoading(true);
+            const response = await fetch(`${api.API_URL}/products/apply-frame-to-all`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    frame_overlay_url: frameUrl,
+                    frame_enabled: true
+                })
+            });
+
+            const result = await response.json();
+            
+            if (response.ok && result.success) {
+                alert(`✅ تم تطبيق الإطار بنجاح على ${result.updatedCount} منتج!`);
+            } else {
+                throw new Error(result.error || 'فشل تطبيق الإطار');
+            }
+        } catch (error) {
+            console.error('Error applying frame:', error);
+            alert('❌ فشل تطبيق الإطار على المنتجات');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const resetForm = () => {
         setSelectedFile(null);
         setPreview('');
@@ -189,22 +221,32 @@ const ProductFramesManager: React.FC = () => {
                                     </div>
 
                                     {/* Actions - Stack on mobile */}
-                                    <div className="flex flex-col sm:flex-row gap-2">
-                                        <a
-                                            href={frame.frame_url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="admin-btn-secondary flex-1 text-xs sm:text-sm"
-                                        >
-                                            <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
-                                            <span className="hidden sm:inline">عرض</span>
-                                        </a>
+                                    <div className="flex flex-col gap-2">
+                                        <div className="flex gap-2">
+                                            <a
+                                                href={frame.frame_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="admin-btn-secondary flex-1 text-xs sm:text-sm"
+                                            >
+                                                <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
+                                                <span className="hidden sm:inline">عرض</span>
+                                            </a>
+                                            <button
+                                                onClick={() => handleDelete(frame.id)}
+                                                className="admin-btn-danger flex-1 text-xs sm:text-sm"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                                حذف
+                                            </button>
+                                        </div>
                                         <button
-                                            onClick={() => handleDelete(frame.id)}
-                                            className="admin-btn-danger flex-1 text-xs sm:text-sm"
+                                            onClick={() => applyFrameToAllProducts(frame.frame_url, frame.name_ar)}
+                                            disabled={loading}
+                                            className="w-full px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-bold text-xs sm:text-sm transition-all shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                         >
-                                            <Trash2 className="w-4 h-4" />
-                                            حذف
+                                            <span>✨</span>
+                                            <span>تطبيق على جميع المنتجات</span>
                                         </button>
                                     </div>
                                 </div>

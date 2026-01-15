@@ -966,4 +966,36 @@ router.patch('/:id/frame', verifyToken, isAdmin, async (req, res) => {
     }
 });
 
+// Apply frame to ALL products
+router.post('/apply-frame-to-all', verifyToken, isAdmin, async (req, res) => {
+    try {
+        const { frame_overlay_url, frame_enabled } = req.body;
+        
+        if (!frame_overlay_url) {
+            return res.status(400).json({ error: 'frame_overlay_url is required' });
+        }
+
+        console.log('🖼️ Applying frame to all products:', { frame_overlay_url, frame_enabled });
+
+        const { rows } = await query(
+            `UPDATE products 
+             SET frame_overlay_url = $1, frame_enabled = $2
+             WHERE 1=1
+             RETURNING id`,
+            [frame_overlay_url, frame_enabled !== false]
+        );
+
+        console.log(`✅ Updated ${rows.length} products with frame`);
+
+        res.json({ 
+            success: true, 
+            message: `Applied frame to ${rows.length} products`,
+            updatedCount: rows.length 
+        });
+    } catch (error) {
+        console.error('Error applying frame to all products:', error);
+        res.status(500).json({ error: 'Failed to apply frame to all products' });
+    }
+});
+
 export default router;
