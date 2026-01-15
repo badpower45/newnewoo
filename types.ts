@@ -18,6 +18,8 @@ export interface Product {
   expiry_date?: string; // تاريخ الصلاحية
   branch_id?: number; // الفرع
   shelf_location?: string; // موقع الرف (مثل: صف 3 - رف A)
+  frame_overlay_url?: string; // رابط الإطار المطبق
+  frame_enabled?: boolean; // تفعيل/إيقاف الإطار
 }
 
 export interface NavItem {

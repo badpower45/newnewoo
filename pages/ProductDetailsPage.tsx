@@ -201,6 +201,15 @@ const ProductDetailsPage = () => {
     const oldPrice = Number(product.discount_price) || Number(product.originalPrice) || (displayPrice * 1.15); // 15% higher as old price if not set
     const discountPercentage = oldPrice > displayPrice ? Math.round(((oldPrice - displayPrice) / oldPrice) * 100) : 0;
     const savings = oldPrice - displayPrice;
+    const frameOverlayUrl = (product as any).frame_overlay_url;
+    const frameEnabledValue = (product as any).frame_enabled;
+    const isFrameEnabled = Boolean(frameOverlayUrl) && (
+        frameEnabledValue === true ||
+        frameEnabledValue === 'true' ||
+        frameEnabledValue === 't' ||
+        frameEnabledValue === 1 ||
+        frameEnabledValue === '1'
+    );
     
     // Use real ratings from reviews, fallback to product rating if available
     const productRating = reviewStats?.average_rating 
@@ -357,6 +366,14 @@ const ProductDetailsPage = () => {
                                 (e.target as HTMLImageElement).src = 'https://placehold.co/400x400?text=Product';
                             }}
                         />
+                        {isFrameEnabled && (
+                            <img
+                                src={frameOverlayUrl}
+                                alt=""
+                                aria-hidden="true"
+                                className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+                            />
+                        )}
                     </div>
 
                     <div className="flex items-center gap-2 text-xs text-gray-600 bg-white/80 px-3 py-1.5 rounded-full shadow-sm border border-gray-100">

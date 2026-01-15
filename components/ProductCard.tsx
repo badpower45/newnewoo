@@ -35,6 +35,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
   const hasDiscount = priceBeforeDiscount > 0 && priceBeforeDiscount > currentPrice;
   // نسبة الخصم
   const discountPercent = hasDiscount ? Math.round(((priceBeforeDiscount - currentPrice) / priceBeforeDiscount) * 100) : 0;
+  const frameOverlayUrl = (product as any).frame_overlay_url;
+  const frameEnabledValue = (product as any).frame_enabled;
+  const isFrameEnabled = Boolean(frameOverlayUrl) && (
+    frameEnabledValue === true ||
+    frameEnabledValue === 'true' ||
+    frameEnabledValue === 't' ||
+    frameEnabledValue === 1 ||
+    frameEnabledValue === '1'
+  );
 
   const handleCardClick = () => {
     navigate(`/product/${id}`);
@@ -89,6 +98,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
             decoding="async"
             className="w-full h-full object-contain mix-blend-multiply" 
           />
+          {isFrameEnabled && (
+            <img
+              src={frameOverlayUrl}
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+            />
+          )}
         </div>
         <div className="flex-grow">
           <h4 className="text-sm font-medium text-gray-900 line-clamp-2 mb-1">{title}</h4>
@@ -143,7 +160,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
         )}
 
         {/* Product Image - Lazy Loaded */}
-        <div className="w-full h-full p-2 flex items-center justify-center">
+        <div className="relative w-full h-full p-2 flex items-center justify-center">
           <img 
             src={image || "https://placehold.co/150x150?text=Product"} 
             alt={title}
@@ -151,6 +168,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
             decoding="async"
             className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" 
           />
+          {isFrameEnabled && (
+            <img
+              src={frameOverlayUrl}
+              alt=""
+              aria-hidden="true"
+              className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+            />
+          )}
         </div>
         
         {/* Quick Add Button */}
