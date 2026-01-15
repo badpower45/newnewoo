@@ -707,6 +707,14 @@ export default function ProductsPage() {
                                 key={cat.id}
                                 onClick={() => {
                                     console.log('🎯 Selecting category:', cat.id, cat.name);
+                                    // Update URL to reflect category change
+                                    const params = new URLSearchParams(window.location.search);
+                                    if (cat.id && cat.id !== '') {
+                                        params.set('category', cat.id);
+                                    } else {
+                                        params.delete('category');
+                                    }
+                                    navigate(`/products?${params.toString()}`, { replace: true });
                                     setSelectedCategory(cat.id);
                                     setCurrentPage(1);
                                 }}
