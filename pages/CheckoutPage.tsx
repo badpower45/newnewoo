@@ -247,24 +247,34 @@ export default function CheckoutPage() {
         setBarcodeError('');
         
         try {
+            console.log('🔍 Validating barcode:', barcodeInput.trim());
             const result = await api.loyaltyBarcode.validate(barcodeInput.trim());
+            console.log('📦 Barcode validation result:', result);
             
-            if (!result.valid) {
-                setBarcodeError(result.message || 'الباركود غير صالح');
+            if (!result || !result.valid) {
+                const errorMsg = result?.message || result?.error || 'الباركود غير صالح';
+                setBarcodeError(errorMsg);
                 setAppliedBarcode(null);
                 setBarcodeDiscount(0);
+                showToast(errorMsg, 'error');
                 return;
             }
 
             // Apply the barcode discount
-            setAppliedBarcode(result.barcode);
-            setBarcodeDiscount(result.barcode.monetary_value);
-            showToast(`✅ تم تطبيق باركود بقيمة ${result.barcode.monetary_value} جنيه`, 'success');
+            const barcodeData = result.barcode;
+            const discount = barcodeData?.monetary_value || 0;
+            
+            setAppliedBarcode(barcodeData);
+            setBarcodeDiscount(discount);
+            showToast(`✅ تم تطبيق باركود بقيمة ${discount} جنيه`, 'success');
             
         } catch (error: any) {
-            setBarcodeError(error.message || 'فشل التحقق من الباركود');
+            console.error('❌ Barcode validation error:', error);
+            const errorMsg = error.message || 'فشل التحقق من الباركود';
+            setBarcodeError(errorMsg);
             setAppliedBarcode(null);
             setBarcodeDiscount(0);
+            showToast(errorMsg, 'error');
         } finally {
             setIsValidatingBarcode(false);
         }
