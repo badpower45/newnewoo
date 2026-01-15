@@ -262,7 +262,7 @@ export default function CheckoutPage() {
 
             // Apply the barcode discount
             const barcodeData = result.barcode;
-            const discount = barcodeData?.monetary_value || 0;
+            const discount = Number(barcodeData?.monetary_value ?? barcodeData?.value ?? 0) || 0;
             
             setAppliedBarcode(barcodeData);
             setBarcodeDiscount(discount);
@@ -972,7 +972,7 @@ export default function CheckoutPage() {
                             {barcodeDiscount > 0 && (
                                 <div className="flex justify-between items-center text-sm text-orange-600 font-medium">
                                     <span>Barcode Discount</span>
-                                    <span>-{barcodeDiscount.toFixed(2)} EGP</span>
+                                    <span>-{(Number(barcodeDiscount) || 0).toFixed(2)} EGP</span>
                                 </div>
                             )}
                             <div className="flex justify-between items-center pt-2 border-t border-gray-200">
