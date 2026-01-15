@@ -296,14 +296,26 @@ const LiveChatDashboard = () => {
                                     className={`flex ${msg.senderType === 'agent' ? 'justify-end' : 'justify-start'}`}
                                 >
                                     <div
-                                        className={`max-w-[70%] rounded-2xl px-4 py-2 ${msg.senderType === 'agent'
-                                                ? 'bg-brand-orange text-white'
-                                                : 'bg-white text-gray-800 shadow'
-                                            }`}
+                                        className={`max-w-[70%] rounded-2xl px-4 py-2.5 shadow-sm ${
+                                            msg.senderType === 'agent'
+                                                ? 'bg-green-500 text-white rounded-br-sm' // رسالة الموظف - أخضر مثل واتساب
+                                                : msg.senderType === 'customer'
+                                                ? 'bg-white text-gray-800 border border-gray-200 rounded-bl-sm' // رسالة العميل - أبيض
+                                                : 'bg-blue-100 text-blue-800 border border-blue-200' // رسالة البوت - أزرق
+                                        }`}
                                     >
-                                        <p className="text-sm">{msg.message}</p>
-                                        <p className={`text-xs mt-1 ${msg.senderType === 'agent' ? 'text-white/70' : 'text-gray-500'}`}>
+                                        {/* اسم المرسل للتوضيح */}
+                                        {msg.senderType !== 'agent' && (
+                                            <p className="text-[10px] font-semibold mb-1 opacity-70">
+                                                {msg.senderType === 'customer' ? '👤 عميل' : '🤖 بوت'}
+                                            </p>
+                                        )}
+                                        <p className="text-sm leading-relaxed">{msg.message}</p>
+                                        <p className={`text-[10px] mt-1 flex items-center gap-1 ${
+                                            msg.senderType === 'agent' ? 'text-white/80 justify-end' : 'text-gray-500'
+                                        }`}>
                                             {formatTime(msg.timestamp)}
+                                            {msg.senderType === 'agent' && <span>✓✓</span>}
                                         </p>
                                     </div>
                                 </div>

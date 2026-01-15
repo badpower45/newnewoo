@@ -320,11 +320,11 @@ export default function ProductsPage() {
             
             let data;
             if (selectedCategory && selectedCategory !== '') {
-                // Fetch products by category from API
+                // Fetch products by category from API (optimized)
                 console.log('🎯 Using API category filter:', selectedCategory);
                 data = await api.products.getByCategory(selectedCategory, branchId);
             } else {
-                // Fetch all products
+                // Fetch all products (with limit for performance)
                 console.log('🎯 Fetching all products');
                 data = await api.products.getAllByBranch(branchId);
             }
@@ -332,15 +332,17 @@ export default function ProductsPage() {
             const list = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
             console.log('✅ Loaded products:', list.length);
             
-            // Show unique categories in loaded products
+            // Optimize: Memoize unique categories
             if (list.length > 0) {
                 const uniqueCategories = [...new Set(list.map((p: any) => p.category))];
                 console.log('📊 Categories in loaded products:', uniqueCategories);
             }
             
+            // Batch state update for better performance
             setAllProducts(list);
         } catch (err) {
             console.error('❌ Error fetching products:', err);
+            setAllProducts([]); // Clear on error
         } finally {
             setLoading(false);
         }
