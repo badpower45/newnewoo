@@ -289,7 +289,14 @@ export const api = {
             if (!res.ok) {
                 throw new Error('فشل تحميل الإطارات');
             }
-            return res.json();
+            const result = await res.json();
+            if (Array.isArray(result)) {
+                return { success: true, data: result };
+            }
+            if (!Array.isArray(result?.data) && Array.isArray(result?.frames)) {
+                return { ...result, data: result.frames };
+            }
+            return result;
         },
         deleteFrame: async (frameId: number) => {
             const res = await fetch(`${API_URL}/products/frames/${frameId}`, {
