@@ -66,15 +66,42 @@ const ProductFramesManager: React.FC = () => {
             return;
         }
 
-        const formData = new FormData();
-        formData.append('frame', selectedFile);
-        formData.append('name', frameName);
-        formData.append('name_ar', frameNameAr);
-        formData.append('category', frameCategory);
-
         try {
             setLoading(true);
-            const result = await api.products.uploadFrame(formData);
+            
+            // Convert file to base64
+            const reader = new FileReader();
+            reader.readAsDataURL(selectedFile);
+            
+            const base64Promise = new Promise<string>((resolve, reject) => {
+                reader.onload = () => resolve(reader.result as string);
+                reader.onerror = reject;
+            });
+            
+            const frame_base64 = await base64Promise;
+            console.log('📤 Uploading frame as base64...');
+            
+            // Send as JSON with base64
+            const response = await fetch(`${api.API_URL}/products/upload-frame`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    name: frameName,
+                    name_ar: frameNameAr,
+                    category: frameCategory,
+                    frame_base64: frame_base64
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(result.error || result.details || 'فشل رفع الإطار');
+            }
+            
             console.log('✅ Frame uploaded:', result);
             alert(`✅ تم رفع الإطار بنجاح!\n${result.data?.name || ''}`);
             setUploadModalOpen(false);
