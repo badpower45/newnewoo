@@ -8,6 +8,7 @@ import CheckoutPage from './pages/CheckoutPage';
 import CategoriesPage from './pages/CategoriesPage';
 import BottomNav from './components/BottomNav';
 import { CartProvider } from './context/CartContext';
+import { analyticsService } from './services/analyticsService';
 import { AuthProvider } from './context/AuthContext';
 import { BranchProvider } from './context/BranchContext';
 import { useAuth } from './context/AuthContext';
@@ -107,6 +108,7 @@ function AppContent() {
   const [appReady, setAppReady] = React.useState(false);
   const location = useLocation();
   const path = location.pathname;
+  const { user } = useAuth();
   const isAdminRoute = path.startsWith('/admin');
   const isChatPage = path === '/chat';
   const isEmployeeRoute = ['/customer-service', '/delivery', '/smart-returns'].some(route =>
@@ -117,6 +119,22 @@ function AppContent() {
   const { loading: authLoading } = useAuth();
   const { loading: branchLoading } = useBranch();
   const globalLoading = authLoading || branchLoading;
+
+  // Track page views
+  React.useEffect(() => {
+    if (!showSplash && appReady) {
+      analyticsService.trackPageView({
+        page_path: path,
+        page_title: document.title,
+        user_id: user?.id
+      });
+    }
+  }, [path, showSplash, appReady, user]);
+
+  // Setup beforeunload tracking
+  React.useEffect(() => {
+    analyticsService.setupBeforeUnload();
+  }, []);
 
   // Show splash screen on first load
   if (showSplash) {

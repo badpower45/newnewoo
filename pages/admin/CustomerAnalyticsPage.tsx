@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Users, TrendingDown, Star, AlertTriangle, CheckCircle, Search, Download, AlertCircle } from 'lucide-react';
+import { Users, TrendingDown, Star, AlertTriangle, CheckCircle, Search, Download, AlertCircle, Eye, MousePointerClick, Clock, Smartphone, Monitor, Tablet } from 'lucide-react';
 import { api } from '../../services/api';
 import { supabaseBlockingService } from '../../services/supabaseBlockingService';
+import { analyticsService } from '../../services/analyticsService';
 
 interface CustomerAnalytics {
     id: number;
@@ -31,11 +32,25 @@ const CustomerAnalyticsPage = () => {
     const [showBlockModal, setShowBlockModal] = useState(false);
     const [selectedCustomer, setSelectedCustomer] = useState<CustomerAnalytics | null>(null);
     const [blockReason, setBlockReason] = useState('');
+    const [websiteAnalytics, setWebsiteAnalytics] = useState<any>(null);
+    const [analyticsLoading, setAnalyticsLoading] = useState(true);
 
     useEffect(() => {
         fetchCustomerAnalytics();
+        fetchWebsiteAnalytics();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchQuery, filterRating, sortBy]);
+
+    const fetchWebsiteAnalytics = async () => {
+        try {
+            const data = await analyticsService.getAnalytics(30);
+            setWebsiteAnalytics(data);
+        } catch (error) {
+            console.error('Error fetching website analytics:', error);
+        } finally {
+            setAnalyticsLoading(false);
+        }
+    };
 
     const fetchCustomerAnalytics = async () => {
         setLoading(true);
@@ -250,9 +265,9 @@ const CustomerAnalyticsPage = () => {
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
                         <Users className="text-brand-orange" size={36} />
-                        تحليلات العملاء
+                        تحليلات العملاء والزوار
                     </h1>
-                    <p className="text-gray-600 mt-1">راقب سلوك العملاء وحدد "المشاغبين" — اضغط زر الحظر الموجود تحت اسم العميل</p>
+                    <p className="text-gray-600 mt-1">راقب سلوك العملاء وزيارات الموقع</p>
                 </div>
                 <div className="flex items-center gap-3">
                     {error && (
@@ -263,6 +278,114 @@ const CustomerAnalyticsPage = () => {
                     )}
                     {actionMessage && (
                         <div className="flex items-center gap-2 text-green-700 bg-green-50 border border-green-100 px-3 py-2 rounded-xl text-sm">
+                            <CheckCircle size={18} />
+                            {actionMessage}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Website Analytics Section */}
+            {!analyticsLoading && websiteAnalytics && (
+                <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-6 border border-blue-100">
+                    <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                        <Eye className="text-blue-600" />
+                        إحصائيات زيارات الموقع (آخر 30 يوم)
+                    </h2>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        {/* Total Views */}
+                        <div className="bg-white rounded-lg p-4 shadow-sm">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm text-gray-600">إجمالي المشاهدات</p>
+                                    <p className="text-2xl font-bold text-blue-600">{websiteAnalytics.totalViews.toLocaleString()}</p>
+                                </div>
+                                <MousePointerClick className="text-blue-400" size={32} />
+                            </div>
+                        </div>
+
+                        {/* Unique Visitors */}
+                        <div className="bg-white rounded-lg p-4 shadow-sm">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm text-gray-600">زوار فريدون</p>
+                                    <p className="text-2xl font-bold text-purple-600">{websiteAnalytics.uniqueVisitors.toLocaleString()}</p>
+                                </div>
+                                <Users className="text-purple-400" size={32} />
+                            </div>
+                        </div>
+
+                        {/* Registered Users */}
+                        <div className="bg-white rounded-lg p-4 shadow-sm">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm text-gray-600">مستخدمين مسجلين</p>
+                                    <p className="text-2xl font-bold text-green-600">{websiteAnalytics.uniqueUsers.toLocaleString()}</p>
+                                </div>
+                                <CheckCircle className="text-green-400" size={32} />
+                            </div>
+                        </div>
+
+                        {/* Average Duration */}
+                        <div className="bg-white rounded-lg p-4 shadow-sm">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm text-gray-600">متوسط وقت الجلسة</p>
+                                    <p className="text-2xl font-bold text-orange-600">{Math.floor(websiteAnalytics.avgDuration / 60)}د {websiteAnalytics.avgDuration % 60}ث</p>
+                                </div>
+                                <Clock className="text-orange-400" size={32} />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Device Breakdown */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-white rounded-lg p-4 shadow-sm">
+                            <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                <Monitor size={18} />
+                                الأجهزة المستخدمة
+                            </h3>
+                            <div className="space-y-2">
+                                {Object.entries(websiteAnalytics.devices).map(([device, count]: [string, any]) => {
+                                    const percentage = (count / websiteAnalytics.totalViews * 100).toFixed(1);
+                                    const Icon = device === 'mobile' ? Smartphone : device === 'tablet' ? Tablet : Monitor;
+                                    return (
+                                        <div key={device} className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <Icon size={16} className="text-gray-500" />
+                                                <span className="text-sm capitalize">{device}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-32 bg-gray-200 rounded-full h-2">
+                                                    <div 
+                                                        className="bg-blue-500 h-2 rounded-full" 
+                                                        style={{ width: `${percentage}%` }}
+                                                    />
+                                                </div>
+                                                <span className="text-sm font-bold text-gray-700 w-12">{percentage}%</span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Top Pages */}
+                        <div className="bg-white rounded-lg p-4 shadow-sm">
+                            <h3 className="font-bold text-gray-800 mb-3">أكثر الصفحات زيارة</h3>
+                            <div className="space-y-2 max-h-40 overflow-y-auto">
+                                {websiteAnalytics.topPages.slice(0, 5).map((page: any, index: number) => (
+                                    <div key={index} className="flex items-center justify-between text-sm">
+                                        <span className="text-gray-700 truncate flex-1" title={page.path}>{page.path}</span>
+                                        <span className="font-bold text-blue-600 ml-2">{page.count}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
                             {actionMessage}
                         </div>
                     )}
