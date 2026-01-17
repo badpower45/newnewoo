@@ -17,18 +17,15 @@ const SpecialOffersPage: React.FC = () => {
     const loadSpecialOffers = async () => {
         try {
             setLoading(true);
-            // Load products with special offers (has discount)
-            const response = await api.products.getAll();
-            const allProducts = response.data || response || [];
-            
-            // Filter products that have special offers
-            const specialOffers = allProducts.filter((p: Product) => 
-                p.discount_price && p.discount_price < p.price
-            );
+            // ✅ استخدام API مخصص للعروض الخاصة بدلاً من getAll()
+            const response = await api.products.getSpecialOffers();
+            const specialOffers = response.data || response || [];
             
             setProducts(specialOffers);
         } catch (error) {
             console.error('Failed to load special offers:', error);
+            // في حالة الفشل، لا تستخدم fallback لتوفير البيانات
+            setProducts([]);
         } finally {
             setLoading(false);
         }

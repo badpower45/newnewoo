@@ -356,9 +356,9 @@ const BrandPage = () => {
         if (!brandInfo) return;
 
         try {
-            const res = selectedBranch 
-                ? await api.products.getAllByBranch(selectedBranch.id, { includeMagazine: true })
-                : await api.products.getAll();
+            // ✅ دائماً استخدم branch filter (توفير البيانات)
+            const branchId = selectedBranch?.id || 1; // Default branch
+            const res = await api.products.getAllByBranch(branchId, { includeMagazine: true });
             
             const allProducts = res.data || res || [];
             const brandId = brandInfo.id;

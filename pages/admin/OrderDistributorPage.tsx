@@ -65,7 +65,7 @@ const OrderDistributorPage = () => {
             loadOrders();
         }
         
-        // Auto-refresh every 60 seconds
+        // Auto-refresh every 120 seconds (تم الزيادة لتقليل استهلاك البيانات)
         const refreshInterval = setInterval(() => {
             console.log('🔄 Auto-refreshing orders...');
             if (activeTab === 'tracking') {
@@ -74,7 +74,7 @@ const OrderDistributorPage = () => {
             } else {
                 loadOrders();
             }
-        }, 60000); // 60 seconds
+        }, 120000); // 120 seconds (تقليل الطلبات بنسبة 50%)
         
         return () => clearInterval(refreshInterval);
     }, [selectedBranch, activeTab]);
@@ -117,17 +117,7 @@ const OrderDistributorPage = () => {
                 console.log('📦 Loaded', ordersData.length, 'orders for status:', statusMap[activeTab]);
             } catch (err) {
                 console.error('❌ Admin Orders API failed:', err);
-                // Fallback to regular orders API
-                try {
-                    const res = await api.orders.getAll();
-                    const allOrders = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
-                    ordersData = allOrders.filter((o: any) => o.status === statusMap[activeTab]);
-                    if (selectedBranch?.id) {
-                        ordersData = ordersData.filter((o: any) => o.branch_id === selectedBranch.id || !o.branch_id);
-                    }
-                } catch (fallbackErr) {
-                    console.error('❌ Fallback also failed:', fallbackErr);
-                }
+                // ❌ تم إزالة الـ fallback لتوفير البيانات - استخدم Admin API فقط
             }
             
             setOrders(ordersData);

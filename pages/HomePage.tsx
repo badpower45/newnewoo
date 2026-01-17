@@ -147,14 +147,14 @@ const HomePage = () => {
             const branchId = selectedBranch?.id || DEFAULT_BRANCH_ID;
             console.log('🏪 Loading limited products for HomePage - Branch:', selectedBranch?.name || 'Default', 'ID:', branchId);
             
-            // ✅ استخدام limit لتقليل Egress - جلب 50 منتج فقط بدل الكل
-            let list = await api.products.getAllByBranch(branchId, { limit: 50 });
+            // ✅ زيادة limit للصفحة الرئيسية: جلب 100 منتج بدلاً من 50
+            let list = await api.products.getAllByBranch(branchId, { limit: 100 });
 
             // Fallback if empty (مع limit)
             if (!list || list.length === 0) {
                 console.log('⚠️ No products found for branch, trying paginated fallback...');
                 try {
-                    list = await api.products.getPaginated(1, 50, branchId);
+                    list = await api.products.getPaginated(1, 100, branchId);
                 } catch (fallbackErr) {
                     console.error('Fallback getPaginated failed', fallbackErr);
                     list = [];

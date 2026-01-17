@@ -249,6 +249,16 @@ export const api = {
             const res = await fetch(`${API_URL}/products/search?q=${encodeURIComponent(query)}&branchId=${branchId}`, { headers: getHeaders() });
             return res.json();
         },
+        // ✅ NEW: جلب العروض الخاصة فقط (توفير Egress كبير)
+        getSpecialOffers: async (branchId?: number) => {
+            const branch = branchId || localStorage.getItem('selectedBranchId') || '1';
+            const res = await fetch(`${API_URL}/products/special-offers?branchId=${branch}`, { headers: getHeaders() });
+            const json = await res.json();
+            const normalize = (p: any) => ({ ...p, price: Number(p?.price) || 0 });
+            const data = Array.isArray(json) ? json : (json.data || []);
+            console.log(`✨ Loaded ${data.length} special offers`);
+            return { data: data.map(normalize) };
+        },
         delete: async (id: string) => {
             const res = await fetch(`${API_URL}/products/${id}`, {
                 method: 'DELETE',
