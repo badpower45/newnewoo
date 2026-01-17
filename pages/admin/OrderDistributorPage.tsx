@@ -639,13 +639,8 @@ const OrderDistributorPage = () => {
                                     </p>
                                 </div>
                                 ))}
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Order Details */}
-                <div className="flex-1 p-6">
+            </div>
+        </div>
                     {selectedOrder ? (
                         <div className="space-y-6">
                             {/* Order Header */}
