@@ -168,31 +168,39 @@ const LiveChatDashboard = () => {
 
         const canUseSocket = socketService.isConnected() && !socketService.isDisabled();
 
-        if (canUseSocket) {
-            socketService.sendMessage(selectedConv, agentId, 'agent', message);
-            socketService.stopTyping(selectedConv, 'agent');
-        } else if (useSupabase) {
-            const sentMessage = await supabaseChatService.sendMessage(selectedConv, agentId, 'agent', message);
-            if (sentMessage) {
+        try {
+            if (canUseSocket) {
+                // Socket will handle the message and the 'message:new' event will add it to the list
+                socketService.sendMessage(selectedConv, agentId, 'agent', message);
+                socketService.stopTyping(selectedConv, 'agent');
+            } else if (useSupabase) {
+                const sentMessage = await supabaseChatService.sendMessage(selectedConv, agentId, 'agent', message);
+                if (sentMessage) {
+                    appendMessage({
+                        id: sentMessage.id,
+                        conversationId: sentMessage.conversation_id,
+                        senderId: sentMessage.sender_id,
+                        senderType: sentMessage.sender_type as 'customer' | 'agent' | 'bot',
+                        message: sentMessage.message,
+                        timestamp: sentMessage.timestamp
+                    });
+                }
+            } else {
+                await api.chat.sendMessage(selectedConv, agentId, 'agent', message);
+                // Only append if API call succeeded (no socket event will trigger)
                 appendMessage({
-                    id: sentMessage.id,
-                    conversationId: sentMessage.conversation_id,
-                    senderId: sentMessage.sender_id,
-                    senderType: sentMessage.sender_type as 'customer' | 'agent' | 'bot',
-                    message: sentMessage.message,
-                    timestamp: sentMessage.timestamp
+                    id: Date.now(),
+                    conversationId: selectedConv,
+                    senderId: agentId,
+                    senderType: 'agent',
+                    message,
+                    timestamp: new Date().toISOString()
                 });
             }
-        } else {
-            await api.chat.sendMessage(selectedConv, agentId, 'agent', message);
-            appendMessage({
-                id: Date.now(),
-                conversationId: selectedConv,
-                senderId: agentId,
-                senderType: 'agent',
-                message,
-                timestamp: new Date().toISOString()
-            });
+        } catch (error) {
+            console.error('Failed to send message:', error);
+            // Restore message on error
+            setInputMessage(message);
         }
     };
 

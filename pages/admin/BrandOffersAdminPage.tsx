@@ -48,6 +48,7 @@ const defaultOffer: Partial<BrandOffer> = {
     image_url: '',
     brand_logo_url: '',
     link_type: 'product',
+    linked_product_id: undefined,
     is_active: true,
     display_order: 0
 };
@@ -345,23 +346,12 @@ export default function BrandOffersAdminPage() {
                                                     <span className={`px-2 py-0.5 rounded-full ${offer.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                                                         {offer.is_active ? 'مفعل' : 'معطل'}
                                                     </span>
-                                                    <span className="text-gray-400">|</span>
-                                                    <span className="text-gray-500">
-                                                        {offer.link_type === 'product' ? 'مرتبط بمنتج' : offer.link_type === 'brand' ? 'مرتبط ببراند' : 'رابط مخصص'}
-                                                    </span>
                                                     {offer.link_type === 'product' && linkedProduct && (
                                                         <>
-                                                            <span className="text-gray-400">:</span>
+                                                            <span className="text-gray-400">|</span>
+                                                            <span className="text-gray-500">مرتبط بمنتج:</span>
                                                             <span className="text-brand-orange">
                                                                 {linkedProduct.nameAr || linkedProduct.name}
-                                                            </span>
-                                                        </>
-                                                    )}
-                                                    {offer.link_type === 'brand' && linkedBrand && (
-                                                        <>
-                                                            <span className="text-gray-400">:</span>
-                                                            <span className="text-brand-orange">
-                                                                {linkedBrand.name_ar || linkedBrand.name_en}
                                                             </span>
                                                         </>
                                                     )}
@@ -721,34 +711,7 @@ export default function BrandOffersAdminPage() {
                             {/* Link */}
                             {renderSection('link', 'الربط بمنتج', <Link2 size={18} />, (
                                 <>
-                                    <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-1">
-                                            نوع الرابط
-                                        </label>
-                                        <select
-                                            value={editingOffer.link_type || 'product'}
-                                            onChange={(e) => {
-                                                setEditingOffer({ 
-                                                    ...editingOffer, 
-                                                    link_type: e.target.value,
-                                                    linked_product_id: undefined,
-                                                    linked_brand_id: undefined,
-                                                    custom_link: undefined
-                                                });
-                                                setProductSearch('');
-                                                setBrandSearch('');
-                                                setShowProductDropdown(false);
-                                                setShowBrandDropdown(false);
-                                            }}
-                                            className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-orange focus:outline-none"
-                                        >
-                                            <option value="product">ربط بمنتج</option>
-                                            <option value="brand">ربط ببراند</option>
-                                            <option value="custom">رابط مخصص</option>
-                                        </select>
-                                    </div>
-
-                                    {editingOffer.link_type === 'product' && (
+                                    {
                                         <div className="relative">
                                             <label className="block text-sm font-bold text-gray-700 mb-1">
                                                 اختر المنتج
@@ -807,84 +770,6 @@ export default function BrandOffersAdminPage() {
                                                 </div>
                                             )}
                                         </div>
-                                    )}
-
-                                    {editingOffer.link_type === 'brand' && (
-                                        <div className="relative">
-                                            <label className="block text-sm font-bold text-gray-700 mb-1">
-                                                اختر البراند
-                                            </label>
-                                            <div className="relative">
-                                                <input
-                                                    type="text"
-                                                    value={brandSearch}
-                                                    onChange={(e) => {
-                                                        setBrandSearch(e.target.value);
-                                                        setShowBrandDropdown(true);
-                                                    }}
-                                                    onFocus={() => setShowBrandDropdown(true)}
-                                                    className="w-full border rounded-lg px-3 py-2 pr-10 focus:ring-2 focus:ring-brand-orange focus:outline-none"
-                                                    placeholder="ابحث عن براند..."
-                                                />
-                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                            </div>
-
-                                            {showBrandDropdown && filteredBrands.length > 0 && (
-                                                <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                                                    {filteredBrands.map((brand: any) => (
-                                                        <button
-                                                            key={brand.id}
-                                                            onClick={() => {
-                                                                setEditingOffer({ ...editingOffer, linked_brand_id: brand.id });
-                                                                setBrandSearch('');
-                                                                setShowBrandDropdown(false);
-                                                            }}
-                                                            className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 text-right"
-                                                        >
-                                                            {brand.logo_url && (
-                                                                <img src={brand.logo_url} alt="" className="w-10 h-10 object-cover rounded" />
-                                                            )}
-                                                            <div>
-                                                                <div className="font-bold">{brand.name_ar || brand.name_en}</div>
-                                                                <div className="text-sm text-gray-500">{brand.name_en}</div>
-                                                            </div>
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            )}
-
-                                            {editingOffer.linked_brand_id && (
-                                                <div className="mt-2 flex items-center gap-2 bg-blue-50 p-2 rounded-lg">
-                                                    <Package size={18} className="text-blue-600" />
-                                                    <span className="text-blue-700 font-bold">
-                                                        البراند المرتبط: {selectedBrand?.name_ar || selectedBrand?.name_en}
-                                                    </span>
-                                                    <button
-                                                        onClick={() => setEditingOffer({ ...editingOffer, linked_brand_id: undefined })}
-                                                        className="mr-auto text-red-500 hover:text-red-700"
-                                                    >
-                                                        <X size={18} />
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {editingOffer.link_type === 'custom' && (
-                                        <div>
-                                            <label className="block text-sm font-bold text-gray-700 mb-1">
-                                                الرابط المخصص
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={editingOffer.custom_link || ''}
-                                                onChange={(e) => setEditingOffer({ ...editingOffer, custom_link: e.target.value })}
-                                                className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-orange focus:outline-none"
-                                                dir="ltr"
-                                                placeholder="/products?brand=galaxy"
-                                            />
-                                        </div>
-                                    )}
                                 </>
                             ))}
 

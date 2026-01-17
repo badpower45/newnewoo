@@ -906,15 +906,6 @@ export default function ProductsPage() {
                                     </button>
                                 </div>
 
-                                {/* Quick Categories */}
-                                <div>
-                                    <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-                                        <Grid3X3 size={18} className="text-brand-brown" />
-                                        فئة سريعة
-                                    </h3>
-                                    <div className="flex flex-wrap gap-2"></div>
-                                </div>
-
                                 {/* Brands Filter */}
                                 {brands.length > 1 && (
                                     <div>
