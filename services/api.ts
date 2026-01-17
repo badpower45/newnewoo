@@ -1354,6 +1354,7 @@ export const api = {
             duration?: number;
             link_url?: string;
             link_text?: string;
+            circle_name?: string;
             expires_in_hours?: number;
             priority?: number;
             branch_id?: number;
@@ -1373,6 +1374,7 @@ export const api = {
             duration: number;
             link_url: string;
             link_text: string;
+            circle_name: string;
             expires_in_hours: number;
             priority: number;
             is_active: boolean;

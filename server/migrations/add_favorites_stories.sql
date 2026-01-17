@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS stories (
     is_active BOOLEAN DEFAULT TRUE,
     priority INTEGER DEFAULT 0, -- Higher priority = shown first
     expires_at TIMESTAMP,
+    circle_name TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (branch_id) REFERENCES branches(id) ON DELETE SET NULL

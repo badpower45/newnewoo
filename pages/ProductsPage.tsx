@@ -2,8 +2,8 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import BarcodeScanner from '../components/BarcodeScanner';
 import ProductModal from '../components/ProductModal';
 import { ProductGridSkeleton } from '../components/Skeleton';
-import { 
-    Scan, Search, X, 
+import {
+    Scan, Search, X,
     SlidersHorizontal, Sparkles,
     TrendingUp, Clock, Tag, ArrowUpDown,
     Grid3X3
@@ -145,8 +145,8 @@ const mapCategoryLabel = (value: string = '') => {
 
 export default function ProductsPage() {
     const [allProducts, setAllProducts] = useState<Product[]>([]);
-    const [categories, setCategories] = useState<{id: string, name: string, icon: string, color: string}[]>([]);
-    const [brands, setBrands] = useState<{id: string, name: string}[]>([]);
+    const [categories, setCategories] = useState<{ id: string, name: string, icon: string, color: string }[]>([]);
+    const [brands, setBrands] = useState<{ id: string, name: string }[]>([]);
     const [loading, setLoading] = useState(true);
     const [showScanner, setShowScanner] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -158,7 +158,7 @@ export default function ProductsPage() {
     const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
     const [showOnlyOffers, setShowOnlyOffers] = useState(false);
     const [categoryBanner, setCategoryBanner] = useState<any>(null);
-    
+
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const location = useLocation();
@@ -172,7 +172,7 @@ export default function ProductsPage() {
                 console.log('📦 Loading categories from database...');
                 const response = await api.categories.getAll();
                 const apiCategories = response?.data || response || [];
-                
+
                 if (Array.isArray(apiCategories) && apiCategories.length > 0) {
                     // Transform database categories to match ProductsPage format
                     const categoriesFromDB = apiCategories
@@ -217,11 +217,11 @@ export default function ProductsPage() {
                             }
                             return acc;
                         }, new Map())
-                        .values()
+                            .values()
                     );
-                    
+
                     console.log('✅ Loaded', categoriesFromDB.length, 'categories from database');
-                    
+
                     setCategories([
                         { id: '', name: 'الكل', icon: '🛒', color: 'from-brand-brown to-brand-brown/80' },
                         ...uniqueCategories
@@ -239,7 +239,7 @@ export default function ProductsPage() {
                 ]);
             }
         };
-        
+
         loadCategories();
     }, []); // Load once on mount
 
@@ -261,7 +261,7 @@ export default function ProductsPage() {
                 setBrands([{ id: '', name: 'كل البراندات' }]);
             }
         };
-        
+
         loadBrands();
     }, []);
 
@@ -272,12 +272,12 @@ export default function ProductsPage() {
                 setCategoryBanner(null);
                 return;
             }
-            
+
             try {
                 console.log('🎨 Fetching banner for category:', selectedCategory);
                 const response = await api.categories.getByName(mapCategoryLabel(selectedCategory) || selectedCategory);
                 console.log('🎨 Category data:', response);
-                
+
                 if (response.success && response.data) {
                     const cat = response.data;
                     // Only show banner if it has banner_image
@@ -294,7 +294,7 @@ export default function ProductsPage() {
                 setCategoryBanner(null);
             }
         };
-        
+
         fetchCategoryBanner();
     }, [selectedCategory]);
 
@@ -317,7 +317,7 @@ export default function ProductsPage() {
         try {
             const branchId = selectedBranch?.id || 1;
             console.log('📦 Fetching products for branch:', branchId, 'category:', selectedCategory);
-            
+
             let data;
             if (selectedCategory && selectedCategory !== '') {
                 // Fetch products by category from API (optimized)
@@ -328,16 +328,16 @@ export default function ProductsPage() {
                 console.log('🎯 Fetching all products');
                 data = await api.products.getAllByBranch(branchId);
             }
-            
+
             const list = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
             console.log('✅ Loaded products:', list.length);
-            
+
             // Optimize: Memoize unique categories
             if (list.length > 0) {
                 const uniqueCategories = [...new Set(list.map((p: any) => p.category))];
                 console.log('📊 Categories in loaded products:', uniqueCategories);
             }
-            
+
             // Batch state update for better performance
             setAllProducts(list);
         } catch (err) {
@@ -354,7 +354,7 @@ export default function ProductsPage() {
     const handleBarcodeScanned = useCallback(async (barcode: string) => {
         // Close scanner immediately
         setShowScanner(false);
-        
+
         // Show loading overlay
         const loadingDiv = document.createElement('div');
         loadingDiv.id = 'barcode-loading-overlay';
@@ -367,17 +367,17 @@ export default function ProductsPage() {
             </div>
         `;
         document.body.appendChild(loadingDiv);
-        
+
         try {
             const branchId = selectedBranch?.id || 1;
             const response = await api.products.getByBarcode(barcode, branchId);
-            
+
             // Remove loading overlay safely
             const overlay = document.getElementById('barcode-loading-overlay');
             if (overlay) {
                 document.body.removeChild(overlay);
             }
-            
+
             if (response.data && response.message === 'success') {
                 setScannedProduct(response.data);
                 setShowProductModal(true);
@@ -406,7 +406,7 @@ export default function ProductsPage() {
             await handleBarcodeScanned(trimmed);
             return;
         }
-        
+
         if (trimmed) {
             setLoading(true);
             try {
@@ -428,7 +428,7 @@ export default function ProductsPage() {
         const category = searchParams.get('category');
         const barcode = searchParams.get('barcode');
         const search = searchParams.get('search');
-        
+
         if (category) {
             const mappedCategory = mapCategoryLabel(category) || category;
             console.log('🔍 Category from URL:', category, '→ Mapped to:', mappedCategory);
@@ -450,7 +450,7 @@ export default function ProductsPage() {
             handleSearch(search);
             return;
         }
-        
+
         // Fetch products will be called automatically when selectedCategory changes
     }, [searchParams, handleSearch, handleBarcodeScanned]);
 
@@ -468,7 +468,7 @@ export default function ProductsPage() {
 
         // Note: Category filtering is now done server-side via API
         // This client-side filter is only for additional filters (brand, price, etc.)
-        
+
         // Filter by brand
         if (selectedBrand) {
             console.log('🔍 Filtering by brand:', selectedBrand);
@@ -612,9 +612,8 @@ export default function ProductsPage() {
                         </div>
                         <div className="flex items-center gap-2 mt-2">
                             <span
-                                className={`text-[11px] px-2 py-1 rounded-full ${
-                                    available ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'
-                                }`}
+                                className={`text-[11px] px-2 py-1 rounded-full ${available ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'
+                                    }`}
                             >
                                 {available ? 'متوفر' : 'غير متوفر'}
                             </span>
@@ -627,11 +626,10 @@ export default function ProductsPage() {
                 <button
                     onClick={handleQuickAdd}
                     disabled={!available}
-                    className={`self-center w-12 h-12 rounded-xl border transition-all ${
-                        available
+                    className={`self-center w-12 h-12 rounded-xl border transition-all ${available
                             ? 'border-brand-orange text-brand-orange hover:bg-orange-50 active:scale-95'
                             : 'border-gray-200 text-gray-400 cursor-not-allowed'
-                    }`}
+                        }`}
                     title={available ? 'إضافة سريعة للسلة' : 'غير متوفر'}
                 >
                     +
@@ -652,494 +650,503 @@ export default function ProductsPage() {
             />
             <div className="min-h-screen bg-white">
                 <div className="sticky top-0 z-40 bg-white border-b">
-                <div className="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center gap-3">
-                    <div className="flex-1 min-w-[240px] flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
-                        <Search size={16} className="text-gray-400" />
-                        <input
-                            value={searchQuery}
-                            onChange={(e) => handleSearch(e.target.value)}
-                            placeholder="ابحث عن منتج أو باركود..."
-                            className="flex-1 bg-transparent outline-none text-sm text-gray-800"
-                        />
-                        <button
-                            type="button"
-                            onClick={() => setShowScanner(true)}
-                            className="text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg p-1.5 transition"
-                            title="مسح باركود بالكاميرا"
-                        >
-                            <Scan size={16} />
-                        </button>
-                        {searchQuery && (
-                            <button onClick={() => handleSearch('')} className="text-gray-400 hover:text-gray-600">
-                                <X size={16} />
-                            </button>
-                        )}
-                    </div>
-                    <select
-                        value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value)}
-                        className="px-3 py-2 border border-gray-200 rounded-xl text-sm text-gray-700 bg-white"
-                    >
-                        {SORT_OPTIONS.map((option) => (
-                            <option key={option.id} value={option.id}>
-                                {option.name}
-                            </option>
-                        ))}
-                    </select>
-                    
-                    <div className="hidden sm:flex items-center gap-2 text-gray-500 text-sm">
-                        <Sparkles size={16} className="text-amber-500" />
-                        <span>{filteredAndSortedProducts.length} منتج</span>
-                    </div>
-                </div>
-                <div className="max-w-7xl mx-auto px-4 pb-3 overflow-x-auto scrollbar-hide flex gap-2">
-                    {categories.map((cat) => {
-                        // Normalize both values for comparison
-                        const catIdNormalized = normalizeCategoryValue(cat.id || '');
-                        const selectedNormalized = normalizeCategoryValue(selectedCategory || '');
-                        const isSelected = selectedCategory === cat.id || 
-                                         selectedCategory === cat.name || 
-                                         catIdNormalized === selectedNormalized ||
-                                         (selectedCategory === '' && cat.id === '');
-                        
-                        return (
-                            <button
-                                key={cat.id}
-                                onClick={() => {
-                                    console.log('🎯 Selecting category:', cat.id, cat.name);
-                                    // Update URL to reflect category change
-                                    const params = new URLSearchParams(window.location.search);
-                                    if (cat.id && cat.id !== '') {
-                                        params.set('category', cat.id);
-                                    } else {
-                                        params.delete('category');
-                                    }
-                                    navigate(`/products?${params.toString()}`, { replace: true });
-                                    setSelectedCategory(cat.id);
-                                    setCurrentPage(1);
-                                }}
-                                className={`flex items-center gap-2 px-3 py-2 rounded-full whitespace-nowrap border text-sm transition-all ${
-                                    isSelected
-                                        ? 'bg-brand-orange text-white border-brand-orange shadow-md scale-105'
-                                        : 'border-gray-200 text-gray-700 hover:border-brand-orange/50 hover:bg-orange-50'
-                                }`}
-                            >
-                                <span>{cat.icon}</span>
-                                <span className="font-medium">{cat.name}</span>
-                                {cat.product_count > 0 && (
-                                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                                        isSelected ? 'bg-white/20' : 'bg-gray-100 text-gray-600'
-                                    }`}>
-                                        {cat.product_count}
-                                    </span>
-                                )}
-                            </button>
-                        );
-                    })}
-                </div>
-            </div>
-
-            {categoryBanner && categoryBanner.banner_image && (
-                <div className="max-w-7xl mx-auto px-4 pt-4">
-                    <div className="rounded-2xl overflow-hidden border">
-                        <img
-                            src={categoryBanner.banner_image}
-                            alt={categoryBanner.banner_title || categoryBanner.name_ar || categoryBanner.name}
-                            className="w-full h-44 object-cover"
-                        />
-                    </div>
-                </div>
-            )}
-
-            <div className="max-w-7xl mx-auto px-4 py-6 space-y-4">
-                {/* Filters Panel */}
-                {false && (
-                    <div className="bg-white border rounded-2xl p-4 space-y-4">
-                        <div className="flex flex-col sm:flex-row gap-4">
-                            <div className="flex-1">
-                                <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                                    <Tag size={16} className="text-brand-orange" />
-                                    نطاق السعر
-                                </h3>
-                                <div className="flex items-center gap-2">
-                                    <input
-                                        type="number"
-                                        value={priceRange[0]}
-                                        onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
-                                        className="w-24 px-3 py-2 border border-gray-200 rounded-lg text-center text-sm"
-                                        placeholder="من"
-                                    />
-                                    <span className="text-gray-400">—</span>
-                                    <input
-                                        type="number"
-                                        value={priceRange[1]}
-                                        onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
-                                        className="w-24 px-3 py-2 border border-gray-200 rounded-lg text-center text-sm"
-                                        placeholder="إلى"
-                                    />
-                                    <span className="text-gray-500 text-sm">جنيه</span>
-                                </div>
-                            </div>
-
-                            <div className="flex-1">
-                                <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                                    <Sparkles size={16} className="text-orange-500" />
-                                    عروض
-                                </h3>
-                                <button
-                                    onClick={() => setShowOnlyOffers(!showOnlyOffers)}
-                                    className={`px-4 py-2 rounded-xl border text-sm w-full text-right ${
-                                        showOnlyOffers ? 'border-orange-500 text-orange-700 bg-orange-50' : 'border-gray-200 text-gray-700'
-                                    }`}
-                                >
-                                    عرض المنتجات بخصم فقط
-                                </button>
-                            </div>
-
-                            {brands.length > 1 && (
-                                <div className="flex-1">
-                                    <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
-                                        <Tag size={16} className="text-orange-500" />
-                                        البراند
-                                    </h3>
-                                    <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
-                                        {brands.map((brand) => (
-                                            <button
-                                                key={brand.id}
-                                                onClick={() => setSelectedBrand(brand.id)}
-                                                className={`w-full text-right px-4 py-2 rounded-xl border text-sm ${
-                                                    selectedBrand === brand.id
-                                                        ? 'border-orange-500 text-orange-700 bg-orange-50'
-                                                        : 'border-gray-200 text-gray-700'
-                                                }`}
-                                            >
-                                                {brand.name}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {/* Active Filters */}
-                {hasActiveFilters && (
-                    <div className="flex flex-wrap items-center gap-2 mb-6" />
-                )}
-
-                {/* Filters Panel */}
-                {showFilters && (
-                    <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                            {/* Price Range */}
-                            <div>
-                                <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-                                    <Tag size={18} className="text-brand-orange" />
-                                    نطاق السعر
-                                </h3>
-                                <div className="flex items-center gap-3">
-                                    <input
-                                        type="number"
-                                        value={priceRange[0]}
-                                        onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
-                                        className="w-24 px-3 py-2 border border-gray-200 rounded-lg text-center"
-                                        placeholder="من"
-                                    />
-                                    <span className="text-gray-400">—</span>
-                                    <input
-                                        type="number"
-                                        value={priceRange[1]}
-                                        onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
-                                        className="w-24 px-3 py-2 border border-gray-200 rounded-lg text-center"
-                                        placeholder="إلى"
-                                    />
-                                    <span className="text-gray-500">جنيه</span>
-                                </div>
-                            </div>
-
-                            {/* Offers Toggle */}
-                            <div>
-                                <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-                                    <Sparkles size={18} className="text-orange-500" />
-                                    العروض
-                                </h3>
-                                <button
-                                    onClick={() => setShowOnlyOffers(!showOnlyOffers)}
-                                    className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all w-full ${
-                                        showOnlyOffers 
-                                            ? 'border-orange-500 bg-orange-50 text-orange-700' 
-                                            : 'border-gray-200 hover:border-orange-300'
-                                    }`}
-                                >
-                                    <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center ${
-                                        showOnlyOffers ? 'bg-orange-500 border-orange-500' : 'border-gray-300'
-                                    }`}>
-                                        {showOnlyOffers && <Check size={14} className="text-white" />}
-                                    </div>
-                                    <span>عرض المنتجات بخصم فقط</span>
-                                </button>
-                            </div>
-
-                            {/* Quick Categories */}
-                            <div>
-                                <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-                                    <Grid3X3 size={18} className="text-brand-brown" />
-                                    فئة سريعة
-                                </h3>
-                    <div className="flex flex-wrap gap-2"></div>
-                </div>
-
-                            {/* Brands Filter */}
-                            {brands.length > 1 && (
-                                <div>
-                                    <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
-                                        <Tag size={18} className="text-orange-500" />
-                                        البراند
-                                    </h3>
-                                    <div className="space-y-2 max-h-60 overflow-y-auto">
-                                        {brands.map((brand) => (
-                                            <button
-                                                key={brand.id}
-                                                onClick={() => setSelectedBrand(brand.id)}
-                                                className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border-2 transition-all w-full text-right ${
-                                                    selectedBrand === brand.id
-                                                        ? 'border-orange-500 bg-orange-50 text-orange-700'
-                                                        : 'border-gray-200 hover:border-orange-300'
-                                                }`}
-                                            >
-                                                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                                                    selectedBrand === brand.id ? 'bg-orange-500 border-orange-500' : 'border-gray-300'
-                                                }`}>
-                                                    {selectedBrand === brand.id && <div className="w-2 h-2 bg-white rounded-full" />}
-                                                </div>
-                                                <span className="flex-1">{brand.name}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {/* Products List */}
-                {loading ? (
-                    <ProductGridSkeleton count={12} />
-                ) : paginatedProducts.length === 0 ? (
-                    <div className="text-center py-20">
-                        <div className="text-6xl mb-4">🔍</div>
-                        <h3 className="text-xl font-bold text-gray-800 mb-2">لا توجد منتجات</h3>
-                        <p className="text-gray-500 mb-4">جرب تغيير الفلاتر أو البحث بكلمات أخرى</p>
-                        <button
-                            onClick={clearFilters}
-                            className="px-6 py-2 bg-brand-orange text-white rounded-xl hover:bg-brand-brown transition"
-                        >
-                            مسح الفلاتر
-                        </button>
-                    </div>
-                ) : (
-                    <>
-                        <div className="bg-white border rounded-2xl divide-y">
-                            {paginatedProducts.map((product) => {
-                                const reserved = product.reserved_quantity || 0;
-                                const stock = product.stock_quantity;
-                                const available = typeof stock === 'number' ? (stock - reserved) > 0 : true;
-                                return (
-                                    <FlatProductRow
-                                        key={product.id}
-                                        product={product}
-                                        available={available}
-                                    />
-                                );
-                            })}
-                        </div>
-
-                        {/* Pagination */}
-                        {totalPages > 1 && (
-                            <div className="flex justify-center items-center gap-2 mt-10">
-                                <button
-                                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                    disabled={currentPage === 1}
-                                    className="px-4 py-2 rounded-xl bg-white border border-gray-200 hover:border-brand-orange disabled:opacity-50 disabled:cursor-not-allowed transition"
-                                >
-                                    السابق
-                                </button>
-                                
-                                <div className="flex items-center gap-1">
-                                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                        let pageNum;
-                                        if (totalPages <= 5) {
-                                            pageNum = i + 1;
-                                        } else if (currentPage <= 3) {
-                                            pageNum = i + 1;
-                                        } else if (currentPage >= totalPages - 2) {
-                                            pageNum = totalPages - 4 + i;
-                                        } else {
-                                            pageNum = currentPage - 2 + i;
-                                        }
-                                        
-                                        return (
-                                            <button
-                                                key={pageNum}
-                                                onClick={() => setCurrentPage(pageNum)}
-                                                className={`w-10 h-10 rounded-xl font-medium transition ${
-                                                    currentPage === pageNum
-                                                        ? 'bg-brand-orange text-white shadow-lg'
-                                                        : 'bg-white border border-gray-200 hover:border-brand-orange'
-                                                }`}
-                                            >
-                                                {pageNum}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-
-                                <button
-                                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                    disabled={currentPage === totalPages}
-                                    className="px-4 py-2 rounded-xl bg-white border border-gray-200 hover:border-brand-orange disabled:opacity-50 disabled:cursor-not-allowed transition"
-                                >
-                                    التالي
-                                </button>
-                            </div>
-                        )}
-                    </>
-                )}
-            </div>
-
-            {/* Barcode Scanner Modal */}
-            {showScanner && (
-                <BarcodeScanner
-                    onScan={handleBarcodeScanned}
-                    onClose={() => setShowScanner(false)}
-                />
-            )}
-
-            {/* Scanned Product Modal */}
-            {showProductModal && scannedProduct && (
-                <ProductModal
-                    product={scannedProduct}
-                    onClose={() => {
-                        setShowProductModal(false);
-                        setScannedProduct(null);
-                    }}
-                />
-            )}
-
-            {/* Old Modal Code - Kept for reference, can be deleted */}
-            {false && showProductModal && scannedProduct && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-                    <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
-                        {/* Header */}
-                        <div className="sticky top-0 bg-gradient-to-r from-green-500 to-emerald-600 p-6 text-white rounded-t-2xl">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                                        <Check className="w-6 h-6" />
-                                    </div>
-                                    <div>
-                                        <h2 className="text-xl font-bold">✅ تم العثور على المنتج!</h2>
-                                        <p className="text-white/90 text-sm">مسح باركود ناجح</p>
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={() => {
-                                        setShowProductModal(false);
-                                        setScannedProduct(null);
-                                    }}
-                                    className="p-2 hover:bg-white/20 rounded-lg transition-colors"
-                                >
-                                    <X size={24} />
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Product Details */}
-                        <div className="p-6">
-                            {/* Product Image */}
-                            <div className="relative mb-6">
-                                <img
-                                    src={scannedProduct.image_url || 'https://via.placeholder.com/400x300?text=No+Image'}
-                                    alt={scannedProduct.name_ar}
-                                    className="w-full h-64 object-contain rounded-xl bg-gray-50"
+                    <div className="max-w-7xl mx-auto px-4 py-3">
+                        {/* Search and Filter Row - على نفس الخط */}
+                        <div className="flex items-center gap-2">
+                            {/* Search Bar */}
+                            <div className="flex-1 flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+                                <Search size={16} className="text-gray-400" />
+                                <input
+                                    value={searchQuery}
+                                    onChange={(e) => handleSearch(e.target.value)}
+                                    placeholder="ابحث عن منتج أو باركود..."
+                                    className="flex-1 bg-transparent outline-none text-sm text-gray-800"
                                 />
-                                {scannedProduct.discount_percentage > 0 && (
-                                    <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
-                                        خصم {scannedProduct.discount_percentage}%
-                                    </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowScanner(true)}
+                                    className="text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg p-1.5 transition"
+                                    title="مسح باركود بالكاميرا"
+                                >
+                                    <Scan size={16} />
+                                </button>
+                                {searchQuery && (
+                                    <button onClick={() => handleSearch('')} className="text-gray-400 hover:text-gray-600">
+                                        <X size={16} />
+                                    </button>
                                 )}
                             </div>
 
-                            {/* Product Info */}
-                            <div className="space-y-4">
-                                <div>
-                                    <h3 className="text-2xl font-bold text-gray-900 mb-2">{scannedProduct.name_ar}</h3>
-                                    <p className="text-gray-600">{scannedProduct.name_en}</p>
-                                </div>
+                            {/* Filter Button - بجانب البحث على الموبايل */}
+                            <button
+                                onClick={() => setShowFilters(!showFilters)}
+                                className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-xl text-sm text-gray-700 bg-white hover:bg-gray-50 transition-colors whitespace-nowrap"
+                            >
+                                <SlidersHorizontal size={16} />
+                                <span className="font-medium">فلاتر</span>
+                            </button>
+                        </div>
 
-                                {scannedProduct.description_ar && (
-                                    <p className="text-gray-600 text-sm">{scannedProduct.description_ar}</p>
-                                )}
+                        {/* Sort Dropdown - يظهر عند الضغط على فلاتر */}
+                        {showFilters && (
+                            <div className="mt-3 pt-3 border-t border-gray-100">
+                                <select
+                                    value={sortBy}
+                                    onChange={(e) => setSortBy(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm text-gray-700 bg-white"
+                                >
+                                    {SORT_OPTIONS.map((option) => (
+                                        <option key={option.id} value={option.id}>
+                                            {option.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
 
-                                {/* Price */}
-                                <div className="flex items-center gap-3">
-                                    <span className="text-3xl font-bold text-brand-orange">
-                                        {scannedProduct.discount_percentage > 0
-                                            ? (scannedProduct.price * (1 - scannedProduct.discount_percentage / 100)).toFixed(2)
-                                            : scannedProduct.price.toFixed(2)} ج.م
-                                    </span>
-                                    {scannedProduct.discount_percentage > 0 && (
-                                        <span className="text-xl text-gray-400 line-through">
-                                            {scannedProduct.price.toFixed(2)} ج.م
+                        <div className="hidden sm:flex items-center gap-2 text-gray-500 text-sm mt-2">
+                            <Sparkles size={16} className="text-amber-500" />
+                            <span>{filteredAndSortedProducts.length} منتج</span>
+                        </div>
+                    </div>
+                    <div className="max-w-7xl mx-auto px-4 pb-3 overflow-x-auto scrollbar-hide flex gap-2">
+                        {categories.map((cat) => {
+                            // Normalize both values for comparison
+                            const catIdNormalized = normalizeCategoryValue(cat.id || '');
+                            const selectedNormalized = normalizeCategoryValue(selectedCategory || '');
+                            const isSelected = selectedCategory === cat.id ||
+                                selectedCategory === cat.name ||
+                                catIdNormalized === selectedNormalized ||
+                                (selectedCategory === '' && cat.id === '');
+
+                            return (
+                                <button
+                                    key={cat.id}
+                                    onClick={() => {
+                                        console.log('🎯 Selecting category:', cat.id, cat.name);
+                                        // Update URL to reflect category change
+                                        const params = new URLSearchParams(window.location.search);
+                                        if (cat.id && cat.id !== '') {
+                                            params.set('category', cat.id);
+                                        } else {
+                                            params.delete('category');
+                                        }
+                                        navigate(`/products?${params.toString()}`, { replace: true });
+                                        setSelectedCategory(cat.id);
+                                        setCurrentPage(1);
+                                    }}
+                                    className={`flex items-center gap-2 px-3 py-2 rounded-full whitespace-nowrap border text-sm transition-all ${isSelected
+                                            ? 'bg-brand-orange text-white border-brand-orange shadow-md scale-105'
+                                            : 'border-gray-200 text-gray-700 hover:border-brand-orange/50 hover:bg-orange-50'
+                                        }`}
+                                >
+                                    <span>{cat.icon}</span>
+                                    <span className="font-medium">{cat.name}</span>
+                                    {cat.product_count > 0 && (
+                                        <span className={`text-xs px-1.5 py-0.5 rounded-full ${isSelected ? 'bg-white/20' : 'bg-gray-100 text-gray-600'
+                                            }`}>
+                                            {cat.product_count}
                                         </span>
                                     )}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {categoryBanner && categoryBanner.banner_image && (
+                    <div className="max-w-7xl mx-auto px-4 pt-4">
+                        <div className="rounded-2xl overflow-hidden border">
+                            <img
+                                src={categoryBanner.banner_image}
+                                alt={categoryBanner.banner_title || categoryBanner.name_ar || categoryBanner.name}
+                                className="w-full h-44 object-cover"
+                            />
+                        </div>
+                    </div>
+                )}
+
+                <div className="max-w-7xl mx-auto px-4 py-6 space-y-4">
+                    {/* Filters Panel */}
+                    {false && (
+                        <div className="bg-white border rounded-2xl p-4 space-y-4">
+                            <div className="flex flex-col sm:flex-row gap-4">
+                                <div className="flex-1">
+                                    <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                                        <Tag size={16} className="text-brand-orange" />
+                                        نطاق السعر
+                                    </h3>
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="number"
+                                            value={priceRange[0]}
+                                            onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
+                                            className="w-24 px-3 py-2 border border-gray-200 rounded-lg text-center text-sm"
+                                            placeholder="من"
+                                        />
+                                        <span className="text-gray-400">—</span>
+                                        <input
+                                            type="number"
+                                            value={priceRange[1]}
+                                            onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
+                                            className="w-24 px-3 py-2 border border-gray-200 rounded-lg text-center text-sm"
+                                            placeholder="إلى"
+                                        />
+                                        <span className="text-gray-500 text-sm">جنيه</span>
+                                    </div>
                                 </div>
 
-                                {/* Stock */}
-                                <div className="flex items-center gap-2">
-                                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                                        scannedProduct.stock > 10
-                                            ? 'bg-green-100 text-green-700'
-                                            : scannedProduct.stock > 0
-                                            ? 'bg-yellow-100 text-yellow-700'
-                                            : 'bg-red-100 text-red-700'
-                                    }`}>
-                                        {scannedProduct.stock > 10
-                                            ? '✓ متوفر'
-                                            : scannedProduct.stock > 0
-                                            ? `متبقي ${scannedProduct.stock}`
-                                            : 'غير متوفر'}
-                                    </span>
-                                </div>
-
-                                {/* Actions */}
-                                <div className="flex gap-3 pt-4">
+                                <div className="flex-1">
+                                    <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                                        <Sparkles size={16} className="text-orange-500" />
+                                        عروض
+                                    </h3>
                                     <button
-                                        onClick={() => {
-                                            navigate(`/product/${scannedProduct.id}`);
-                                            setShowProductModal(false);
-                                        }}
-                                        className="flex-1 bg-gradient-to-r from-brand-orange to-orange-600 text-white py-3 rounded-xl font-bold hover:shadow-lg transition-all"
+                                        onClick={() => setShowOnlyOffers(!showOnlyOffers)}
+                                        className={`px-4 py-2 rounded-xl border text-sm w-full text-right ${showOnlyOffers ? 'border-orange-500 text-orange-700 bg-orange-50' : 'border-gray-200 text-gray-700'
+                                            }`}
                                     >
-                                        عرض التفاصيل
+                                        عرض المنتجات بخصم فقط
                                     </button>
+                                </div>
+
+                                {brands.length > 1 && (
+                                    <div className="flex-1">
+                                        <h3 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+                                            <Tag size={16} className="text-orange-500" />
+                                            البراند
+                                        </h3>
+                                        <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+                                            {brands.map((brand) => (
+                                                <button
+                                                    key={brand.id}
+                                                    onClick={() => setSelectedBrand(brand.id)}
+                                                    className={`w-full text-right px-4 py-2 rounded-xl border text-sm ${selectedBrand === brand.id
+                                                            ? 'border-orange-500 text-orange-700 bg-orange-50'
+                                                            : 'border-gray-200 text-gray-700'
+                                                        }`}
+                                                >
+                                                    {brand.name}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Active Filters */}
+                    {hasActiveFilters && (
+                        <div className="flex flex-wrap items-center gap-2 mb-6" />
+                    )}
+
+                    {/* Filters Panel */}
+                    {showFilters && (
+                        <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                {/* Price Range */}
+                                <div>
+                                    <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                        <Tag size={18} className="text-brand-orange" />
+                                        نطاق السعر
+                                    </h3>
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            type="number"
+                                            value={priceRange[0]}
+                                            onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
+                                            className="w-24 px-3 py-2 border border-gray-200 rounded-lg text-center"
+                                            placeholder="من"
+                                        />
+                                        <span className="text-gray-400">—</span>
+                                        <input
+                                            type="number"
+                                            value={priceRange[1]}
+                                            onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
+                                            className="w-24 px-3 py-2 border border-gray-200 rounded-lg text-center"
+                                            placeholder="إلى"
+                                        />
+                                        <span className="text-gray-500">جنيه</span>
+                                    </div>
+                                </div>
+
+                                {/* Offers Toggle */}
+                                <div>
+                                    <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                        <Sparkles size={18} className="text-orange-500" />
+                                        العروض
+                                    </h3>
+                                    <button
+                                        onClick={() => setShowOnlyOffers(!showOnlyOffers)}
+                                        className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all w-full ${showOnlyOffers
+                                                ? 'border-orange-500 bg-orange-50 text-orange-700'
+                                                : 'border-gray-200 hover:border-orange-300'
+                                            }`}
+                                    >
+                                        <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center ${showOnlyOffers ? 'bg-orange-500 border-orange-500' : 'border-gray-300'
+                                            }`}>
+                                            {showOnlyOffers && <Check size={14} className="text-white" />}
+                                        </div>
+                                        <span>عرض المنتجات بخصم فقط</span>
+                                    </button>
+                                </div>
+
+                                {/* Quick Categories */}
+                                <div>
+                                    <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                        <Grid3X3 size={18} className="text-brand-brown" />
+                                        فئة سريعة
+                                    </h3>
+                                    <div className="flex flex-wrap gap-2"></div>
+                                </div>
+
+                                {/* Brands Filter */}
+                                {brands.length > 1 && (
+                                    <div>
+                                        <h3 className="font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                            <Tag size={18} className="text-orange-500" />
+                                            البراند
+                                        </h3>
+                                        <div className="space-y-2 max-h-60 overflow-y-auto">
+                                            {brands.map((brand) => (
+                                                <button
+                                                    key={brand.id}
+                                                    onClick={() => setSelectedBrand(brand.id)}
+                                                    className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border-2 transition-all w-full text-right ${selectedBrand === brand.id
+                                                            ? 'border-orange-500 bg-orange-50 text-orange-700'
+                                                            : 'border-gray-200 hover:border-orange-300'
+                                                        }`}
+                                                >
+                                                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${selectedBrand === brand.id ? 'bg-orange-500 border-orange-500' : 'border-gray-300'
+                                                        }`}>
+                                                        {selectedBrand === brand.id && <div className="w-2 h-2 bg-white rounded-full" />}
+                                                    </div>
+                                                    <span className="flex-1">{brand.name}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Products List */}
+                    {loading ? (
+                        <ProductGridSkeleton count={12} />
+                    ) : paginatedProducts.length === 0 ? (
+                        <div className="text-center py-20">
+                            <div className="text-6xl mb-4">🔍</div>
+                            <h3 className="text-xl font-bold text-gray-800 mb-2">لا توجد منتجات</h3>
+                            <p className="text-gray-500 mb-4">جرب تغيير الفلاتر أو البحث بكلمات أخرى</p>
+                            <button
+                                onClick={clearFilters}
+                                className="px-6 py-2 bg-brand-orange text-white rounded-xl hover:bg-brand-brown transition"
+                            >
+                                مسح الفلاتر
+                            </button>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="bg-white border rounded-2xl divide-y">
+                                {paginatedProducts.map((product) => {
+                                    const reserved = product.reserved_quantity || 0;
+                                    const stock = product.stock_quantity;
+                                    const available = typeof stock === 'number' ? (stock - reserved) > 0 : true;
+                                    return (
+                                        <FlatProductRow
+                                            key={product.id}
+                                            product={product}
+                                            available={available}
+                                        />
+                                    );
+                                })}
+                            </div>
+
+                            {/* Pagination */}
+                            {totalPages > 1 && (
+                                <div className="flex justify-center items-center gap-2 mt-10">
+                                    <button
+                                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                        disabled={currentPage === 1}
+                                        className="px-4 py-2 rounded-xl bg-white border border-gray-200 hover:border-brand-orange disabled:opacity-50 disabled:cursor-not-allowed transition"
+                                    >
+                                        السابق
+                                    </button>
+
+                                    <div className="flex items-center gap-1">
+                                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                            let pageNum;
+                                            if (totalPages <= 5) {
+                                                pageNum = i + 1;
+                                            } else if (currentPage <= 3) {
+                                                pageNum = i + 1;
+                                            } else if (currentPage >= totalPages - 2) {
+                                                pageNum = totalPages - 4 + i;
+                                            } else {
+                                                pageNum = currentPage - 2 + i;
+                                            }
+
+                                            return (
+                                                <button
+                                                    key={pageNum}
+                                                    onClick={() => setCurrentPage(pageNum)}
+                                                    className={`w-10 h-10 rounded-xl font-medium transition ${currentPage === pageNum
+                                                            ? 'bg-brand-orange text-white shadow-lg'
+                                                            : 'bg-white border border-gray-200 hover:border-brand-orange'
+                                                        }`}
+                                                >
+                                                    {pageNum}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+
+                                    <button
+                                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                        disabled={currentPage === totalPages}
+                                        className="px-4 py-2 rounded-xl bg-white border border-gray-200 hover:border-brand-orange disabled:opacity-50 disabled:cursor-not-allowed transition"
+                                    >
+                                        التالي
+                                    </button>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
+
+                {/* Barcode Scanner Modal */}
+                {showScanner && (
+                    <BarcodeScanner
+                        onScan={handleBarcodeScanned}
+                        onClose={() => setShowScanner(false)}
+                    />
+                )}
+
+                {/* Scanned Product Modal */}
+                {showProductModal && scannedProduct && (
+                    <ProductModal
+                        product={scannedProduct}
+                        onClose={() => {
+                            setShowProductModal(false);
+                            setScannedProduct(null);
+                        }}
+                    />
+                )}
+
+                {/* Old Modal Code - Kept for reference, can be deleted */}
+                {false && showProductModal && scannedProduct && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                        <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+                            {/* Header */}
+                            <div className="sticky top-0 bg-gradient-to-r from-green-500 to-emerald-600 p-6 text-white rounded-t-2xl">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                                            <Check className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-xl font-bold">✅ تم العثور على المنتج!</h2>
+                                            <p className="text-white/90 text-sm">مسح باركود ناجح</p>
+                                        </div>
+                                    </div>
                                     <button
                                         onClick={() => {
                                             setShowProductModal(false);
                                             setScannedProduct(null);
                                         }}
-                                        className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors"
+                                        className="p-2 hover:bg-white/20 rounded-lg transition-colors"
                                     >
-                                        إغلاق
+                                        <X size={24} />
                                     </button>
+                                </div>
+                            </div>
+
+                            {/* Product Details */}
+                            <div className="p-6">
+                                {/* Product Image */}
+                                <div className="relative mb-6">
+                                    <img
+                                        src={scannedProduct.image_url || 'https://via.placeholder.com/400x300?text=No+Image'}
+                                        alt={scannedProduct.name_ar}
+                                        className="w-full h-64 object-contain rounded-xl bg-gray-50"
+                                    />
+                                    {scannedProduct.discount_percentage > 0 && (
+                                        <div className="absolute top-4 right-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-bold">
+                                            خصم {scannedProduct.discount_percentage}%
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Product Info */}
+                                <div className="space-y-4">
+                                    <div>
+                                        <h3 className="text-2xl font-bold text-gray-900 mb-2">{scannedProduct.name_ar}</h3>
+                                        <p className="text-gray-600">{scannedProduct.name_en}</p>
+                                    </div>
+
+                                    {scannedProduct.description_ar && (
+                                        <p className="text-gray-600 text-sm">{scannedProduct.description_ar}</p>
+                                    )}
+
+                                    {/* Price */}
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-3xl font-bold text-brand-orange">
+                                            {scannedProduct.discount_percentage > 0
+                                                ? (scannedProduct.price * (1 - scannedProduct.discount_percentage / 100)).toFixed(2)
+                                                : scannedProduct.price.toFixed(2)} ج.م
+                                        </span>
+                                        {scannedProduct.discount_percentage > 0 && (
+                                            <span className="text-xl text-gray-400 line-through">
+                                                {scannedProduct.price.toFixed(2)} ج.م
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* Stock */}
+                                    <div className="flex items-center gap-2">
+                                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${scannedProduct.stock > 10
+                                                ? 'bg-green-100 text-green-700'
+                                                : scannedProduct.stock > 0
+                                                    ? 'bg-yellow-100 text-yellow-700'
+                                                    : 'bg-red-100 text-red-700'
+                                            }`}>
+                                            {scannedProduct.stock > 10
+                                                ? '✓ متوفر'
+                                                : scannedProduct.stock > 0
+                                                    ? `متبقي ${scannedProduct.stock}`
+                                                    : 'غير متوفر'}
+                                        </span>
+                                    </div>
+
+                                    {/* Actions */}
+                                    <div className="flex gap-3 pt-4">
+                                        <button
+                                            onClick={() => {
+                                                navigate(`/product/${scannedProduct.id}`);
+                                                setShowProductModal(false);
+                                            }}
+                                            className="flex-1 bg-gradient-to-r from-brand-orange to-orange-600 text-white py-3 rounded-xl font-bold hover:shadow-lg transition-all"
+                                        >
+                                            عرض التفاصيل
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setShowProductModal(false);
+                                                setScannedProduct(null);
+                                            }}
+                                            className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition-colors"
+                                        >
+                                            إغلاق
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )}
+            </div>
         </>
     );
 }

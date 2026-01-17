@@ -5,6 +5,7 @@ import { api } from '../services/api';
 interface Story {
     id: number;
     user_id?: number;
+    circle_name?: string;
     title: string;
     media_url: string;
     media_type: 'image' | 'video';
@@ -20,7 +21,7 @@ interface Story {
 }
 
 interface StoryGroup {
-    id: number;
+    id: string | number;
     name: string;
     avatar: string;
     coverTitle?: string;
@@ -81,8 +82,9 @@ const StoriesSection: React.FC = () => {
                 // Group stories by user_id/name
                 const groupsMap = new Map<string | number, StoryGroup>();
                 stories.forEach((story) => {
-                    const key = story.user_id ?? story.user_name ?? 'store';
-                    const name = story.user_name || 'Allosh Market';
+                    const circleName = story.circle_name?.trim();
+                    const key = circleName || story.user_id ?? story.user_name ?? 'store';
+                    const name = circleName || story.user_name || 'Allosh Market';
                     const ytId = extractYoutubeId(story.link_url || story.media_url);
                     const derivedThumb = youtubeThumbnail(ytId);
                     const avatar =
@@ -95,7 +97,7 @@ const StoriesSection: React.FC = () => {
 
                     if (!groupsMap.has(key)) {
                         groupsMap.set(key, {
-                            id: typeof key === 'number' ? key : Date.now() + Math.random(),
+                            id: key,
                             name,
                             avatar,
                             stories: [],
@@ -336,7 +338,7 @@ const StoriesSection: React.FC = () => {
                             )}
                         </div>
                         <span className="text-xs text-[#1F2937] font-medium truncate max-w-[64px]">
-                            {group.coverTitle || group.name}
+                            {group.name}
                         </span>
                         {group.coverLink && (
                             <span className="text-[10px] text-blue-600 font-semibold truncate max-w-[64px]">

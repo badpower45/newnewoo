@@ -1019,17 +1019,17 @@ app.post('/api/stories', verifyToken, async (req, res) => {
         return res.status(403).json({ error: 'Admin only' });
     }
 
-    const { title, media_url, media_type, duration, link_url, link_text, expires_in_hours, priority, branch_id } = req.body;
+    const { title, media_url, media_type, duration, link_url, link_text, expires_in_hours, priority, branch_id, circle_name } = req.body;
     
     // Calculate expiry date (default 24 hours)
     const expiresAt = new Date(Date.now() + (expires_in_hours || 24) * 60 * 60 * 1000);
 
     try {
         const { rows } = await query(
-            `INSERT INTO stories (user_id, title, media_url, media_type, duration, link_url, link_text, expires_at, priority, branch_id)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            `INSERT INTO stories (user_id, title, media_url, media_type, duration, link_url, link_text, expires_at, priority, branch_id, circle_name)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
              RETURNING *`,
-            [req.userId, title, media_url, media_type || 'image', duration || 5, link_url, link_text, expiresAt, priority || 0, branch_id]
+            [req.userId, title, media_url, media_type || 'image', duration || 5, link_url, link_text, expiresAt, priority || 0, branch_id, circle_name]
         );
         res.json(rows[0]);
     } catch (err) {
@@ -1044,7 +1044,7 @@ app.put('/api/stories/:id', verifyToken, async (req, res) => {
         return res.status(403).json({ error: 'Admin only' });
     }
 
-    const { title, media_url, media_type, duration, link_url, link_text, is_active, priority } = req.body;
+    const { title, media_url, media_type, duration, link_url, link_text, is_active, priority, circle_name } = req.body;
 
     try {
         const { rows } = await query(
@@ -1056,10 +1056,11 @@ app.put('/api/stories/:id', verifyToken, async (req, res) => {
                 link_url = COALESCE($5, link_url),
                 link_text = COALESCE($6, link_text),
                 is_active = COALESCE($7, is_active),
-                priority = COALESCE($8, priority)
-             WHERE id = $9
+                priority = COALESCE($8, priority),
+                circle_name = COALESCE($9, circle_name)
+             WHERE id = $10
              RETURNING *`,
-            [title, media_url, media_type, duration, link_url, link_text, is_active, priority, req.params.id]
+            [title, media_url, media_type, duration, link_url, link_text, is_active, priority, circle_name, req.params.id]
         );
         if (!rows[0]) return res.status(404).json({ error: 'Story not found' });
         res.json(rows[0]);

@@ -685,6 +685,40 @@ const OrderDistributorPage = () => {
                                 })()}
                             </div>
 
+                            {/* Unavailable Items Warning */}
+                            {selectedOrder.unavailable_items && 
+                             Array.isArray(selectedOrder.unavailable_items) && 
+                             selectedOrder.unavailable_items.length > 0 && (
+                                <div className="bg-red-50 border-2 border-red-300 rounded-xl p-4">
+                                    <div className="flex items-start gap-3">
+                                        <AlertCircle size={24} className="text-red-600 flex-shrink-0 mt-1" />
+                                        <div className="flex-1">
+                                            <h4 className="font-bold text-red-900 mb-2">
+                                                ⚠️ منتجات غير متاحة في هذا الطلب
+                                            </h4>
+                                            <p className="text-sm text-red-700 mb-3">
+                                                العميل طلب المنتجات التالية لكنها غير متاحة في المخزون. يرجى الاتصال بالعميل لإيجاد بديل.
+                                            </p>
+                                            <div className="space-y-2">
+                                                {selectedOrder.unavailable_items.map((item: any, idx: number) => (
+                                                    <div key={idx} className="bg-white rounded-lg p-3 border border-red-200">
+                                                        <div className="flex items-center justify-between">
+                                                            <div>
+                                                                <p className="font-medium text-gray-900">{item.productName || item.name}</p>
+                                                                <p className="text-xs text-gray-500">رقم المنتج: {item.productId || item.id}</p>
+                                                            </div>
+                                                            <span className="text-xs px-2 py-1 bg-red-100 text-red-700 rounded">
+                                                                {item.reason || 'غير متاح'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Actions based on status */}
                             {selectedOrder.status === 'pending' && (
                                 <button

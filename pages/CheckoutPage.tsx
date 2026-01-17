@@ -357,6 +357,26 @@ export default function CheckoutPage() {
             } catch (e) {
                 console.error('Failed availability check', e);
             }
+            
+            // Prepare unavailable items list
+            const unavailableItems: any[] = [];
+            try {
+                const res = await api.branchProducts.getByBranch(branchId);
+                const list = res.data || res || [];
+                for (const item of items) {
+                    const bp = list.find((x: any) => String(x.product_id ?? x.productId ?? x.id) === String(item.id));
+                    if (!bp || !bp.is_available) {
+                        unavailableItems.push({
+                            productId: item.id,
+                            productName: item.name || (item as any).title || `المنتج #${item.id}`,
+                            reason: 'غير متاح في المخزون'
+                        });
+                    }
+                }
+            } catch (e) {
+                console.error('Failed to check product availability', e);
+            }
+            
             const orderData = {
                 userId: currentUserId,
                 branchId: branchId,
@@ -368,6 +388,7 @@ export default function CheckoutPage() {
                 googleMapsLink: isPickup ? null : (formData.googleMapsLink || null),
                 deliveryLatitude: isPickup ? null : (locationCoords?.lat || null),
                 deliveryLongitude: isPickup ? null : (locationCoords?.lng || null),
+                unavailableItems: unavailableItems, // إضافة قائمة المنتجات غير المتاحة
                 shippingDetails: {
                     firstName: formData.firstName,
                     lastName: formData.lastName,
@@ -440,15 +461,32 @@ export default function CheckoutPage() {
     }
 
     return (
-        <div className="container mx-auto px-4 md:px-6 py-8">
+        <div className="min-h-screen bg-gray-50">
             <ToastContainer />
-            <Link to="/cart" className="inline-flex items-center text-slate-500 hover:text-primary mb-6 transition-colors">
-                <ArrowLeft size={16} className="mr-1" /> Back to Cart
-            </Link>
+            
+            {/* Fixed App Bar */}
+            <div className="sticky top-0 z-50 bg-white shadow-md border-b border-gray-200">
+                <div className="container mx-auto px-4 md:px-6 py-4">
+                    <div className="flex items-center justify-between">
+                        <Link to="/cart" className="flex items-center gap-2 text-slate-700 hover:text-brand-orange transition-colors">
+                            <ArrowLeft size={20} className="" />
+                            <span className="font-medium hidden md:inline">العودة للسلة</span>
+                        </Link>
+                        
+                        <h1 className="text-xl md:text-2xl font-bold text-gray-900">إتمام الطلب</h1>
+                        
+                        {selectedBranch && (
+                            <div className="flex items-center gap-2 text-sm">
+                                <MapPin size={16} className="text-brand-orange" />
+                                <span className="hidden md:inline font-medium text-gray-700">{selectedBranch.name}</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
 
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
-
-            <div className="flex flex-col lg:flex-row gap-8">
+            <div className="container mx-auto px-4 md:px-6 py-8">
+                <div className="flex flex-col lg:flex-row gap-8">
                 {/* Form */}
                 <div className="flex-1 space-y-6">
                     {/* Delivery Details */}
@@ -985,6 +1023,7 @@ export default function CheckoutPage() {
                         </div>
                     </div>
                 </div>
+            </div>
             </div>
             <Footer />
         </div>

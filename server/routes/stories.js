@@ -95,6 +95,7 @@ router.post('/', async (req, res) => {
             duration = 5,
             link_url,
             link_text,
+            circle_name,
             expires_in_hours = 24,
             priority = 0,
             branch_id
@@ -107,10 +108,10 @@ router.post('/', async (req, res) => {
         const expires_at = new Date(Date.now() + expires_in_hours * 60 * 60 * 1000);
         
         const result = await pool.query(`
-            INSERT INTO stories (title, media_url, media_type, duration, link_url, link_text, expires_at, priority, branch_id, is_active)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true)
+            INSERT INTO stories (title, media_url, media_type, duration, link_url, link_text, expires_at, priority, branch_id, is_active, circle_name)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, true, $10)
             RETURNING *
-        `, [title, media_url, media_type, duration, link_url, link_text, expires_at, priority, branch_id]);
+        `, [title, media_url, media_type, duration, link_url, link_text, expires_at, priority, branch_id, circle_name]);
         
         res.json({ success: true, data: result.rows[0] });
     } catch (error) {
@@ -130,6 +131,7 @@ router.put('/:id', async (req, res) => {
             duration,
             link_url,
             link_text,
+            circle_name,
             expires_in_hours,
             priority,
             is_active,
@@ -147,6 +149,7 @@ router.put('/:id', async (req, res) => {
         if (duration !== undefined) { updates.push(`duration = $${paramIndex++}`); values.push(duration); }
         if (link_url !== undefined) { updates.push(`link_url = $${paramIndex++}`); values.push(link_url); }
         if (link_text !== undefined) { updates.push(`link_text = $${paramIndex++}`); values.push(link_text); }
+        if (circle_name !== undefined) { updates.push(`circle_name = $${paramIndex++}`); values.push(circle_name); }
         if (expires_in_hours !== undefined) {
             const expires_at = new Date(Date.now() + expires_in_hours * 60 * 60 * 1000);
             updates.push(`expires_at = $${paramIndex++}`);

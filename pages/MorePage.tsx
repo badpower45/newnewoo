@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, LogOut, ChevronLeft, Package, Heart, Gift, MapPin, CreditCard, Globe, MessageSquare, MapPinned, HelpCircle, Shield, FileText, LogIn, ClipboardList } from 'lucide-react';
+import { User, LogOut, ChevronRight, Package, Heart, Gift, MapPin, CreditCard, Globe, MessageSquare, MapPinned, HelpCircle, Shield, FileText, LogIn, ClipboardList, Phone } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -112,33 +112,41 @@ const MorePage = () => {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <div className="bg-gradient-to-r from-brand-orange to-orange-600 text-white px-4 py-6 mb-4">
-                <h1 className="text-2xl font-bold">المزيد</h1>
-                <p className="text-sm text-white/90 mt-1">الخدمات والإعدادات</p>
-            </div>
+            {/* Header - New Design matching the screenshot */}
+            <div className="bg-white border-b border-gray-100">
+                <div className="max-w-7xl mx-auto px-4 py-4">
+                    <div className="flex items-center justify-between">
+                        {/* Back Button - Right Side (RTL) */}
+                        <button
+                            onClick={() => navigate(-1)}
+                            className="w-12 h-12 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition-colors"
+                        >
+                            <ChevronRight size={20} className="text-gray-700" />
+                        </button>
 
-            {/* WhatsApp Customer Service Button - Prominent */}
-            <div className="mx-4 mb-4">
-                <a
-                    href="https://wa.me/201234567890"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-4 shadow-lg hover:shadow-xl transition-shadow"
-                >
-                    <div className="flex items-center justify-between text-white">
-                        <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                                <MessageSquare size={24} />
-                            </div>
-                            <div>
-                                <p className="font-bold text-lg">تواصل مع خدمة العملاء</p>
-                                <p className="text-sm text-white/90">نحن هنا لمساعدتك عبر الواتساب</p>
+                        {/* Center Content */}
+                        <div className="flex-1 flex flex-col items-center">
+                            <p className="text-sm text-gray-500 mb-1">مركز المساعدة</p>
+                            <div className="flex items-center gap-3">
+                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-md">
+                                    <HelpCircle size={28} className="text-white" strokeWidth={2.5} />
+                                </div>
+                                <h1 className="text-xl font-bold text-gray-900">الأسئلة الشائعة</h1>
                             </div>
                         </div>
-                        <ChevronLeft size={20} />
+
+                        {/* WhatsApp Button - Left Side (RTL) */}
+                        <a
+                            href="https://wa.me/201091658495"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-12 h-12 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center hover:bg-green-50 hover:border-green-500 transition-colors group"
+                            title="تواصل معنا عبر واتساب"
+                        >
+                            <MessageSquare size={20} className="text-gray-700 group-hover:text-green-600 transition-colors" />
+                        </a>
                     </div>
-                </a>
+                </div>
             </div>
 
             {/* Login Button for Guests */}
@@ -190,7 +198,7 @@ const MorePage = () => {
                             {item.rightText ? (
                                 <span className="text-gray-500 text-sm">{item.rightText}</span>
                             ) : (
-                                <ChevronLeft className="w-5 h-5 text-gray-400" />
+                                <ChevronRight className="w-5 h-5 text-gray-400" />
                             )}
                         </div>
                     </button>
@@ -208,7 +216,7 @@ const MorePage = () => {
                             </div>
                             <span className="text-red-600 font-bold text-lg">تسجيل خروج</span>
                         </div>
-                        <ChevronLeft className="w-5 h-5 text-red-400" />
+                        <ChevronRight className="w-5 h-5 text-red-400" />
                     </button>
                 )}
             </div>

@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS stories (
     is_active BOOLEAN DEFAULT true,
     priority INTEGER DEFAULT 0, -- Higher = shows first
     branch_id INTEGER REFERENCES branches(id) ON DELETE SET NULL,
+    circle_name TEXT,
     expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP

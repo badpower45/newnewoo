@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS stories (
     is_active BOOLEAN DEFAULT TRUE,
     priority INTEGER DEFAULT 0,
     expires_at TIMESTAMP,
+    circle_name TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
