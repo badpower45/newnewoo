@@ -430,6 +430,63 @@ export default function CheckoutPage() {
 
             console.log('📦 Creating order with data:', orderData);
             
+            // إذا كان الدفع بالبطاقة عبر Paymob - معطل مؤقتًا
+            /* if (paymentMethod === 'paymob_card') {
+                console.log('💳 Initiating Paymob payment...');
+                
+                // إنشاء الطلب أولاً
+                const created = await api.orders.create(orderData);
+                console.log('✅ Order created:', created);
+                
+                const createdOrder = (created && (created.data || created)) || {};
+                const newOrderId = createdOrder.id || createdOrder.orderId;
+                
+                if (!newOrderId) {
+                    throw new Error('فشل إنشاء الطلب');
+                }
+
+                // تجهيز بيانات الدفع
+                const paymentData = {
+                    orderId: newOrderId,
+                    orderData: {
+                        amount: finalTotal,
+                        total: finalTotal,
+                        items: items.map(item => ({
+                            name: item.name || (item as any).title,
+                            amount_cents: Math.round((item.price || 0) * 100),
+                            description: `الكمية: ${item.quantity}`,
+                            quantity: item.quantity
+                        })),
+                        delivery_needed: !isPickup
+                    },
+                    customerData: {
+                        firstName: formData.firstName,
+                        lastName: formData.lastName,
+                        email: user?.email || `customer${newOrderId}@allosh.com`,
+                        phone: formData.phone,
+                        building: formData.building,
+                        street: formData.street,
+                        governorate: formData.governorate || 'Cairo'
+                    }
+                };
+
+                // إرسال طلب الدفع
+                const paymentResult = await api.post('/payment/initialize', paymentData);
+                
+                if (paymentResult.data.success && paymentResult.data.payment_url) {
+                    // مسح السلة والتوجه لصفحة الدفع
+                    clearCart();
+                    showToast('جاري توجيهك لصفحة الدفع...', 'info');
+                    
+                    // Redirect to Paymob payment page
+                    window.location.href = paymentResult.data.payment_url;
+                } else {
+                    throw new Error(paymentResult.data.error || 'فشل إنشاء عملية الدفع');
+                }
+                return; // إيقاف التنفيذ هنا
+            } */
+            
+            // الطرق الأخرى (COD, Branch Pickup, Visa on Delivery)
             const created = await api.orders.create(orderData);
             console.log('✅ Order API Response:', created);
             
@@ -798,6 +855,26 @@ export default function CheckoutPage() {
                                 <div className="mr-3">
                                     <div className="font-medium">{PAYMENT_METHOD_LABELS.branch_pickup}</div>
                                     <div className="text-sm text-slate-500">احضر للفرع وادفع عند الاستلام</div>
+                                </div>
+                            </label>
+
+                            {/* Online Card Payment - Paymob */}
+                            <label className={`flex items-center p-4 border-2 rounded-xl transition ${!isPickup ? 'cursor-pointer hover:border-blue-600' : 'opacity-50 cursor-not-allowed'}`}>
+                                <input
+                                    type="radio"
+                                    name="payment"
+                                    value="paymob_card"
+                                    checked={paymentMethod === 'paymob_card'}
+                                    onChange={(e) => setPaymentMethod(e.target.value)}
+                                    disabled={isPickup}
+                                    className="w-5 h-5 text-blue-600"
+                                />
+                                <div className="mr-3">
+                                    <div className="font-medium flex items-center gap-2">
+                                        <span>الدفع بالفيزا/ماستركارد 💳</span>
+                                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">آمن</span>
+                                    </div>
+                                    <div className="text-sm text-slate-500">ادفع الآن ببطاقتك عبر Paymob (آمن ومشفر)</div>
                                 </div>
                             </label>
 

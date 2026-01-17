@@ -117,8 +117,9 @@ const OrdersManager = () => {
                 <TableSkeleton rows={6} cols={6} />
             ) : (
             <div className="admin-table-container">
-                <table className="admin-table">
-                    <thead>
+                <div className="overflow-x-auto">
+                    <table className="admin-table min-w-[700px]">
+                        <thead>
                         <tr>
                             <th className="px-3 sm:px-6 py-3 sm:py-4">رقم الطلب</th>
                             <th className="px-3 sm:px-6 py-3 sm:py-4 hidden sm:table-cell">التاريخ</th>
@@ -190,6 +191,7 @@ const OrdersManager = () => {
                         ))}
                     </tbody>
                 </table>
+                </div>
             </div>
             )}
 

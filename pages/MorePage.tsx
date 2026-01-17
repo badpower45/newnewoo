@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { User, LogOut, ChevronRight, Package, Heart, Gift, MapPin, CreditCard, Globe, MessageSquare, MapPinned, HelpCircle, Shield, FileText, LogIn, ClipboardList, Phone } from 'lucide-react';
+import React from 'react';
+import { LogOut, ChevronRight, Package, Heart, Gift, Globe, MessageSquare, MapPinned, HelpCircle, Shield, LogIn } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -125,14 +125,7 @@ const MorePage = () => {
                         </button>
 
                         {/* Center Content */}
-                        <div className="flex-1 flex items-center justify-center gap-3">
-                            <button
-                                onClick={() => navigate('/profile')}
-                                className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center hover:bg-orange-200 transition-colors"
-                                title="الملف الشخصي"
-                            >
-                                <User size={20} className="text-orange-600" />
-                            </button>
+                        <div className="flex-1 flex items-center justify-center">
                             <h1 className="text-2xl font-bold text-gray-900">المزيد</h1>
                         </div>
 
@@ -150,31 +143,51 @@ const MorePage = () => {
                 </div>
             </div>
 
-            {/* Login Button for Guests */}
-            {!isAuthenticated && (
-                <div className="mx-4 mt-4">
-                    <button
-                        onClick={() => navigate('/login')}
-                        className="w-full bg-gradient-to-r from-brand-orange to-orange-600 text-white px-6 py-4 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3"
-                    >
-                        <LogIn size={24} />
-                        <span>تسجيل الدخول</span>
-                    </button>
-                </div>
-            )}
-
-            {/* Profile Button for Authenticated Users */}
-            {isAuthenticated && (
-                <div className="mx-4 mt-4">
-                    <button
-                        onClick={() => navigate('/profile')}
-                        className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-4 rounded-2xl font-bold text-lg shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3"
-                    >
-                        <User size={24} />
-                        <span>البروفايل</span>
-                    </button>
-                </div>
-            )}
+            {/* Profile Section */}
+            <div className="mx-4 mt-4">
+                {isAuthenticated ? (
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            {user?.avatar ? (
+                                <img
+                                    src={user.avatar}
+                                    alt={user.name}
+                                    className="w-12 h-12 rounded-full object-cover border border-gray-200"
+                                />
+                            ) : (
+                                <div className="w-12 h-12 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center font-bold">
+                                    {user?.name?.charAt(0) || 'ع'}
+                                </div>
+                            )}
+                            <div>
+                                <p className="text-xs text-gray-500">حسابي</p>
+                                <p className="text-base font-bold text-gray-900">{user?.name || 'العميل'}</p>
+                                <p className="text-xs text-gray-500">{user?.phone || user?.email || 'لا توجد بيانات تواصل'}</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => navigate('/profile')}
+                            className="px-4 py-2 rounded-xl bg-gray-50 text-gray-800 text-sm font-semibold hover:bg-gray-100 transition-colors"
+                        >
+                            البروفايل
+                        </button>
+                    </div>
+                ) : (
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center justify-between">
+                        <div>
+                            <p className="text-sm font-bold text-gray-900">سجل دخولك</p>
+                            <p className="text-xs text-gray-500">عشان تتابع طلباتك وتستخدم نقاطك</p>
+                        </div>
+                        <button
+                            onClick={() => navigate('/login')}
+                            className="px-4 py-2 rounded-xl bg-brand-orange text-white text-sm font-semibold hover:bg-orange-600 transition-colors flex items-center gap-2"
+                        >
+                            <LogIn size={16} />
+                            دخول
+                        </button>
+                    </div>
+                )}
+            </div>
 
             {/* Menu Items */}
             <div className="bg-white mt-4 divide-y divide-gray-100">

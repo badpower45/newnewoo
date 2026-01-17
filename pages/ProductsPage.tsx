@@ -3,7 +3,7 @@ import BarcodeScanner from '../components/BarcodeScanner';
 import ProductModal from '../components/ProductModal';
 import { ProductGridSkeleton } from '../components/Skeleton';
 import {
-    Scan, Search, X,
+    Barcode, Search, X,
     SlidersHorizontal, Sparkles,
     TrendingUp, Clock, Tag, ArrowUpDown,
     Grid3X3, Check
@@ -674,7 +674,7 @@ export default function ProductsPage() {
                                     className="text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg p-1.5 transition"
                                     title="مسح باركود بالكاميرا"
                                 >
-                                    <Scan size={16} />
+                                    <Barcode size={16} />
                                 </button>
                                 {searchQuery && (
                                     <button onClick={() => handleSearch('')} className="text-gray-400 hover:text-gray-600">

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, ChevronDown, Search, ShoppingCart, User, Heart, Clock, Phone, Mic, MicOff, Scan } from 'lucide-react';
+import { MapPin, ChevronDown, Search, ShoppingCart, User, Heart, Clock, Phone, Mic, MicOff, Barcode } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import BranchSelector from './BranchSelector';
 import BarcodeScanner from './BarcodeScanner';
@@ -196,7 +196,7 @@ const TopBar = () => {
                             className="p-2.5 bg-primary text-white rounded-xl hover:bg-primary/90 transition-all flex-shrink-0"
                             title="مسح الباركود"
                         >
-                            <Scan size={18} />
+                            <Barcode size={18} />
                         </button>
                     </div>
 
@@ -250,7 +250,7 @@ const TopBar = () => {
                                     className="p-1.5 text-gray-400 hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
                                     title="مسح الباركود"
                                 >
-                                    <Scan size={16} />
+                                    <Barcode size={16} />
                                 </button>
                                 <button
                                     type="submit"

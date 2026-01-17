@@ -23,7 +23,11 @@ router.post('/conversations', async (req, res) => {
 // Get all conversations (admin/CS only)
 router.get('/conversations', [verifyToken, isAdmin], async (req, res) => {
     const { status, agentId } = req.query;
-    let sql = 'SELECT * FROM conversations';
+    let sql = `
+        SELECT c.*, u.name as user_name
+        FROM conversations c
+        LEFT JOIN users u ON c.customer_id = u.id
+    `;
     const params = [];
     let paramIndex = 1;
 
@@ -49,7 +53,7 @@ router.get('/conversations', [verifyToken, isAdmin], async (req, res) => {
         res.json({ conversations: rows.map(c => ({
             id: c.id,
             customerId: c.customer_id,
-            customerName: c.customer_name,
+            customerName: c.user_name || c.customer_name || 'زائر',
             agentId: c.agent_id,
             status: c.status,
             createdAt: c.created_at,
@@ -65,7 +69,13 @@ router.get('/conversations/:id', async (req, res) => {
     const conversationId = req.params.id;
 
     try {
-        const { rows: convRows } = await query('SELECT * FROM conversations WHERE id = $1', [conversationId]);
+        const { rows: convRows } = await query(
+            `SELECT c.*, u.name as user_name
+             FROM conversations c
+             LEFT JOIN users u ON c.customer_id = u.id
+             WHERE c.id = $1`,
+            [conversationId]
+        );
         
         if (convRows.length === 0) {
             return res.status(404).json({ error: 'Conversation not found' });
@@ -81,7 +91,7 @@ router.get('/conversations/:id', async (req, res) => {
             conversation: {
                 id: conversation.id,
                 customerId: conversation.customer_id,
-                customerName: conversation.customer_name,
+                customerName: conversation.user_name || conversation.customer_name || 'زائر',
                 agentId: conversation.agent_id,
                 status: conversation.status,
                 createdAt: conversation.created_at,

@@ -123,18 +123,18 @@ const CartPage = () => {
                 <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-primary absolute left-4">
                     <ChevronLeft size={28} />
                 </button>
-                <h1 className="text-xl font-bold text-gray-900 w-full text-center">My Cart</h1>
+                <h1 className="text-xl font-bold text-gray-900 w-full text-center">عربتي</h1>
             </div>
 
             <div className="max-w-7xl mx-auto md:p-6">
                 <div className="hidden md:flex justify-between items-center mb-6">
-                    <h1 className="text-3xl font-bold text-gray-900">My Cart</h1>
+                    <h1 className="text-3xl font-bold text-gray-900">عربتي</h1>
                     <button
                         onClick={clearCart}
                         className="text-red-500 hover:text-red-700 font-medium flex items-center space-x-1"
                     >
                         <Trash2 size={18} />
-                        <span>Clear Cart</span>
+                        <span>مسح الكل</span>
                     </button>
                 </div>
 

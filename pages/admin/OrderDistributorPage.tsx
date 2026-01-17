@@ -498,6 +498,16 @@ const OrderDistributorPage = () => {
                                                             </span>
                                                         </div>
                                                         <div className="h-2 bg-yellow-100 rounded-full mt-2 overflow-hidden">
+
+                                                {/* Show "Accepted" badge when status is accepted */}
+                                                {delivery.assignment_status === 'accepted' && (
+                                                    <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                                        <div className="flex items-center gap-2 text-blue-700">
+                                                            <CheckCircle size={18} />
+                                                            <span className="font-medium">تم القبول - الديليفري متوجه للفرع</span>
+                                                        </div>
+                                                    </div>
+                                                )}
                                                             <div 
                                                                 className={`h-full transition-all duration-1000 ${countdown < 60 ? 'bg-red-500' : 'bg-yellow-500'}`}
                                                                 style={{ width: `${Math.min(100, (countdown / 300) * 100)}%` }}
@@ -601,8 +611,9 @@ const OrderDistributorPage = () => {
                             <p>لا توجد طلبات</p>
                         </div>
                     ) : (
-                        <div className="divide-y">
-                            {orders.map(order => (
+                        <div className="overflow-x-auto">
+                            <div className="divide-y min-w-[500px]">
+                                {orders.map(order => (
                                 <div
                                     key={order.id}
                                     onClick={() => handleSelectOrder(order)}

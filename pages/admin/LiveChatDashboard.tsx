@@ -193,6 +193,7 @@ const LiveChatDashboard = () => {
         const date = new Date(timestamp);
         return date.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
     };
+    const selectedConversation = conversations.find(conv => conv.id === selectedConv);
 
     return (
         <div className="flex h-[calc(100vh-120px)] bg-white rounded-xl shadow-lg overflow-hidden">
@@ -307,7 +308,9 @@ const LiveChatDashboard = () => {
                                         {/* اسم المرسل للتوضيح */}
                                         {msg.senderType !== 'agent' && (
                                             <p className="text-[10px] font-semibold mb-1 opacity-70">
-                                                {msg.senderType === 'customer' ? '👤 عميل' : '🤖 بوت'}
+                                                {msg.senderType === 'customer'
+                                                    ? `👤 ${selectedConversation?.customerName || 'عميل'}`
+                                                    : '🤖 بوت'}
                                             </p>
                                         )}
                                         <p className="text-sm leading-relaxed">{msg.message}</p>

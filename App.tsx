@@ -48,6 +48,7 @@ import FAQPage from './pages/FAQPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import GeneralFAQPage from './pages/GeneralFAQPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
+import PaymentCallbackPage from './pages/PaymentCallbackPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import EmailVerificationPending from './pages/EmailVerificationPending';
 import EmailVerificationSuccess from './pages/EmailVerificationSuccess';
@@ -64,7 +65,6 @@ import OrdersManager from './pages/admin/OrdersManager';
 import EmployeesManager from './pages/admin/EmployeesManager';
 import LiveChatDashboard from './pages/admin/LiveChatDashboard';
 import BranchesManager from './pages/admin/BranchesManager';
-import BranchInventoryDashboard from './pages/admin/BranchInventoryDashboard';
 import InventoryDashboard from './pages/admin/InventoryDashboard';
 import AdminInventoryDashboard from './src/pages/AdminInventoryDashboard';
 import AdminSettingsPage from './pages/admin/AdminSettingsPage';
@@ -168,6 +168,7 @@ function AppContent() {
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/auth/callback" element={<AuthCallbackPage />} />
+            <Route path="/payment/callback" element={<PaymentCallbackPage />} />
             <Route path="/verify-email" element={<EmailVerificationSuccess />} />
             <Route path="/email-verification-pending" element={<EmailVerificationPending />} />
             <Route path="/track-order" element={<TrackOrderPage />} />
@@ -207,7 +208,6 @@ function AppContent() {
               <Route path="upload" element={<ProductUploadPage />} />
               <Route path="orders" element={<OrdersManager />} />
               <Route path="branches" element={<BranchesManager />} />
-              <Route path="branch-inventory" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><BranchInventoryDashboard /></ProtectedRoute>} />
               <Route path="inventory" element={<InventoryDashboard />} />
               <Route path="inventory-analytics" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><AdminInventoryDashboard /></ProtectedRoute>} />
               <Route path="coupons" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><CouponsManager /></ProtectedRoute>} />

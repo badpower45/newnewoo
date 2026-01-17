@@ -155,6 +155,38 @@ const ReturnsManager = () => {
             );
             
             const invoice = response.data.data;
+
+            const returnedItems = Array.isArray(invoice.returned_items) ? invoice.returned_items : [];
+            const returnedItemsHtml = returnedItems.length ? `
+                <div class="section">
+                    <div class="section-title">📦 المنتجات المرتجعة</div>
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                        <thead>
+                            <tr>
+                                <th style="text-align: right; padding: 8px; background: #fff7ed; border: 1px solid #f3e8ff;">المنتج</th>
+                                <th style="text-align: center; padding: 8px; background: #fff7ed; border: 1px solid #f3e8ff;">الكمية</th>
+                                <th style="text-align: right; padding: 8px; background: #fff7ed; border: 1px solid #f3e8ff;">السعر</th>
+                                <th style="text-align: right; padding: 8px; background: #fff7ed; border: 1px solid #f3e8ff;">الإجمالي</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${returnedItems.map((item: any) => {
+                                const price = Number(item?.price || 0);
+                                const quantity = Number(item?.quantity || 0);
+                                const total = Number(item?.total || price * quantity);
+                                return `
+                                    <tr>
+                                        <td style="padding: 8px; border: 1px solid #f3e8ff;">${item?.name || 'منتج'}</td>
+                                        <td style="padding: 8px; border: 1px solid #f3e8ff; text-align: center;">${quantity}</td>
+                                        <td style="padding: 8px; border: 1px solid #f3e8ff;">${price.toFixed(2)} جنيه</td>
+                                        <td style="padding: 8px; border: 1px solid #f3e8ff; font-weight: bold;">${total.toFixed(2)} جنيه</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            ` : '';
             
             // Display invoice in a beautiful modal or open in new window
             const invoiceHTML = `
@@ -225,6 +257,8 @@ const ReturnsManager = () => {
                                 </div>
                             </div>
                         </div>
+
+                        ${returnedItemsHtml}
 
                         <div class="section">
                             <div class="section-title">🎯 نقاط الولاء</div>

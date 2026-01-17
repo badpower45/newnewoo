@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Mic, MicOff, Scan } from 'lucide-react';
+import { Search, Mic, MicOff, Barcode } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import BarcodeScanner from './BarcodeScanner';
 
@@ -139,7 +139,7 @@ const ProductsTopBar: React.FC<ProductsTopBarProps> = ({ onScan }) => {
                             onClick={handleScanClick}
                             className="hidden md:flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl hover:bg-primary-dark transition-colors"
                         >
-                            <Scan size={18} />
+                            <Barcode size={18} />
                             <span className="text-sm font-medium">مسح الباركود</span>
                         </button>
                     </div>

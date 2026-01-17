@@ -144,24 +144,24 @@ const HomePage = () => {
         setError(null);
         try {
             const branchId = selectedBranch?.id || DEFAULT_BRANCH_ID;
-            console.log('🏪 Loading products for branch:', selectedBranch?.name || 'Default', 'ID:', branchId);
+            console.log('🏪 Loading limited products for HomePage - Branch:', selectedBranch?.name || 'Default', 'ID:', branchId);
             
-            // Get products from API (now returns array directly)
-            let list = await api.products.getAllByBranch(branchId);
+            // ✅ استخدام limit لتقليل Egress - جلب 50 منتج فقط بدل الكل
+            let list = await api.products.getAllByBranch(branchId, { limit: 50 });
 
-            // Fallback if empty
+            // Fallback if empty (مع limit)
             if (!list || list.length === 0) {
-                console.log('⚠️ No products found for branch, trying fallback...');
+                console.log('⚠️ No products found for branch, trying paginated fallback...');
                 try {
-                    list = await api.products.getAll();
+                    list = await api.products.getPaginated(1, 50, branchId);
                 } catch (fallbackErr) {
-                    console.error('Fallback getAll failed', fallbackErr);
+                    console.error('Fallback getPaginated failed', fallbackErr);
                     list = [];
                 }
             }
 
             setProducts(Array.isArray(list) ? list : []);
-            console.log('✅ Products loaded:', list?.length || 0, 'products for branch:', selectedBranch?.name);
+            console.log('✅ Products loaded:', list?.length || 0, 'products (limited for performance)');
             
             if (!list || list.length === 0) {
                 setError('لا توجد منتجات متاحة حالياً لهذا الفرع');

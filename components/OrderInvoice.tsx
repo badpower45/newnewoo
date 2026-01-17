@@ -5,11 +5,20 @@ import { api } from '../services/api';
 
 interface OrderItem {
     id: number;
-    productId: number;
+    productId?: number;
+    product_id?: number;
     name: string;
     quantity: number;
     price: number;
     image?: string;
+}
+
+interface ReturnedItem {
+    product_id?: number;
+    name?: string;
+    quantity: number;
+    price?: number;
+    total?: number;
 }
 
 interface Order {
@@ -26,6 +35,8 @@ interface Order {
     google_maps_link?: string;
     delivery_latitude?: number;
     delivery_longitude?: number;
+    returned_items?: ReturnedItem[];
+    returned_total?: number;
 }
 
 const OrderInvoice: React.FC = () => {
@@ -136,6 +147,23 @@ const OrderInvoice: React.FC = () => {
     const shippingInfo = order.shipping_info || {};
     const customerPhone = shippingInfo.phone || 'غير متوفر';
     const customerName = `${shippingInfo.firstName || ''} ${shippingInfo.lastName || ''}`.trim() || 'عميل';
+    const returnedItems = Array.isArray(order.returned_items) ? order.returned_items : [];
+    const returnedLookup = returnedItems.reduce((map, item) => {
+        const key = item.product_id?.toString() || (item.name || '').trim();
+        if (!key) return map;
+        const existing = map.get(key) || { quantity: 0 };
+        existing.quantity += Number(item.quantity || 0);
+        map.set(key, existing);
+        return map;
+    }, new Map<string, { quantity: number }>());
+    const returnedTotal = typeof order.returned_total === 'number'
+        ? order.returned_total
+        : returnedItems.reduce((sum, item) => {
+            const price = Number(item.price || 0);
+            const quantity = Number(item.quantity || 0);
+            const total = Number(item.total || price * quantity);
+            return sum + total;
+        }, 0);
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -320,6 +348,13 @@ const OrderInvoice: React.FC = () => {
                                                     <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full font-bold">
                                                         {item.quantity}
                                                     </span>
+                                                    {(() => {
+                                                        const key = item.productId?.toString() || item.product_id?.toString() || item.id?.toString() || item.name?.trim();
+                                                        const returned = key ? returnedLookup.get(key)?.quantity : 0;
+                                                        return returned ? (
+                                                            <div className="text-xs text-red-600 mt-2">مرتجع: {returned}</div>
+                                                        ) : null;
+                                                    })()}
                                                 </td>
                                                 <td className="p-3 text-gray-900 font-medium">
                                                     {item.price.toFixed(2)} جنيه
@@ -340,6 +375,55 @@ const OrderInvoice: React.FC = () => {
                             </table>
                         </div>
                     </div>
+
+                    {/* Returned Items */}
+                    {returnedItems.length > 0 && (
+                        <div className="p-8 print:p-6 border-t-2 border-dashed bg-red-50/40">
+                            <h3 className="font-bold text-gray-900 mb-4 text-xl">المنتجات المرتجعة</h3>
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead>
+                                        <tr className="bg-red-100 border-b-2 border-red-200">
+                                            <th className="text-right p-3 font-bold text-gray-700">اسم المنتج</th>
+                                            <th className="text-center p-3 font-bold text-gray-700">الكمية المرتجعة</th>
+                                            <th className="text-right p-3 font-bold text-gray-700">السعر</th>
+                                            <th className="text-right p-3 font-bold text-gray-700">الإجمالي</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {returnedItems.map((item, index) => {
+                                            const price = Number(item.price || 0);
+                                            const quantity = Number(item.quantity || 0);
+                                            const total = Number(item.total || price * quantity);
+                                            return (
+                                                <tr key={`${item.product_id || item.name || index}`} className="border-b">
+                                                    <td className="p-3 font-medium text-gray-900">
+                                                        {item.name || 'منتج'}
+                                                    </td>
+                                                    <td className="p-3 text-center">
+                                                        <span className="bg-red-100 text-red-700 px-3 py-1 rounded-full font-bold">
+                                                            {quantity}
+                                                        </span>
+                                                    </td>
+                                                    <td className="p-3 text-gray-900 font-medium">
+                                                        {price.toFixed(2)} جنيه
+                                                    </td>
+                                                    <td className="p-3 text-gray-900 font-bold">
+                                                        {total.toFixed(2)} جنيه
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div className="mt-4 flex justify-end">
+                                <div className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold">
+                                    إجمالي المرتجع: {returnedTotal.toFixed(2)} جنيه
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Total */}
                     <div className="p-8 print:p-6 bg-gray-50 border-t-2">

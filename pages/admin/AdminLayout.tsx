@@ -65,7 +65,6 @@ const AdminLayout = () => {
             title: '🏪 الفروع والمخزون',
             items: [
                 { path: '/admin/branches', icon: <Store size={20} />, label: 'إدارة الفروع', roles: ['admin', 'manager'] },
-                { path: '/admin/branch-inventory', icon: <Package size={20} />, label: 'مخزون الفروع', roles: ['admin', 'manager'] },
             ]
         },
         {

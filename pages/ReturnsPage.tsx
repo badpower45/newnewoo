@@ -13,6 +13,17 @@ const ReturnsPage = () => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState('');
 
+    const buildReturnedLookup = (items: any[] = []) => {
+        return items.reduce((map, item) => {
+            const key = (item?.product_id ?? item?.productId ?? item?.id ?? item?.name)?.toString().trim();
+            if (!key) return map;
+            const existing = map.get(key) || { quantity: 0 };
+            existing.quantity += Number(item?.quantity || item?.return_quantity || 0);
+            map.set(key, existing);
+            return map;
+        }, new Map<string, { quantity: number }>());
+    };
+
     // Search for order
     const handleSearch = async () => {
         if (!searchTerm.trim()) {
@@ -132,6 +143,18 @@ const ReturnsPage = () => {
                 {/* Order Details */}
                 {orderData && (
                     <div className="space-y-4">
+                        {(() => {
+                            const returnedItems = Array.isArray(orderData.returned_items) ? orderData.returned_items : [];
+                            const returnedLookup = buildReturnedLookup(returnedItems);
+                            const returnedTotal = typeof orderData.returned_total === 'number'
+                                ? orderData.returned_total
+                                : returnedItems.reduce((sum, item) => {
+                                    const price = Number(item?.price || 0);
+                                    const quantity = Number(item?.quantity || 0);
+                                    return sum + price * quantity;
+                                }, 0);
+                            return (
+                                <>
                         {/* Eligibility Status */}
                         {!orderData.can_be_returned && (
                             <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-6">
@@ -192,6 +215,13 @@ const ReturnsPage = () => {
                                         <div className="flex-1">
                                             <p className="font-bold text-gray-900">{item.name || item.title}</p>
                                             <p className="text-sm text-gray-500">الكمية: {item.quantity}</p>
+                                            {(() => {
+                                                const key = (item?.product_id ?? item?.productId ?? item?.id ?? item?.name)?.toString().trim();
+                                                const returnedQty = key ? returnedLookup.get(key)?.quantity : 0;
+                                                return returnedQty ? (
+                                                    <p className="text-xs text-red-600 mt-1">مرتجع: {returnedQty}</p>
+                                                ) : null;
+                                            })()}
                                         </div>
                                         <div className="text-right">
                                             <p className="font-bold text-brand-orange">{item.price} جنيه</p>
@@ -201,6 +231,36 @@ const ReturnsPage = () => {
                                 ))}
                             </div>
                         </div>
+
+                        {returnedItems.length > 0 && (
+                            <div className="bg-red-50 border border-red-200 rounded-2xl p-6">
+                                <h3 className="text-lg font-bold text-red-900 mb-4">المنتجات المرتجعة</h3>
+                                <div className="space-y-3">
+                                    {returnedItems.map((item: any, idx: number) => {
+                                        const price = Number(item?.price || 0);
+                                        const quantity = Number(item?.quantity || 0);
+                                        const total = Number(item?.total || price * quantity);
+                                        return (
+                                            <div key={item?.product_id || item?.name || idx} className="flex justify-between items-center p-4 bg-white rounded-xl border">
+                                                <div>
+                                                    <p className="font-bold text-gray-900">{item?.name || 'منتج'}</p>
+                                                    <p className="text-sm text-gray-500">الكمية المرتجعة: {quantity}</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="font-bold text-red-600">{price.toFixed(2)} جنيه</p>
+                                                    <p className="text-sm text-gray-500">الإجمالي: {total.toFixed(2)} جنيه</p>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                <div className="mt-4 flex justify-end">
+                                    <div className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold">
+                                        إجمالي المرتجع: {returnedTotal.toFixed(2)} جنيه
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Financial Summary */}
                         <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl shadow-sm p-6 border-2 border-purple-200">
@@ -250,6 +310,9 @@ const ReturnsPage = () => {
                                 )}
                             </button>
                         )}
+                                </>
+                            );
+                        })()}
                     </div>
                 )}
 

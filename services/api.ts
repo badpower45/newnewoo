@@ -163,15 +163,43 @@ export const api = {
         }
     },
     products: {
+        // ⚠️ DEPRECATED: يستهلك Egress كبير - استخدم getByCategory أو getPaginated
         getAll: async () => {
+            console.warn('⚠️ getAll() is deprecated - use getPaginated() to reduce egress!');
             const res = await fetch(`${API_URL}/products`, { headers: getHeaders() });
             const json = await res.json();
             const normalize = (p: any) => ({ ...p, price: Number(p?.price) || 0 });
-            // Backend returns array directly, not wrapped in {data: [...]}
             const data = Array.isArray(json) ? json : (json.data || []);
             return data.map(normalize);
         },
-        getAllByBranch: async (branchId: number, options?: { includeMagazine?: boolean }) => {
+        // جلب منتجات بنظام Pagination لتقليل Egress
+        getPaginated: async (page: number = 1, limit: number = 20, branchId?: number) => {
+            const offset = (page - 1) * limit;
+            let url = `${API_URL}/products?limit=${limit}&offset=${offset}`;
+            if (branchId) url += `&branchId=${branchId}`;
+            
+            const res = await fetch(url, { headers: getHeaders() });
+            const json = await res.json();
+            const normalize = (p: any) => ({ ...p, price: Number(p?.price) || 0 });
+            const data = Array.isArray(json) ? json : (json.data || []);
+            
+            console.log(`📦 Loaded ${data.length} products (page ${page}, limit ${limit})`);
+            return data.map(normalize);
+        },
+        // جلب منتجات قسم معين مع limit
+        getBySection: async (category: string, branchId?: number, limit: number = 8) => {
+            let url = `${API_URL}/products?category=${encodeURIComponent(category)}&limit=${limit}`;
+            if (branchId) url += `&branchId=${branchId}`;
+            
+            const res = await fetch(url, { headers: getHeaders() });
+            const json = await res.json();
+            const normalize = (p: any) => ({ ...p, price: Number(p?.price) || 0 });
+            const data = Array.isArray(json) ? json : (json.data || []);
+            
+            console.log(`📦 Loaded ${data.length} products for ${category} (limit ${limit})`);
+            return data.map(normalize);
+        },
+        getAllByBranch: async (branchId: number, options?: { includeMagazine?: boolean; limit?: number }) => {
             let url = `${API_URL}/products?branchId=${branchId}`;
             if (options?.includeMagazine) {
                 url += '&includeMagazine=true';

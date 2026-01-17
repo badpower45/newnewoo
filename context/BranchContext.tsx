@@ -70,17 +70,22 @@ export const BranchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       
       const result = await response.json();
       const branchesData = result.data || result;
+      const activeBranches = Array.isArray(branchesData)
+        ? branchesData.filter((branch: Branch) => branch.is_active !== false)
+        : [];
       
       if (!branchesData || branchesData.length === 0) {
         throw new Error('No branches found');
       }
       
-      console.log('✅ Branches loaded:', branchesData.length);
-      setBranches(branchesData);
+      console.log('✅ Branches loaded:', activeBranches.length);
+      setBranches(activeBranches);
       
       // If no branch selected, select the first one
-      if (!selectedBranch && branchesData.length > 0) {
-        selectBranch(branchesData[0]);
+      if (!selectedBranch && activeBranches.length > 0) {
+        selectBranch(activeBranches[0]);
+      } else if (selectedBranch && selectedBranch.is_active === false && activeBranches.length > 0) {
+        selectBranch(activeBranches[0]);
       }
     } catch (err) {
       console.error('❌ Failed to fetch branches from API:', err);
@@ -141,6 +146,11 @@ export const BranchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       
       if (!branchData) {
         console.warn('No branch found from API, using fallback');
+        return findNearestBranch(lat, lng);
+      }
+
+      if (branchData.is_active === false) {
+        console.warn('Nearest branch is inactive, using fallback');
         return findNearestBranch(lat, lng);
       }
       
