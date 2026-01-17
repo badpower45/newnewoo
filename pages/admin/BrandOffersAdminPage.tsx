@@ -711,65 +711,64 @@ export default function BrandOffersAdminPage() {
                             {/* Link */}
                             {renderSection('link', 'الربط بمنتج', <Link2 size={18} />, (
                                 <>
-                                    {
+                                    <div className="relative">
+                                        <label className="block text-sm font-bold text-gray-700 mb-1">
+                                            اختر المنتج
+                                        </label>
                                         <div className="relative">
-                                            <label className="block text-sm font-bold text-gray-700 mb-1">
-                                                اختر المنتج
-                                            </label>
-                                            <div className="relative">
-                                                <input
-                                                    type="text"
-                                                    value={productSearch}
-                                                    onChange={(e) => {
-                                                        setProductSearch(e.target.value);
-                                                        setShowProductDropdown(true);
-                                                    }}
-                                                    onFocus={() => setShowProductDropdown(true)}
-                                                    className="w-full border rounded-lg px-3 py-2 pr-10 focus:ring-2 focus:ring-brand-orange focus:outline-none"
-                                                    placeholder="ابحث عن منتج..."
-                                                />
-                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                                            </div>
-                                            
-                                            {showProductDropdown && filteredProducts.length > 0 && (
-                                                <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                                                    {filteredProducts.map((product) => (
-                                                        <button
-                                                            key={product.id}
-                                                            onClick={() => {
-                                                                setEditingOffer({ ...editingOffer, linked_product_id: product.id });
-                                                                setProductSearch('');
-                                                                setShowProductDropdown(false);
-                                                            }}
-                                                            className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 text-right"
-                                                        >
-                                                            {product.image && (
-                                                                <img src={product.image} alt="" className="w-10 h-10 object-cover rounded" />
-                                                            )}
-                                                            <div>
-                                                                <div className="font-bold">{product.nameAr || product.name}</div>
-                                                                <div className="text-sm text-gray-500">{product.name}</div>
-                                                            </div>
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            )}
-
-                                            {editingOffer.linked_product_id && (
-                                                <div className="mt-2 flex items-center gap-2 bg-green-50 p-2 rounded-lg">
-                                                    <Package size={18} className="text-green-600" />
-                                                    <span className="text-green-700 font-bold">
-                                                        المنتج المرتبط: {products.find(p => p.id === editingOffer.linked_product_id)?.nameAr || products.find(p => p.id === editingOffer.linked_product_id)?.name}
-                                                    </span>
-                                                    <button
-                                                        onClick={() => setEditingOffer({ ...editingOffer, linked_product_id: undefined })}
-                                                        className="mr-auto text-red-500 hover:text-red-700"
-                                                    >
-                                                        <X size={18} />
-                                                    </button>
-                                                </div>
-                                            )}
+                                            <input
+                                                type="text"
+                                                value={productSearch}
+                                                onChange={(e) => {
+                                                    setProductSearch(e.target.value);
+                                                    setShowProductDropdown(true);
+                                                }}
+                                                onFocus={() => setShowProductDropdown(true)}
+                                                className="w-full border rounded-lg px-3 py-2 pr-10 focus:ring-2 focus:ring-brand-orange focus:outline-none"
+                                                placeholder="ابحث عن منتج..."
+                                            />
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                         </div>
+                                        
+                                        {showProductDropdown && filteredProducts.length > 0 && (
+                                            <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                                {filteredProducts.map((product) => (
+                                                    <button
+                                                        key={product.id}
+                                                        onClick={() => {
+                                                            setEditingOffer({ ...editingOffer, linked_product_id: product.id });
+                                                            setProductSearch('');
+                                                            setShowProductDropdown(false);
+                                                        }}
+                                                        className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 text-right"
+                                                    >
+                                                        {product.image && (
+                                                            <img src={product.image} alt="" className="w-10 h-10 object-cover rounded" />
+                                                        )}
+                                                        <div>
+                                                            <div className="font-bold">{product.nameAr || product.name}</div>
+                                                            <div className="text-sm text-gray-500">{product.name}</div>
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {editingOffer.linked_product_id && (
+                                            <div className="mt-2 flex items-center gap-2 bg-green-50 p-2 rounded-lg">
+                                                <Package size={18} className="text-green-600" />
+                                                <span className="text-green-700 font-bold">
+                                                    المنتج المرتبط: {products.find(p => p.id === editingOffer.linked_product_id)?.nameAr || products.find(p => p.id === editingOffer.linked_product_id)?.name}
+                                                </span>
+                                                <button
+                                                    onClick={() => setEditingOffer({ ...editingOffer, linked_product_id: undefined })}
+                                                    className="mr-auto text-red-500 hover:text-red-700"
+                                                >
+                                                    <X size={18} />
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
                                 </>
                             ))}
 
