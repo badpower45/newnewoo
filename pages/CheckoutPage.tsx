@@ -374,7 +374,8 @@ export default function CheckoutPage() {
                         unavailableItems.push({
                             productId: item.id,
                             productName: item.name || (item as any).title || `المنتج #${item.id}`,
-                            reason: 'غير متاح في المخزون'
+                            reason: 'غير متاح في المخزون',
+                            substitutionPreference: item.substitutionPreference || 'call_me' // إضافة الأوبشن اللي العميل اختاره
                         });
                     }
                 }

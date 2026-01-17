@@ -6,7 +6,7 @@ import {
     Scan, Search, X,
     SlidersHorizontal, Sparkles,
     TrendingUp, Clock, Tag, ArrowUpDown,
-    Grid3X3
+    Grid3X3, Check
 } from 'lucide-react';
 import { api } from '../services/api';
 import { Product } from '../types';
@@ -473,10 +473,16 @@ export default function ProductsPage() {
         if (selectedBrand) {
             console.log('🔍 Filtering by brand:', selectedBrand);
             filtered = filtered.filter(p => {
+                // Filter by brand_id (UUID) or brand name
+                const productBrandId = p.brand_id || p.brandId;
                 const productBrand = (p.brand || '').toLowerCase();
                 const productName = (p.name || '').toLowerCase();
                 const brandName = selectedBrand.toLowerCase();
-                return productBrand.includes(brandName) || productName.includes(brandName);
+                
+                // Match by brand_id first (UUID), then fallback to brand name
+                return String(productBrandId) === String(selectedBrand) || 
+                       productBrand.includes(brandName) || 
+                       productName.includes(brandName);
             });
         }
 

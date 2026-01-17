@@ -720,7 +720,7 @@ const OrderDistributorPage = () => {
                                             <div className="space-y-2">
                                                 {selectedOrder.unavailable_items.map((item: any, idx: number) => (
                                                     <div key={idx} className="bg-white rounded-lg p-3 border border-red-200">
-                                                        <div className="flex items-center justify-between">
+                                                        <div className="flex items-center justify-between mb-2">
                                                             <div>
                                                                 <p className="font-medium text-gray-900">{item.productName || item.name}</p>
                                                                 <p className="text-xs text-gray-500">رقم المنتج: {item.productId || item.id}</p>
@@ -729,6 +729,19 @@ const OrderDistributorPage = () => {
                                                                 {item.reason || 'غير متاح'}
                                                             </span>
                                                         </div>
+                                                        {item.substitutionPreference && (
+                                                            <div className="mt-2 pt-2 border-t border-red-100">
+                                                                <p className="text-xs font-bold text-red-900 mb-1">⚠️ العميل اختار:</p>
+                                                                <p className="text-xs text-red-800 bg-red-50 px-2 py-1 rounded">
+                                                                    {item.substitutionPreference === 'call_me' && '📞 اتصل بي أولاً'}
+                                                                    {item.substitutionPreference === 'similar_product' && '🔄 استبدل بمنتج مشابه'}
+                                                                    {item.substitutionPreference === 'cancel_item' && '❌ الغِ هذا المنتج'}
+                                                                    {item.substitutionPreference === 'contact' && '📲 اتصل بي'}
+                                                                    {item.substitutionPreference === 'none' && '📞 اتصل بي أولاً'}
+                                                                    {!['call_me', 'similar_product', 'cancel_item', 'contact', 'none'].includes(item.substitutionPreference) && item.substitutionPreference}
+                                                                </p>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 ))}
                                             </div>

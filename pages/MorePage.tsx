@@ -125,7 +125,14 @@ const MorePage = () => {
                         </button>
 
                         {/* Center Content */}
-                        <div className="flex-1 flex flex-col items-center">
+                        <div className="flex-1 flex items-center justify-center gap-3">
+                            <button
+                                onClick={() => navigate('/profile')}
+                                className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center hover:bg-orange-200 transition-colors"
+                                title="الملف الشخصي"
+                            >
+                                <User size={20} className="text-orange-600" />
+                            </button>
                             <h1 className="text-2xl font-bold text-gray-900">المزيد</h1>
                         </div>
 
