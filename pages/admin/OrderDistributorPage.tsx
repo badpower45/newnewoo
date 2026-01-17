@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
     Package, User, Phone, MapPin, Clock, CheckCircle, 
     Truck, Play, List, ChevronDown, ChevronUp, RefreshCw,
-    Navigation, Star, Timer, AlertCircle, Eye, Activity
+    Navigation, Star, Timer, AlertCircle, Eye, Activity, AlertTriangle
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { useBranch } from '../../context/BranchContext';
@@ -814,6 +814,26 @@ const OrderDistributorPage = () => {
                                                             {item.product_name}
                                                         </span>
                                                         <span className="text-gray-500 mr-2">× {item.quantity}</span>
+                                                        
+                                                        {/* Product Options */}
+                                                        {item.selected_options && (
+                                                            <div className="text-xs text-orange-600 mt-1">
+                                                                {typeof item.selected_options === 'string' 
+                                                                    ? item.selected_options 
+                                                                    : JSON.parse(item.selected_options || '{}').map((opt: any) => 
+                                                                        `${opt.name}: ${opt.value}`
+                                                                    ).join(' | ')
+                                                                }
+                                                            </div>
+                                                        )}
+                                                        
+                                                        {/* Out of Stock Warning */}
+                                                        {item.is_out_of_stock && (
+                                                            <div className="text-xs text-red-600 font-bold mt-1 flex items-center gap-1">
+                                                                <AlertTriangle size={12} />
+                                                                غير متوفر - يحتاج بديل
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     {item.is_prepared && (
                                                         <CheckCircle size={20} className="text-green-500" />

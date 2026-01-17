@@ -581,6 +581,37 @@ const ReturnsManager = () => {
                                 )}
                             </div>
 
+                            {/* Returned Items Section */}
+                            {returnItem.items && returnItem.items.length > 0 && (
+                                <div className="bg-orange-50 rounded-lg p-4 mb-4 border border-orange-200">
+                                    <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                                        <Package size={18} className="text-orange-600" />
+                                        المنتجات المرتجعة ({returnItem.items.length} منتج)
+                                    </h4>
+                                    <div className="space-y-2">
+                                        {returnItem.items.map((item: any, index: number) => (
+                                            <div key={index} className="bg-white rounded-lg p-3 flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                                                        <Package size={20} className="text-orange-600" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-semibold text-gray-900">{item.name || 'منتج'}</p>
+                                                        <p className="text-sm text-gray-500">
+                                                            الكمية: <span className="font-bold text-orange-600">{item.quantity || 0}</span>
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-left">
+                                                    <p className="font-bold text-gray-900">{((item.price || 0) * (item.quantity || 0)).toFixed(2)} جنيه</p>
+                                                    <p className="text-xs text-gray-500">{(item.price || 0).toFixed(2)} × {item.quantity || 0}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
                             {returnItem.status === 'pending' && (
                                 <div className="flex gap-2">
                                     <button
