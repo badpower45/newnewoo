@@ -612,34 +612,33 @@ const OrderDistributorPage = () => {
                         </div>
                     ) : (
                         <div className="divide-y">
-                                {orders.map(order => (
-                                <div
-                                    key={order.id}
-                                    onClick={() => handleSelectOrder(order)}
-                                    className={`p-4 cursor-pointer hover:bg-gray-50 transition ${
-                                        selectedOrder?.id === order.id ? 'bg-blue-50 border-r-4 border-blue-500' : ''
-                                    }`}
-                                >
-                                    <div className="flex justify-between items-start mb-2">
-                                        <span className="font-bold text-gray-900">طلب #{order.id}</span>
-                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                            ORDER_STATUS[order.status as keyof typeof ORDER_STATUS]?.color || 'bg-gray-100'
-                                        }`}>
-                                            {ORDER_STATUS[order.status as keyof typeof ORDER_STATUS]?.label || order.status}
-                                        </span>
-                                    </div>
-                                    <p className="text-sm text-gray-600 mb-1">
-                                        {order.customer_name || 'عميل'}
-                                    </p>
-                                    <p className="text-xs text-gray-400">
-                                        {new Date(order.date).toLocaleString('ar-EG')}
-                                    </p>
-                                    <p className="text-sm font-bold text-green-600 mt-2">
-                                        {Number(order.total || 0).toFixed(2)} جنيه
-                                    </p>
+                            {orders.map(order => (
+                            <div
+                                key={order.id}
+                                onClick={() => handleSelectOrder(order)}
+                                className={`p-4 cursor-pointer hover:bg-gray-50 transition ${
+                                    selectedOrder?.id === order.id ? 'bg-blue-50 border-r-4 border-blue-500' : ''
+                                }`}
+                            >
+                                <div className="flex justify-between items-start mb-2">
+                                    <span className="font-bold text-gray-900">طلب #{order.id}</span>
+                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                        ORDER_STATUS[order.status as keyof typeof ORDER_STATUS]?.color || 'bg-gray-100'
+                                    }`}>
+                                        {ORDER_STATUS[order.status as keyof typeof ORDER_STATUS]?.label || order.status}
+                                    </span>
                                 </div>
-                                ))}
+                                <p className="text-sm text-gray-600 mb-1">
+                                    {order.customer_name || 'عميل'}
+                                </p>
+                                <p className="text-xs text-gray-400">
+                                    {new Date(order.date).toLocaleString('ar-EG')}
+                                </p>
+                                <p className="text-sm font-bold text-green-600 mt-2">
+                                    {Number(order.total || 0).toFixed(2)} جنيه
+                                </p>
                             </div>
+                            ))}
                         </div>
                     )}
                 </div>
