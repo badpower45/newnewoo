@@ -90,12 +90,12 @@ const MyOrdersPage = () => {
             loadOrders();
             checkPendingRatings();
             
-            // Auto-refresh every 30 seconds
+            // Auto-refresh every 60 seconds
             const refreshInterval = setInterval(() => {
                 console.log('🔄 Auto-refreshing orders...');
                 loadOrders();
                 checkPendingRatings();
-            }, 30000); // 30 seconds
+            }, 60000); // 60 seconds
             
             return () => clearInterval(refreshInterval);
         } else {

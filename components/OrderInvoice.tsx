@@ -46,7 +46,9 @@ const OrderInvoice: React.FC = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        loadOrder();
+        if (orderId) {
+            loadOrder();
+        }
     }, [orderId]);
 
     const loadOrder = async () => {
@@ -74,8 +76,10 @@ const OrderInvoice: React.FC = () => {
             }
             
             setOrder(orderData);
-        } catch (error) {
-            console.error('❌ Failed to load order:', error);
+        } catch (error: any) {
+            console.error('❌ Error fetching invoice:', error);
+            // Don't retry automatically to avoid rate limiting
+            setOrder(null);
         } finally {
             setLoading(false);
         }

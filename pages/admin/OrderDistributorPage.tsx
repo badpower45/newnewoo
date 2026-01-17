@@ -65,7 +65,7 @@ const OrderDistributorPage = () => {
             loadOrders();
         }
         
-        // Auto-refresh every 30 seconds
+        // Auto-refresh every 60 seconds
         const refreshInterval = setInterval(() => {
             console.log('🔄 Auto-refreshing orders...');
             if (activeTab === 'tracking') {
@@ -74,7 +74,7 @@ const OrderDistributorPage = () => {
             } else {
                 loadOrders();
             }
-        }, 30000); // 30 seconds
+        }, 60000); // 60 seconds
         
         return () => clearInterval(refreshInterval);
     }, [selectedBranch, activeTab]);
