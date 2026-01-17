@@ -386,18 +386,6 @@ const CustomerAnalyticsPage = () => {
                     </div>
                 </div>
             )}
-                            {actionMessage}
-                        </div>
-                    )}
-                    <button
-                        onClick={exportToCSV}
-                        className="px-4 py-2 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors flex items-center gap-2"
-                    >
-                        <Download size={20} />
-                        تصدير Excel
-                    </button>
-                </div>
-            </div>
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
