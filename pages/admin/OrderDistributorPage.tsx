@@ -639,7 +639,8 @@ const OrderDistributorPage = () => {
                                         {Number(order.total || 0).toFixed(2)} جنيه
                                     </p>
                                 </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
                     )}
                 </div>
