@@ -5,6 +5,15 @@ import { socketService } from '../../services/socketService';
 import { supabaseChatService, ChatConversation, ChatMessage } from '../../services/supabaseChatService';
 import { useAuth } from '../../context/AuthContext';
 
+const toNumericId = (value: unknown): number | null => {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value === 'string' && value.trim() !== '') {
+        const parsed = Number(value);
+        if (Number.isFinite(parsed)) return parsed;
+    }
+    return null;
+};
+
 interface Conversation {
     id: number;
     customerName: string;
@@ -25,6 +34,8 @@ interface Message {
 
 const LiveChatDashboard = () => {
     const { user } = useAuth();
+    const agentId = toNumericId(user?.id);
+    const agentName = user?.name || (user as { full_name?: string })?.full_name || user?.email || 'Agent';
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [selectedConv, setSelectedConv] = useState<number | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
@@ -34,14 +45,21 @@ const LiveChatDashboard = () => {
     const [isConnected, setIsConnected] = useState(true);
     const typingTimeoutRef = React.useRef<NodeJS.Timeout>();
 
+    const appendMessage = (incoming: Message) => {
+        setMessages(prev => {
+            if (prev.some(existing => existing.id === incoming.id)) return prev;
+            return [...prev, incoming];
+        });
+    };
+
     // Load conversations
     useEffect(() => {
         loadConversations();
 
         // Connect socket as agent
         socketService.connect();
-        if (user) {
-            socketService.joinAsAgent(user.id, user.name);
+        if (agentId !== null) {
+            socketService.joinAsAgent(agentId, agentName);
         }
 
         // Listen for new messages
@@ -51,7 +69,7 @@ const LiveChatDashboard = () => {
 
         socketService.on('message:new', (message: Message) => {
             if (message.conversationId === selectedConv) {
-                setMessages(prev => [...prev, message]);
+                appendMessage(message);
             }
         });
 
@@ -60,7 +78,7 @@ const LiveChatDashboard = () => {
             socketService.off('message:new');
             supabaseChatService.unsubscribeFromMessages();
         };
-    }, [user, selectedConv]);
+    }, [agentId, agentName, selectedConv]);
 
     const loadConversations = async () => {
         try {
@@ -112,18 +130,6 @@ const LiveChatDashboard = () => {
                     timestamp: m.timestamp
                 }));
                 setMessages(formatted);
-                
-                // Subscribe to new messages
-                supabaseChatService.subscribeToMessages(convId, (newMsg) => {
-                    setMessages(prev => [...prev, {
-                        id: newMsg.id,
-                        conversationId: newMsg.conversation_id,
-                        senderId: newMsg.sender_id,
-                        senderType: newMsg.sender_type as 'customer' | 'agent' | 'bot',
-                        message: newMsg.message,
-                        timestamp: newMsg.timestamp
-                    }]);
-                });
             } else {
                 // Use API
                 const response = await api.chat.getConversation(convId);
@@ -131,6 +137,18 @@ const LiveChatDashboard = () => {
                 setMessages(msgs);
                 socketService.openConversation(convId);
             }
+
+            // Subscribe to new messages (Supabase fallback)
+            supabaseChatService.subscribeToMessages(convId, (newMsg) => {
+                appendMessage({
+                    id: newMsg.id,
+                    conversationId: newMsg.conversation_id,
+                    senderId: newMsg.sender_id,
+                    senderType: newMsg.sender_type as 'customer' | 'agent' | 'bot',
+                    message: newMsg.message,
+                    timestamp: newMsg.timestamp
+                });
+            });
         } catch (error) {
             console.error('Failed to load messages:', error);
             setMessages([]);
@@ -143,25 +161,45 @@ const LiveChatDashboard = () => {
     };
 
     const handleSendMessage = async () => {
-        if (!inputMessage.trim() || !selectedConv || !user) return;
+        if (!inputMessage.trim() || !selectedConv || agentId === null) return;
 
         const message = inputMessage.trim();
         setInputMessage('');
 
-        if (useSupabase) {
-            // Use Supabase
-            await supabaseChatService.sendMessage(selectedConv, user.id, 'agent', message);
-        } else {
-            // Use Socket
-            socketService.sendMessage(selectedConv, user.id, 'agent', message);
+        const canUseSocket = socketService.isConnected() && !socketService.isDisabled();
+
+        if (canUseSocket) {
+            socketService.sendMessage(selectedConv, agentId, 'agent', message);
             socketService.stopTyping(selectedConv, 'agent');
+        } else if (useSupabase) {
+            const sentMessage = await supabaseChatService.sendMessage(selectedConv, agentId, 'agent', message);
+            if (sentMessage) {
+                appendMessage({
+                    id: sentMessage.id,
+                    conversationId: sentMessage.conversation_id,
+                    senderId: sentMessage.sender_id,
+                    senderType: sentMessage.sender_type as 'customer' | 'agent' | 'bot',
+                    message: sentMessage.message,
+                    timestamp: sentMessage.timestamp
+                });
+            }
+        } else {
+            await api.chat.sendMessage(selectedConv, agentId, 'agent', message);
+            appendMessage({
+                id: Date.now(),
+                conversationId: selectedConv,
+                senderId: agentId,
+                senderType: 'agent',
+                message,
+                timestamp: new Date().toISOString()
+            });
         }
     };
 
     const handleInputChange = (val: string) => {
         setInputMessage(val);
-        if (!selectedConv || !user || useSupabase) return;
-        socketService.startTyping(selectedConv, 'agent', user.name);
+        if (!selectedConv || agentId === null || useSupabase || !socketService.isConnected()) return;
+        socketService.startTyping(selectedConv, 'agent', agentName);
         if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
         typingTimeoutRef.current = setTimeout(() => {
             socketService.stopTyping(selectedConv!, 'agent');
@@ -169,13 +207,15 @@ const LiveChatDashboard = () => {
     };
 
     const handleAssign = async (convId: number) => {
-        if (!user) return;
+        if (agentId === null) return;
         try {
             if (useSupabase) {
-                await supabaseChatService.assignConversation(convId, user.id);
+                await supabaseChatService.assignConversation(convId, agentId);
             } else {
-                await api.chat.assignConversation(convId, user.id);
-                socketService.assignConversation(convId, user.id, user.name);
+                await api.chat.assignConversation(convId, agentId);
+                if (socketService.isConnected()) {
+                    socketService.assignConversation(convId, agentId, agentName);
+                }
             }
             loadConversations();
         } catch (error) {
@@ -184,7 +224,7 @@ const LiveChatDashboard = () => {
     };
 
     const filteredConversations = conversations.filter(conv => {
-        if (filter === 'assigned') return conv.agentId === user?.id;
+        if (filter === 'assigned') return agentId !== null && conv.agentId === agentId;
         if (filter === 'unassigned') return conv.agentId === null;
         return true;
     });

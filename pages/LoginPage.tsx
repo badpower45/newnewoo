@@ -106,6 +106,14 @@ const LoginPage = () => {
             } catch (e: any) {
                 console.error('❌ Backend login failed:', e);
                 
+                // تحسين رسالة الخطأ
+                if (e.message === 'Failed to fetch' || e.message?.includes('fetch')) {
+                    console.error('🚫 Backend server is not reachable');
+                    setError('لا يمكن الاتصال بالخادم. تأكد من تشغيل Backend أو جرب لاحقاً');
+                    setIsSubmitting(false);
+                    return;
+                }
+                
                 // Check if user is blocked from backend response
                 if (e?.response?.data?.blocked || e?.response?.status === 403) {
                     const blockMessage = e?.response?.data?.error || e?.response?.data?.reason || 'تم حظر هذا الحساب من استخدام النظام';

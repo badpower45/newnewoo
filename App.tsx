@@ -67,7 +67,6 @@ import LiveChatDashboard from './pages/admin/LiveChatDashboard';
 import BranchesManager from './pages/admin/BranchesManager';
 import InventoryDashboard from './pages/admin/InventoryDashboard';
 import AdminInventoryDashboard from './src/pages/AdminInventoryDashboard';
-import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 import OrderDistributorPage from './pages/admin/OrderDistributorPage';
 import DeliveryStaffManager from './pages/admin/DeliveryStaffManager';
 import CouponsManager from './pages/admin/CouponsManager';
@@ -221,7 +220,6 @@ function AppContent() {
               <Route path="brands" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><BrandsManager /></ProtectedRoute>} />
               <Route path="employees" element={<ProtectedRoute requireAdmin><EmployeesManager /></ProtectedRoute>} />
               <Route path="chat" element={<ProtectedRoute requireAdmin><LiveChatDashboard /></ProtectedRoute>} />
-              <Route path="settings" element={<ProtectedRoute requireAdmin><AdminSettingsPage /></ProtectedRoute>} />
               <Route path="distribution" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'distributor']}><OrderDistributorPage /></ProtectedRoute>} />
               <Route path="delivery-staff" element={<DeliveryStaffManager />} />
             </Route>

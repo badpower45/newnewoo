@@ -4,6 +4,15 @@ import { socketService } from '../services/socketService';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
+const toNumericId = (value: unknown): number | null => {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value === 'string' && value.trim() !== '') {
+        const parsed = Number(value);
+        if (Number.isFinite(parsed)) return parsed;
+    }
+    return null;
+};
+
 interface Message {
     id: number;
     conversationId: number;
@@ -41,11 +50,18 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ onClose, onNewMessage }) => {
 
     // Initialize conversation and socket with localStorage persistence
     useEffect(() => {
+        socketService.connect();
+
+        const handleSocketConnect = () => setIsConnected(true);
+        const handleSocketDisconnect = () => setIsConnected(false);
+        socketService.on('connect', handleSocketConnect);
+        socketService.on('disconnect', handleSocketDisconnect);
+
         const initChat = async () => {
             try {
                 const stored = localStorage.getItem('lumina_chat_conv');
                 let convId: number | null = null;
-                let customerName = user?.name || 'Guest';
+                let customerName = user?.name || (user as { full_name?: string })?.full_name || 'Guest';
                 if (stored) {
                     try {
                         const parsed = JSON.parse(stored);
@@ -56,7 +72,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ onClose, onNewMessage }) => {
 
                 if (!convId) {
                     try {
-                        const response = await api.chat.createConversation(user?.id || null, customerName);
+                        const customerId = toNumericId(user?.id);
+                        const response = await api.chat.createConversation(customerId, customerName);
                         if (response.conversationId) {
                             convId = response.conversationId;
                             localStorage.setItem('lumina_chat_conv', JSON.stringify({ id: convId, customerName }));
@@ -72,7 +89,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ onClose, onNewMessage }) => {
                     setConversationId(convId);
 
                     // Connect socket
-                    socketService.connect();
                     socketService.joinAsCustomer(convId, customerName);
 
                     // Load existing messages
@@ -84,7 +100,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ onClose, onNewMessage }) => {
                     } catch {
                         // Messages load failed; start with empty
                     }
-                    setIsConnected(true);
                 }
             } catch (error) {
                 // Silent failure
@@ -96,38 +111,63 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ onClose, onNewMessage }) => {
         initChat();
 
         // Socket event listeners
-        socketService.on('message:new', (message: Message) => {
-            setMessages(prev => [...prev, message]);
+        const handleMessage = (message: Message) => {
+            setMessages(prev => {
+                if (prev.some(existing => existing.id === message.id)) return prev;
+                return [...prev, message];
+            });
             if (message.senderType === 'agent') {
                 onNewMessage();
             }
-        });
+        };
 
-        socketService.on('typing:indicator', ({ userType, isTyping }: { userType: string; isTyping: boolean }) => {
+        const handleTyping = ({ userType, isTyping }: { userType: string; isTyping: boolean }) => {
             if (userType === 'agent') {
                 setIsTyping(isTyping);
             }
-        });
+        };
+
+        socketService.on('message:new', handleMessage);
+        socketService.on('typing:indicator', handleTyping);
 
         return () => {
-            socketService.off('message:new');
-            socketService.off('typing:indicator');
+            socketService.off('connect', handleSocketConnect);
+            socketService.off('disconnect', handleSocketDisconnect);
+            socketService.off('message:new', handleMessage);
+            socketService.off('typing:indicator', handleTyping);
         };
     }, [user, onNewMessage]);
 
-    const handleSendMessage = () => {
+    const handleSendMessage = async () => {
         if (!inputMessage.trim() || !conversationId) return;
 
         const message = inputMessage.trim();
         setInputMessage('');
 
-        // Send via Socket.io
-        socketService.sendMessage(
-            conversationId,
-            user?.id || null,
-            'customer',
-            message
-        );
+        const senderId = toNumericId(user?.id);
+        const canUseSocket = socketService.isConnected() && !socketService.isDisabled();
+
+        if (canUseSocket) {
+            socketService.sendMessage(conversationId, senderId, 'customer', message);
+        } else {
+            try {
+                await api.chat.sendMessage(conversationId, senderId, 'customer', message);
+                setMessages(prev => [
+                    ...prev,
+                    {
+                        id: Date.now(),
+                        conversationId,
+                        senderId,
+                        senderType: 'customer',
+                        message,
+                        timestamp: new Date().toISOString(),
+                        isRead: 0
+                    }
+                ]);
+            } catch {
+                // Ignore failed fallback
+            }
+        }
 
         // Stop typing indicator
         socketService.stopTyping(conversationId, 'customer');
@@ -136,7 +176,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ onClose, onNewMessage }) => {
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setInputMessage(e.target.value);
 
-        if (!conversationId) return;
+        if (!conversationId || !socketService.isConnected()) return;
 
         // Start typing indicator
         socketService.startTyping(conversationId, 'customer', user?.name || 'Guest');
@@ -175,7 +215,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ onClose, onNewMessage }) => {
                     <div>
                         <h3 className="font-bold text-lg">خدمة العملاء</h3>
                         <p className="text-xs text-white/80">
-                            {isConnected ? '🟢 متصل' : '🔴 غير متصل'}
+                            {isConnected ? '🟢 متصل' : '🟡 غير متصل'}
                         </p>
                     </div>
                 </div>
@@ -246,11 +286,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ onClose, onNewMessage }) => {
                         onKeyPress={handleKeyPress}
                         placeholder="اكتب رسالتك..."
                         className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-brand-orange focus:border-transparent"
-                        disabled={!isConnected}
+                        disabled={!conversationId}
                     />
                     <button
                         onClick={handleSendMessage}
-                        disabled={!inputMessage.trim() || !isConnected}
+                        disabled={!inputMessage.trim() || !conversationId}
                         className="bg-brand-orange hover:bg-orange-600 disabled:bg-gray-300 text-white p-3 rounded-full transition-colors shadow-md disabled:cursor-not-allowed"
                     >
                         <Send size={20} />

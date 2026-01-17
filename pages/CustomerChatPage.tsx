@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Send, ArrowLeft, Phone, Clock, MessageCircle, CheckCheck, Check, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabaseChatService, ChatConversation } from '../services/supabaseChatService';
+import { socketService } from '../services/socketService';
+import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 
 // Quick response options
@@ -60,6 +62,15 @@ const getBotResponse = (message: string): string | null => {
   return null;
 };
 
+const toNumericId = (value: unknown): number | null => {
+  if (typeof value === 'number' && Number.isFinite(value)) return value;
+  if (typeof value === 'string' && value.trim() !== '') {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return null;
+};
+
 interface DisplayMessage {
   id: string;
   content: string;
@@ -76,6 +87,7 @@ const CustomerChatPage: React.FC = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [conversation, setConversation] = useState<ChatConversation | null>(null);
+  const [useSupabase, setUseSupabase] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesRef = useRef<DisplayMessage[]>([]);
   const isSendingQuickRef = useRef(false);
@@ -173,54 +185,88 @@ const CustomerChatPage: React.FC = () => {
     const initChat = async () => {
       try {
         // Get or create conversation
-        const customerId = user?.id ? Number(user.id) : null;
-        const customerName = user?.full_name || 'زائر';
-        
-        const conv = await supabaseChatService.getOrCreateConversation(customerId, customerName);
+        const customerId = toNumericId(user?.id);
+        const customerName = user?.name || (user as { full_name?: string })?.full_name || 'زائر';
+        let supabaseEnabled = true;
+        let conv = await supabaseChatService.getOrCreateConversation(customerId, customerName);
+        if (!conv) {
+          supabaseEnabled = false;
+          const response = await api.chat.createConversation(customerId, customerName);
+          if (response?.conversationId) {
+            const now = new Date().toISOString();
+            conv = {
+              id: response.conversationId,
+              customer_id: customerId,
+              customer_name: customerName,
+              agent_id: null,
+              status: 'active',
+              created_at: now,
+              last_message_at: now
+            };
+          }
+        }
+        setUseSupabase(supabaseEnabled);
         setConversation(conv);
-        setIsConnected(true);
+        setIsConnected(Boolean(conv));
 
         // Load existing messages
         if (conv) {
-          const existingMessages = await supabaseChatService.getMessages(conv.id);
-          const displayMessages: DisplayMessage[] = existingMessages.map(msg => ({
-            id: String(msg.id),
-            content: msg.message,
-            sender: msg.sender_type === 'customer' ? 'user' : msg.sender_type as 'agent' | 'bot',
-            timestamp: new Date(msg.timestamp),
-            status: 'delivered' as const
-          }));
-          setMessages(displayMessages);
+          socketService.connect();
+          socketService.joinAsCustomer(conv.id, customerName);
 
-          // Subscribe to new messages
-          supabaseChatService.subscribeToMessages(conv.id, (newMessage) => {
-            const displayMsg: DisplayMessage = {
-              id: String(newMessage.id),
-              content: newMessage.message,
-              sender: newMessage.sender_type === 'customer' ? 'user' : newMessage.sender_type as 'agent' | 'bot',
-              timestamp: new Date(newMessage.timestamp),
-              status: 'delivered'
-            };
-            const pendingMatchId = resolvePendingMessage(displayMsg);
-            setMessages(prev => {
-              // Avoid duplicates
-              if (prev.find(m => m.id === displayMsg.id)) return prev;
-              if (isDuplicateMessage(displayMsg, prev)) return prev;
-              if (pendingMatchId) {
-                let replaced = false;
-                const updated = prev.map(msg => {
-                  if (msg.id !== pendingMatchId) return msg;
-                  replaced = true;
-                  return { ...displayMsg, status: displayMsg.status };
-                });
-                return replaced ? updated : [...prev, displayMsg];
-              }
-              return [...prev, displayMsg];
+          if (supabaseEnabled) {
+            const existingMessages = await supabaseChatService.getMessages(conv.id);
+            const displayMessages: DisplayMessage[] = existingMessages.map(msg => ({
+              id: String(msg.id),
+              content: msg.message,
+              sender: msg.sender_type === 'customer' ? 'user' : msg.sender_type as 'agent' | 'bot',
+              timestamp: new Date(msg.timestamp),
+              status: 'delivered' as const
+            }));
+            setMessages(displayMessages);
+
+            // Subscribe to new messages
+            supabaseChatService.subscribeToMessages(conv.id, (newMessage) => {
+              const displayMsg: DisplayMessage = {
+                id: String(newMessage.id),
+                content: newMessage.message,
+                sender: newMessage.sender_type === 'customer' ? 'user' : newMessage.sender_type as 'agent' | 'bot',
+                timestamp: new Date(newMessage.timestamp),
+                status: 'delivered'
+              };
+              const pendingMatchId = resolvePendingMessage(displayMsg);
+              setMessages(prev => {
+                // Avoid duplicates
+                if (prev.find(m => m.id === displayMsg.id)) return prev;
+                if (isDuplicateMessage(displayMsg, prev)) return prev;
+                if (pendingMatchId) {
+                  let replaced = false;
+                  const updated = prev.map(msg => {
+                    if (msg.id !== pendingMatchId) return msg;
+                    replaced = true;
+                    return { ...displayMsg, status: displayMsg.status };
+                  });
+                  return replaced ? updated : [...prev, displayMsg];
+                }
+                return [...prev, displayMsg];
+              });
             });
-          });
+          } else {
+            const response = await api.chat.getConversation(conv.id);
+            const existingMessages = Array.isArray(response?.messages) ? response.messages : [];
+            const displayMessages: DisplayMessage[] = existingMessages.map((msg: any) => ({
+              id: String(msg.id),
+              content: msg.message,
+              sender: msg.senderType === 'customer' ? 'user' : msg.senderType as 'agent' | 'bot',
+              timestamp: new Date(msg.timestamp),
+              status: 'delivered' as const
+            }));
+            setMessages(displayMessages);
+          }
         }
       } catch (error) {
         console.error('Error initializing chat:', error);
+        setIsConnected(false);
         // Add welcome message even if connection fails
         setMessages([{
           id: 'welcome',
@@ -238,6 +284,41 @@ const CustomerChatPage: React.FC = () => {
       supabaseChatService.unsubscribeFromMessages();
     };
   }, [user]);
+
+  useEffect(() => {
+    if (!conversation || useSupabase) return;
+    socketService.connect();
+    const handleSocketMessage = (message: { conversationId: number; senderType: string; message: string; timestamp: string; id: number }) => {
+      if (message.conversationId !== conversation.id) return;
+      const displayMsg: DisplayMessage = {
+        id: String(message.id),
+        content: message.message,
+        sender: message.senderType === 'customer' ? 'user' : message.senderType as 'agent' | 'bot',
+        timestamp: new Date(message.timestamp),
+        status: 'delivered'
+      };
+      const pendingMatchId = resolvePendingMessage(displayMsg);
+      setMessages(prev => {
+        if (prev.find(m => m.id === displayMsg.id)) return prev;
+        if (isDuplicateMessage(displayMsg, prev)) return prev;
+        if (pendingMatchId) {
+          let replaced = false;
+          const updated = prev.map(msg => {
+            if (msg.id !== pendingMatchId) return msg;
+            replaced = true;
+            return { ...displayMsg, status: displayMsg.status };
+          });
+          return replaced ? updated : [...prev, displayMsg];
+        }
+        return [...prev, displayMsg];
+      });
+    };
+
+    socketService.on('message:new', handleSocketMessage);
+    return () => {
+      socketService.off('message:new', handleSocketMessage);
+    };
+  }, [conversation, useSupabase]);
 
   // Auto scroll to bottom
   useEffect(() => {
@@ -268,28 +349,49 @@ const CustomerChatPage: React.FC = () => {
 
     setMessages(prev => [...prev, newMessage]);
     setInputMessage('');
+    if (conversation) {
+      registerPendingMessage(tempId, 'user', content);
+    }
 
     try {
-      // Send to Supabase if connected
-      if (conversation && isConnected) {
-        registerPendingMessage(tempId, 'user', content);
-        const sentMessage = await supabaseChatService.sendMessage(
-          conversation.id,
-          user?.id ? Number(user.id) : null,
-          'customer',
-          content.trim()
-        );
-        
-        // Update message status
-        if (sentMessage) {
-          setMessages(prev => prev.map(msg => 
-            msg.id === tempId 
-              ? { ...msg, id: String(sentMessage.id), status: 'sent' as const }
+      if (conversation) {
+        const senderId = toNumericId(user?.id);
+        const canUseSocket = socketService.isConnected() && !socketService.isDisabled();
+        if (canUseSocket) {
+          socketService.sendMessage(conversation.id, senderId, 'customer', content.trim());
+          setMessages(prev => prev.map(msg =>
+            msg.id === tempId ? { ...msg, status: 'sent' as const } : msg
+          ));
+        } else if (useSupabase) {
+          const sentMessage = await supabaseChatService.sendMessage(
+            conversation.id,
+            senderId,
+            'customer',
+            content.trim()
+          );
+          
+          // Update message status
+          if (sentMessage) {
+            setMessages(prev => prev.map(msg => 
+              msg.id === tempId 
+                ? { ...msg, id: String(sentMessage.id), status: 'sent' as const }
+                : msg
+            ));
+          }
+        } else {
+          const response = await api.chat.sendMessage(
+            conversation.id,
+            senderId,
+            'customer',
+            content.trim()
+          );
+          setMessages(prev => prev.map(msg =>
+            msg.id === tempId
+              ? { ...msg, id: response?.messageId ? String(response.messageId) : msg.id, status: 'sent' as const }
               : msg
           ));
         }
       } else {
-        // Mark as sent even without connection
         setMessages(prev => prev.map(msg => 
           msg.id === tempId 
             ? { ...msg, status: 'sent' as const }
@@ -320,18 +422,32 @@ const CustomerChatPage: React.FC = () => {
           setMessages(prev => [...prev, botMessage]);
 
           // Save bot message to Supabase
-          if (conversation && isConnected) {
+          if (conversation) {
             registerPendingMessage(botTempId, 'bot', botResponse);
-            const sentBotMessage = await supabaseChatService.sendMessage(
-              conversation.id,
-              null,
-              'bot',
-              botResponse
-            );
-            if (sentBotMessage) {
-              setMessages(prev => prev.map(msg =>
-                msg.id === botTempId ? { ...msg, id: String(sentBotMessage.id) } : msg
-              ));
+            if (useSupabase) {
+              const sentBotMessage = await supabaseChatService.sendMessage(
+                conversation.id,
+                null,
+                'bot',
+                botResponse
+              );
+              if (sentBotMessage) {
+                setMessages(prev => prev.map(msg =>
+                  msg.id === botTempId ? { ...msg, id: String(sentBotMessage.id) } : msg
+                ));
+              }
+            } else {
+              const response = await api.chat.sendMessage(
+                conversation.id,
+                null,
+                'bot',
+                botResponse
+              );
+              if (response?.messageId) {
+                setMessages(prev => prev.map(msg =>
+                  msg.id === botTempId ? { ...msg, id: String(response.messageId) } : msg
+                ));
+              }
             }
           }
         } else {
@@ -350,18 +466,32 @@ const CustomerChatPage: React.FC = () => {
 
           setMessages(prev => [...prev, defaultResponse]);
 
-          if (conversation && isConnected) {
+          if (conversation) {
             registerPendingMessage(botTempId, 'bot', defaultText);
-            const sentBotMessage = await supabaseChatService.sendMessage(
-              conversation.id,
-              null,
-              'bot',
-              defaultText
-            );
-            if (sentBotMessage) {
-              setMessages(prev => prev.map(msg =>
-                msg.id === botTempId ? { ...msg, id: String(sentBotMessage.id) } : msg
-              ));
+            if (useSupabase) {
+              const sentBotMessage = await supabaseChatService.sendMessage(
+                conversation.id,
+                null,
+                'bot',
+                defaultText
+              );
+              if (sentBotMessage) {
+                setMessages(prev => prev.map(msg =>
+                  msg.id === botTempId ? { ...msg, id: String(sentBotMessage.id) } : msg
+                ));
+              }
+            } else {
+              const response = await api.chat.sendMessage(
+                conversation.id,
+                null,
+                'bot',
+                defaultText
+              );
+              if (response?.messageId) {
+                setMessages(prev => prev.map(msg =>
+                  msg.id === botTempId ? { ...msg, id: String(response.messageId) } : msg
+                ));
+              }
             }
           }
         }
