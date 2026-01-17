@@ -204,7 +204,10 @@ export const orderSchema = Joi.object({
     deliveryAddress: Joi.string().max(500).allow(null, ''),
     couponId: Joi.number().integer().positive().allow(null),
     couponCode: Joi.string().max(50).allow(null, ''),
-    couponDiscount: Joi.number().min(0).max(1000000).allow(null)
+    couponDiscount: Joi.number().min(0).max(1000000).allow(null),
+    unavailableContactMethod: Joi.string()
+        .valid('phone', 'whatsapp', 'sms', 'any')
+        .allow(null, '')
 });
 
 // Cart Item Schema

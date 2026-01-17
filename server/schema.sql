@@ -79,6 +79,7 @@ CREATE TABLE IF NOT EXISTS orders (
   payment_status VARCHAR(20) DEFAULT 'pending',
   payment_transaction_id TEXT,
   shipping_info JSONB, -- Stores name, phone, address, GPS coordinates
+  unavailable_contact_method TEXT, -- طريقة التواصل عند عدم توفر المنتجات
   coupon_id INTEGER, -- الكوبون المستخدم
   coupon_code VARCHAR(50), -- كود الكوبون
   coupon_discount DECIMAL(10, 2) DEFAULT 0, -- قيمة الخصم

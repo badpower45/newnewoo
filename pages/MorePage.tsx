@@ -126,13 +126,7 @@ const MorePage = () => {
 
                         {/* Center Content */}
                         <div className="flex-1 flex flex-col items-center">
-                            <p className="text-sm text-gray-500 mb-1">مركز المساعدة</p>
-                            <div className="flex items-center gap-3">
-                                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-md">
-                                    <HelpCircle size={28} className="text-white" strokeWidth={2.5} />
-                                </div>
-                                <h1 className="text-xl font-bold text-gray-900">الأسئلة الشائعة</h1>
-                            </div>
+                            <h1 className="text-2xl font-bold text-gray-900">المزيد</h1>
                         </div>
 
                         {/* WhatsApp Button - Left Side (RTL) */}

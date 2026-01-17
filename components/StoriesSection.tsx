@@ -243,11 +243,11 @@ const StoriesSection: React.FC = () => {
         const isLeftZone = x < width / 3;
         const isRightZone = x > (2 * width) / 3;
 
-        // Fix swipe direction for RTL: when RTL and click right, go next (not prev)
+        // عكس الاتجاه: الضغط على اليسار ينقل لليمين (الأستوري التالي)
         if ((isLeftZone && !isRTL) || (isRightZone && isRTL)) {
-            handleNextStory();  // Changed from handlePrevStory
+            handlePrevStory();  // اليسار = السابق
         } else if ((isRightZone && !isRTL) || (isLeftZone && isRTL)) {
-            handlePrevStory();  // Changed from handleNextStory
+            handleNextStory();  // اليمين = التالي
         } else {
             setIsPaused(prev => !prev);
         }

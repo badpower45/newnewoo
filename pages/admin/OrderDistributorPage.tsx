@@ -48,6 +48,14 @@ const OrderDistributorPage = () => {
     const [selectedStaff, setSelectedStaff] = useState<any>(null);
     const [acceptTimeout, setAcceptTimeout] = useState(5); // دقائق
     const [expectedDeliveryTime, setExpectedDeliveryTime] = useState(30); // دقائق
+    const contactMethodLabels: Record<string, string> = {
+        phone: 'اتصال هاتفي',
+        whatsapp: 'واتساب',
+        sms: 'رسالة SMS',
+        any: 'أي وسيلة متاحة'
+    };
+    const getUnavailableContactMethod = (order: any) =>
+        order?.unavailable_contact_method || order?.unavailableContactMethod || '';
 
     useEffect(() => {
         if (activeTab === 'tracking') {
@@ -667,6 +675,11 @@ const OrderDistributorPage = () => {
                                                 <MapPin size={18} className="text-gray-400 mt-1" />
                                                 <span className="text-sm">{shipping.address}</span>
                                             </div>
+                                            {getUnavailableContactMethod(selectedOrder) && (
+                                                <div className="col-span-2 text-xs text-gray-600">
+                                                    طريقة التواصل عند عدم التوفر: {contactMethodLabels[getUnavailableContactMethod(selectedOrder)] || getUnavailableContactMethod(selectedOrder)}
+                                                </div>
+                                            )}
                                             {shipping.coordinates && (
                                                 <div className="col-span-2">
                                                     <a 
@@ -699,6 +712,11 @@ const OrderDistributorPage = () => {
                                             <p className="text-sm text-red-700 mb-3">
                                                 العميل طلب المنتجات التالية لكنها غير متاحة في المخزون. يرجى الاتصال بالعميل لإيجاد بديل.
                                             </p>
+                                            {getUnavailableContactMethod(selectedOrder) && (
+                                                <div className="mb-3 text-xs text-red-800">
+                                                    طريقة التواصل المفضلة: {contactMethodLabels[getUnavailableContactMethod(selectedOrder)] || getUnavailableContactMethod(selectedOrder)}
+                                                </div>
+                                            )}
                                             <div className="space-y-2">
                                                 {selectedOrder.unavailable_items.map((item: any, idx: number) => (
                                                     <div key={idx} className="bg-white rounded-lg p-3 border border-red-200">

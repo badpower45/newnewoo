@@ -581,7 +581,9 @@ const StoriesManager: React.FC = () => {
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        <div>
+                                        {/* تم إزالة خيار الفيديو - الاستوري بالصور فقط */}
+                                        <input type="hidden" value="image" />
+                                        <div className="hidden">
                                             <label className="block text-sm font-medium text-gray-700 mb-1">نوع الوسائط</label>
                                             <div className="flex gap-3">
                                                 <label className={`flex-1 flex items-center justify-center gap-2 p-3 border rounded-lg cursor-pointer transition-colors ${

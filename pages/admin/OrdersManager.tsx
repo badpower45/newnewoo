@@ -13,6 +13,14 @@ const OrdersManager = () => {
     const [showModal, setShowModal] = useState(false);
     const [loading, setLoading] = useState(true);
     const [reasonModal, setReasonModal] = useState<{ orderId: string | number; reason: string } | null>(null);
+    const contactMethodLabels: Record<string, string> = {
+        phone: 'اتصال هاتفي',
+        whatsapp: 'واتساب',
+        sms: 'رسالة SMS',
+        any: 'أي وسيلة متاحة'
+    };
+    const getUnavailableContactMethod = (order: any) =>
+        order?.unavailable_contact_method || order?.unavailableContactMethod || '';
 
     useEffect(() => {
         loadOrders();
@@ -240,6 +248,15 @@ const OrdersManager = () => {
                                     <p><span className="text-gray-500">الحالة:</span> <span className="font-medium">{selectedOrder.paymentStatus || selectedOrder.payment_status || 'معلق'}</span></p>
                                 </div>
                             </div>
+
+                            {getUnavailableContactMethod(selectedOrder) && (
+                                <div className="bg-gray-50 p-3 sm:p-4 rounded-lg sm:rounded-xl">
+                                    <h3 className="font-bold text-gray-900 mb-2 sm:mb-3 text-sm sm:text-base">التواصل عند عدم التوفر</h3>
+                                    <p className="text-xs sm:text-sm text-gray-700">
+                                        {contactMethodLabels[getUnavailableContactMethod(selectedOrder)] || getUnavailableContactMethod(selectedOrder)}
+                                    </p>
+                                </div>
+                            )}
 
                             {/* Order Items */}
                             <div>

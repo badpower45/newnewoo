@@ -49,9 +49,14 @@ export default function CheckoutPage() {
     const [barcodeDiscount, setBarcodeDiscount] = useState(0);
     const [barcodeError, setBarcodeError] = useState('');
     const [isValidatingBarcode, setIsValidatingBarcode] = useState(false);
+    const [unavailableContactMethod, setUnavailableContactMethod] = useState('phone');
 
     // Final total with service fee (in cartFinalTotal) + delivery fee - discounts
     const finalTotal = cartFinalTotal + deliveryFee - couponDiscount - barcodeDiscount;
+    const needsUnavailableContact = items.some((item) => {
+        const pref = item.substitutionPreference || 'none';
+        return pref === 'none' || pref === 'contact' || pref === 'call_me';
+    });
 
     const [formData, setFormData] = useState({
         firstName: '',
@@ -410,6 +415,7 @@ export default function CheckoutPage() {
                 barcodeCode: appliedBarcode ? appliedBarcode.barcode : null,
                 barcodeId: appliedBarcode ? appliedBarcode.id : null,
                 barcodeDiscount: barcodeDiscount,
+                unavailableContactMethod: needsUnavailableContact ? unavailableContactMethod : null,
                 items: items.map(item => ({
                     id: item.id,
                     productId: item.id,
@@ -812,6 +818,24 @@ export default function CheckoutPage() {
                     <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
                         <h3 className="text-xl font-bold text-slate-800 mb-4">تفضيلات الاستبدال</h3>
                         <div className="space-y-4">
+                            {needsUnavailableContact && (
+                                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">
+                                        طريقة التواصل في حالة عدم توفر المنتج
+                                    </label>
+                                    <select
+                                        value={unavailableContactMethod}
+                                        onChange={(e) => setUnavailableContactMethod(e.target.value)}
+                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                    >
+                                        <option value="phone">اتصال هاتفي</option>
+                                        <option value="whatsapp">واتساب</option>
+                                        <option value="sms">رسالة SMS</option>
+                                        <option value="any">أي وسيلة متاحة</option>
+                                    </select>
+                                    <p className="text-xs text-slate-500 mt-2">نستخدمها لو المنتج مش متوفر ونحتاج نرجع لك بسرعة.</p>
+                                </div>
+                            )}
                             {items.map((item) => (
                                 <div key={item.id} className="flex items-center gap-4 pb-4 border-b last:border-0">
                                     <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-lg" />
