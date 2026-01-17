@@ -218,8 +218,8 @@ const CategoriesPage = () => {
                         <p className="text-gray-500">جاري تحميل التصنيفات...</p>
                     </div>
                 ) : viewMode === 'grid' ? (
-                    /* Grid View - 3 columns on mobile */
-                    <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                    /* Grid View - 2 columns on mobile, more on larger screens */
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4">
                         {filteredCategories.map((cat, idx) => (
                             <CategoryCard 
                                 key={cat.id || idx} 

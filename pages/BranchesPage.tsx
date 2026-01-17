@@ -161,7 +161,7 @@ const BranchesPage = () => {
 
             {/* Simple Governorate Filter */}
             <div className="bg-white border-b p-3 md:rounded-xl md:mt-4">
-                <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
+                <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
                     {governorates.map(gov => (
                         <button
                             key={gov}

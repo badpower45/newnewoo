@@ -598,9 +598,9 @@ const OrderDistributorPage = () => {
                     </div>
                 </div>
             ) : (
-            <div className="flex">
+            <div className="flex flex-col md:flex-row">
                 {/* Orders List */}
-                <div className="w-1/3 border-l bg-white min-h-[calc(100vh-140px)] overflow-y-auto">
+                <div className="w-full md:w-1/3 border-b md:border-l md:border-b-0 bg-white min-h-[300px] md:min-h-[calc(100vh-140px)] overflow-y-auto">
                     {loading ? (
                         <div className="flex items-center justify-center py-20">
                             <RefreshCw className="animate-spin text-gray-400" size={32} />
@@ -611,8 +611,7 @@ const OrderDistributorPage = () => {
                             <p>لا توجد طلبات</p>
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <div className="divide-y min-w-[500px]">
+                        <div className="divide-y">
                                 {orders.map(order => (
                                 <div
                                     key={order.id}
