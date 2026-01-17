@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import BarcodeScanner from '../components/BarcodeScanner';
 import ProductModal from '../components/ProductModal';
+import CategoryBanner from '../components/CategoryBanner';
 import { ProductGridSkeleton } from '../components/Skeleton';
 import {
     Barcode, Search, X,
@@ -655,6 +656,13 @@ export default function ProductsPage() {
                 structuredData={itemListSchema}
             />
             <div className="min-h-screen bg-white">
+                {/* Category Banner - معطل مؤقتًا */}
+                {/* {selectedCategory && (
+                    <div className="max-w-7xl mx-auto px-4 pt-4">
+                        <CategoryBanner categoryName={selectedCategory} />
+                    </div>
+                )} */}
+                
                 <div className="sticky top-0 z-40 bg-white border-b">
                     <div className="max-w-7xl mx-auto px-4 py-3">
                         {/* Search and Filter Row - على نفس الخط */}

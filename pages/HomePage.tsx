@@ -9,6 +9,7 @@ import BrandOffersSection from '../components/BrandOffersSection';
 import StoriesSection from '../components/StoriesSection';
 import FacebookReelsGrid from '../components/FacebookReelsGrid';
 import HeroCarousel from '../components/HeroCarousel';
+import AnnouncementPopup from '../components/AnnouncementPopup';
 import { ChevronRight, Flame, BookOpen } from 'lucide-react';
 import { api } from '../services/api';
 import { Product } from '../types';
@@ -225,6 +226,10 @@ const HomePage = () => {
                 ]}
                 structuredData={homeStructuredData}
             />
+            
+            {/* Announcement Popup - معطل مؤقتًا */}
+            {/* <AnnouncementPopup page="homepage" /> */}
+            
             <div className="bg-[#FAFAFA] min-h-screen pb-24 md:pb-8">
             <TopBar />
 
