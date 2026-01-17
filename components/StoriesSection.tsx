@@ -83,7 +83,7 @@ const StoriesSection: React.FC = () => {
                 const groupsMap = new Map<string | number, StoryGroup>();
                 stories.forEach((story) => {
                     const circleName = story.circle_name?.trim();
-                    const key = circleName || story.user_id ?? story.user_name ?? 'store';
+                    const key = circleName || (story.user_id ?? story.user_name ?? 'store');
                     const name = circleName || story.user_name || 'Allosh Market';
                     const ytId = extractYoutubeId(story.link_url || story.media_url);
                     const derivedThumb = youtubeThumbnail(ytId);
