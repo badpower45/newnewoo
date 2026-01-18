@@ -50,15 +50,11 @@ export default function PopupsManager() {
     const loadPopups = async () => {
         try {
             setLoading(true);
-            const res = await fetch(`${api.API_URL}/popups`, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            const data = await res.json();
-            setPopups(data.data || []);
+            const res = await api.popups.getAll();
+            setPopups(res.data || res || []);
         } catch (err) {
             console.error('Error loading popups:', err);
+            setPopups([]);
         } finally {
             setLoading(false);
         }
@@ -67,23 +63,13 @@ export default function PopupsManager() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const url = editingPopup 
-                ? `${api.API_URL}/popups/${editingPopup.id}`
-                : `${api.API_URL}/popups`;
-            
-            const res = await fetch(url, {
-                method: editingPopup ? 'PUT' : 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify(formData)
-            });
-
-            if (res.ok) {
-                await loadPopups();
-                resetForm();
+            if (editingPopup) {
+                await api.popups.update(editingPopup.id, formData);
+            } else {
+                await api.popups.create(formData);
             }
+            await loadPopups();
+            resetForm();
         } catch (err) {
             console.error('Error saving popup:', err);
         }
@@ -93,12 +79,7 @@ export default function PopupsManager() {
         if (!confirm('هل أنت متأكد من حذف هذا الـ Pop-up؟')) return;
 
         try {
-            await fetch(`${api.API_URL}/popups/${id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
+            await api.popups.delete(id);
             await loadPopups();
         } catch (err) {
             console.error('Error deleting popup:', err);
