@@ -384,7 +384,7 @@ export const api = {
     cart: {
         get: async (userId: string, branchId?: number) => {
             const branch = branchId || 1;
-            const res = await fetch(`${API_URL}/cart?userId=${userId}&branchId=${branch}`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/cart?branchId=${branch}`, { headers: getHeaders() });
             return res.json();
         },
         add: async (data: { userId: string, productId: string, quantity: number, substitutionPreference?: string }) => {
