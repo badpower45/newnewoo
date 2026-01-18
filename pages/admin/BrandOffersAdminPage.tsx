@@ -769,14 +769,14 @@ export default function BrandOffersAdminPage() {
                                                     // Delay to allow click on dropdown item
                                                     setTimeout(() => setShowProductDropdown(false), 200);
                                                 }}
-                                                className="w-full border rounded-lg px-3 py-2 pr-10 focus:ring-2 focus:ring-brand-orange focus:outline-none"
+                                                className="w-full border rounded-lg px-3 py-3 pr-10 focus:ring-2 focus:ring-brand-orange focus:outline-none"
                                                 placeholder="ابحث عن منتج..."
                                             />
                                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                                         </div>
                                         
                                         {showProductDropdown && filteredProducts.length > 0 && (
-                                            <div className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                            <div className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-72 overflow-y-auto">
                                                 {filteredProducts.map((product) => (
                                                     <button
                                                         key={product.id}
@@ -795,14 +795,14 @@ export default function BrandOffersAdminPage() {
                                                             setProductSearch(getProductName(product));
                                                             setShowProductDropdown(false);
                                                         }}
-                                                        className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 text-right"
+                                                        className="w-full flex items-center gap-3 p-4 hover:bg-gray-50 text-right"
                                                     >
                                                         {product.image && (
-                                                            <img src={product.image} alt="" className="w-10 h-10 object-cover rounded" />
+                                                            <img src={product.image} alt="" className="w-12 h-12 object-cover rounded" />
                                                         )}
                                                         <div>
-                                                            <div className="font-bold">{getProductName(product)}</div>
-                                                            <div className="text-sm text-gray-500">{product.name}</div>
+                                                            <div className="font-bold leading-6">{getProductName(product)}</div>
+                                                            <div className="text-sm text-gray-500 leading-6">{product.name}</div>
                                                         </div>
                                                     </button>
                                                 ))}

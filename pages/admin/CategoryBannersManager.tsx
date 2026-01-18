@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, Trash2, Save, X, ImagePlus, Loader2, ExternalLink, Eye, Upload, Loader } from 'lucide-react';
+import { Edit2, Trash2, Save, X, ImagePlus, Loader2, Upload, Loader } from 'lucide-react';
 import { api } from '../../services/api';
-import { pushNotificationService } from '../../services/pushNotifications';
 import ErrorMessage from '../../components/ErrorMessage';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import { API_URL } from '../../src/config';
@@ -12,12 +11,6 @@ interface Category {
     name_ar?: string;
     icon?: string;
     banner_image?: string;
-    banner_title?: string;
-    banner_subtitle?: string;
-    bg_color?: string;
-    banner_type?: 'display' | 'action';
-    banner_action_url?: string;
-    banner_button_text?: string;
 }
 
 const CategoryBannersManager: React.FC = () => {
@@ -50,34 +43,26 @@ const CategoryBannersManager: React.FC = () => {
     const handleEdit = (category: Category) => {
         setEditingId(category.id);
         setEditForm({
-            banner_image: category.banner_image || '',
-            banner_title: category.banner_title || '',
-            banner_subtitle: category.banner_subtitle || '',
-            bg_color: category.bg_color || '',
-            banner_type: category.banner_type || 'display',
-            banner_action_url: category.banner_action_url || '',
-            banner_button_text: category.banner_button_text || 'تسوق الآن',
+            banner_image: category.banner_image || ''
         });
     };
 
     const handleSave = async (categoryId: number) => {
         setSaving(true);
         try {
-            await api.categories.update(categoryId, editForm);
+            await api.categories.update(categoryId, {
+                banner_image: editForm.banner_image || null,
+                banner_title: null,
+                banner_subtitle: null,
+                banner_type: null,
+                banner_action_url: null,
+                banner_button_text: null
+            });
             await fetchCategories();
-            
-            // إرسال إشعار عند حفظ بانر جديد
-            if (editForm.banner_title && editForm.banner_image) {
-                await pushNotificationService.notifyNewBanner({
-                    title: editForm.banner_title,
-                    image: editForm.banner_image,
-                    targetUrl: editForm.banner_action_url
-                });
-            }
-            
+
             setEditingId(null);
             setEditForm({});
-            alert('✅ تم حفظ البانر وإرسال إشعار للمستخدمين!');
+            alert('✅ تم حفظ البانر');
         } catch (err) {
             alert('فشل حفظ التعديلات');
             console.error(err);
@@ -100,6 +85,9 @@ const CategoryBannersManager: React.FC = () => {
                 banner_image: null,
                 banner_title: null,
                 banner_subtitle: null,
+                banner_type: null,
+                banner_action_url: null,
+                banner_button_text: null
             });
             await fetchCategories();
         } catch (err) {
@@ -159,17 +147,6 @@ const CategoryBannersManager: React.FC = () => {
             setUploadingImage(false);
         }
     };
-
-    const colorOptions = [
-        { label: 'برتقالي', value: 'from-orange-400 to-orange-600', preview: 'bg-gradient-to-r from-orange-400 to-orange-600' },
-        { label: 'أزرق', value: 'from-blue-400 to-blue-600', preview: 'bg-gradient-to-r from-blue-400 to-blue-600' },
-        { label: 'أخضر', value: 'from-green-400 to-green-600', preview: 'bg-gradient-to-r from-green-400 to-green-600' },
-        { label: 'أحمر', value: 'from-red-400 to-red-600', preview: 'bg-gradient-to-r from-red-400 to-red-600' },
-        { label: 'بنفسجي', value: 'from-purple-400 to-purple-600', preview: 'bg-gradient-to-r from-purple-400 to-purple-600' },
-        { label: 'وردي', value: 'from-pink-400 to-pink-600', preview: 'bg-gradient-to-r from-pink-400 to-pink-600' },
-        { label: 'أصفر', value: 'from-yellow-400 to-orange-500', preview: 'bg-gradient-to-r from-yellow-400 to-orange-500' },
-        { label: 'سماوي', value: 'from-cyan-400 to-blue-500', preview: 'bg-gradient-to-r from-cyan-400 to-blue-500' },
-    ];
 
     if (loading) return <LoadingSpinner />;
     if (error) return <ErrorMessage message={error} />;
@@ -240,111 +217,6 @@ const CategoryBannersManager: React.FC = () => {
                         <div className="p-6">
                             {editingId === category.id ? (
                                 <div className="space-y-4">
-                                    {/* Banner Type Toggle */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            نوع البانر
-                                        </label>
-                                        <div className="flex gap-3">
-                                            <button
-                                                type="button"
-                                                onClick={() => setEditForm({ ...editForm, banner_type: 'display' })}
-                                                className={`flex-1 px-4 py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
-                                                    editForm.banner_type === 'display'
-                                                        ? 'bg-blue-500 text-white shadow-lg'
-                                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                                }`}
-                                            >
-                                                <Eye size={20} />
-                                                <span>عرض فقط</span>
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => setEditForm({ ...editForm, banner_type: 'action' })}
-                                                className={`flex-1 px-4 py-3 rounded-xl font-medium transition-all flex items-center justify-center gap-2 ${
-                                                    editForm.banner_type === 'action'
-                                                        ? 'bg-brand-orange text-white shadow-lg'
-                                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                                }`}
-                                            >
-                                                <ExternalLink size={20} />
-                                                <span>بانر تفاعلي</span>
-                                            </button>
-                                        </div>
-                                        <p className="text-xs text-gray-500 mt-2">
-                                            {editForm.banner_type === 'action' 
-                                                ? '✨ سيظهر زر في البانر يوجه المستخدم لصفحة معينة'
-                                                : '👁️ البانر للعرض فقط بدون أي زر تفاعلي'
-                                            }
-                                        </p>
-                                    </div>
-
-                                    {/* Action Button Fields (only if type is action) */}
-                                    {editForm.banner_type === 'action' && (
-                                        <>
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                    رابط الزر (URL)
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={editForm.banner_action_url || ''}
-                                                    onChange={(e) => setEditForm({ ...editForm, banner_action_url: e.target.value })}
-                                                    placeholder="/product/123 أو https://example.com"
-                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-orange focus:border-transparent"
-                                                    dir="ltr"
-                                                />
-                                                <p className="text-xs text-gray-500 mt-1">
-                                                    💡 يمكنك استخدام: /product/123 أو /category/ألبان أو رابط خارجي
-                                                </p>
-                                            </div>
-
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                    نص الزر
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={editForm.banner_button_text || ''}
-                                                    onChange={(e) => setEditForm({ ...editForm, banner_button_text: e.target.value })}
-                                                    placeholder="تسوق الآن"
-                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-orange focus:border-transparent"
-                                                    dir="rtl"
-                                                />
-                                            </div>
-                                        </>
-                                    )}
-
-                                    {/* Banner Title */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            عنوان البانر
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={editForm.banner_title || ''}
-                                            onChange={(e) => setEditForm({ ...editForm, banner_title: e.target.value })}
-                                            placeholder="مثال: مستحضرات التجميل"
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            dir="rtl"
-                                        />
-                                    </div>
-
-                                    {/* Banner Subtitle */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            النص الفرعي
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={editForm.banner_subtitle || ''}
-                                            onChange={(e) => setEditForm({ ...editForm, banner_subtitle: e.target.value })}
-                                            placeholder="مثال: أفضل العروض والمنتجات"
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                            dir="rtl"
-                                        />
-                                    </div>
-
                                     {/* Banner Image URL */}
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -389,78 +261,30 @@ const CategoryBannersManager: React.FC = () => {
                                             </div>
                                         </div>
                                     </div>
-
-                                    {/* Background Color */}
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            لون الخلفية
-                                        </label>
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                            {colorOptions.map((color) => (
-                                                <button
-                                                    key={color.value}
-                                                    onClick={() => setEditForm({ ...editForm, bg_color: color.value })}
-                                                    className={`h-12 rounded-lg ${color.preview} flex items-center justify-center text-white font-medium transition-all ${
-                                                        editForm.bg_color === color.value ? 'ring-4 ring-blue-500 scale-105' : 'hover:scale-105'
-                                                    }`}
-                                                >
-                                                    {color.label}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* Preview */}
-                                    {(editForm.banner_title || editForm.banner_subtitle) && (
+                                    {editForm.banner_image && (
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                معاينة البانر
+                                                معاينة الصورة
                                             </label>
-                                            <div className={`relative overflow-hidden rounded-2xl h-32 shadow-lg bg-gradient-to-r ${editForm.bg_color || 'from-orange-400 to-orange-600'}`}>
-                                                <div className="relative z-10 h-full flex items-center justify-between px-6">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-                                                            <span className="text-4xl">{category.icon || '🛒'}</span>
-                                                        </div>
-                                                        <div>
-                                                            <h2 className="text-2xl font-bold text-white mb-1">
-                                                                {editForm.banner_title || category.name_ar || category.name}
-                                                            </h2>
-                                                            <p className="text-white/90 text-sm">
-                                                                {editForm.banner_subtitle || 'أفضل العروض والمنتجات'}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    {editForm.banner_type === 'action' && (
-                                                        <button className="px-6 py-3 bg-white text-gray-900 font-bold rounded-xl hover:bg-gray-100 transition-colors flex items-center gap-2 shadow-lg">
-                                                            <span>{editForm.banner_button_text || 'تسوق الآن'}</span>
-                                                            <ExternalLink size={18} />
-                                                        </button>
-                                                    )}
-                                                </div>
+                                            <div className="relative overflow-hidden rounded-2xl shadow-lg border border-gray-200">
+                                                <img
+                                                    src={editForm.banner_image}
+                                                    alt="Banner Preview"
+                                                    className="w-full h-48 object-cover"
+                                                />
                                             </div>
                                         </div>
                                     )}
                                 </div>
                             ) : (
                                 // Banner Preview (when not editing)
-                                category.banner_image || category.banner_title ? (
-                                    <div className={`relative overflow-hidden rounded-2xl h-32 shadow-lg bg-gradient-to-r ${category.bg_color || 'from-orange-400 to-orange-600'}`}>
-                                        <div className="relative z-10 h-full flex items-center justify-between px-6">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center">
-                                                    <span className="text-4xl">{category.icon || '🛒'}</span>
-                                                </div>
-                                                <div>
-                                                    <h2 className="text-2xl font-bold text-white mb-1">
-                                                        {category.banner_title || category.name_ar || category.name}
-                                                    </h2>
-                                                    <p className="text-white/90 text-sm">
-                                                        {category.banner_subtitle || 'أفضل العروض والمنتجات'}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
+                                category.banner_image ? (
+                                    <div className="relative overflow-hidden rounded-2xl shadow-lg border border-gray-200">
+                                        <img
+                                            src={category.banner_image}
+                                            alt={category.name_ar || category.name}
+                                            className="w-full h-48 object-cover"
+                                        />
                                     </div>
                                 ) : (
                                     <div className="text-center py-8 text-gray-500">
