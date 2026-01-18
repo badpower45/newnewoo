@@ -29,11 +29,16 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
 
     const fetchPopup = async () => {
         try {
-            // التحقق من localStorage إذا كان المستخدم أغلق الـ popup من قبل
-            const closedPopupId = localStorage.getItem(`closed_popup_${page}`);
+            console.log('🎯 Fetching popups for page:', page);
             
             const response = await api.popups.getAll();
             const popups = response.data || response || [];
+            
+            console.log('📦 Popups received:', popups.length);
+            
+            // التحقق من localStorage إذا كان المستخدم أغلق الـ popup من قبل
+            const closedPopupId = localStorage.getItem(`closed_popup_${page}`);
+            console.log('🔒 Closed popup ID:', closedPopupId);
             
             // Filter active popups based on page
             const activePopup = popups.find((p: any) => {
@@ -45,21 +50,35 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
                 
                 const isInDateRange = (!startDate || now >= startDate) && (!endDate || now <= endDate);
                 
+                console.log('🔍 Checking popup:', {
+                    id: p.id,
+                    title: p.title_ar,
+                    isActive,
+                    showOnPage,
+                    isInDateRange,
+                    startDate,
+                    endDate
+                });
+                
                 return isActive && showOnPage && isInDateRange;
             });
+            
+            console.log('✅ Active popup found:', activePopup ? activePopup.id : 'none');
             
             if (activePopup) {
                 // إذا كان المستخدم أغلق هذا الـ popup من قبل، لا نظهره مرة أخرى
                 if (closedPopupId === String(activePopup.id)) {
+                    console.log('⛔ Popup already closed by user');
                     return;
                 }
                 
+                console.log('🎉 Showing popup:', activePopup.id);
                 setPopup(activePopup);
                 // تأخير صغير لعرض الـ animation
-                setTimeout(() => setIsVisible(true), 300);
+                setTimeout(() => setIsVisible(true), 500);
             }
         } catch (error) {
-            console.error('Error fetching popup:', error);
+            console.error('❌ Error fetching popup:', error);
         }
     };
 
