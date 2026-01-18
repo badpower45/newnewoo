@@ -10,8 +10,8 @@
 
 // 🔒 HARDCODED URLs - NEVER USE ENV VARS IN PRODUCTION
 // ⚠️ تحديث: استخدام localhost للتطوير المحلي و backend production URL الصحيح
-const PRODUCTION_API_URL = 'https://bkaa.vercel.app/api';
-const PRODUCTION_SOCKET_URL = 'https://bkaa.vercel.app';
+const PRODUCTION_API_URL = 'https://backend-three-mu-37.vercel.app/api';
+const PRODUCTION_SOCKET_URL = 'https://backend-three-mu-37.vercel.app';
 const LOCAL_API_URL = 'http://localhost:3001/api'; // Local backend للتطوير
 const LOCAL_SOCKET_URL = 'http://localhost:3001';
 
