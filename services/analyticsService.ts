@@ -4,7 +4,7 @@ interface PageViewData {
     page_path: string;
     page_title?: string;
     referrer?: string;
-    user_id?: number;
+    user_id?: number | string;
 }
 
 class AnalyticsService {
@@ -71,8 +71,21 @@ class AnalyticsService {
             this.currentPath = data.page_path;
             this.pageStartTime = Date.now();
 
+            const normalizedUserId = (() => {
+                if (typeof data.user_id === 'number' && Number.isFinite(data.user_id)) {
+                    return data.user_id;
+                }
+                if (typeof data.user_id === 'string') {
+                    const trimmed = data.user_id.trim();
+                    if (/^\d+$/.test(trimmed)) {
+                        return Number(trimmed);
+                    }
+                }
+                return null;
+            })();
+
             const pageViewData = {
-                user_id: data.user_id || null,
+                user_id: normalizedUserId,
                 session_id: this.sessionId,
                 page_path: data.page_path,
                 page_title: data.page_title || document.title,
