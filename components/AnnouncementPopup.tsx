@@ -92,41 +92,47 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
     if (!popup || !isVisible) return null;
 
     return (
-        <>
+        <div className="popup-container" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 99999 }}>
             {/* Backdrop */}
             <div 
-                className={`fixed inset-0 bg-black transition-opacity duration-300 z-[9998] ${
-                    isClosing ? 'opacity-0' : 'opacity-50'
+                className={`fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${
+                    isClosing ? 'opacity-0' : 'opacity-100'
                 }`}
                 onClick={handleClose}
+                style={{ zIndex: 99998 }}
             />
 
             {/* Popup Container */}
-            <div className="fixed inset-0 flex items-center justify-center z-[9999] p-4">
+            <div 
+                className="fixed inset-0 flex items-center justify-center p-3 sm:p-4 md:p-6"
+                style={{ zIndex: 99999 }}
+            >
                 <div 
-                    className={`relative max-w-md md:max-w-xl w-full transform transition-all duration-300 ${
-                        isClosing ? 'scale-95 opacity-0' : 'scale-100 opacity-100'
+                    className={`relative w-full max-w-[90vw] sm:max-w-md md:max-w-xl transform transition-all duration-300 ${
+                        isClosing ? 'scale-90 opacity-0' : 'scale-100 opacity-100'
                     }`}
                 >
                     {/* Close Button */}
                     <button
                         onClick={handleClose}
-                        className="absolute top-2 right-2 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition"
+                        className="absolute -top-2 -right-2 sm:top-2 sm:right-2 z-[100000] bg-white rounded-full p-2.5 shadow-xl hover:bg-gray-100 active:scale-95 transition-transform"
                         aria-label="إغلاق"
+                        type="button"
                     >
-                        <X size={20} className="text-gray-700" />
+                        <X size={22} className="text-gray-800" strokeWidth={2.5} />
                     </button>
 
                     {/* Image - Full with rounded corners */}
                     <div 
-                        className={`relative ${popup.link_url && !popup.button_text_ar ? 'cursor-pointer' : ''}`}
+                        className={`relative ${popup.link_url && !popup.button_text_ar ? 'cursor-pointer active:scale-[0.98]' : ''} transition-transform`}
                         onClick={popup.link_url && !popup.button_text_ar ? handleClickPopup : undefined}
                     >
                         <img 
                             src={popup.image_url} 
                             alt={popup.title_ar || popup.title}
-                            className="w-full h-auto object-cover rounded-2xl shadow-2xl"
-                            style={{ maxHeight: '80vh' }}
+                            className="w-full h-auto object-contain rounded-xl sm:rounded-2xl shadow-2xl"
+                            style={{ maxHeight: '75vh', minHeight: '200px' }}
+                            loading="eager"
                         />
                     </div>
 
@@ -134,14 +140,15 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
                     {popup.button_text_ar && popup.link_url && (
                         <button
                             onClick={handleClickPopup}
-                            className="mt-4 w-full bg-white text-primary py-3 px-6 rounded-xl font-bold hover:bg-gray-50 transition shadow-lg border-2 border-primary"
+                            className="mt-3 sm:mt-4 w-full bg-white text-primary py-3 px-6 rounded-xl font-bold hover:bg-gray-50 active:scale-95 transition-all shadow-lg border-2 border-primary text-base sm:text-lg"
+                            type="button"
                         >
                             {popup.button_text_ar}
                         </button>
                     )}
                 </div>
             </div>
-        </>
+        </div>
     );
 };
 
