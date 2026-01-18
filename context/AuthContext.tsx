@@ -99,19 +99,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const hydrate = async () => {
             const token = localStorage.getItem('token');
             const savedUser = localStorage.getItem('user');
-            if (token && savedUser) {
-                if (!cancelled) setUser(JSON.parse(savedUser));
-                if (!cancelled) setLoading(false);
-                return;
+            const parsedUser = savedUser ? JSON.parse(savedUser) : null;
+
+            if (parsedUser && !cancelled) {
+                setUser(parsedUser);
             }
 
-            if (savedUser) {
-                const parsedUser = JSON.parse(savedUser);
-                if (parsedUser.isGuest && !cancelled) {
-                    setUser(parsedUser);
-                    setLoading(false);
-                    return;
-                }
+            if (parsedUser?.isGuest) {
+                if (!cancelled) setLoading(false);
+                return;
             }
 
             try {
@@ -126,6 +122,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 }
             } catch (e) {
                 // ignore hydrate errors
+            }
+
+            if (token) {
+                try {
+                    const profile = await api.users.getProfile();
+                    if (profile && !cancelled) {
+                        const merged = {
+                            ...(parsedUser || {}),
+                            ...profile,
+                            profileCompleted:
+                                profile.profileCompleted ??
+                                (profile.phone && String(profile.phone).trim() !== '')
+                        };
+                        localStorage.setItem('user', JSON.stringify(merged));
+                        setUser(merged);
+                    }
+                } catch (e) {
+                    // ignore profile fetch failure
+                }
             }
             if (!cancelled) setLoading(false);
         };
@@ -150,7 +165,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             try {
                 const profile = await api.users.getProfile();
-                userWithGuestStatus = { ...userWithGuestStatus, ...profile };
+                userWithGuestStatus = {
+                    ...userWithGuestStatus,
+                    ...profile,
+                    profileCompleted:
+                        profile?.profileCompleted ??
+                        (profile?.phone && String(profile.phone).trim() !== '')
+                };
             } catch (e) {
                 // if profile fetch fails, continue with base data
             }
@@ -195,7 +216,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             try {
                 const profile = await api.users.getProfile();
-                userWithGuestStatus = { ...userWithGuestStatus, ...profile };
+                userWithGuestStatus = {
+                    ...userWithGuestStatus,
+                    ...profile,
+                    profileCompleted:
+                        profile?.profileCompleted ??
+                        (profile?.phone && String(profile.phone).trim() !== '')
+                };
             } catch (e) {
                 // ignore profile fetch failure
             }
@@ -235,14 +262,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const updateUser = (userData: Partial<User>) => {
         const baseUser = user || (userData.email ? { id: userData.id || 'supabase-user', isGuest: false } as User : null);
         if (baseUser) {
-            const updatedUser = { ...baseUser, ...userData };
+            const updatedUser = {
+                ...baseUser,
+                ...userData,
+                profileCompleted:
+                    userData.profileCompleted ??
+                    (userData.phone ? String(userData.phone).trim() !== '' : baseUser.profileCompleted)
+            };
             setUser(updatedUser);
             localStorage.setItem('user', JSON.stringify(updatedUser));
         }
     };
 
     // Check if user needs to complete phone number (phone should exist and not be empty)
-    const needsPhoneNumber = !!user && !user.isGuest && !user.profileCompleted && (!user.phone || user.phone.trim() === '');
+    const hasPhone = !!user?.phone && user.phone.trim() !== '';
+    const needsPhoneNumber = !!user && !user.isGuest && !hasPhone;
 
     return (
         <AuthContext.Provider value={{ 

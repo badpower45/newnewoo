@@ -71,6 +71,8 @@ export default function BrandOffersAdminPage() {
     const navigate = useNavigate();
     const [offers, setOffers] = useState<BrandOffer[]>([]);
     const [products, setProducts] = useState<Product[]>([]);
+    const [productResults, setProductResults] = useState<Product[]>([]);
+    const [productSearchLoading, setProductSearchLoading] = useState(false);
     const [brands, setBrands] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -103,15 +105,13 @@ export default function BrandOffersAdminPage() {
 
     const fetchProducts = async () => {
         try {
-            // جلب مجموعة محدودة لتقليل الزيادات وتحسين البحث
-            const res = await api.products.getPaginated(1, 200);
-            const data = res.data || res || [];
-            if (Array.isArray(data)) {
-                setProducts(data);
-            }
+            const data = await api.products.getAdminList({ limit: 200 });
+            setProducts(Array.isArray(data) ? data : []);
+            setProductResults(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error('Error fetching products:', err);
             setProducts([]);
+            setProductResults([]);
         }
     };
 
@@ -196,20 +196,53 @@ export default function BrandOffersAdminPage() {
     };
 
     const normalizedSearch = productSearch.toLowerCase().trim();
-    const filteredProducts = products.filter(p => {
-        const nameEn = p.name?.toLowerCase() || '';
-        const nameAr = p.nameAr?.toLowerCase() || '';
-        const barcode = (p.barcode || '').toString();
-        return normalizedSearch === ''
-            ? true
-            : nameEn.includes(normalizedSearch) || nameAr.includes(normalizedSearch) || barcode.includes(normalizedSearch);
-    }).slice(0, 30); // إظهار نتائج أكثر للبحث
+    const getProductName = (product: Product) =>
+        (product as any).nameAr || (product as any).name_ar || product.name || '';
+
+    const filteredProducts = (productSearch.length >= 2 ? productResults : products)
+        .filter(p => {
+            const nameEn = p.name?.toLowerCase() || '';
+            const nameAr = getProductName(p).toLowerCase();
+            const barcode = (p.barcode || '').toString();
+            return normalizedSearch === ''
+                ? true
+                : nameEn.includes(normalizedSearch) || nameAr.includes(normalizedSearch) || barcode.includes(normalizedSearch);
+        })
+        .slice(0, 30); // إظهار نتائج أكثر للبحث
+
+    useEffect(() => {
+        if (productSearch.trim().length < 2) {
+            setProductResults(products);
+            return;
+        }
+
+        const timer = setTimeout(async () => {
+            try {
+                setProductSearchLoading(true);
+                const data = await api.products.getAdminList({
+                    limit: 50,
+                    search: productSearch.trim()
+                });
+                setProductResults(Array.isArray(data) ? data : []);
+            } catch (err) {
+                console.error('Error searching products:', err);
+                setProductResults([]);
+            } finally {
+                setProductSearchLoading(false);
+            }
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [productSearch, products]);
 
     const filteredBrands = brands.filter((b: any) =>
         b.name_ar?.toLowerCase().includes(brandSearch.toLowerCase()) ||
         b.name_en?.toLowerCase().includes(brandSearch.toLowerCase())
     ).slice(0, 10);
 
+    const selectedProduct = editingOffer?.linked_product_id
+        ? products.find((p) => String(p.id) === String(editingOffer.linked_product_id))
+        : null;
     const selectedBrand = editingOffer?.linked_brand_id
         ? brands.find((b: any) => String(b.id) === String(editingOffer.linked_brand_id))
         : null;
@@ -341,7 +374,7 @@ export default function BrandOffersAdminPage() {
                                             <div>
                                                 {(() => {
                                                     const linkedProduct = offer.linked_product_id
-                                                        ? products.find(p => p.id === offer.linked_product_id)
+                                                        ? products.find(p => String(p.id) === String(offer.linked_product_id))
                                                         : null;
                                                     const linkedBrand = offer.linked_brand_id
                                                         ? brands.find((b: any) => String(b.id) === String(offer.linked_brand_id))
@@ -359,7 +392,7 @@ export default function BrandOffersAdminPage() {
                                                             <span className="text-gray-400">|</span>
                                                             <span className="text-gray-500">مرتبط بمنتج:</span>
                                                             <span className="text-brand-orange">
-                                                                {linkedProduct.nameAr || linkedProduct.name}
+                                                                {getProductName(linkedProduct)}
                                                             </span>
                                                         </>
                                                     )}
@@ -750,8 +783,16 @@ export default function BrandOffersAdminPage() {
                                                         type="button"
                                                         onMouseDown={(e) => {
                                                             e.preventDefault(); // Prevent blur
-                                                            setEditingOffer({ ...editingOffer, linked_product_id: product.id });
-                                                            setProductSearch('');
+                                                            const productIdRaw = product.id;
+                                                            const isNumericId = /^[0-9]+$/.test(String(productIdRaw));
+                                                            const productLink = `/product/${productIdRaw}`;
+                                                            setEditingOffer({
+                                                                ...editingOffer,
+                                                                link_type: isNumericId ? 'product' : 'custom',
+                                                                linked_product_id: isNumericId ? Number(productIdRaw) : undefined,
+                                                                custom_link: productLink
+                                                            });
+                                                            setProductSearch(getProductName(product));
                                                             setShowProductDropdown(false);
                                                         }}
                                                         className="w-full flex items-center gap-3 p-3 hover:bg-gray-50 text-right"
@@ -760,22 +801,41 @@ export default function BrandOffersAdminPage() {
                                                             <img src={product.image} alt="" className="w-10 h-10 object-cover rounded" />
                                                         )}
                                                         <div>
-                                                            <div className="font-bold">{product.nameAr || product.name}</div>
+                                                            <div className="font-bold">{getProductName(product)}</div>
                                                             <div className="text-sm text-gray-500">{product.name}</div>
                                                         </div>
                                                     </button>
                                                 ))}
                                             </div>
                                         )}
+                                        {showProductDropdown && productSearchLoading && (
+                                            <div className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg p-3 text-sm text-gray-500">
+                                                جاري البحث عن المنتجات...
+                                            </div>
+                                        )}
+                                        {showProductDropdown && !productSearchLoading && filteredProducts.length === 0 && (
+                                            <div className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg p-3 text-sm text-gray-500">
+                                                لا توجد منتجات مطابقة
+                                            </div>
+                                        )}
 
-                                        {editingOffer.linked_product_id && (
-                                            <div className="mt-2 flex items-center gap-2 bg-green-50 p-2 rounded-lg">
+                                        {(editingOffer.linked_product_id || editingOffer.custom_link) && (
+                                            <div className="mt-2 flex flex-wrap items-center gap-2 bg-green-50 p-2 rounded-lg">
                                                 <Package size={18} className="text-green-600" />
                                                 <span className="text-green-700 font-bold">
-                                                    المنتج المرتبط: {products.find(p => p.id === editingOffer.linked_product_id)?.nameAr || products.find(p => p.id === editingOffer.linked_product_id)?.name}
+                                                    المنتج المرتبط: {selectedProduct ? getProductName(selectedProduct) : editingOffer.custom_link}
                                                 </span>
+                                                {editingOffer.custom_link && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => window.open(editingOffer.custom_link as string, '_blank')}
+                                                        className="text-xs text-blue-600 hover:underline"
+                                                    >
+                                                        فتح المنتج
+                                                    </button>
+                                                )}
                                                 <button
-                                                    onClick={() => setEditingOffer({ ...editingOffer, linked_product_id: undefined })}
+                                                    onClick={() => setEditingOffer({ ...editingOffer, linked_product_id: undefined, custom_link: undefined })}
                                                     className="mr-auto text-red-500 hover:text-red-700"
                                                 >
                                                     <X size={18} />

@@ -36,10 +36,20 @@ const BrandOfferCard: React.FC<BrandOfferCardProps> = ({ offer, index }) => {
     
     // Determine the link based on offer configuration
     const getOfferLink = () => {
-        if (offer.link_type === 'product' && offer.linked_product_id) {
-            return `/product/${offer.linked_product_id}`;
-        } else if (offer.link_type === 'brand' && offer.linked_brand_id) {
-            return `/brand/${offer.linked_brand_id}`;
+        if (offer.link_type === 'product') {
+            if (offer.linked_product_id) {
+                return `/product/${offer.linked_product_id}`;
+            }
+            if (offer.custom_link) {
+                return offer.custom_link;
+            }
+        } else if (offer.link_type === 'brand') {
+            if (offer.linked_brand_id) {
+                return `/brand/${offer.linked_brand_id}`;
+            }
+            if (offer.custom_link) {
+                return offer.custom_link;
+            }
         } else if (offer.link_type === 'custom' && offer.custom_link) {
             return offer.custom_link;
         }

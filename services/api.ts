@@ -186,6 +186,20 @@ export const api = {
             console.log(`📦 Loaded ${data.length} products (page ${page}, limit ${limit})`);
             return data.map(normalize);
         },
+        // Admin: جلب المنتجات بدون ربط فرع محدد
+        getAdminList: async (options?: { limit?: number; offset?: number; search?: string }) => {
+            const limitValue = options?.limit ?? 200;
+            const offsetValue = options?.offset ?? 0;
+            let url = `${API_URL}/products?includeAllBranches=true&limit=${limitValue}&offset=${offsetValue}`;
+            if (options?.search) {
+                url += `&search=${encodeURIComponent(options.search)}`;
+            }
+            const res = await fetch(url, { headers: getHeaders() });
+            const json = await res.json();
+            const normalize = (p: any) => ({ ...p, price: Number(p?.price) || 0 });
+            const data = Array.isArray(json) ? json : (json.data || []);
+            return data.map(normalize);
+        },
         // جلب منتجات قسم معين مع limit
         getBySection: async (category: string, branchId?: number, limit: number = 8) => {
             let url = `${API_URL}/products?category=${encodeURIComponent(category)}&limit=${limit}`;
