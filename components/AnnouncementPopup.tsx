@@ -22,6 +22,27 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
     const [popup, setPopup] = useState<PopupData | null>(null);
     const [isVisible, setIsVisible] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
+    const dismissedKey = 'dismissed_popups';
+
+    const getDismissedPopups = () => {
+        try {
+            const raw = localStorage.getItem(dismissedKey);
+            const parsed = raw ? JSON.parse(raw) : [];
+            return Array.isArray(parsed) ? parsed : [];
+        } catch {
+            return [];
+        }
+    };
+
+    const markPopupDismissed = (popupId: number) => {
+        try {
+            const dismissed = new Set<number>(getDismissedPopups());
+            dismissed.add(popupId);
+            localStorage.setItem(dismissedKey, JSON.stringify(Array.from(dismissed)));
+        } catch {
+            // Ignore storage issues
+        }
+    };
 
     useEffect(() => {
         fetchPopup();
@@ -36,6 +57,10 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
             console.log('✅ Active popup found:', activePopup ? activePopup.id : 'none');
             
             if (activePopup) {
+                const dismissed = getDismissedPopups();
+                if (dismissed.includes(activePopup.id)) {
+                    return;
+                }
                 console.log('🎉 Showing popup:', activePopup.id);
                 setPopup(activePopup);
                 // Show popup after a short delay for better UX
@@ -47,6 +72,9 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
     };
 
     const handleClose = () => {
+        if (popup?.id) {
+            markPopupDismissed(popup.id);
+        }
         setIsClosing(true);
         
         setTimeout(() => {
@@ -58,6 +86,9 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
 
     const handleClickPopup = () => {
         if (popup?.link_url) {
+            if (popup?.id) {
+                markPopupDismissed(popup.id);
+            }
             window.location.href = popup.link_url;
             handleClose();
         }

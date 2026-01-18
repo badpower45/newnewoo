@@ -517,7 +517,7 @@ const StoriesManager: React.FC = () => {
 
                             {/* Story Items */}
                             <div className="flex items-center justify-between">
-                                <h3 className="text-sm font-semibold text-gray-700">صور الاستوري</h3>
+                                <h3 className="text-sm font-semibold text-gray-700">وسائط الاستوري</h3>
                                 {!editingStory && (
                                     <button
                                         type="button"
@@ -525,7 +525,7 @@ const StoriesManager: React.FC = () => {
                                         className="text-sm text-[#F97316] hover:text-[#EA580C] font-semibold"
                                     >
                                         <Plus className="w-4 h-4 inline-block ml-1" />
-                                        إضافة صورة
+                                        إضافة ستوري
                                     </button>
                                 )}
                             </div>
@@ -553,7 +553,7 @@ const StoriesManager: React.FC = () => {
                                             value={item.media_url}
                                             onChange={(e) => updateStoryItem(index, { media_url: e.target.value })}
                                             className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#F97316] focus:border-transparent"
-                                            placeholder="https://example.com/image.jpg"
+                                            placeholder="https://example.com/image.jpg أو https://example.com/video.mp4"
                                             required
                                         />
                                         {item.media_url && (
@@ -581,9 +581,7 @@ const StoriesManager: React.FC = () => {
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        {/* تم إزالة خيار الفيديو - الاستوري بالصور فقط */}
-                                        <input type="hidden" value="image" />
-                                        <div className="hidden">
+                                        <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">نوع الوسائط</label>
                                             <div className="flex gap-3">
                                                 <label className={`flex-1 flex items-center justify-center gap-2 p-3 border rounded-lg cursor-pointer transition-colors ${

@@ -820,23 +820,26 @@ export default function BrandOffersAdminPage() {
                                         )}
 
                                         {(editingOffer.linked_product_id || editingOffer.custom_link) && (
-                                            <div className="mt-2 flex flex-wrap items-center gap-2 bg-green-50 p-2 rounded-lg">
-                                                <Package size={18} className="text-green-600" />
-                                                <span className="text-green-700 font-bold">
+                                            <div className="mt-2 flex items-center gap-2 bg-green-50 px-2.5 py-2 rounded-lg">
+                                                <Package size={18} className="text-green-600 shrink-0" />
+                                                <span
+                                                    className="text-green-700 font-bold truncate min-w-0 flex-1"
+                                                    title={selectedProduct ? getProductName(selectedProduct) : editingOffer.custom_link}
+                                                >
                                                     المنتج المرتبط: {selectedProduct ? getProductName(selectedProduct) : editingOffer.custom_link}
                                                 </span>
                                                 {editingOffer.custom_link && (
                                                     <button
                                                         type="button"
                                                         onClick={() => window.open(editingOffer.custom_link as string, '_blank')}
-                                                        className="text-xs text-blue-600 hover:underline"
+                                                        className="text-xs text-blue-600 hover:underline shrink-0"
                                                     >
                                                         فتح المنتج
                                                     </button>
                                                 )}
                                                 <button
                                                     onClick={() => setEditingOffer({ ...editingOffer, linked_product_id: undefined, custom_link: undefined })}
-                                                    className="mr-auto text-red-500 hover:text-red-700"
+                                                    className="text-red-500 hover:text-red-700 shrink-0"
                                                 >
                                                     <X size={18} />
                                                 </button>

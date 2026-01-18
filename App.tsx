@@ -94,6 +94,8 @@ import LoyaltyPage from './pages/LoyaltyPage';
 import LoyaltyBarcodePage from './pages/LoyaltyBarcodePage';
 import AddressesPage from './pages/AddressesPage';
 import BranchesPage from './pages/BranchesPage';
+import BranchMapPage from './pages/BranchMapPage';
+import AdminDeliveryMapPage from './pages/admin/DeliveryMapPage';
 
 import { FavoritesProvider } from './context/FavoritesContext';
 import { LanguageProvider } from './context/LanguageContext';
@@ -204,6 +206,7 @@ function AppContent() {
             <Route path="/loyalty-barcode" element={<ProtectedRoute><LoyaltyBarcodePage /></ProtectedRoute>} />
             <Route path="/addresses" element={<ProtectedRoute><AddressesPage /></ProtectedRoute>} />
             <Route path="/branches" element={<BranchesPage />} />
+            <Route path="/branch-map" element={<BranchMapPage />} />
             <Route path="/favorites" element={<FavoritesPage />} />
             <Route path="/brands" element={<BrandsPage />} />
             <Route path="/chat" element={<ProtectedRoute><CustomerChatPage /></ProtectedRoute>} />
@@ -246,6 +249,7 @@ function AppContent() {
               <Route path="distribution" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'distributor']}><OrderDistributorPage /></ProtectedRoute>} />
               <Route path="delivery-tracking" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'distributor']}><DeliveryTrackingPage /></ProtectedRoute>} />
               <Route path="delivery-staff" element={<DeliveryStaffManager />} />
+              <Route path="delivery-map" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><AdminDeliveryMapPage /></ProtectedRoute>} />
             </Route>
           </Routes>
           </PhoneNumberGuard>
