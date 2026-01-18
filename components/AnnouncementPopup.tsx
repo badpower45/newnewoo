@@ -100,56 +100,43 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
             {/* Popup Container */}
             <div className="fixed inset-0 flex items-center justify-center z-[9999] p-4">
                 <div 
-                    className={`relative bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden transform transition-all duration-300 ${
+                    className={`relative max-w-md md:max-w-xl w-full transform transition-all duration-300 ${
                         isClosing ? 'scale-95 opacity-0' : 'scale-100 opacity-100'
                     }`}
                 >
                     {/* Close Button */}
                     <button
                         onClick={handleClose}
-                        className="absolute top-4 right-4 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition"
+                        className="absolute top-2 right-2 z-10 bg-white rounded-full p-2 shadow-lg hover:bg-gray-100 transition"
                         aria-label="إغلاق"
                     >
-                        <X size={24} className="text-gray-700" />
+                        <X size={20} className="text-gray-700" />
                     </button>
 
-                    {/* Popup Content */}
+                    {/* Image - Full with rounded corners */}
                     <div 
-                        className={`${popup.link_url ? 'cursor-pointer' : ''}`}
-                        onClick={popup.link_url ? handleClickPopup : undefined}
+                        className={`relative ${popup.link_url && !popup.button_text_ar ? 'cursor-pointer' : ''}`}
+                        onClick={popup.link_url && !popup.button_text_ar ? handleClickPopup : undefined}
                     >
-                        {/* Image */}
-                        <div className="relative w-full">
-                            <img 
-                                src={popup.image_url} 
-                                alt={popup.title_ar || popup.title}
-                                className="w-full h-auto object-cover rounded-t-2xl"
-                                style={{ maxHeight: '60vh' }}
-                            />
-                        </div>
+                        <img 
+                            src={popup.image_url} 
+                            alt={popup.title_ar || popup.title}
+                            className="w-full h-auto object-cover rounded-2xl shadow-2xl"
+                            style={{ maxHeight: '80vh' }}
+                        />
+                    </div>
 
-                        {/* Text Content (إذا كان موجود) */}
-                        {(popup.title_ar || popup.description_ar) && (
-                            <div className="p-6">
-                                {popup.title_ar && (
-                                    <h2 className="text-2xl font-bold text-gray-900 mb-3 text-right">
-                                        {popup.title_ar}
-                                    </h2>
-                                )}
-                                
-                                {popup.description_ar && (
-                                    <p className="text-gray-600 text-right mb-4 leading-relaxed">
-                                        {popup.description_ar}
-                                    </p>
-                                )}
-
-                                {popup.button_text_ar && popup.link_url && (
-                                    <button
-                                        onClick={handleClickPopup}
-                                        className="w-full bg-primary text-white py-3 px-6 rounded-xl font-bold hover:bg-primary-dark transition"
-                                    >
-                                        {popup.button_text_ar}
-                                    </button>
+                    {/* Button below image (if exists) */}
+                    {popup.button_text_ar && popup.link_url && (
+                        <button
+                            onClick={handleClickPopup}
+                            className="mt-4 w-full bg-white text-primary py-3 px-6 rounded-xl font-bold hover:bg-gray-50 transition shadow-lg border-2 border-primary"
+                        >
+                            {popup.button_text_ar}
+                        </button>
+                    )}
+                </div>
+            </div>
                                 )}
                             </div>
                         )}
