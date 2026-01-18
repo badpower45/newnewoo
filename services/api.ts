@@ -381,6 +381,35 @@ export const api = {
             }
         }
     },
+    popups: {
+        getAll: async () => {
+            const res = await fetch(`${API_URL}/popups`, { headers: getHeaders() });
+            return res.json();
+        },
+        create: async (data: any) => {
+            const res = await fetch(`${API_URL}/popups`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+        update: async (id: number, data: any) => {
+            const res = await fetch(`${API_URL}/popups/${id}`, {
+                method: 'PUT',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+        delete: async (id: number) => {
+            const res = await fetch(`${API_URL}/popups/${id}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+            return res.json();
+        }
+    },
     cart: {
         get: async (userId: string, branchId?: number) => {
             const branch = branchId || 1;
