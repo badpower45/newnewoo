@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Megaphone, Plus, Edit, Trash2, Eye, EyeOff, Calendar, Link as LinkIcon, Save, X } from 'lucide-react';
-import * as api from '../../services/api';
+import { api } from '../../services/api';
 
 interface Popup {
     id: number;
