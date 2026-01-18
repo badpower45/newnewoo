@@ -36,11 +36,7 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
             
             console.log('📦 Popups received:', popups.length);
             
-            // التحقق من localStorage إذا كان المستخدم أغلق الـ popup من قبل
-            const closedPopupId = localStorage.getItem(`closed_popup_${page}`);
-            console.log('🔒 Closed popup ID:', closedPopupId);
-            
-            // Filter active popups based on page
+            // Filter active popups based on page and date
             const activePopup = popups.find((p: any) => {
                 const isActive = p.is_active;
                 const showOnPage = page === 'homepage' ? p.show_on_homepage : p.show_on_products;
@@ -66,16 +62,10 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
             console.log('✅ Active popup found:', activePopup ? activePopup.id : 'none');
             
             if (activePopup) {
-                // إذا كان المستخدم أغلق هذا الـ popup من قبل، لا نظهره مرة أخرى
-                if (closedPopupId === String(activePopup.id)) {
-                    console.log('⛔ Popup already closed by user');
-                    return;
-                }
-                
                 console.log('🎉 Showing popup:', activePopup.id);
                 setPopup(activePopup);
-                // تأخير صغير لعرض الـ animation
-                setTimeout(() => setIsVisible(true), 500);
+                // Show popup after a short delay for better UX
+                setTimeout(() => setIsVisible(true), 800);
             }
         } catch (error) {
             console.error('❌ Error fetching popup:', error);
@@ -84,11 +74,6 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
 
     const handleClose = () => {
         setIsClosing(true);
-        
-        // حفظ في localStorage أن المستخدم أغلق هذا الـ popup
-        if (popup) {
-            localStorage.setItem(`closed_popup_${page}`, String(popup.id));
-        }
         
         setTimeout(() => {
             setIsVisible(false);
