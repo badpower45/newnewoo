@@ -156,12 +156,6 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
                     )}
                 </div>
             </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
         </>
     );
 };
