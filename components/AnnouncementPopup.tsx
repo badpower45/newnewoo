@@ -30,35 +30,9 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
     const fetchPopup = async () => {
         try {
             console.log('🎯 Fetching popups for page:', page);
-            
-            const response = await api.popups.getAll();
-            const popups = response.data || response || [];
-            
-            console.log('📦 Popups received:', popups.length);
-            
-            // Filter active popups based on page and date
-            const activePopup = popups.find((p: any) => {
-                const isActive = p.is_active;
-                const showOnPage = page === 'homepage' ? p.show_on_homepage : p.show_on_products;
-                const now = new Date();
-                const startDate = p.start_date ? new Date(p.start_date) : null;
-                const endDate = p.end_date ? new Date(p.end_date) : null;
-                
-                const isInDateRange = (!startDate || now >= startDate) && (!endDate || now <= endDate);
-                
-                console.log('🔍 Checking popup:', {
-                    id: p.id,
-                    title: p.title_ar,
-                    isActive,
-                    showOnPage,
-                    isInDateRange,
-                    startDate,
-                    endDate
-                });
-                
-                return isActive && showOnPage && isInDateRange;
-            });
-            
+            const response = await api.popups.getActive(page);
+            const activePopup = response?.data || null;
+
             console.log('✅ Active popup found:', activePopup ? activePopup.id : 'none');
             
             if (activePopup) {

@@ -205,60 +205,44 @@ const ReturnsPage = () => {
                             </div>
                         </div>
 
-                        {/* Items List */}
-                        <div className="bg-white rounded-2xl shadow-sm p-6">
-                            <h3 className="text-lg font-bold text-gray-900 mb-4">المنتجات المطلوبة</h3>
-                            
-                            <div className="space-y-3">
-                                {orderData.items?.map((item, idx) => (
-                                    <div key={idx} className="flex justify-between items-center p-4 bg-gray-50 rounded-xl">
-                                        <div className="flex-1">
-                                            <p className="font-bold text-gray-900">{item.name || item.title}</p>
-                                            <p className="text-sm text-gray-500">الكمية: {item.quantity}</p>
-                                            {(() => {
-                                                const key = (item?.product_id ?? item?.productId ?? item?.id ?? item?.name)?.toString().trim();
-                                                const returnedQty = key ? returnedLookup.get(key)?.quantity : 0;
-                                                return returnedQty ? (
-                                                    <p className="text-xs text-red-600 mt-1">مرتجع: {returnedQty}</p>
-                                                ) : null;
-                                            })()}
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="font-bold text-brand-orange">{item.price} جنيه</p>
-                                            <p className="text-sm text-gray-500">الإجمالي: {(item.price * item.quantity).toFixed(2)} جنيه</p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {returnedItems.length > 0 && (
-                            <div className="bg-red-50 border border-red-200 rounded-2xl p-6">
-                                <h3 className="text-lg font-bold text-red-900 mb-4">المنتجات المرتجعة</h3>
+                        {/* Returned Items */}
+                        {returnedItems.length > 0 ? (
+                            <div className="bg-white rounded-2xl shadow-sm p-6 border-2 border-red-500">
+                                <h3 className="text-lg font-bold text-red-900 mb-4 flex items-center gap-2">
+                                    <Package size={20} className="text-red-600" />
+                                    المنتجات المرتجعة
+                                </h3>
                                 <div className="space-y-3">
                                     {returnedItems.map((item: any, idx: number) => {
                                         const price = Number(item?.price || 0);
                                         const quantity = Number(item?.quantity || 0);
                                         const total = Number(item?.total || price * quantity);
                                         return (
-                                            <div key={item?.product_id || item?.name || idx} className="flex justify-between items-center p-4 bg-white rounded-xl border">
-                                                <div>
+                                            <div key={item?.product_id || item?.name || idx} className="flex justify-between items-center p-4 bg-red-50 rounded-xl border border-red-200">
+                                                <div className="flex-1">
                                                     <p className="font-bold text-gray-900">{item?.name || 'منتج'}</p>
-                                                    <p className="text-sm text-gray-500">الكمية المرتجعة: {quantity}</p>
+                                                    <p className="text-sm text-red-600 font-semibold">الكمية المرتجعة: {quantity}</p>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="font-bold text-red-600">{price.toFixed(2)} جنيه</p>
-                                                    <p className="text-sm text-gray-500">الإجمالي: {total.toFixed(2)} جنيه</p>
+                                                    <p className="font-bold text-red-600 text-lg">{price.toFixed(2)} جنيه</p>
+                                                    <p className="text-sm text-gray-600">الإجمالي: {total.toFixed(2)} جنيه</p>
                                                 </div>
                                             </div>
                                         );
                                     })}
                                 </div>
-                                <div className="mt-4 flex justify-end">
-                                    <div className="bg-red-600 text-white px-4 py-2 rounded-lg font-bold">
-                                        إجمالي المرتجع: {returnedTotal.toFixed(2)} جنيه
+                                <div className="mt-4 pt-4 border-t-2 border-red-300 flex justify-between items-center">
+                                    <span className="text-gray-700 font-semibold">إجمالي قيمة المرتجعات:</span>
+                                    <div className="bg-red-600 text-white px-6 py-3 rounded-xl font-bold text-xl shadow-lg">
+                                        {returnedTotal.toFixed(2)} جنيه
                                     </div>
                                 </div>
+                            </div>
+                        ) : (
+                            <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center">
+                                <Package size={48} className="mx-auto mb-3 text-gray-400" />
+                                <p className="text-gray-600 font-semibold">لا توجد منتجات مرتجعة لهذا الطلب</p>
+                                <p className="text-sm text-gray-500 mt-2">هذا الطلب لم يتم إرجاع أي منتجات منه بعد</p>
                             </div>
                         )}
 
@@ -268,9 +252,16 @@ const ReturnsPage = () => {
                             
                             <div className="space-y-3">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-purple-700">إجمالي الطلب:</span>
+                                    <span className="text-purple-700">إجمالي قيمة الطلب الأصلي:</span>
                                     <span className="text-2xl font-bold text-purple-900">{orderData.total} جنيه</span>
                                 </div>
+                                
+                                {returnedItems.length > 0 && (
+                                    <div className="flex justify-between items-center pt-3 border-t border-purple-200">
+                                        <span className="text-red-700 font-semibold">قيمة المنتجات المرتجعة:</span>
+                                        <span className="text-xl font-bold text-red-600">{returnedTotal.toFixed(2)} جنيه</span>
+                                    </div>
+                                )}
                                 
                                 <div className="flex justify-between items-center pt-3 border-t border-purple-200">
                                     <span className="text-purple-700">النقاط المكتسبة من هذا الطلب:</span>
@@ -282,14 +273,16 @@ const ReturnsPage = () => {
                                     <span className="text-xl font-bold text-purple-900">{orderData.customer_current_points} نقطة</span>
                                 </div>
 
-                                <div className="mt-4 p-4 bg-white rounded-xl border border-purple-300">
-                                    <p className="text-sm text-purple-800 font-bold mb-2">⚠️ عند معالجة الإرجاع:</p>
-                                    <ul className="text-sm text-purple-700 space-y-1">
-                                        <li>✅ سيتم إرجاع المنتجات للمخزن</li>
-                                        <li>✅ سيتم خصم {orderData.points_earned_from_order} نقطة من العميل</li>
-                                        <li>✅ يجب رد مبلغ {orderData.total} جنيه نقداً</li>
-                                    </ul>
-                                </div>
+                                {!orderData.already_returned && orderData.can_be_returned && (
+                                    <div className="mt-4 p-4 bg-white rounded-xl border border-purple-300">
+                                        <p className="text-sm text-purple-800 font-bold mb-2">⚠️ عند معالجة الإرجاع:</p>
+                                        <ul className="text-sm text-purple-700 space-y-1">
+                                            <li>✅ سيتم إرجاع المنتجات للمخزن</li>
+                                            <li>✅ سيتم خصم {orderData.points_earned_from_order} نقطة من العميل</li>
+                                            <li>✅ يجب رد مبلغ {orderData.total} جنيه نقداً</li>
+                                        </ul>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
