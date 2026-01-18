@@ -52,6 +52,7 @@ const AuthCallbackPage: React.FC = () => {
         }
 
         const phone = backendRes?.user?.phone || backendPayload.phone;
+        const profileCompleted = backendRes?.user?.profileCompleted || false;
 
         localStorage.setItem('token', backendRes.token);
         localStorage.setItem('user', JSON.stringify({
@@ -61,12 +62,14 @@ const AuthCallbackPage: React.FC = () => {
           phone,
           avatar: backendRes?.user?.avatar || backendPayload.picture,
           role: backendRes?.user?.role || 'customer',
-          isGuest: false
+          isGuest: false,
+          profileCompleted
         }));
 
         setStatus('success');
         
-        const needsCompletion = backendRes?.needsCompletion || !phone;
+        // Only require completion if backend says so AND profile not completed
+        const needsCompletion = backendRes?.needsCompletion === true && !profileCompleted;
 
         if (needsCompletion) {
           setMessage('يرجى إكمال بياناتك...');
