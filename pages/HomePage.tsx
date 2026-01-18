@@ -227,8 +227,8 @@ const HomePage = () => {
                 structuredData={homeStructuredData}
             />
             
-            {/* Announcement Popup - معطل مؤقتًا */}
-            {/* <AnnouncementPopup page="homepage" /> */}
+            {/* Popups - الإعلانات المنبثقة */}
+            <AnnouncementPopup page="homepage" />
             
             <div className="bg-[#FAFAFA] min-h-screen pb-24 md:pb-8">
             <TopBar />

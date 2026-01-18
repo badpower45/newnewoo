@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
-import api from '../services/api';
+import { api } from '../services/api';
 
 interface PopupData {
     id: number;
@@ -32,17 +32,29 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
             // التحقق من localStorage إذا كان المستخدم أغلق الـ popup من قبل
             const closedPopupId = localStorage.getItem(`closed_popup_${page}`);
             
-            const response = await api.get(`/popups/active?page=${page}`);
+            const response = await api.popups.getAll();
+            const popups = response.data || response || [];
             
-            if (response.data.success && response.data.data) {
-                const popupData = response.data.data;
+            // Filter active popups based on page
+            const activePopup = popups.find((p: any) => {
+                const isActive = p.is_active;
+                const showOnPage = page === 'homepage' ? p.show_on_homepage : p.show_on_products;
+                const now = new Date();
+                const startDate = p.start_date ? new Date(p.start_date) : null;
+                const endDate = p.end_date ? new Date(p.end_date) : null;
                 
+                const isInDateRange = (!startDate || now >= startDate) && (!endDate || now <= endDate);
+                
+                return isActive && showOnPage && isInDateRange;
+            });
+            
+            if (activePopup) {
                 // إذا كان المستخدم أغلق هذا الـ popup من قبل، لا نظهره مرة أخرى
-                if (closedPopupId === String(popupData.id)) {
+                if (closedPopupId === String(activePopup.id)) {
                     return;
                 }
                 
-                setPopup(popupData);
+                setPopup(activePopup);
                 // تأخير صغير لعرض الـ animation
                 setTimeout(() => setIsVisible(true), 300);
             }
