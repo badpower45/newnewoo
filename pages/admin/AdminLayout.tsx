@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Package, ShoppingBag, Users, LogOut, Upload, MessageCircle, Store, CalendarClock, ClipboardList, Truck, Tag, Menu, X, BookOpen, Flame, CircleDot, FolderTree, Facebook, Gift, FileSpreadsheet, LayoutGrid, Briefcase, BarChart3, RotateCcw, ImageIcon } from 'lucide-react';
+import { LayoutDashboard, Package, ShoppingBag, Users, LogOut, Upload, MessageCircle, Store, CalendarClock, ClipboardList, Truck, Tag, Menu, X, BookOpen, Flame, CircleDot, FolderTree, Facebook, Gift, FileSpreadsheet, LayoutGrid, Briefcase, BarChart3, RotateCcw, ImageIcon, MapPin, Megaphone, Navigation } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import '../../styles/admin-responsive.css';
 
@@ -65,6 +65,7 @@ const AdminLayout = () => {
             title: '🏪 الفروع والمخزون',
             items: [
                 { path: '/admin/branches', icon: <Store size={20} />, label: 'إدارة الفروع', roles: ['admin', 'manager'] },
+                { path: '/admin/delivery-fees', icon: <MapPin size={20} />, label: 'رسوم التوصيل', roles: ['admin', 'manager'] },
             ]
         },
         {
@@ -84,6 +85,13 @@ const AdminLayout = () => {
                 { path: '/admin/facebook-reels', icon: <Facebook size={20} />, label: 'الريلز', roles: ['admin', 'manager'] },
                 { path: '/admin/home-sections', icon: <LayoutGrid size={20} />, label: 'أقسام الرئيسية', roles: ['admin', 'manager'] },
                 { path: '/admin/hero-sections', icon: <LayoutGrid size={20} />, label: 'Hero Sections', roles: ['admin', 'manager'] },
+                { path: '/admin/popups', icon: <Megaphone size={20} />, label: 'الإعلانات المنبثقة', roles: ['admin', 'manager'] },
+            ]
+        },
+        {
+            title: '🚚 التوصيل والتتبع',
+            items: [
+                { path: '/admin/delivery-tracking', icon: <Navigation size={20} />, label: 'تتبع التوصيل', roles: ['admin', 'manager', 'distributor'] },
             ]
         },
         {

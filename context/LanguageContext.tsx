@@ -84,9 +84,6 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
         setLanguageState(lang);
         localStorage.setItem('language', lang);
         applyLanguage(lang);
-        if (typeof window !== 'undefined') {
-            window.location.reload();
-        }
     };
 
     const resolveNestedTranslation = (lang: Language, key: string) => {

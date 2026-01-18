@@ -103,12 +103,15 @@ export default function BrandOffersAdminPage() {
 
     const fetchProducts = async () => {
         try {
-            const res = await api.products.getAll();
-            if (res.data) {
-                setProducts(res.data);
+            // جلب مجموعة محدودة لتقليل الزيادات وتحسين البحث
+            const res = await api.products.getPaginated(1, 200);
+            const data = res.data || res || [];
+            if (Array.isArray(data)) {
+                setProducts(data);
             }
         } catch (err) {
             console.error('Error fetching products:', err);
+            setProducts([]);
         }
     };
 
@@ -192,10 +195,15 @@ export default function BrandOffersAdminPage() {
         }
     };
 
-    const filteredProducts = products.filter(p => 
-        p.name?.toLowerCase().includes(productSearch.toLowerCase()) ||
-        p.nameAr?.toLowerCase().includes(productSearch.toLowerCase())
-    ).slice(0, 10);
+    const normalizedSearch = productSearch.toLowerCase().trim();
+    const filteredProducts = products.filter(p => {
+        const nameEn = p.name?.toLowerCase() || '';
+        const nameAr = p.nameAr?.toLowerCase() || '';
+        const barcode = (p.barcode || '').toString();
+        return normalizedSearch === ''
+            ? true
+            : nameEn.includes(normalizedSearch) || nameAr.includes(normalizedSearch) || barcode.includes(normalizedSearch);
+    }).slice(0, 30); // إظهار نتائج أكثر للبحث
 
     const filteredBrands = brands.filter((b: any) =>
         b.name_ar?.toLowerCase().includes(brandSearch.toLowerCase()) ||

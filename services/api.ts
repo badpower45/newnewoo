@@ -831,11 +831,16 @@ export const api = {
             });
             return res.json();
         },
-        updatePreparationItem: async (itemId: number, isPrepared: boolean, notes?: string) => {
+        updatePreparationItem: async (
+            itemId: number,
+            isPrepared?: boolean,
+            notes?: string,
+            isOutOfStock?: boolean
+        ) => {
             const res = await fetch(`${API_URL}/distribution/preparation-items/${itemId}`, {
                 method: 'PUT',
                 headers: getHeaders(),
-                body: JSON.stringify({ isPrepared, notes })
+                body: JSON.stringify({ isPrepared, notes, isOutOfStock })
             });
             return res.json();
         },
@@ -1006,6 +1011,34 @@ export const api = {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify({ branchId, subtotal, customerLat, customerLng })
+            });
+            return res.json();
+        },
+
+        // حساب رسوم التوصيل حسب المحافظة (جديد)
+        calculateByGovernorate: async (governorate: string, subtotal: number) => {
+            const res = await fetch(`${API_URL}/delivery-fees/calculate-by-governorate`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ governorate, subtotal })
+            });
+            return res.json();
+        },
+
+        // الحصول على جميع رسوم المحافظات (جديد)
+        getAllGovernorates: async () => {
+            const res = await fetch(`${API_URL}/delivery-fees/governorates/all`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+
+        // تحديث رسوم محافظة (جديد - Admin only)
+        updateGovernorate: async (id: number, data: { delivery_fee: number; min_order: number; free_delivery_threshold: number }) => {
+            const res = await fetch(`${API_URL}/delivery-fees/governorates/${id}`, {
+                method: 'PUT',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
             });
             return res.json();
         },
@@ -2142,6 +2175,71 @@ export const api = {
                 headers: getHeaders()
             });
             if (!res.ok) throw new Error('Failed to fetch dashboard');
+            return res.json();
+        }
+    },
+
+    // Enhanced Returns API (Smart Returns)
+    returnsEnhanced: {
+        // جلب جميع المرتجعات مع تفاصيل كاملة
+        getAll: async () => {
+            const res = await fetch(`${API_URL}/returns-enhanced`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+
+        // جلب إحصائيات المرتجعات
+        getStats: async () => {
+            const res = await fetch(`${API_URL}/returns-enhanced/stats`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        }
+    },
+
+    // Popups API
+    popups: {
+        // Get active popup
+        getActive: async (page = 'homepage') => {
+            const res = await fetch(`${API_URL}/popups/active?page=${page}`);
+            return res.json();
+        },
+
+        // Get all popups (Admin)
+        getAll: async () => {
+            const res = await fetch(`${API_URL}/popups`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+
+        // Create popup (Admin)
+        create: async (data: any) => {
+            const res = await fetch(`${API_URL}/popups`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+
+        // Update popup (Admin)
+        update: async (id: number, data: any) => {
+            const res = await fetch(`${API_URL}/popups/${id}`, {
+                method: 'PUT',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+
+        // Delete popup (Admin)
+        delete: async (id: number) => {
+            const res = await fetch(`${API_URL}/popups/${id}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
             return res.json();
         }
     }

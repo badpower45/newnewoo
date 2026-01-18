@@ -83,6 +83,9 @@ import BrandOffersAdminPage from './pages/admin/BrandOffersAdminPage';
 import BrandsManager from './pages/admin/BrandsManager';
 import HeroSectionsManager from './pages/admin/HeroSectionsManager';
 import ReturnsManager from './pages/admin/ReturnsManager';
+import DeliveryFeesManager from './pages/admin/DeliveryFeesManager';
+import PopupsManager from './pages/admin/PopupsManager';
+import DeliveryTrackingPage from './pages/admin/DeliveryTrackingPage';
 import DeliveryDriverPage from './pages/DeliveryDriverPage';
 import BrandPage from './pages/BrandPage';
 import BrandsPage from './pages/BrandsPage';
@@ -225,6 +228,7 @@ function AppContent() {
               <Route path="upload" element={<ProductUploadPage />} />
               <Route path="orders" element={<OrdersManager />} />
               <Route path="branches" element={<BranchesManager />} />
+              <Route path="delivery-fees" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><DeliveryFeesManager /></ProtectedRoute>} />
               <Route path="inventory" element={<InventoryDashboard />} />
               <Route path="inventory-analytics" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><AdminInventoryDashboard /></ProtectedRoute>} />
               <Route path="coupons" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><CouponsManager /></ProtectedRoute>} />
@@ -232,6 +236,7 @@ function AppContent() {
               <Route path="hot-deals" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><HotDealsManager /></ProtectedRoute>} />
               <Route path="home-sections" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><AdminHomeSections /></ProtectedRoute>} />
               <Route path="hero-sections" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><HeroSectionsManager /></ProtectedRoute>} />
+              <Route path="popups" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><PopupsManager /></ProtectedRoute>} />
               <Route path="stories" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><StoriesManager /></ProtectedRoute>} />
               <Route path="facebook-reels" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><FacebookReelsManager /></ProtectedRoute>} />
               <Route path="brand-offers" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><BrandOffersAdminPage /></ProtectedRoute>} />
@@ -239,6 +244,7 @@ function AppContent() {
               <Route path="employees" element={<ProtectedRoute requireAdmin><EmployeesManager /></ProtectedRoute>} />
               <Route path="chat" element={<ProtectedRoute requireAdmin><LiveChatDashboard /></ProtectedRoute>} />
               <Route path="distribution" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'distributor']}><OrderDistributorPage /></ProtectedRoute>} />
+              <Route path="delivery-tracking" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'distributor']}><DeliveryTrackingPage /></ProtectedRoute>} />
               <Route path="delivery-staff" element={<DeliveryStaffManager />} />
             </Route>
           </Routes>

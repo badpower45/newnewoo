@@ -84,6 +84,23 @@ export default function CheckoutPage() {
         }
     }, [user]);
 
+    // Governorate options dynamic per branch
+    const cairoGovernorates = ['القاهرة', 'الجيزة'];
+    const portSaidGovernorates = ['بورسعيد', 'بور فؤاد'];
+    const defaultGovernorates = [
+        'بورسعيد', 'بور فؤاد', 'القاهرة', 'الجيزة', 'الإسكندرية', 'الدقهلية', 'المنصورة',
+        'الشرقية', 'الغربية', 'البحيرة', 'كفر الشيخ', 'دمياط', 'السويس', 'الإسماعيلية'
+    ];
+
+    const getGovernorateOptions = () => {
+        const branchName = selectedBranch?.name || '';
+        if (/بور\s?سعيد|port\s?said/i.test(branchName)) return portSaidGovernorates;
+        if (/القاهرة|cairo/i.test(branchName)) return cairoGovernorates;
+        return defaultGovernorates;
+    };
+
+    const governorateOptions = getGovernorateOptions();
+
     // Calculate delivery fee when branch, total, or governorate changes (skip for branch pickup)
     useEffect(() => {
         const calculateDeliveryFee = async () => {
@@ -647,20 +664,9 @@ export default function CheckoutPage() {
                                 className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all bg-white"
                             >
                                 <option value="">اختر المحافظة</option>
-                                <option value="بورسعيد">بورسعيد</option>
-                                <option value="بور فؤاد">بور فؤاد</option>
-                                <option value="القاهرة">القاهرة</option>
-                                <option value="الجيزة">الجيزة</option>
-                                <option value="الإسكندرية">الإسكندرية</option>
-                                <option value="الدقهلية">الدقهلية</option>
-                                <option value="المنصورة">المنصورة</option>
-                                <option value="الشرقية">الشرقية</option>
-                                <option value="الغربية">الغربية</option>
-                                <option value="البحيرة">البحيرة</option>
-                                <option value="كفر الشيخ">كفر الشيخ</option>
-                                <option value="دمياط">دمياط</option>
-                                <option value="السويس">السويس</option>
-                                <option value="الإسماعيلية">الإسماعيلية</option>
+                                {governorateOptions.map((gov) => (
+                                    <option key={gov} value={gov}>{gov}</option>
+                                ))}
                             </select>
                             {formData.governorate && (
                                 <p className="text-xs text-gray-500">

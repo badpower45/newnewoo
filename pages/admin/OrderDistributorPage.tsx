@@ -54,8 +54,19 @@ const OrderDistributorPage = () => {
         sms: 'رسالة SMS',
         any: 'أي وسيلة متاحة'
     };
+    const substitutionPreferenceLabels: Record<string, string> = {
+        call_me: '📞 اتصل بي أولاً',
+        similar_product: '🔄 استبدل بمنتج مشابه',
+        cancel_item: '❌ الغِ هذا المنتج',
+        contact: '📲 اتصل بي',
+        none: '📞 اتصل بي أولاً'
+    };
     const getUnavailableContactMethod = (order: any) =>
         order?.unavailable_contact_method || order?.unavailableContactMethod || '';
+    const getSubstitutionLabel = (value?: string) => {
+        if (!value) return '';
+        return substitutionPreferenceLabels[value] || value;
+    };
 
     useEffect(() => {
         if (activeTab === 'tracking') {
@@ -164,10 +175,41 @@ const OrderDistributorPage = () => {
         return `منذ ${Math.floor(diff / 60)} ساعة`;
     };
 
-    const loadPreparationItems = async (orderId: number) => {
+    const normalizePrepItem = (item: any) => ({
+        ...item,
+        is_out_of_stock: item.is_out_of_stock ?? item.isOutOfStock ?? false,
+        substitution_preference: item.substitution_preference ?? item.substitutionPreference
+    });
+
+    const loadPreparationItems = async (orderId: number, orderItems: any[] = []) => {
         try {
             const res = await api.distribution.getPreparationItems(orderId);
-            setPreparationItems(res.data || []);
+            const data = Array.isArray(res.data) ? res.data : [];
+            if (orderItems.length === 0) {
+                setPreparationItems(data.map(normalizePrepItem));
+                return;
+            }
+
+            const orderItemMap = new Map<string, any>();
+            orderItems.forEach((orderItem) => {
+                const key = String(orderItem.productId ?? orderItem.id ?? '');
+                if (key) {
+                    orderItemMap.set(key, orderItem);
+                }
+            });
+
+            const merged = data.map((item: any) => {
+                const normalized = normalizePrepItem(item);
+                const productKey = String(normalized.product_id ?? normalized.productId ?? '');
+                const orderItem = orderItemMap.get(productKey);
+                const fallbackPreference =
+                    orderItem?.substitutionPreference || orderItem?.substitution_preference;
+                return {
+                    ...normalized,
+                    substitution_preference: normalized.substitution_preference || fallbackPreference || 'none'
+                };
+            });
+            setPreparationItems(merged);
         } catch (err) {
             console.error('Failed to load preparation items:', err);
         }
@@ -184,7 +226,8 @@ const OrderDistributorPage = () => {
 
     const handleSelectOrder = async (order: any) => {
         setSelectedOrder(order);
-        await loadPreparationItems(order.id);
+        const orderItems = getOrderItems(order);
+        await loadPreparationItems(order.id, orderItems);
         if (order.branch_id) {
             await loadAvailableDelivery(order.branch_id);
         }
@@ -208,7 +251,8 @@ const OrderDistributorPage = () => {
         try {
             await api.distribution.startPreparation(orderId);
             await loadOrders();
-            await loadPreparationItems(orderId);
+            const orderItems = selectedOrder ? getOrderItems(selectedOrder) : [];
+            await loadPreparationItems(orderId, orderItems);
             setSelectedOrder((prev: any) => prev ? { ...prev, status: 'preparing' } : null);
         } catch (err) {
             console.error('Failed to start preparation:', err);
@@ -216,12 +260,68 @@ const OrderDistributorPage = () => {
         }
     };
 
-    const handleToggleItem = async (itemId: number, isPrepared: boolean) => {
+    const applyPreparationUpdate = (itemId: number, updatedItem: any) => {
+        if (!updatedItem) return;
+        const normalized = normalizePrepItem(updatedItem);
+        setPreparationItems(items =>
+            items.map(item =>
+                item.id === itemId
+                    ? {
+                        ...item,
+                        ...normalized,
+                        substitution_preference:
+                            normalized.substitution_preference ||
+                            item.substitution_preference ||
+                            item.substitutionPreference
+                    }
+                    : item
+            )
+        );
+    };
+
+    const handleTogglePrepared = async (itemId: number, isPrepared: boolean) => {
         try {
-            await api.distribution.updatePreparationItem(itemId, isPrepared);
-            setPreparationItems(items => 
-                items.map(item => 
-                    item.id === itemId ? { ...item, is_prepared: isPrepared } : item
+            const res = await api.distribution.updatePreparationItem(
+                itemId,
+                isPrepared,
+                undefined,
+                isPrepared ? false : undefined
+            );
+            const updated = res.data || res?.data;
+            if (updated) {
+                applyPreparationUpdate(itemId, updated);
+                return;
+            }
+            setPreparationItems(items =>
+                items.map(item =>
+                    item.id === itemId
+                        ? { ...item, is_prepared: isPrepared, is_out_of_stock: isPrepared ? false : item.is_out_of_stock }
+                        : item
+                )
+            );
+        } catch (err) {
+            console.error('Failed to update item:', err);
+        }
+    };
+
+    const handleToggleOutOfStock = async (itemId: number, isOutOfStock: boolean) => {
+        try {
+            const res = await api.distribution.updatePreparationItem(
+                itemId,
+                false,
+                undefined,
+                isOutOfStock
+            );
+            const updated = res.data || res?.data;
+            if (updated) {
+                applyPreparationUpdate(itemId, updated);
+                return;
+            }
+            setPreparationItems(items =>
+                items.map(item =>
+                    item.id === itemId
+                        ? { ...item, is_out_of_stock: isOutOfStock, is_prepared: isOutOfStock ? false : item.is_prepared }
+                        : item
                 )
             );
         } catch (err) {
@@ -266,7 +366,12 @@ const OrderDistributorPage = () => {
         }
     };
 
-    const allItemsPrepared = preparationItems.length > 0 && preparationItems.every(item => item.is_prepared);
+    const allItemsPrepared =
+        preparationItems.length > 0 &&
+        preparationItems.every(item => item.is_prepared || item.is_out_of_stock);
+    const remainingPrepCount = preparationItems.filter(
+        item => !item.is_prepared && !item.is_out_of_stock
+    ).length;
 
     // Parse shipping info
     const getShippingInfo = (order: any) => {
@@ -783,53 +888,76 @@ const OrderDistributorPage = () => {
                                         <p className="text-gray-500 text-center py-4">جاري تحميل العناصر...</p>
                                     ) : (
                                         <div className="space-y-3">
-                                            {preparationItems.map(item => (
-                                                <label
-                                                    key={item.id}
-                                                    className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition ${
-                                                        item.is_prepared 
-                                                            ? 'bg-green-50 border-green-200' 
-                                                            : 'bg-white hover:bg-gray-50'
-                                                    }`}
-                                                >
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={item.is_prepared}
-                                                        onChange={(e) => handleToggleItem(item.id, e.target.checked)}
-                                                        className="w-5 h-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
-                                                        disabled={selectedOrder.status === 'ready'}
-                                                    />
-                                                    <div className="flex-1">
-                                                        <span className={item.is_prepared ? 'line-through text-gray-400' : ''}>
-                                                            {item.product_name}
-                                                        </span>
-                                                        <span className="text-gray-500 mr-2">× {item.quantity}</span>
-                                                        
-                                                        {/* Product Options */}
-                                                        {item.selected_options && (
-                                                            <div className="text-xs text-orange-600 mt-1">
-                                                                {typeof item.selected_options === 'string' 
-                                                                    ? item.selected_options 
-                                                                    : JSON.parse(item.selected_options || '{}').map((opt: any) => 
-                                                                        `${opt.name}: ${opt.value}`
-                                                                    ).join(' | ')
-                                                                }
-                                                            </div>
-                                                        )}
-                                                        
-                                                        {/* Out of Stock Warning */}
-                                                        {item.is_out_of_stock && (
-                                                            <div className="text-xs text-red-600 font-bold mt-1 flex items-center gap-1">
-                                                                <AlertTriangle size={12} />
-                                                                غير متوفر - يحتاج بديل
-                                                            </div>
+                                            {preparationItems.map(item => {
+                                                const isOutOfStock = Boolean(item.is_out_of_stock);
+                                                const substitutionPreference = item.substitution_preference || item.substitutionPreference;
+                                                const substitutionLabel = getSubstitutionLabel(substitutionPreference);
+                                                return (
+                                                    <div
+                                                        key={item.id}
+                                                        className={`flex items-center gap-3 p-3 rounded-lg border transition ${
+                                                            item.is_prepared
+                                                                ? 'bg-green-50 border-green-200'
+                                                                : isOutOfStock
+                                                                    ? 'bg-red-50 border-red-200'
+                                                                    : 'bg-white hover:bg-gray-50'
+                                                        }`}
+                                                    >
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={item.is_prepared}
+                                                            onChange={(e) => handleTogglePrepared(item.id, e.target.checked)}
+                                                            className="w-5 h-5 rounded border-gray-300 text-green-600 focus:ring-green-500"
+                                                            disabled={selectedOrder.status === 'ready'}
+                                                        />
+                                                        <div className="flex-1">
+                                                            <span className={item.is_prepared ? 'line-through text-gray-400' : ''}>
+                                                                {item.product_name}
+                                                            </span>
+                                                            <span className="text-gray-500 mr-2">× {item.quantity}</span>
+                                                            
+                                                            {/* Product Options */}
+                                                            {item.selected_options && (
+                                                                <div className="text-xs text-orange-600 mt-1">
+                                                                    {typeof item.selected_options === 'string' 
+                                                                        ? item.selected_options 
+                                                                        : JSON.parse(item.selected_options || '{}').map((opt: any) => 
+                                                                            `${opt.name}: ${opt.value}`
+                                                                        ).join(' | ')
+                                                                    }
+                                                                </div>
+                                                            )}
+
+                                                            {substitutionLabel && (
+                                                                <div className={`text-xs mt-1 ${isOutOfStock ? 'text-red-700' : 'text-gray-600'}`}>
+                                                                    لو مش متوفر: {substitutionLabel}
+                                                                </div>
+                                                            )}
+                                                            
+                                                            {/* Out of Stock Warning */}
+                                                            {isOutOfStock && (
+                                                                <div className="text-xs text-red-600 font-bold mt-1 flex items-center gap-1">
+                                                                    <AlertTriangle size={12} />
+                                                                    غير متوفر - يحتاج بديل
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <label className={`flex items-center gap-2 text-xs font-semibold ${isOutOfStock ? 'text-red-700' : 'text-gray-500'}`}>
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={isOutOfStock}
+                                                                onChange={(e) => handleToggleOutOfStock(item.id, e.target.checked)}
+                                                                className="w-4 h-4 rounded border-gray-300 text-red-600 focus:ring-red-500"
+                                                                disabled={selectedOrder.status === 'ready'}
+                                                            />
+                                                            مش متوفر
+                                                        </label>
+                                                        {item.is_prepared && (
+                                                            <CheckCircle size={20} className="text-green-500" />
                                                         )}
                                                     </div>
-                                                    {item.is_prepared && (
-                                                        <CheckCircle size={20} className="text-green-500" />
-                                                    )}
-                                                </label>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     )}
 
@@ -844,7 +972,7 @@ const OrderDistributorPage = () => {
                                             }`}
                                         >
                                             <CheckCircle size={20} />
-                                            {allItemsPrepared ? 'إتمام التحضير' : `متبقي ${preparationItems.filter(i => !i.is_prepared).length} عناصر`}
+                                            {allItemsPrepared ? 'إتمام التحضير' : `متبقي ${remainingPrepCount} عناصر`}
                                         </button>
                                     )}
                                 </div>
