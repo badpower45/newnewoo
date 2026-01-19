@@ -35,10 +35,15 @@ const EmployeesManager = () => {
         loadBranches();
     }, []);
 
-    const loadUsers = () => {
-        api.users.getAll().then(data => {
-            if (data.data) setUsers(data.data);
-        });
+    const loadUsers = async () => {
+        try {
+            const data = await api.users.getAll();
+            const list = Array.isArray(data?.data) ? data.data : [];
+            setUsers(list);
+        } catch (error) {
+            console.error('Failed to load users:', error);
+            setUsers([]);
+        }
     };
 
     const loadBranches = () => {

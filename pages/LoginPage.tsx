@@ -79,19 +79,26 @@ const LoginPage = () => {
                 return;
             }
             
-            // Use Supabase Auth for login
-            const { session, user } = await supabaseAuth.signIn(email.trim(), password);
-            
-            if (!session) {
-                throw new Error('فشل تسجيل الدخول');
+            let session: any = null;
+            let user: any = null;
+            let supabaseError: any = null;
+
+            try {
+                const supabaseLogin = await supabaseAuth.signIn(email.trim(), password);
+                session = supabaseLogin.session;
+                user = supabaseLogin.user;
+                if (session?.access_token) {
+                    localStorage.setItem('supabase.auth.token', session.access_token);
+                }
+            } catch (e) {
+                supabaseError = e;
+                console.warn('⚠️ Supabase login failed, will try backend login', e);
             }
-            
-            // Store session
-            localStorage.setItem('supabase.auth.token', session.access_token);
 
             // محاولة الحصول على توكن الباكند لضبط الطلبات المحمية
             let backendToken = null;
             let backendUser = null;
+            let backendError: any = null;
             
             try {
                 const backendLogin = await api.auth.login({ email: email.trim(), password });
@@ -101,9 +108,11 @@ const LoginPage = () => {
                     localStorage.setItem('token', backendToken);
                     console.log('✅ Backend login successful, token stored');
                 } else {
+                    backendError = new Error('Invalid login');
                     console.warn('⚠️ Backend login returned no token:', backendLogin);
                 }
             } catch (e: any) {
+                backendError = e;
                 console.error('❌ Backend login failed:', e);
                 
                 // تحسين رسالة الخطأ
@@ -121,11 +130,15 @@ const LoginPage = () => {
                     setIsSubmitting(false);
                     return;
                 }
-                
-                // Use Supabase token as fallback
-                backendToken = session.access_token;
-                localStorage.setItem('token', backendToken);
+            }
+
+            if (!backendToken && session?.access_token) {
+                localStorage.setItem('token', session.access_token);
                 console.log('⚠️ Using Supabase token as fallback');
+            }
+
+            if (!backendToken && !session?.access_token) {
+                throw backendError || supabaseError || new Error('فشل تسجيل الدخول');
             }
 
             // Normalize user object - prefer backend user data

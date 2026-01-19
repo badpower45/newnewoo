@@ -549,9 +549,16 @@ export const api = {
     users: {
         getAll: async () => {
             const res = await fetch(`${API_URL}/users`, { headers: getHeaders() });
-            const data = await res.json();
-            // Wrap in data object to match expected format
-            return { data: data.data || data };
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                return { data: [], error: data?.error || 'Unauthorized' };
+            }
+            const payload = Array.isArray(data?.data)
+                ? data.data
+                : Array.isArray(data)
+                    ? data
+                    : [];
+            return { data: payload };
         },
         get: async (id: string) => {
             const res = await fetch(`${API_URL}/users/${id}`, { headers: getHeaders() });
