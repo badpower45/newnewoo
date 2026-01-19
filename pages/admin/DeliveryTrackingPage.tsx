@@ -40,7 +40,8 @@ export default function DeliveryTrackingPage() {
     const loadDeliveries = async () => {
         try {
             const token = localStorage.getItem('token');
-            const res = await fetch(`${API_URL}/orders/admin/all?status=out_for_delivery,preparing`, {
+            // جلب كل الطلبات النشطة (pending, preparing, out_for_delivery)
+            const res = await fetch(`${API_URL}/orders/admin/all`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -48,11 +49,17 @@ export default function DeliveryTrackingPage() {
             
             if (res.ok) {
                 const data = await res.json();
-                // تحويل الطلبات إلى formات مناسب للتتبع
+                console.log('All orders:', data.orders?.length);
+                
+                // تحويل الطلبات إلى format مناسب للتتبع
                 const trackingData: DeliveryLocation[] = (data.orders || [])
-                    .filter((order: any) => order.status === 'out_for_delivery' || order.status === 'preparing')
+                    .filter((order: any) => {
+                        // عرض الطلبات النشطة فقط (مش cancelled أو delivered)
+                        const activeStatuses = ['pending', 'preparing', 'out_for_delivery', 'confirmed'];
+                        return activeStatuses.includes(order.status);
+                    })
                     .map((order: any) => ({
-                        delivery_staff_id: order.assigned_driver_id || 0,
+                        delivery_staff_id: order.assigned_driver_id || order.delivery_staff_id || 0,
                         order_id: order.id,
                         latitude: order.delivery_latitude || 30.0444, // Cairo default
                         longitude: order.delivery_longitude || 31.2357,
@@ -60,20 +67,21 @@ export default function DeliveryTrackingPage() {
                         speed: 0,
                         heading: 0,
                         battery_level: 100,
-                        is_online: order.status === 'out_for_delivery',
+                        is_online: order.status === 'out_for_delivery' || order.status === 'confirmed',
                         last_update: order.updated_at || new Date().toISOString(),
                         seconds_since_update: Math.floor((Date.now() - new Date(order.updated_at || Date.now()).getTime()) / 1000),
                         order_status: order.status,
                         customer_id: order.customer_id,
-                        delivery_address: order.delivery_address || 'لا يوجد عنوان',
+                        delivery_address: order.delivery_address || order.address || 'لا يوجد عنوان',
                         delivery_latitude: order.delivery_latitude || 30.0444,
                         delivery_longitude: order.delivery_longitude || 31.2357,
-                        staff_name: order.driver_name || 'لم يتم التعيين',
-                        staff_phone: order.driver_phone || '',
-                        customer_name: order.customer_name || 'عميل',
-                        customer_phone: order.customer_phone || ''
+                        staff_name: order.driver_name || order.delivery_driver_name || 'لم يتم التعيين',
+                        staff_phone: order.driver_phone || order.delivery_driver_phone || 'غير متوفر',
+                        customer_name: order.customer_name || order.name || 'عميل',
+                        customer_phone: order.customer_phone || order.phone || 'غير متوفر'
                     }));
                 
+                console.log('Active deliveries:', trackingData.length);
                 setDeliveries(trackingData);
             }
             setLoading(false);
@@ -87,6 +95,8 @@ export default function DeliveryTrackingPage() {
         switch (status) {
             case 'out_for_delivery': return 'bg-blue-100 text-blue-800';
             case 'preparing': return 'bg-yellow-100 text-yellow-800';
+            case 'confirmed': return 'bg-purple-100 text-purple-800';
+            case 'pending': return 'bg-orange-100 text-orange-800';
             case 'delivered': return 'bg-green-100 text-green-800';
             default: return 'bg-gray-100 text-gray-800';
         }
@@ -96,6 +106,8 @@ export default function DeliveryTrackingPage() {
         switch (status) {
             case 'out_for_delivery': return 'في الطريق';
             case 'preparing': return 'قيد التحضير';
+            case 'confirmed': return 'تم التأكيد';
+            case 'pending': return 'قيد الانتظار';
             case 'delivered': return 'تم التوصيل';
             default: return status;
         }
@@ -146,22 +158,22 @@ export default function DeliveryTrackingPage() {
                         {deliveries.filter(d => d.order_status === 'preparing').length}
                     </div>
                 </div>
-                <div className="bg-green-50 rounded-lg p-4">
-                    <div className="flex items-center gap-2 text-green-600 mb-2">
-                        <Wifi size={20} />
-                        <span className="font-medium">متصل</span>
+                <div className="bg-orange-50 rounded-lg p-4">
+                    <div className="flex items-center gap-2 text-orange-600 mb-2">
+                        <Clock size={20} />
+                        <span className="font-medium">قيد الانتظار</span>
                     </div>
-                    <div className="text-2xl font-bold text-green-800">
-                        {deliveries.filter(d => d.is_online).length}
+                    <div className="text-2xl font-bold text-orange-800">
+                        {deliveries.filter(d => d.order_status === 'pending' || d.order_status === 'confirmed').length}
                     </div>
                 </div>
-                <div className="bg-red-50 rounded-lg p-4">
-                    <div className="flex items-center gap-2 text-red-600 mb-2">
-                        <WifiOff size={20} />
-                        <span className="font-medium">غير متصل</span>
+                <div className="bg-purple-50 rounded-lg p-4">
+                    <div className="flex items-center gap-2 text-purple-600 mb-2">
+                        <Package size={20} />
+                        <span className="font-medium">إجمالي نشط</span>
                     </div>
-                    <div className="text-2xl font-bold text-red-800">
-                        {deliveries.filter(d => !d.is_online).length}
+                    <div className="text-2xl font-bold text-purple-800">
+                        {deliveries.length}
                     </div>
                 </div>
             </div>
