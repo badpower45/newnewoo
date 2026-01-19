@@ -40,19 +40,21 @@ export default function DeliveryTrackingPage() {
     const loadDeliveries = async () => {
         try {
             const token = localStorage.getItem('token');
-            // جلب كل الطلبات النشطة (pending, preparing, out_for_delivery)
-            const res = await fetch(`${API_URL}/orders/admin/all`, {
+            // استخدام الـ endpoint الصحيح
+            const res = await fetch(`${API_URL}/admin/orders`, {
                 headers: {
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 }
             });
             
             if (res.ok) {
                 const data = await res.json();
-                console.log('All orders:', data.orders?.length);
+                console.log('All orders:', data.orders?.length || data.length);
                 
                 // تحويل الطلبات إلى format مناسب للتتبع
-                const trackingData: DeliveryLocation[] = (data.orders || [])
+                const orders = data.orders || data || [];
+                const trackingData: DeliveryLocation[] = orders
                     .filter((order: any) => {
                         // عرض الطلبات النشطة فقط (مش cancelled أو delivered)
                         const activeStatuses = ['pending', 'preparing', 'out_for_delivery', 'confirmed'];
@@ -83,6 +85,8 @@ export default function DeliveryTrackingPage() {
                 
                 console.log('Active deliveries:', trackingData.length);
                 setDeliveries(trackingData);
+            } else {
+                console.error('Failed to load orders:', res.status, res.statusText);
             }
             setLoading(false);
         } catch (err) {
