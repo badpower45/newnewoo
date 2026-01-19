@@ -108,10 +108,6 @@ export default function DeliveryTrackingPage() {
             setLoading(false);
         }
     };
-            console.error('Error loading deliveries:', err);
-            setLoading(false);
-        }
-    };
 
     const getStatusColor = (status: string) => {
         switch (status) {
