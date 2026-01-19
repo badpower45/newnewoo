@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Navigation, MapPin, Phone, User, Package, Clock, Battery, Wifi, WifiOff, RefreshCw } from 'lucide-react';
+import { Navigation, MapPin, Phone, User, Package, Clock, Battery, Wifi, WifiOff, RefreshCw, Map, X } from 'lucide-react';
+import { API_URL } from '../../src/config';
 
 interface DeliveryLocation {
     delivery_staff_id: number;
@@ -28,6 +29,7 @@ export default function DeliveryTrackingPage() {
     const [deliveries, setDeliveries] = useState<DeliveryLocation[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedDelivery, setSelectedDelivery] = useState<DeliveryLocation | null>(null);
+    const [showMap, setShowMap] = useState(false);
 
     useEffect(() => {
         loadDeliveries();
@@ -37,14 +39,44 @@ export default function DeliveryTrackingPage() {
 
     const loadDeliveries = async () => {
         try {
-            // هذا endpoint محتاج يتعمل في الـ backend
-            // للآن هنستخدم placeholder data
-            setLoading(false);
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_URL}/orders/admin/all?status=out_for_delivery,preparing`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
             
-            // Placeholder: في الإنتاج، هيكون:
-            // const res = await fetch(`${API_URL}/delivery-tracking/active`);
-            // const data = await res.json();
-            // setDeliveries(data.data || []);
+            if (res.ok) {
+                const data = await res.json();
+                // تحويل الطلبات إلى formات مناسب للتتبع
+                const trackingData: DeliveryLocation[] = (data.orders || [])
+                    .filter((order: any) => order.status === 'out_for_delivery' || order.status === 'preparing')
+                    .map((order: any) => ({
+                        delivery_staff_id: order.assigned_driver_id || 0,
+                        order_id: order.id,
+                        latitude: order.delivery_latitude || 30.0444, // Cairo default
+                        longitude: order.delivery_longitude || 31.2357,
+                        accuracy: 10,
+                        speed: 0,
+                        heading: 0,
+                        battery_level: 100,
+                        is_online: order.status === 'out_for_delivery',
+                        last_update: order.updated_at || new Date().toISOString(),
+                        seconds_since_update: Math.floor((Date.now() - new Date(order.updated_at || Date.now()).getTime()) / 1000),
+                        order_status: order.status,
+                        customer_id: order.customer_id,
+                        delivery_address: order.delivery_address || 'لا يوجد عنوان',
+                        delivery_latitude: order.delivery_latitude || 30.0444,
+                        delivery_longitude: order.delivery_longitude || 31.2357,
+                        staff_name: order.driver_name || 'لم يتم التعيين',
+                        staff_phone: order.driver_phone || '',
+                        customer_name: order.customer_name || 'عميل',
+                        customer_phone: order.customer_phone || ''
+                    }));
+                
+                setDeliveries(trackingData);
+            }
+            setLoading(false);
         } catch (err) {
             console.error('Error loading deliveries:', err);
             setLoading(false);
@@ -237,17 +269,104 @@ export default function DeliveryTrackingPage() {
                                 </div>
                             </div>
 
-                            <div className="mt-3 pt-3 border-t">
+                            <div className="mt-3 pt-3 border-t grid grid-cols-2 gap-2">
                                 <button
-                                    onClick={() => window.open(`https://www.google.com/maps?q=${delivery.latitude},${delivery.longitude}`, '_blank')}
-                                    className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2"
+                                    onClick={() => setSelectedDelivery(delivery)}
+                                    className="bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2"
                                 >
-                                    <MapPin size={18} />
-                                    عرض الموقع على الخريطة
+                                    <Map size={18} />
+                                    عرض على الخريطة
+                                </button>
+                                <button
+                                    onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${delivery.latitude},${delivery.longitude}`, '_blank')}
+                                    className="bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 flex items-center justify-center gap-2"
+                                >
+                                    <Navigation size={18} />
+                                    توجيه للموقع
                                 </button>
                             </div>
                         </div>
                     ))}
+                </div>
+            )}
+
+            {/* Map Modal */}
+            {selectedDelivery && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setSelectedDelivery(null)}>
+                    <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+                        <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between">
+                            <div>
+                                <h3 className="text-xl font-bold">طلب #{selectedDelivery.order_id}</h3>
+                                <p className="text-sm text-gray-600">{selectedDelivery.delivery_address}</p>
+                            </div>
+                            <button
+                                onClick={() => setSelectedDelivery(null)}
+                                className="text-gray-500 hover:text-gray-700"
+                            >
+                                <X size={24} />
+                            </button>
+                        </div>
+                        
+                        <div className="p-4">
+                            {/* معلومات سريعة */}
+                            <div className="grid grid-cols-3 gap-4 mb-4">
+                                <div className="bg-blue-50 rounded-lg p-3">
+                                    <div className="text-sm text-blue-600 mb-1">المندوب</div>
+                                    <div className="font-bold">{selectedDelivery.staff_name}</div>
+                                    <div className="text-sm text-gray-600">{selectedDelivery.staff_phone}</div>
+                                </div>
+                                <div className="bg-green-50 rounded-lg p-3">
+                                    <div className="text-sm text-green-600 mb-1">العميل</div>
+                                    <div className="font-bold">{selectedDelivery.customer_name}</div>
+                                    <div className="text-sm text-gray-600">{selectedDelivery.customer_phone}</div>
+                                </div>
+                                <div className="bg-orange-50 rounded-lg p-3">
+                                    <div className="text-sm text-orange-600 mb-1">الحالة</div>
+                                    <div className="font-bold">{getStatusText(selectedDelivery.order_status)}</div>
+                                    <div className="text-sm text-gray-600">
+                                        {selectedDelivery.is_online ? '🟢 متصل' : '🔴 غير متصل'}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* الخريطة */}
+                            <div className="aspect-video rounded-lg overflow-hidden border-2 border-gray-200">
+                                <iframe
+                                    width="100%"
+                                    height="100%"
+                                    frameBorder="0"
+                                    style={{ border: 0 }}
+                                    src={`https://www.google.com/maps?q=${selectedDelivery.latitude},${selectedDelivery.longitude}&output=embed&z=15`}
+                                    allowFullScreen
+                                ></iframe>
+                            </div>
+
+                            {/* أزرار الإجراءات */}
+                            <div className="grid grid-cols-3 gap-2 mt-4">
+                                <button
+                                    onClick={() => window.open(`tel:${selectedDelivery.staff_phone}`, '_self')}
+                                    className="bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2"
+                                >
+                                    <Phone size={18} />
+                                    اتصال بالمندوب
+                                </button>
+                                <button
+                                    onClick={() => window.open(`tel:${selectedDelivery.customer_phone}`, '_self')}
+                                    className="bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 flex items-center justify-center gap-2"
+                                >
+                                    <Phone size={18} />
+                                    اتصال بالعميل
+                                </button>
+                                <button
+                                    onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${selectedDelivery.latitude},${selectedDelivery.longitude}`, '_blank')}
+                                    className="bg-orange-600 text-white py-3 rounded-lg hover:bg-orange-700 flex items-center justify-center gap-2"
+                                >
+                                    <Navigation size={18} />
+                                    توجيه GPS
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
