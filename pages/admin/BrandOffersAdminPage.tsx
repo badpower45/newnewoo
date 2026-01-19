@@ -272,7 +272,7 @@ export default function BrandOffersAdminPage() {
             {/* Header */}
             <div className="bg-white shadow-sm border-b">
                 <div className="max-w-7xl mx-auto px-4 py-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div className="flex items-center gap-4">
                             <button
                                 onClick={() => navigate('/admin')}
@@ -293,7 +293,7 @@ export default function BrandOffersAdminPage() {
                                 setEditingOffer({ ...defaultOffer, display_order: offers.length });
                                 setShowModal(true);
                             }}
-                            className="flex items-center gap-2 bg-brand-orange text-white px-4 py-2 rounded-lg hover:bg-brand-orange/90 transition-colors"
+                            className="flex w-full items-center justify-center gap-2 bg-brand-orange text-white px-4 py-2 rounded-lg hover:bg-brand-orange/90 transition-colors sm:w-auto"
                         >
                             <Plus size={20} />
                             إضافة عرض جديد
@@ -332,22 +332,22 @@ export default function BrandOffersAdminPage() {
                                     offer.is_active ? 'border-green-200' : 'border-gray-200 opacity-60'
                                 }`}
                             >
-                                <div className="flex">
+                                <div className="flex flex-col sm:flex-row">
                                     {/* Preview */}
                                     <div 
-                                        className="w-64 h-40 flex-shrink-0 relative overflow-hidden"
+                                        className="h-44 w-full flex-shrink-0 relative overflow-hidden sm:h-40 sm:w-64"
                                         style={{ background: offer.background_value }}
                                     >
                                         {offer.image_url && (
                                             <img 
                                                 src={offer.image_url} 
                                                 alt={offer.title}
-                                                className="absolute left-0 bottom-0 w-24 h-24 object-cover rounded-tr-xl opacity-80"
+                                                className="absolute left-0 bottom-0 w-24 h-24 object-cover rounded-tr-xl opacity-80 sm:w-24 sm:h-24"
                                             />
                                         )}
                                         <div className="absolute inset-0 p-4 flex flex-col justify-between">
                                             <div>
-                                                <div className="font-bold text-lg" style={{ color: offer.text_color }}>
+                                                <div className="font-bold text-base sm:text-lg" style={{ color: offer.text_color }}>
                                                     {offer.title_ar}
                                                 </div>
                                                 <div className="text-xs opacity-80" style={{ color: offer.text_color }}>
@@ -370,7 +370,7 @@ export default function BrandOffersAdminPage() {
 
                                     {/* Details */}
                                     <div className="flex-1 p-4">
-                                        <div className="flex items-start justify-between">
+                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                                             <div>
                                                 {(() => {
                                                     const linkedProduct = offer.linked_product_id
@@ -381,9 +381,9 @@ export default function BrandOffersAdminPage() {
                                                         : null;
                                                     return (
                                                         <>
-                                                <h3 className="font-bold text-lg text-gray-800">{offer.title_ar}</h3>
+                                                <h3 className="font-bold text-base sm:text-lg text-gray-800">{offer.title_ar}</h3>
                                                 <p className="text-gray-500 text-sm">{offer.subtitle_ar || offer.subtitle}</p>
-                                                <div className="mt-2 flex items-center gap-2 text-sm">
+                                                <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
                                                     <span className={`px-2 py-0.5 rounded-full ${offer.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                                                         {offer.is_active ? 'مفعل' : 'معطل'}
                                                     </span>
@@ -403,7 +403,7 @@ export default function BrandOffersAdminPage() {
                                             </div>
                                             
                                             {/* Actions */}
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-2 self-end sm:self-auto">
                                                 <button
                                                     onClick={() => handleReorder(offer.id, 'up')}
                                                     disabled={index === 0}
@@ -451,11 +451,11 @@ export default function BrandOffersAdminPage() {
 
             {/* Modal */}
             {showModal && editingOffer && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-3 sm:p-4">
                     <div className="bg-white rounded-2xl w-full max-w-5xl max-h-[94vh] overflow-hidden flex flex-col">
                         {/* Modal Header */}
-                        <div className="flex items-center justify-between p-4 border-b bg-gray-50">
-                            <h2 className="text-xl font-bold text-gray-800">
+                        <div className="flex items-center justify-between p-3 sm:p-4 border-b bg-gray-50">
+                            <h2 className="text-lg sm:text-xl font-bold text-gray-800">
                                 {editingOffer.id ? 'تعديل العرض' : 'إضافة عرض جديد'}
                             </h2>
                             <button
@@ -470,27 +470,27 @@ export default function BrandOffersAdminPage() {
                         </div>
 
                         {/* Modal Body */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                        <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4">
                             {/* Preview */}
-                            <div className="bg-gray-100 rounded-xl p-4">
+                            <div className="bg-gray-100 rounded-xl p-3 sm:p-4">
                                 <h3 className="text-sm font-bold text-gray-600 mb-3 flex items-center gap-2">
                                     <Sparkles size={16} />
                                     معاينة العرض
                                 </h3>
                                 <div 
-                                    className="rounded-xl overflow-hidden h-48 relative shadow-lg"
+                                    className="rounded-xl overflow-hidden h-44 sm:h-48 relative shadow-lg"
                                     style={{ background: editingOffer.background_value }}
                                 >
                                     {editingOffer.image_url && (
                                         <img 
                                             src={editingOffer.image_url} 
                                             alt="Preview"
-                                            className="absolute left-0 bottom-0 w-32 h-32 object-cover rounded-tr-xl opacity-80"
+                                            className="absolute left-0 bottom-0 w-24 h-24 sm:w-32 sm:h-32 object-cover rounded-tr-xl opacity-80"
                                         />
                                     )}
-                                    <div className="absolute inset-0 p-5 flex flex-col justify-between">
+                                    <div className="absolute inset-0 p-4 sm:p-5 flex flex-col justify-between">
                                         <div>
-                                            <div className="font-bold text-2xl" style={{ color: editingOffer.text_color }}>
+                                            <div className="font-bold text-lg sm:text-2xl" style={{ color: editingOffer.text_color }}>
                                                 {editingOffer.title_ar || 'عنوان العرض'}
                                             </div>
                                             <div className="text-sm opacity-80" style={{ color: editingOffer.text_color }}>
@@ -520,7 +520,7 @@ export default function BrandOffersAdminPage() {
                             {/* Basic Info */}
                             {renderSection('basic', 'المعلومات الأساسية', <Tag size={18} />, (
                                 <>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-bold text-gray-700 mb-1">
                                                 العنوان بالعربي *
@@ -547,7 +547,7 @@ export default function BrandOffersAdminPage() {
                                             />
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-bold text-gray-700 mb-1">
                                                 الوصف بالعربي
@@ -574,7 +574,7 @@ export default function BrandOffersAdminPage() {
                                             />
                                         </div>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-bold text-gray-700 mb-1">
                                                 نص الخصم بالعربي
@@ -611,7 +611,7 @@ export default function BrandOffersAdminPage() {
                                         <label className="block text-sm font-bold text-gray-700 mb-2">
                                             الخلفية (اختر من القوالب الجاهزة)
                                         </label>
-                                        <div className="grid grid-cols-5 gap-2">
+                                        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                                             {presetGradients.map((gradient) => (
                                                 <button
                                                     key={gradient.name}
@@ -645,7 +645,7 @@ export default function BrandOffersAdminPage() {
                                             placeholder="linear-gradient(135deg, #000 0%, #333 100%)"
                                         />
                                     </div>
-                                    <div className="grid grid-cols-3 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                         <div>
                                             <label className="block text-sm font-bold text-gray-700 mb-1">
                                                 لون النص
@@ -729,7 +729,7 @@ export default function BrandOffersAdminPage() {
                                             <img 
                                                 src={editingOffer.image_url} 
                                                 alt="Preview" 
-                                                className="mt-2 h-20 object-cover rounded-lg"
+                                                className="mt-2 h-24 sm:h-20 object-cover rounded-lg"
                                             />
                                         )}
                                     </div>
@@ -864,7 +864,7 @@ export default function BrandOffersAdminPage() {
                                             العرض مفعل
                                         </label>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-bold text-gray-700 mb-1">
                                                 تاريخ البداية (اختياري)
@@ -906,7 +906,7 @@ export default function BrandOffersAdminPage() {
                             <button
                                 onClick={handleSave}
                                 disabled={saving}
-                                className="flex items-center gap-2 bg-brand-orange text-white px-6 py-2 rounded-lg hover:bg-brand-orange/90 transition-colors disabled:opacity-50"
+                                className="flex w-full items-center justify-center gap-2 bg-brand-orange text-white px-6 py-2 rounded-lg hover:bg-brand-orange/90 transition-colors disabled:opacity-50 sm:w-auto"
                             >
                                 {saving ? (
                                     <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />

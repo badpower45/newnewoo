@@ -40,7 +40,14 @@ export default function DeliveryTrackingPage() {
     const loadDeliveries = async () => {
         try {
             const token = localStorage.getItem('token');
-            // استخدام الـ endpoint الصحيح
+            if (!token) {
+                console.error('No auth token found');
+                setLoading(false);
+                return;
+            }
+
+            console.log('🔄 Loading orders from API...');
+            
             const res = await fetch(`${API_URL}/admin/orders`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -48,48 +55,59 @@ export default function DeliveryTrackingPage() {
                 }
             });
             
-            if (res.ok) {
-                const data = await res.json();
-                console.log('All orders:', data.orders?.length || data.length);
-                
-                // تحويل الطلبات إلى format مناسب للتتبع
-                const orders = data.orders || data || [];
-                const trackingData: DeliveryLocation[] = orders
-                    .filter((order: any) => {
-                        // عرض الطلبات النشطة فقط (مش cancelled أو delivered)
-                        const activeStatuses = ['pending', 'preparing', 'out_for_delivery', 'confirmed'];
-                        return activeStatuses.includes(order.status);
-                    })
-                    .map((order: any) => ({
-                        delivery_staff_id: order.assigned_driver_id || order.delivery_staff_id || 0,
-                        order_id: order.id,
-                        latitude: order.delivery_latitude || 30.0444, // Cairo default
-                        longitude: order.delivery_longitude || 31.2357,
-                        accuracy: 10,
-                        speed: 0,
-                        heading: 0,
-                        battery_level: 100,
-                        is_online: order.status === 'out_for_delivery' || order.status === 'confirmed',
-                        last_update: order.updated_at || new Date().toISOString(),
-                        seconds_since_update: Math.floor((Date.now() - new Date(order.updated_at || Date.now()).getTime()) / 1000),
-                        order_status: order.status,
-                        customer_id: order.customer_id,
-                        delivery_address: order.delivery_address || order.address || 'لا يوجد عنوان',
-                        delivery_latitude: order.delivery_latitude || 30.0444,
-                        delivery_longitude: order.delivery_longitude || 31.2357,
-                        staff_name: order.driver_name || order.delivery_driver_name || 'لم يتم التعيين',
-                        staff_phone: order.driver_phone || order.delivery_driver_phone || 'غير متوفر',
-                        customer_name: order.customer_name || order.name || 'عميل',
-                        customer_phone: order.customer_phone || order.phone || 'غير متوفر'
-                    }));
-                
-                console.log('Active deliveries:', trackingData.length);
-                setDeliveries(trackingData);
-            } else {
-                console.error('Failed to load orders:', res.status, res.statusText);
+            console.log('Response status:', res.status);
+            
+            if (!res.ok) {
+                const errorText = await res.text();
+                console.error('API Error:', res.status, errorText);
+                setLoading(false);
+                return;
             }
+
+            const data = await res.json();
+            console.log('✅ API Response:', data);
+            
+            const orders = data.orders || [];
+            console.log(`Found ${orders.length} total orders`);
+            
+            // تحويل الطلبات إلى format مناسب للتتبع
+            const trackingData: DeliveryLocation[] = orders
+                .filter((order: any) => {
+                    // عرض الطلبات النشطة فقط
+                    const activeStatuses = ['pending', 'preparing', 'out_for_delivery', 'confirmed'];
+                    return activeStatuses.includes(order.status);
+                })
+                .map((order: any) => ({
+                    delivery_staff_id: order.delivery_driver_id || 0,
+                    order_id: order.id,
+                    latitude: order.delivery_latitude || 30.0444,
+                    longitude: order.delivery_longitude || 31.2357,
+                    accuracy: 10,
+                    speed: 0,
+                    heading: 0,
+                    battery_level: 100,
+                    is_online: ['out_for_delivery', 'confirmed'].includes(order.status),
+                    last_update: order.updated_at || new Date().toISOString(),
+                    seconds_since_update: Math.floor((Date.now() - new Date(order.updated_at || Date.now()).getTime()) / 1000),
+                    order_status: order.status,
+                    customer_id: order.customer_id,
+                    delivery_address: order.delivery_address || 'لا يوجد عنوان',
+                    delivery_latitude: order.delivery_latitude || 30.0444,
+                    delivery_longitude: order.delivery_longitude || 31.2357,
+                    staff_name: order.driver_name || 'لم يتم التعيين',
+                    staff_phone: order.driver_phone || 'غير متوفر',
+                    customer_name: order.customer_name || 'عميل',
+                    customer_phone: order.customer_phone || 'غير متوفر'
+                }));
+            
+            console.log(`✅ Active deliveries: ${trackingData.length}`);
+            setDeliveries(trackingData);
             setLoading(false);
         } catch (err) {
+            console.error('❌ Failed to load deliveries:', err);
+            setLoading(false);
+        }
+    };
             console.error('Error loading deliveries:', err);
             setLoading(false);
         }
