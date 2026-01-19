@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Megaphone, Plus, Edit, Trash2, Eye, EyeOff, Calendar, Link as LinkIcon, Save, X } from 'lucide-react';
+import { Megaphone, Plus, Edit, Trash2, Eye, EyeOff, Calendar, Link as LinkIcon, Save, X, Upload, Loader2 } from 'lucide-react';
 import { api } from '../../services/api';
+import { API_URL } from '../../src/config';
 
 interface Popup {
     id: number;
@@ -26,6 +27,8 @@ export default function PopupsManager() {
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editingPopup, setEditingPopup] = useState<Popup | null>(null);
+    const [saving, setSaving] = useState(false);
+    const [uploadingImage, setUploadingImage] = useState(false);
     const [formData, setFormData] = useState({
         title: '',
         title_ar: '',
@@ -62,6 +65,8 @@ export default function PopupsManager() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (saving) return;
+        setSaving(true);
         try {
             if (editingPopup) {
                 await api.popups.update(editingPopup.id, formData);
@@ -72,6 +77,8 @@ export default function PopupsManager() {
             resetForm();
         } catch (err) {
             console.error('Error saving popup:', err);
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -126,6 +133,55 @@ export default function PopupsManager() {
             show_on_homepage: true,
             show_on_products: false
         });
+    };
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (file.size > 5 * 1024 * 1024) {
+            alert('حجم الصورة كبير جداً. الحد الأقصى 5 ميجابايت');
+            return;
+        }
+
+        const hasValidMime = file.type?.startsWith('image/');
+        const lowerName = file.name.toLowerCase();
+        const hasValidExtension = ['.jpg', '.jpeg', '.png', '.webp', '.gif'].some((ext) =>
+            lowerName.endsWith(ext)
+        );
+        if (!hasValidMime && !hasValidExtension) {
+            alert('الرجاء اختيار صورة');
+            return;
+        }
+
+        setUploadingImage(true);
+        const originalImage = formData.image_url;
+
+        try {
+            const form = new FormData();
+            form.append('image', file);
+            form.append('productId', `popup_${editingPopup?.id || Date.now()}`);
+
+            const response = await fetch(`${API_URL}/upload/image`, {
+                method: 'POST',
+                body: form
+            });
+
+            const result = await response.json();
+
+            if (result.success && result.data?.url) {
+                setFormData({ ...formData, image_url: result.data.url });
+                alert('✅ تم رفع الصورة بنجاح!');
+            } else {
+                throw new Error(result.error || 'فشل رفع الصورة');
+            }
+        } catch (error: any) {
+            console.error('Upload error:', error);
+            alert('❌ فشل رفع الصورة: ' + error.message);
+            setFormData({ ...formData, image_url: originalImage });
+        } finally {
+            setUploadingImage(false);
+        }
     };
 
     return (
@@ -206,6 +262,42 @@ export default function PopupsManager() {
                                 className="w-full border rounded px-3 py-2"
                                 required
                             />
+                            <div className="mt-2 flex items-center gap-2">
+                                <label className="flex-1 cursor-pointer">
+                                    <div className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg border-2 border-dashed transition-colors ${
+                                        uploadingImage 
+                                            ? 'border-gray-300 bg-gray-50' 
+                                            : 'border-orange-500 hover:border-orange-600 hover:bg-orange-50'
+                                    }`}>
+                                        {uploadingImage ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                <span className="text-sm">جاري الرفع...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Upload className="w-4 h-4" />
+                                                <span className="text-sm font-medium">رفع صورة (Cloudinary)</span>
+                                            </>
+                                        )}
+                                    </div>
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageUpload}
+                                        disabled={uploadingImage}
+                                        className="hidden"
+                                    />
+                                </label>
+                                {formData.image_url && (
+                                    <img
+                                        src={formData.image_url}
+                                        alt="Popup preview"
+                                        className="w-16 h-16 object-cover rounded-lg border"
+                                    />
+                                )}
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">يفضل مقاس 1080x1920 (9:16) لعرض مناسب على الهاتف</p>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
@@ -308,10 +400,11 @@ export default function PopupsManager() {
                             </button>
                             <button
                                 type="submit"
-                                className="flex items-center gap-2 bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700"
+                                disabled={saving}
+                                className="flex items-center gap-2 bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 disabled:opacity-50"
                             >
-                                <Save size={20} />
-                                حفظ
+                                {saving ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />}
+                                {saving ? 'جارٍ الحفظ...' : 'حفظ'}
                             </button>
                         </div>
                     </form>

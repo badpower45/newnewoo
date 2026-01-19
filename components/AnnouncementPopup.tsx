@@ -113,7 +113,7 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
                 style={{ zIndex: 99999 }}
             >
                 <div 
-                    className={`relative w-full max-w-[90vw] sm:max-w-md md:max-w-xl transform transition-all duration-300 ${
+                    className={`relative w-full max-w-[94vw] sm:max-w-md md:max-w-xl transform transition-all duration-300 ${
                         isClosing ? 'scale-90 opacity-0' : 'scale-100 opacity-100'
                     }`}
                 >
@@ -135,8 +135,7 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
                         <img 
                             src={popup.image_url} 
                             alt={popup.title_ar || popup.title}
-                            className="w-full h-auto object-contain rounded-xl sm:rounded-2xl shadow-2xl"
-                            style={{ maxHeight: '75vh', minHeight: '200px' }}
+                            className="w-full h-auto object-contain rounded-xl sm:rounded-2xl shadow-2xl max-h-[85vh] sm:max-h-[75vh] min-h-[200px]"
                             loading="eager"
                         />
                     </div>
