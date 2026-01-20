@@ -458,7 +458,7 @@ export default function ProductsPage() {
     // Reset to page 1 when filters change
     useEffect(() => {
         setCurrentPage(1);
-    }, [selectedCategory, selectedBrand, selectedSort]);
+    }, [selectedCategory, selectedBrand, sortBy]);
 
     // Filter and sort products
     const filteredAndSortedProducts = useMemo(() => {
