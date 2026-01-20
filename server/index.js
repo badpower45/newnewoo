@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
+import compression from 'compression';
 import dotenv from 'dotenv';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
@@ -126,6 +127,19 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'apikey', 'Accept'],
     exposedHeaders: ['Content-Length', 'Content-Type'],
     maxAge: 86400
+}));
+
+// Enable compression to reduce payload size (can reduce by 70-80%)
+app.use(compression({
+    level: 6, // Balance between speed and compression
+    threshold: 1024, // Only compress responses larger than 1KB
+    filter: (req, res) => {
+        // Compress JSON and text responses
+        if (req.headers['x-no-compression']) {
+            return false;
+        }
+        return compression.filter(req, res);
+    }
 }));
 
 app.use(bodyParser.json({ limit: '10mb' }));

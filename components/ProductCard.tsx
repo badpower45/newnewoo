@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Heart, Check, Minus, ShoppingCart } from 'lucide-react';
+import { Plus, Heart, Check, Minus, ShoppingCart, Star } from 'lucide-react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
@@ -235,6 +235,19 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
         {/* الوزن/الحجم */}
         {weight && (
           <p className="text-xs text-gray-500 mb-1">{weight}</p>
+        )}
+        
+        {/* التقييم - إذا كان موجوداً */}
+        {product.rating > 0 && (
+          <div className="flex items-center gap-1 mb-1.5">
+            <div className="flex items-center">
+              <Star size={12} className="text-yellow-400 fill-yellow-400" />
+              <span className="text-xs font-medium text-gray-700 ml-0.5">{product.rating.toFixed(1)}</span>
+            </div>
+            {product.reviews > 0 && (
+              <span className="text-[10px] text-gray-500">({product.reviews})</span>
+            )}
+          </div>
         )}
         
         {/* الموقع */}

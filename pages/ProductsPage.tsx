@@ -313,31 +313,26 @@ export default function ProductsPage() {
         }
     }, [categories, selectedCategory]);
 
-    const fetchProducts = useCallback(async () => {
+    const fetchProducts = useCallback(async (page: number = 1) => {
         setLoading(true);
         try {
             const branchId = selectedBranch?.id || 1;
-            console.log('📦 Fetching products for branch:', branchId, 'category:', selectedCategory);
+            const offset = (page - 1) * ITEMS_PER_PAGE;
+            console.log('📦 Fetching products for branch:', branchId, 'page:', page, 'offset:', offset);
 
             let data;
             if (selectedCategory && selectedCategory !== '') {
-                // Fetch products by category from API (optimized)
+                // Fetch products by category with pagination
                 console.log('🎯 Using API category filter:', selectedCategory);
-                data = await api.products.getByCategory(selectedCategory, branchId);
+                data = await api.products.getByCategory(selectedCategory, branchId, ITEMS_PER_PAGE, offset);
             } else {
-                // Fetch all products (with limit for performance)
-                console.log('🎯 Fetching all products');
-                data = await api.products.getAllByBranch(branchId);
+                // Fetch all products with pagination (20 per page)
+                console.log('🎯 Fetching products page', page, 'with limit', ITEMS_PER_PAGE);
+                data = await api.products.getAllByBranch(branchId, { limit: ITEMS_PER_PAGE, offset });
             }
 
             const list = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
-            console.log('✅ Loaded products:', list.length);
-
-            // Optimize: Memoize unique categories
-            if (list.length > 0) {
-                const uniqueCategories = [...new Set(list.map((p: any) => p.category))];
-                console.log('📊 Categories in loaded products:', uniqueCategories);
-            }
+            console.log('✅ Loaded products:', list.length, 'for page', page);
 
             // Batch state update for better performance
             setAllProducts(list);
@@ -457,8 +452,13 @@ export default function ProductsPage() {
 
     // Separate effect to fetch products when category or branch changes
     useEffect(() => {
-        fetchProducts();
-    }, [fetchProducts]);
+        fetchProducts(currentPage);
+    }, [fetchProducts, currentPage]);
+
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [selectedCategory, selectedBrand, selectedSort]);
 
     // Filter and sort products
     const filteredAndSortedProducts = useMemo(() => {
@@ -524,12 +524,15 @@ export default function ProductsPage() {
         return filtered;
     }, [allProducts, selectedCategory, selectedBrand, sortBy, priceRange, showOnlyOffers]);
 
-    // Pagination
-    const totalPages = Math.ceil(filteredAndSortedProducts.length / ITEMS_PER_PAGE);
-    const paginatedProducts = filteredAndSortedProducts.slice(
-        (currentPage - 1) * ITEMS_PER_PAGE,
-        currentPage * ITEMS_PER_PAGE
-    );
+    // Pagination - Server-side (backend handles the pagination)
+    // We show all products fetched from backend (already paginated)
+    const paginatedProducts = filteredAndSortedProducts;
+    
+    // Estimate total pages (since we fetch 20 at a time)
+    // If we got exactly 20 products, there might be more pages
+    const hasMorePages = allProducts.length === ITEMS_PER_PAGE;
+    const totalPages = hasMorePages ? currentPage + 5 : currentPage; // Show up to 5 more pages if there might be more
+    
     const siteUrl = getSiteUrl();
     const canonicalUrl = `${siteUrl}${location.pathname}${location.search}`;
     const filtersLabel = [

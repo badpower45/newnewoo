@@ -182,9 +182,44 @@ router.post('/dev/fix-prices', [verifyToken, isAdmin], async (req, res) => {
     }
 });
 
+// ✅ NEW: Get special offers only (products with discount)
+router.get('/special-offers', async (req, res) => {
+    const { branchId } = req.query;
+    const branch = branchId || 1; // Default branch
+    
+    try {
+        // Add cache headers - 6 hours for special offers
+        res.set('Cache-Control', 'public, s-maxage=21600, stale-while-revalidate=300, max-age=600');
+        
+        const { rows } = await query(`
+            SELECT DISTINCT p.id, p.name, p.category, p.image, p.weight, p.rating, p.reviews,
+                   p.is_organic, p.is_new,
+                   p.frame_overlay_url, p.frame_enabled,
+                   bp.price, bp.discount_price, bp.stock_quantity, bp.is_available, bp.branch_id
+            FROM products p
+            INNER JOIN branch_products bp ON p.id = bp.product_id
+            WHERE bp.branch_id = $1
+              AND bp.discount_price IS NOT NULL
+              AND bp.discount_price > 0
+              AND bp.discount_price < bp.price
+              AND bp.is_available = TRUE
+            ORDER BY (bp.price - bp.discount_price) DESC
+            LIMIT 100
+        `, [branch]);
+        
+        console.log(`✨ Special offers loaded: ${rows.length} products with discount`);
+        return res.json({ data: rows });
+    } catch (err) {
+        console.error('Special offers API failed:', err);
+        return res.status(500).json({ error: err.message });
+    }
+});
+
 // Get all products (filtered by branch)
 router.get('/', async (req, res) => {
-    const { branchId, category, search, limit, includeAllBranches, includeMagazine } = req.query;
+    const { branchId, category, search, limit, offset, includeAllBranches, includeMagazine } = req.query;
+    const limitValue = limit ? parseInt(limit) : 100;
+    const offsetValue = offset ? parseInt(offset) : 0;
 
     // For admin panel - show all products with their branch data
     if (includeAllBranches === 'true') {
@@ -215,6 +250,7 @@ router.get('/', async (req, res) => {
                 ${categoryCte}
                 SELECT DISTINCT ON (p.id) p.id, p.name, p.category, p.image, p.weight, p.rating, p.reviews, 
                        p.is_organic, p.is_new, p.barcode, p.shelf_location, p.subcategory, p.description,
+                       p.frame_overlay_url, p.frame_enabled,
                        bp.price, bp.discount_price, bp.stock_quantity, bp.is_available, bp.branch_id,
                        (mo.id IS NOT NULL) AS in_magazine
                 FROM products p
@@ -250,10 +286,14 @@ router.get('/', async (req, res) => {
             }
             
             sql += ` ORDER BY p.id, bp.branch_id NULLS LAST`;
-            
-            if (limit) {
-                sql += ` LIMIT $${paramIndex}`;
-                params.push(parseInt(limit));
+
+            sql += ` LIMIT $${paramIndex}`;
+            params.push(limitValue);
+            paramIndex++;
+
+            if (offsetValue > 0) {
+                sql += ` OFFSET $${paramIndex}`;
+                params.push(offsetValue);
             }
 
             const { rows } = await query(sql, params);
@@ -276,8 +316,8 @@ router.get('/', async (req, res) => {
     }
 
     try {
-        // Add cache headers for better performance
-        res.set('Cache-Control', 'public, max-age=60'); // Cache for 1 minute
+        // Add cache headers - 6 hours cache for aggressive optimization
+        res.set('Cache-Control', 'public, s-maxage=21600, stale-while-revalidate=300, max-age=600');
         
         const params = [branchId];
         let paramIndex = 2;
@@ -303,7 +343,8 @@ router.get('/', async (req, res) => {
 
         let sql = `
             ${categoryCte}
-            SELECT p.id, p.name, p.category, p.image, p.weight, p.rating, p.reviews, p.is_organic, p.is_new, p.barcode, p.shelf_location,
+            SELECT p.id, p.name, p.category, p.image, p.weight, p.rating, p.reviews, p.is_organic, p.is_new,
+                   p.frame_overlay_url, p.frame_enabled,
                    bp.price, bp.discount_price, bp.stock_quantity, bp.is_available,
                    (mo.id IS NOT NULL) AS in_magazine
         FROM products p
@@ -346,11 +387,14 @@ router.get('/', async (req, res) => {
         // Add ORDER BY for consistent results
         sql += ` ORDER BY p.id`;
         
-        // Add LIMIT for pagination
-        if (limit) {
-            sql += ` LIMIT $${paramIndex}`;
-            params.push(parseInt(limit));
-            paramIndex++;
+        // Add LIMIT/OFFSET for pagination
+        sql += ` LIMIT $${paramIndex}`;
+        params.push(limitValue);
+        paramIndex++;
+
+        if (offsetValue > 0) {
+            sql += ` OFFSET $${paramIndex}`;
+            params.push(offsetValue);
         }
 
         const { rows } = await query(sql, params);

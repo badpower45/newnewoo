@@ -147,7 +147,7 @@ const HomePage = () => {
             const branchId = selectedBranch?.id || DEFAULT_BRANCH_ID;
             console.log('🏪 Loading limited products for HomePage - Branch:', selectedBranch?.name || 'Default', 'ID:', branchId);
             
-            // ✅ زيادة limit للصفحة الرئيسية: جلب 100 منتج بدلاً من 50
+            // ✅ جلب 100 منتج للصفحة الرئيسية
             let list = await api.products.getAllByBranch(branchId, { limit: 100 });
 
             // Fallback if empty (مع limit)

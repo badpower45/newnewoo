@@ -213,15 +213,25 @@ export const api = {
             console.log(`📦 Loaded ${data.length} products for ${category} (limit ${limit})`);
             return data.map(normalize);
         },
-        getAllByBranch: async (branchId: number, options?: { includeMagazine?: boolean; limit?: number }) => {
+        getAllByBranch: async (branchId: number, options?: { includeMagazine?: boolean; limit?: number; offset?: number }) => {
             let url = `${API_URL}/products?branchId=${branchId}`;
+            const limitValue = options?.limit ?? 100;
+            const offsetValue = options?.offset ?? 0;
             if (options?.includeMagazine) {
                 url += '&includeMagazine=true';
+            }
+            url += `&limit=${limitValue}`;
+            if (offsetValue > 0) {
+                url += `&offset=${offsetValue}`;
             }
             const res = await fetch(url, { headers: getHeaders() });
             if (!res.ok && res.status === 404) {
                 // backend missing branch filter; fallback to all products
-                const all = await fetch(`${API_URL}/products`, { headers: getHeaders() });
+                let fallbackUrl = `${API_URL}/products?limit=${limitValue}`;
+                if (offsetValue > 0) {
+                    fallbackUrl += `&offset=${offsetValue}`;
+                }
+                const all = await fetch(fallbackUrl, { headers: getHeaders() });
                 const jsonAll = await all.json();
                 const normalize = (p: any) => ({ ...p, price: Number(p?.price) || 0 });
                 const data = Array.isArray(jsonAll) ? jsonAll : (jsonAll.data || []);
@@ -246,10 +256,16 @@ export const api = {
             }
             return json;
         },
-        getByCategory: async (category: string, branchId?: number) => {
+        getByCategory: async (category: string, branchId?: number, limit?: number, offset?: number) => {
             let url = `${API_URL}/products?category=${encodeURIComponent(category)}`;
             if (branchId) {
                 url += `&branchId=${branchId}`;
+            }
+            if (limit !== undefined) {
+                url += `&limit=${limit}`;
+            }
+            if (offset !== undefined && offset > 0) {
+                url += `&offset=${offset}`;
             }
             const res = await fetch(url, { headers: getHeaders() });
             const json = await res.json();
