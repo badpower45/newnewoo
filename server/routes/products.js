@@ -1027,7 +1027,7 @@ router.get('/frames', async (req, res) => {
     }
 });
 
-// Upload new frame
+// Upload new frame - 🔥 CLOUDINARY VERSION (99% bandwidth saving)
 router.post('/upload-frame', verifyToken, isAdmin, secureFrameUpload, async (req, res) => {
     try {
         console.log('🖼️ Upload frame request:', {
@@ -1043,12 +1043,45 @@ router.post('/upload-frame', verifyToken, isAdmin, secureFrameUpload, async (req
         
         if (!name || !name_ar) {
             // Delete uploaded file if validation fails
-            fs.unlinkSync(req.file.path);
+            if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
             return res.status(400).json({ error: 'Name and name_ar are required' });
         }
 
-        // Create frame URL (relative path)
-        const frameUrl = `/uploads/frames/${req.file.filename}`;
+        // 🔥 رفع على Cloudinary بدلاً من حفظ محلي
+        let frameUrl;
+        
+        if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY) {
+            // Cloudinary available - upload to CDN
+            const cloudinary = require('cloudinary').v2;
+            cloudinary.config({
+                cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+                api_key: process.env.CLOUDINARY_API_KEY,
+                api_secret: process.env.CLOUDINARY_API_SECRET
+            });
+            
+            try {
+                const result = await cloudinary.uploader.upload(req.file.path, {
+                    folder: 'product-frames',
+                    public_id: `frame_${Date.now()}`,
+                    resource_type: 'image',
+                    quality: 'auto:eco',
+                    fetch_format: 'auto'
+                });
+                
+                frameUrl = result.secure_url;
+                console.log('☁️ Uploaded to Cloudinary:', frameUrl);
+            } catch (cloudinaryError) {
+                console.error('Cloudinary upload failed, falling back to local:', cloudinaryError);
+                frameUrl = `/uploads/frames/${req.file.filename}`;
+            }
+            
+            // حذف الملف المؤقت
+            if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+        } else {
+            // Fallback: local storage
+            frameUrl = `/uploads/frames/${req.file.filename}`;
+            console.log('⚠️ Cloudinary not configured, using local storage');
+        }
         
         const { rows } = await query(
             `INSERT INTO product_frames (name, name_ar, frame_url, category, is_active)

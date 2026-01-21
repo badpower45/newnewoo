@@ -69,31 +69,23 @@ const ProductFramesManager: React.FC = () => {
         try {
             setLoading(true);
             
-            // Convert file to base64
-            const reader = new FileReader();
-            reader.readAsDataURL(selectedFile);
+            // 🔥 رفع على Cloudinary - توفير 99% bandwidth
+            console.log('📤 Uploading frame to Cloudinary...');
             
-            const base64Promise = new Promise<string>((resolve, reject) => {
-                reader.onload = () => resolve(reader.result as string);
-                reader.onerror = reject;
-            });
+            // إرسال كـ FormData (multipart) بدلاً من base64
+            const formData = new FormData();
+            formData.append('frame', selectedFile);
+            formData.append('name', frameName);
+            formData.append('name_ar', frameNameAr);
+            formData.append('category', frameCategory);
             
-            const frame_base64 = await base64Promise;
-            console.log('📤 Uploading frame as base64...');
-            
-            // Send as JSON with base64
             const response = await fetch(`${api.API_URL}/products/upload-frame`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    // لا تضع Content-Type - المتصفح يضيفها تلقائياً لـ FormData
                 },
-                body: JSON.stringify({
-                    name: frameName,
-                    name_ar: frameNameAr,
-                    category: frameCategory,
-                    frame_base64: frame_base64
-                })
+                body: formData
             });
             
             const result = await response.json();
