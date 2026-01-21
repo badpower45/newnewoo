@@ -13,6 +13,24 @@ const router = express.Router();
 const secureExcelUpload = createExcelUploader();
 const secureFrameUpload = createFrameUploader();
 
+// 🔥 Alternative: Use multer with any() to read all fields
+const multerAny = multer({
+    storage: multer.diskStorage({
+        destination: 'uploads/frames/',
+        filename: (req, file, cb) => {
+            const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+            cb(null, `frame-${uniqueSuffix}${path.extname(file.originalname)}`);
+        }
+    }),
+    fileFilter: (req, file, cb) => {
+        if (file.mimetype !== 'image/png') {
+            return cb(new Error('Only PNG files allowed'), false);
+        }
+        cb(null, true);
+    },
+    limits: { fileSize: 500 * 1024 }
+}).any();
+
 const normalizeCategoryValue = (value = '') =>
     value
         .toString()
@@ -1028,40 +1046,31 @@ router.get('/frames', async (req, res) => {
 });
 
 // Upload new frame - 🔥 CLOUDINARY VERSION (99% bandwidth saving)
-router.post('/upload-frame', verifyToken, isAdmin, secureFrameUpload, async (req, res) => {
+router.post('/upload-frame', verifyToken, isAdmin, multerAny, async (req, res) => {
     try {
         console.log('🖼️ Upload frame request:');
-        console.log('  - Headers:', req.headers['content-type']);
-        console.log('  - Body keys:', Object.keys(req.body));
-        console.log('  - Body values:', req.body);
-        console.log('  - File:', req.file ? { 
-            filename: req.file.filename, 
-            size: req.file.size,
-            fieldname: req.file.fieldname,
-            mimetype: req.file.mimetype
-        } : 'NO FILE');
+        console.log('  - Content-Type:', req.headers['content-type']);
+        console.log('  - Body:', req.body);
+        console.log('  - Files:', req.files);
+        console.log('  - File (single):', req.file);
 
-        if (!req.file) {
+        const uploadedFile = req.files && req.files.length > 0 ? req.files[0] : req.file;
+        
+        if (!uploadedFile) {
             return res.status(400).json({ error: 'No frame file uploaded' });
         }
 
-        // 🔥 قراءة البيانات - جرب طرق مختلفة
-        const name = req.body.name || req.body['name'] || req.query.name;
-        const name_ar = req.body.name_ar || req.body['name_ar'] || req.query.name_ar;
-        const category = req.body.category || req.body['category'] || req.query.category || 'general';
+        const name = req.body.name;
+        const name_ar = req.body.name_ar;
+        const category = req.body.category || 'general';
         
-        console.log('📝 Extracted data:', { name, name_ar, category });
+        console.log('📝 Extracted:', { name, name_ar, category });
         
         if (!name || !name_ar) {
-            // Delete uploaded file if validation fails
-            if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+            if (fs.existsSync(uploadedFile.path)) fs.unlinkSync(uploadedFile.path);
             return res.status(400).json({ 
                 error: 'Name and name_ar are required',
-                debug: {
-                    body: req.body,
-                    query: req.query,
-                    extracted: { name, name_ar, category }
-                }
+                debug: { body: req.body, file: uploadedFile.filename }
             });
         }
 
@@ -1078,7 +1087,7 @@ router.post('/upload-frame', verifyToken, isAdmin, secureFrameUpload, async (req
             });
             
             try {
-                const result = await cloudinary.uploader.upload(req.file.path, {
+                const result = await cloudinary.uploader.upload(uploadedFile.path, {
                     folder: 'product-frames',
                     public_id: `frame_${Date.now()}`,
                     resource_type: 'image',
@@ -1090,14 +1099,14 @@ router.post('/upload-frame', verifyToken, isAdmin, secureFrameUpload, async (req
                 console.log('☁️ Uploaded to Cloudinary:', frameUrl);
             } catch (cloudinaryError) {
                 console.error('Cloudinary upload failed, falling back to local:', cloudinaryError);
-                frameUrl = `/uploads/frames/${req.file.filename}`;
+                frameUrl = `/uploads/frames/${uploadedFile.filename}`;
             }
             
             // حذف الملف المؤقت
-            if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+            if (fs.existsSync(uploadedFile.path)) fs.unlinkSync(uploadedFile.path);
         } else {
             // Fallback: local storage
-            frameUrl = `/uploads/frames/${req.file.filename}`;
+            frameUrl = `/uploads/frames/${uploadedFile.filename}`;
             console.log('⚠️ Cloudinary not configured, using local storage');
         }
         
@@ -1113,8 +1122,9 @@ router.post('/upload-frame', verifyToken, isAdmin, secureFrameUpload, async (req
     } catch (error) {
         console.error('❌ Error uploading frame:', error);
         // Clean up uploaded file on error
-        if (req.file && fs.existsSync(req.file.path)) {
-            fs.unlinkSync(req.file.path);
+        const uploadedFile = req.files && req.files.length > 0 ? req.files[0] : req.file;
+        if (uploadedFile && fs.existsSync(uploadedFile.path)) {
+            fs.unlinkSync(uploadedFile.path);
         }
         res.status(500).json({ error: 'Failed to upload frame', details: error.message });
     }
