@@ -1030,28 +1030,38 @@ router.get('/frames', async (req, res) => {
 // Upload new frame - 🔥 CLOUDINARY VERSION (99% bandwidth saving)
 router.post('/upload-frame', verifyToken, isAdmin, secureFrameUpload, async (req, res) => {
     try {
-        console.log('🖼️ Upload frame request:', {
-            body: req.body,
-            file: req.file ? { filename: req.file.filename, size: req.file.size } : null
-        });
+        console.log('🖼️ Upload frame request:');
+        console.log('  - Headers:', req.headers['content-type']);
+        console.log('  - Body keys:', Object.keys(req.body));
+        console.log('  - Body values:', req.body);
+        console.log('  - File:', req.file ? { 
+            filename: req.file.filename, 
+            size: req.file.size,
+            fieldname: req.file.fieldname,
+            mimetype: req.file.mimetype
+        } : 'NO FILE');
 
         if (!req.file) {
             return res.status(400).json({ error: 'No frame file uploaded' });
         }
 
-        // 🔥 FIX: قراءة البيانات من req.body (multer يحطها هناك)
-        const name = req.body.name;
-        const name_ar = req.body.name_ar;
-        const category = req.body.category || 'general';
+        // 🔥 قراءة البيانات - جرب طرق مختلفة
+        const name = req.body.name || req.body['name'] || req.query.name;
+        const name_ar = req.body.name_ar || req.body['name_ar'] || req.query.name_ar;
+        const category = req.body.category || req.body['category'] || req.query.category || 'general';
         
-        console.log('📝 Form data:', { name, name_ar, category });
+        console.log('📝 Extracted data:', { name, name_ar, category });
         
         if (!name || !name_ar) {
             // Delete uploaded file if validation fails
             if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
             return res.status(400).json({ 
                 error: 'Name and name_ar are required',
-                details: `Received: name=${name}, name_ar=${name_ar}` 
+                debug: {
+                    body: req.body,
+                    query: req.query,
+                    extracted: { name, name_ar, category }
+                }
             });
         }
 
