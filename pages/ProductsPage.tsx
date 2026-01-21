@@ -159,6 +159,8 @@ export default function ProductsPage() {
     const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
     const [showOnlyOffers, setShowOnlyOffers] = useState(false);
     const [categoryBanner, setCategoryBanner] = useState<any>(null);
+    const [totalCount, setTotalCount] = useState(0); // 🔥 Total products count
+    const [totalPages, setTotalPages] = useState(0); // 🔥 Total pages
 
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
@@ -269,7 +271,10 @@ export default function ProductsPage() {
     // Load category banner when category is selected
     useEffect(() => {
         const fetchCategoryBanner = async () => {
-            if (!selectedCategory || selectedCategory === '') {
+            // 🔥 Don't show banner if no category selected OR category is "All"/"الكل"
+            if (!selectedCategory || selectedCategory === '' || 
+                selectedCategory === 'All' || selectedCategory === 'الكل' ||
+                selectedCategory.toLowerCase() === 'all' || selectedCategory.toLowerCase() === 'الكل') {
                 setCategoryBanner(null);
                 return;
             }
@@ -320,25 +325,38 @@ export default function ProductsPage() {
             const offset = (page - 1) * ITEMS_PER_PAGE;
             console.log('📦 Fetching products for branch:', branchId, 'page:', page, 'offset:', offset);
 
-            let data;
+            let response;
             if (selectedCategory && selectedCategory !== '') {
                 // Fetch products by category with pagination
                 console.log('🎯 Using API category filter:', selectedCategory);
-                data = await api.products.getByCategory(selectedCategory, branchId, ITEMS_PER_PAGE, offset);
+                response = await api.products.getByCategory(selectedCategory, branchId, ITEMS_PER_PAGE, offset);
             } else {
                 // Fetch all products with pagination (20 per page)
                 console.log('🎯 Fetching products page', page, 'with limit', ITEMS_PER_PAGE);
-                data = await api.products.getAllByBranch(branchId, { limit: ITEMS_PER_PAGE, offset });
+                response = await api.products.getAllByBranch(branchId, { limit: ITEMS_PER_PAGE, offset });
             }
 
-            const list = Array.isArray(data?.data) ? data.data : (Array.isArray(data) ? data : []);
+            const list = Array.isArray(response?.data) ? response.data : (Array.isArray(response) ? response : []);
             console.log('✅ Loaded products:', list.length, 'for page', page);
+            
+            // 🔥 Get pagination data from API response
+            if (response?.pagination) {
+                setTotalCount(response.pagination.total || 0);
+                setTotalPages(response.pagination.totalPages || 1);
+                console.log('📊 Total products:', response.pagination.total, 'Total pages:', response.pagination.totalPages);
+            } else {
+                // Fallback if no pagination data
+                setTotalCount(list.length);
+                setTotalPages(1);
+            }
 
             // Batch state update for better performance
             setAllProducts(list);
         } catch (err) {
             console.error('❌ Error fetching products:', err);
             setAllProducts([]); // Clear on error
+            setTotalCount(0);
+            setTotalPages(0);
         } finally {
             setLoading(false);
         }
@@ -528,10 +546,8 @@ export default function ProductsPage() {
     // We show all products fetched from backend (already paginated)
     const paginatedProducts = filteredAndSortedProducts;
     
-    // Estimate total pages (since we fetch 20 at a time)
-    // If we got exactly 20 products, there might be more pages
-    const hasMorePages = allProducts.length === ITEMS_PER_PAGE;
-    const totalPages = hasMorePages ? currentPage + 5 : currentPage; // Show up to 5 more pages if there might be more
+    // Total pages comes from API now (no estimation needed)
+    // If API doesn't return pagination, fallback to 1 page
     
     const siteUrl = getSiteUrl();
     const canonicalUrl = `${siteUrl}${location.pathname}${location.search}`;
@@ -974,50 +990,62 @@ export default function ProductsPage() {
 
                             {/* Pagination */}
                             {totalPages > 1 && (
-                                <div className="flex justify-center items-center gap-2 mt-10">
-                                    <button
-                                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                        disabled={currentPage === 1}
-                                        className="px-4 py-2 rounded-xl bg-white border border-gray-200 hover:border-brand-orange disabled:opacity-50 disabled:cursor-not-allowed transition"
-                                    >
-                                        السابق
-                                    </button>
-
-                                    <div className="flex items-center gap-1">
-                                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                                            let pageNum;
-                                            if (totalPages <= 5) {
-                                                pageNum = i + 1;
-                                            } else if (currentPage <= 3) {
-                                                pageNum = i + 1;
-                                            } else if (currentPage >= totalPages - 2) {
-                                                pageNum = totalPages - 4 + i;
-                                            } else {
-                                                pageNum = currentPage - 2 + i;
-                                            }
-
-                                            return (
-                                                <button
-                                                    key={pageNum}
-                                                    onClick={() => setCurrentPage(pageNum)}
-                                                    className={`w-10 h-10 rounded-xl font-medium transition ${currentPage === pageNum
-                                                            ? 'bg-brand-orange text-white shadow-lg'
-                                                            : 'bg-white border border-gray-200 hover:border-brand-orange'
-                                                        }`}
-                                                >
-                                                    {pageNum}
-                                                </button>
-                                            );
-                                        })}
+                                <div className="space-y-4">
+                                    {/* Products Count Info */}
+                                    <div className="text-center text-gray-600 text-sm">
+                                        عرض {((currentPage - 1) * ITEMS_PER_PAGE) + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} من {totalCount} منتج
                                     </div>
+                                    
+                                    <div className="flex justify-center items-center gap-2">
+                                        <button
+                                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                            disabled={currentPage === 1}
+                                            className="px-4 py-2 rounded-xl bg-white border border-gray-200 hover:border-brand-orange disabled:opacity-50 disabled:cursor-not-allowed transition"
+                                        >
+                                            السابق
+                                        </button>
 
-                                    <button
-                                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                        disabled={currentPage === totalPages}
-                                        className="px-4 py-2 rounded-xl bg-white border border-gray-200 hover:border-brand-orange disabled:opacity-50 disabled:cursor-not-allowed transition"
-                                    >
-                                        التالي
-                                    </button>
+                                        <div className="flex items-center gap-1">
+                                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                                let pageNum;
+                                                if (totalPages <= 5) {
+                                                    pageNum = i + 1;
+                                                } else if (currentPage <= 3) {
+                                                    pageNum = i + 1;
+                                                } else if (currentPage >= totalPages - 2) {
+                                                    pageNum = totalPages - 4 + i;
+                                                } else {
+                                                    pageNum = currentPage - 2 + i;
+                                                }
+
+                                                return (
+                                                    <button
+                                                        key={pageNum}
+                                                        onClick={() => setCurrentPage(pageNum)}
+                                                        className={`w-10 h-10 rounded-xl font-medium transition ${currentPage === pageNum
+                                                                ? 'bg-brand-orange text-white shadow-lg'
+                                                                : 'bg-white border border-gray-200 hover:border-brand-orange'
+                                                            }`}
+                                                    >
+                                                        {pageNum}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+
+                                        <button
+                                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                            disabled={currentPage === totalPages}
+                                            className="px-4 py-2 rounded-xl bg-white border border-gray-200 hover:border-brand-orange disabled:opacity-50 disabled:cursor-not-allowed transition"
+                                        >
+                                            التالي
+                                        </button>
+                                    </div>
+                                    
+                                    {/* Page Info */}
+                                    <div className="text-center text-gray-500 text-xs">
+                                        صفحة {currentPage} من {totalPages}
+                                    </div>
                                 </div>
                             )}
                         </>

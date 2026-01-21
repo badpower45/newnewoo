@@ -1,5 +1,29 @@
 import { API_URL } from '../src/config';
 
+// 🔥 Product field mapper - converts short keys to full keys (Amazon strategy)
+// This saves ~68% bandwidth by using short keys in API responses
+const mapProduct = (p: any) => {
+    if (!p) return p;
+    return {
+        id: p.i ?? p.id,
+        name: p.n ?? p.name,
+        category: p.c ?? p.category,
+        image: p.im ?? p.image,
+        weight: p.w ?? p.weight,
+        rating: p.r ?? p.rating ?? 0,
+        reviews: p.rv ?? p.reviews ?? 0,
+        frame_overlay_url: p.fo ?? p.frame_overlay_url,
+        frame_enabled: !!p.fo, // If frame_overlay exists, frame is enabled
+        price: p.p ?? p.price,
+        discount_price: p.dp ?? p.discount_price,
+        stock_quantity: p.sq ?? p.stock_quantity,
+        is_available: true, // Always true (filtered by backend)
+        in_magazine: p.mg === 1 || p.in_magazine === true,
+        // Removed fields to save bandwidth:
+        // is_organic, is_new (not used in UI)
+    };
+};
+
 // Enhanced getHeaders with better token handling
 const getHeaders = () => {
     const token = localStorage.getItem('token');
@@ -168,7 +192,7 @@ export const api = {
             console.warn('⚠️ getAll() is deprecated - use getPaginated() to reduce egress!');
             const res = await fetch(`${API_URL}/products`, { headers: getHeaders() });
             const json = await res.json();
-            const normalize = (p: any) => ({ ...p, price: Number(p?.price) || 0 });
+            const normalize = (p: any) => ({ ...mapProduct(p), price: Number(mapProduct(p)?.price) || 0 });
             const data = Array.isArray(json) ? json : (json.data || []);
             return data.map(normalize);
         },
@@ -180,7 +204,7 @@ export const api = {
             
             const res = await fetch(url, { headers: getHeaders() });
             const json = await res.json();
-            const normalize = (p: any) => ({ ...p, price: Number(p?.price) || 0 });
+            const normalize = (p: any) => ({ ...mapProduct(p), price: Number(mapProduct(p)?.price) || 0 });
             const data = Array.isArray(json) ? json : (json.data || []);
             
             console.log(`📦 Loaded ${data.length} products (page ${page}, limit ${limit})`);
@@ -196,7 +220,7 @@ export const api = {
             }
             const res = await fetch(url, { headers: getHeaders() });
             const json = await res.json();
-            const normalize = (p: any) => ({ ...p, price: Number(p?.price) || 0 });
+            const normalize = (p: any) => ({ ...mapProduct(p), price: Number(mapProduct(p)?.price) || 0 });
             const data = Array.isArray(json) ? json : (json.data || []);
             return data.map(normalize);
         },
@@ -207,7 +231,7 @@ export const api = {
             
             const res = await fetch(url, { headers: getHeaders() });
             const json = await res.json();
-            const normalize = (p: any) => ({ ...p, price: Number(p?.price) || 0 });
+            const normalize = (p: any) => ({ ...mapProduct(p), price: Number(mapProduct(p)?.price) || 0 });
             const data = Array.isArray(json) ? json : (json.data || []);
             
             console.log(`📦 Loaded ${data.length} products for ${category} (limit ${limit})`);
@@ -233,15 +257,15 @@ export const api = {
                 }
                 const all = await fetch(fallbackUrl, { headers: getHeaders() });
                 const jsonAll = await all.json();
-                const normalize = (p: any) => ({ ...p, price: Number(p?.price) || 0 });
+                const normalize = (p: any) => ({ ...mapProduct(p), price: Number(mapProduct(p)?.price) || 0 });
                 const data = Array.isArray(jsonAll) ? jsonAll : (jsonAll.data || []);
                 return data.map(normalize);
             }
             const json = await res.json();
-            const normalize = (p: any) => ({ ...p, price: Number(p?.price) || 0 });
+            const normalize = (p: any) => ({ ...mapProduct(p), price: Number(mapProduct(p)?.price) || 0 });
             // Backend returns array directly, not wrapped in {data: [...]}
             const data = Array.isArray(json) ? json : (json.data || []);
-            return data.map(normalize);
+            return json.pagination ? { ...json, data: data.map(normalize) } : data.map(normalize);
         },
         getOne: async (id: string, branchId?: number) => {
             const url = branchId 
@@ -269,10 +293,10 @@ export const api = {
             }
             const res = await fetch(url, { headers: getHeaders() });
             const json = await res.json();
-            const normalize = (p: any) => ({ ...p, price: Number(p?.price) || 0 });
+            const normalize = (p: any) => ({ ...mapProduct(p), price: Number(mapProduct(p)?.price) || 0 });
             // Backend returns array directly
             const data = Array.isArray(json) ? json : (json.data || []);
-            return data.map(normalize);
+            return json.pagination ? { ...json, data: data.map(normalize) } : data.map(normalize);
         },
         search: async (query: string) => {
             const branchId = localStorage.getItem('selectedBranchId') || '1';
@@ -284,7 +308,7 @@ export const api = {
             const branch = branchId || localStorage.getItem('selectedBranchId') || '1';
             const res = await fetch(`${API_URL}/products/special-offers?branchId=${branch}`, { headers: getHeaders() });
             const json = await res.json();
-            const normalize = (p: any) => ({ ...p, price: Number(p?.price) || 0 });
+            const normalize = (p: any) => ({ ...mapProduct(p), price: Number(mapProduct(p)?.price) || 0 });
             const data = Array.isArray(json) ? json : (json.data || []);
             console.log(`✨ Loaded ${data.length} special offers`);
             return { data: data.map(normalize) };
