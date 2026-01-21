@@ -363,17 +363,26 @@ export const api = {
         },
         // Frame management APIs
         uploadFrame: async (formData: FormData) => {
+            const token = localStorage.getItem('token');
+            
+            if (!token || token === 'null' || token === 'undefined') {
+                throw new Error('غير مصرح - يرجى تسجيل الدخول مرة أخرى');
+            }
+            
             const res = await fetch(`${API_URL}/products/upload-frame`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    'Authorization': `Bearer ${token}`
+                    // Don't set Content-Type - browser sets it automatically for FormData
                 },
                 body: formData
             });
+            
             if (!res.ok) {
                 const error = await res.json();
-                throw new Error(error.message || 'فشل رفع الإطار');
+                throw new Error(error.error || error.message || 'فشل رفع الإطار');
             }
+            
             return res.json();
         },
         getFrames: async () => {
