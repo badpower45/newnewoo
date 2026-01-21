@@ -4,6 +4,17 @@ import { API_URL } from '../src/config';
 // This saves ~68% bandwidth by using short keys in API responses
 const mapProduct = (p: any) => {
     if (!p) return p;
+    const frameOverlayUrl = p.fo ?? p.frame_overlay_url;
+    const rawFrameEnabled = p.frame_enabled ?? p.fe;
+    const frameEnabled = rawFrameEnabled === undefined
+        ? Boolean(frameOverlayUrl)
+        : (
+            rawFrameEnabled === true ||
+            rawFrameEnabled === 'true' ||
+            rawFrameEnabled === 't' ||
+            rawFrameEnabled === 1 ||
+            rawFrameEnabled === '1'
+        );
     return {
         id: p.i ?? p.id,
         name: p.n ?? p.name,
@@ -12,8 +23,8 @@ const mapProduct = (p: any) => {
         weight: p.w ?? p.weight,
         rating: p.r ?? p.rating ?? 0,
         reviews: p.rv ?? p.reviews ?? 0,
-        frame_overlay_url: p.fo ?? p.frame_overlay_url,
-        frame_enabled: !!p.fo, // If frame_overlay exists, frame is enabled
+        frame_overlay_url: frameOverlayUrl,
+        frame_enabled: frameEnabled,
         price: p.p ?? p.price,
         discount_price: p.dp ?? p.discount_price,
         stock_quantity: p.sq ?? p.stock_quantity,
