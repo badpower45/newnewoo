@@ -375,8 +375,8 @@ router.get('/', async (req, res) => {
                 CASE WHEN p.rating > 0 THEN p.rating ELSE NULL END AS r,
                 CASE WHEN p.reviews > 0 THEN p.reviews ELSE NULL END AS rv,
                 CASE 
-                    WHEN p.frame_enabled = TRUE AND p.frame_overlay_url LIKE 'http%' 
-                    THEN p.frame_overlay_url 
+                    WHEN p.frame_enabled = TRUE AND TRIM(p.frame_overlay_url) != '' AND p.frame_overlay_url IS NOT NULL
+                    THEN TRIM(p.frame_overlay_url)
                     ELSE NULL 
                 END AS fo,
                 bp.price AS p,
