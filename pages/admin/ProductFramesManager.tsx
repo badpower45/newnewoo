@@ -69,21 +69,37 @@ const ProductFramesManager: React.FC = () => {
         try {
             setLoading(true);
             
-            // 🔥 رفع على Cloudinary - توفير 99% bandwidth
-            console.log('📤 Uploading frame to Cloudinary...');
+            // 🔥 تحويل لـ base64 للإرسال
+            const reader = new FileReader();
+            reader.readAsDataURL(selectedFile);
             
-            // إرسال كـ FormData (multipart) بدلاً من base64
-            const formData = new FormData();
-            formData.append('frame', selectedFile);
-            formData.append('name', frameName);
-            formData.append('name_ar', frameNameAr);
-            formData.append('category', frameCategory);
+            const base64Promise = new Promise<string>((resolve, reject) => {
+                reader.onload = () => resolve(reader.result as string);
+                reader.onerror = reject;
+            });
             
-            // 🔥 FIX: استخدام uploadFrame من api بدلاً من fetch مباشر
-            const result = await api.products.uploadFrame(formData);
+            const frameBase64 = await base64Promise;
+            console.log('📤 Uploading frame (will be uploaded to Cloudinary by backend)...');
             
-            if (!result.success) {
-                throw new Error(result.error || 'فشل رفع الإطار');
+            // إرسال JSON بدلاً من FormData
+            const response = await fetch(`${api.API_URL}/products/upload-frame`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({
+                    name: frameName,
+                    name_ar: frameNameAr,
+                    category: frameCategory,
+                    frame_base64: frameBase64
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(result.error || result.details || 'فشل رفع الإطار');
             }
             
             console.log('✅ Frame uploaded:', result);

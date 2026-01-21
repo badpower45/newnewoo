@@ -1045,40 +1045,27 @@ router.get('/frames', async (req, res) => {
     }
 });
 
-// Upload new frame - 🔥 CLOUDINARY VERSION (99% bandwidth saving)
-router.post('/upload-frame', verifyToken, isAdmin, multerAny, async (req, res) => {
+// Upload new frame - 🔥 FINAL FIX: Accept base64 in JSON, upload to Cloudinary
+router.post('/upload-frame', verifyToken, isAdmin, async (req, res) => {
     try {
-        console.log('🖼️ Upload frame request:');
-        console.log('  - Content-Type:', req.headers['content-type']);
-        console.log('  - Body:', req.body);
-        console.log('  - Files:', req.files);
-        console.log('  - File (single):', req.file);
-
-        const uploadedFile = req.files && req.files.length > 0 ? req.files[0] : req.file;
+        const { name, name_ar, category, frame_base64 } = req.body;
         
-        if (!uploadedFile) {
-            return res.status(400).json({ error: 'No frame file uploaded' });
-        }
-
-        const name = req.body.name;
-        const name_ar = req.body.name_ar;
-        const category = req.body.category || 'general';
-        
-        console.log('📝 Extracted:', { name, name_ar, category });
+        console.log('🖼️ Upload frame:', { name, name_ar, category, hasBase64: !!frame_base64 });
         
         if (!name || !name_ar) {
-            if (fs.existsSync(uploadedFile.path)) fs.unlinkSync(uploadedFile.path);
             return res.status(400).json({ 
-                error: 'Name and name_ar are required',
-                debug: { body: req.body, file: uploadedFile.filename }
+                error: 'Name and name_ar are required'
             });
         }
+        
+        if (!frame_base64) {
+            return res.status(400).json({ error: 'Frame image is required' });
+        }
 
-        // 🔥 رفع على Cloudinary بدلاً من حفظ محلي
+        // 🔥 رفع base64 على Cloudinary مباشرة
         let frameUrl;
         
         if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY) {
-            // Cloudinary available - upload to CDN
             const cloudinary = require('cloudinary').v2;
             cloudinary.config({
                 cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -1087,7 +1074,8 @@ router.post('/upload-frame', verifyToken, isAdmin, multerAny, async (req, res) =
             });
             
             try {
-                const result = await cloudinary.uploader.upload(uploadedFile.path, {
+                // رفع base64 مباشرة
+                const result = await cloudinary.uploader.upload(frame_base64, {
                     folder: 'product-frames',
                     public_id: `frame_${Date.now()}`,
                     resource_type: 'image',
@@ -1096,18 +1084,16 @@ router.post('/upload-frame', verifyToken, isAdmin, multerAny, async (req, res) =
                 });
                 
                 frameUrl = result.secure_url;
-                console.log('☁️ Uploaded to Cloudinary:', frameUrl);
+                console.log('✅ Uploaded to Cloudinary:', frameUrl);
             } catch (cloudinaryError) {
-                console.error('Cloudinary upload failed, falling back to local:', cloudinaryError);
-                frameUrl = `/uploads/frames/${uploadedFile.filename}`;
+                console.error('❌ Cloudinary error:', cloudinaryError);
+                return res.status(500).json({ 
+                    error: 'Failed to upload to Cloudinary',
+                    details: cloudinaryError.message 
+                });
             }
-            
-            // حذف الملف المؤقت
-            if (fs.existsSync(uploadedFile.path)) fs.unlinkSync(uploadedFile.path);
         } else {
-            // Fallback: local storage
-            frameUrl = `/uploads/frames/${uploadedFile.filename}`;
-            console.log('⚠️ Cloudinary not configured, using local storage');
+            return res.status(500).json({ error: 'Cloudinary not configured' });
         }
         
         const { rows } = await query(
