@@ -1039,12 +1039,20 @@ router.post('/upload-frame', verifyToken, isAdmin, secureFrameUpload, async (req
             return res.status(400).json({ error: 'No frame file uploaded' });
         }
 
-        const { name, name_ar, category } = req.body;
+        // 🔥 FIX: قراءة البيانات من req.body (multer يحطها هناك)
+        const name = req.body.name;
+        const name_ar = req.body.name_ar;
+        const category = req.body.category || 'general';
+        
+        console.log('📝 Form data:', { name, name_ar, category });
         
         if (!name || !name_ar) {
             // Delete uploaded file if validation fails
             if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-            return res.status(400).json({ error: 'Name and name_ar are required' });
+            return res.status(400).json({ 
+                error: 'Name and name_ar are required',
+                details: `Received: name=${name}, name_ar=${name_ar}` 
+            });
         }
 
         // 🔥 رفع على Cloudinary بدلاً من حفظ محلي
@@ -1087,7 +1095,7 @@ router.post('/upload-frame', verifyToken, isAdmin, secureFrameUpload, async (req
             `INSERT INTO product_frames (name, name_ar, frame_url, category, is_active)
              VALUES ($1, $2, $3, $4, TRUE)
              RETURNING *`,
-            [name, name_ar, frameUrl, category || 'general']
+            [name, name_ar, frameUrl, category]
         );
 
         console.log('✅ Frame uploaded successfully:', rows[0]);
@@ -1098,7 +1106,7 @@ router.post('/upload-frame', verifyToken, isAdmin, secureFrameUpload, async (req
         if (req.file && fs.existsSync(req.file.path)) {
             fs.unlinkSync(req.file.path);
         }
-        res.status(500).json({ error: 'Failed to upload frame' });
+        res.status(500).json({ error: 'Failed to upload frame', details: error.message });
     }
 });
 
