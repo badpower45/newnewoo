@@ -155,9 +155,13 @@ class SupabaseChatService {
     }
 
     // الاشتراك في الرسائل الجديدة باستخدام Supabase Realtime
-    subscribeToMessages(conversationId: number, callback: (message: ChatMessage) => void) {
+    subscribeToMessages(conversationId: number, userId: number | string | null, callback: (message: ChatMessage) => void) {
         // إلغاء الاشتراك السابق إن وجد
         this.unsubscribeFromMessages();
+
+        const filter = userId !== null && userId !== ''
+            ? `receiver_id=eq.${userId}`
+            : `conversation_id=eq.${conversationId}`;
 
         this.messageSubscription = supabase
             .channel(`messages:${conversationId}`)
@@ -166,7 +170,7 @@ class SupabaseChatService {
                     event: 'INSERT', 
                     schema: 'public', 
                     table: 'messages',
-                    filter: `conversation_id=eq.${conversationId}`
+                    filter
                 }, 
                 (payload) => {
                     callback(payload.new as ChatMessage);

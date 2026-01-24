@@ -207,19 +207,55 @@ export const api = {
             const data = Array.isArray(json) ? json : (json.data || []);
             return data.map(normalize);
         },
+        // ✅ getProducts with { page, limit } object
+        getProducts: async (options: { page?: number; limit?: number; branchId?: number } = {}) => {
+            const pageCandidate = options.page;
+            const limitCandidate = options.limit;
+            const pageValue = typeof pageCandidate === 'number' && Number.isFinite(pageCandidate) && pageCandidate > 0 ? pageCandidate : 1;
+            const limitValue = typeof limitCandidate === 'number' && Number.isFinite(limitCandidate) && limitCandidate > 0 ? limitCandidate : 20;
+            let url = `${API_URL}/products?page=${pageValue}&limit=${limitValue}`;
+            if (options.branchId) url += `&branchId=${options.branchId}`;
+
+            const res = await fetch(url, { headers: getHeaders() });
+            const json = await res.json();
+            const normalize = (p: any) => ({ ...mapProduct(p), price: Number(mapProduct(p)?.price) || 0 });
+            const data = Array.isArray(json) ? json : (json.data || []);
+            const list = data.map(normalize);
+            if (json && typeof json === 'object' && !Array.isArray(json)) {
+                if (json.total !== undefined) (list as any).total = Number(json.total);
+                if (json.page !== undefined) (list as any).page = Number(json.page);
+            }
+
+            return list;
+        },
         // جلب منتجات بنظام Pagination لتقليل Egress
-        getPaginated: async (page: number = 1, limit: number = 20, branchId?: number) => {
-            const offset = (page - 1) * limit;
-            let url = `${API_URL}/products?limit=${limit}&offset=${offset}`;
-            if (branchId) url += `&branchId=${branchId}`;
+        getPaginated: async (
+            pageOrOptions: number | { page?: number; limit?: number; branchId?: number } = 1,
+            limit: number = 20,
+            branchId?: number
+        ) => {
+            const options = typeof pageOrOptions === 'object'
+                ? pageOrOptions
+                : { page: pageOrOptions, limit, branchId };
+            const pageCandidate = options.page;
+            const limitCandidate = options.limit;
+            const pageValue = typeof pageCandidate === 'number' && Number.isFinite(pageCandidate) && pageCandidate > 0 ? pageCandidate : 1;
+            const limitValue = typeof limitCandidate === 'number' && Number.isFinite(limitCandidate) && limitCandidate > 0 ? limitCandidate : 20;
+            let url = `${API_URL}/products?page=${pageValue}&limit=${limitValue}`;
+            if (options.branchId) url += `&branchId=${options.branchId}`;
             
             const res = await fetch(url, { headers: getHeaders() });
             const json = await res.json();
             const normalize = (p: any) => ({ ...mapProduct(p), price: Number(mapProduct(p)?.price) || 0 });
             const data = Array.isArray(json) ? json : (json.data || []);
+            const list = data.map(normalize);
+            if (json && typeof json === 'object' && !Array.isArray(json)) {
+                if (json.total !== undefined) (list as any).total = Number(json.total);
+                if (json.page !== undefined) (list as any).page = Number(json.page);
+            }
             
-            console.log(`📦 Loaded ${data.length} products (page ${page}, limit ${limit})`);
-            return data.map(normalize);
+            console.log(`📦 Loaded ${data.length} products (page ${pageValue}, limit ${limitValue})`);
+            return list;
         },
         // Admin: جلب المنتجات بدون ربط فرع محدد
         getAdminList: async (options?: { limit?: number; offset?: number; search?: string }) => {
@@ -248,35 +284,44 @@ export const api = {
             console.log(`📦 Loaded ${data.length} products for ${category} (limit ${limit})`);
             return data.map(normalize);
         },
-        getAllByBranch: async (branchId: number, options?: { includeMagazine?: boolean; limit?: number; offset?: number }) => {
-            let url = `${API_URL}/products?branchId=${branchId}`;
+        getAllByBranch: async (branchId: number, options?: { includeMagazine?: boolean; limit?: number; offset?: number; page?: number }) => {
             const limitValue = options?.limit ?? 100;
-            const offsetValue = options?.offset ?? 0;
+            const pageCandidate = options?.page;
+            const offsetCandidate = options?.offset;
+            const pageValue = typeof pageCandidate === 'number' && Number.isFinite(pageCandidate) && pageCandidate > 0
+                ? pageCandidate
+                : (typeof offsetCandidate === 'number' && Number.isFinite(offsetCandidate) && offsetCandidate >= 0
+                    ? Math.floor(offsetCandidate / limitValue) + 1
+                    : 1);
+            let url = `${API_URL}/products?branchId=${branchId}&page=${pageValue}&limit=${limitValue}`;
             if (options?.includeMagazine) {
                 url += '&includeMagazine=true';
-            }
-            url += `&limit=${limitValue}`;
-            if (offsetValue > 0) {
-                url += `&offset=${offsetValue}`;
             }
             const res = await fetch(url, { headers: getHeaders() });
             if (!res.ok && res.status === 404) {
                 // backend missing branch filter; fallback to all products
-                let fallbackUrl = `${API_URL}/products?limit=${limitValue}`;
-                if (offsetValue > 0) {
-                    fallbackUrl += `&offset=${offsetValue}`;
-                }
+                let fallbackUrl = `${API_URL}/products?page=${pageValue}&limit=${limitValue}`;
                 const all = await fetch(fallbackUrl, { headers: getHeaders() });
                 const jsonAll = await all.json();
                 const normalize = (p: any) => ({ ...mapProduct(p), price: Number(mapProduct(p)?.price) || 0 });
                 const data = Array.isArray(jsonAll) ? jsonAll : (jsonAll.data || []);
-                return data.map(normalize);
+                const list = data.map(normalize);
+                if (jsonAll && typeof jsonAll === 'object' && !Array.isArray(jsonAll)) {
+                    if (jsonAll.total !== undefined) (list as any).total = Number(jsonAll.total);
+                    if (jsonAll.page !== undefined) (list as any).page = Number(jsonAll.page);
+                }
+                return list;
             }
             const json = await res.json();
             const normalize = (p: any) => ({ ...mapProduct(p), price: Number(mapProduct(p)?.price) || 0 });
             // Backend returns array directly, not wrapped in {data: [...]}
             const data = Array.isArray(json) ? json : (json.data || []);
-            return json.pagination ? { ...json, data: data.map(normalize) } : data.map(normalize);
+            const list = data.map(normalize);
+            if (json && typeof json === 'object' && !Array.isArray(json)) {
+                if (json.total !== undefined) (list as any).total = Number(json.total);
+                if (json.page !== undefined) (list as any).page = Number(json.page);
+            }
+            return json.pagination ? { ...json, data: list } : list;
         },
         getOne: async (id: string, branchId?: number) => {
             const url = branchId 
@@ -292,22 +337,26 @@ export const api = {
             return json;
         },
         getByCategory: async (category: string, branchId?: number, limit?: number, offset?: number) => {
+            const limitValue = limit ?? 20;
+            const pageValue = typeof offset === 'number' && Number.isFinite(offset) && offset >= 0
+                ? Math.floor(offset / limitValue) + 1
+                : 1;
             let url = `${API_URL}/products?category=${encodeURIComponent(category)}`;
             if (branchId) {
                 url += `&branchId=${branchId}`;
             }
-            if (limit !== undefined) {
-                url += `&limit=${limit}`;
-            }
-            if (offset !== undefined && offset > 0) {
-                url += `&offset=${offset}`;
-            }
+            url += `&limit=${limitValue}&page=${pageValue}`;
             const res = await fetch(url, { headers: getHeaders() });
             const json = await res.json();
             const normalize = (p: any) => ({ ...mapProduct(p), price: Number(mapProduct(p)?.price) || 0 });
             // Backend returns array directly
             const data = Array.isArray(json) ? json : (json.data || []);
-            return json.pagination ? { ...json, data: data.map(normalize) } : data.map(normalize);
+            const list = data.map(normalize);
+            if (json && typeof json === 'object' && !Array.isArray(json)) {
+                if (json.total !== undefined) (list as any).total = Number(json.total);
+                if (json.page !== undefined) (list as any).page = Number(json.page);
+            }
+            return json.pagination ? { ...json, data: list } : list;
         },
         search: async (query: string) => {
             const branchId = localStorage.getItem('selectedBranchId') || '1';

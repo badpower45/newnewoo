@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import HomePage from './pages/HomePage';
 import ProductsPage from './pages/ProductsPage';
 import ProductDetailsPage from './pages/ProductDetailsPage';
@@ -107,6 +108,8 @@ import SplashScreen from './pages/SplashScreen';
 import CartErrorBoundary from './components/CartErrorBoundary';
 import BlockedUserGuard from './components/BlockedUserGuard';
 import Seo, { getSiteUrl } from './components/Seo';
+
+const queryClient = new QueryClient();
 
 function AppContent() {
   const [showSplash, setShowSplash] = React.useState(true);
@@ -276,10 +279,12 @@ function App() {
           <FavoritesProvider>
             <CartProvider>
               <DebugProvider>
-                <Router>
-                  <ScrollToTop />
-                  <AppContent />
-                </Router>
+                <QueryClientProvider client={queryClient}>
+                  <Router>
+                    <ScrollToTop />
+                    <AppContent />
+                  </Router>
+                </QueryClientProvider>
               </DebugProvider>
             </CartProvider>
           </FavoritesProvider>

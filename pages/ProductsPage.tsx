@@ -15,6 +15,7 @@ import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-do
 import { useBranch } from '../context/BranchContext';
 import Seo, { getSiteUrl } from '../components/Seo';
 import { useCart } from '../context/CartContext';
+import { useProducts } from '../src/hooks/useProducts';
 
 const SORT_OPTIONS = [
     { id: 'newest', name: 'الأحدث', icon: Clock },
@@ -145,10 +146,10 @@ const mapCategoryLabel = (value: string = '') => {
 };
 
 export default function ProductsPage() {
-    const [allProducts, setAllProducts] = useState<Product[]>([]);
+    const [searchResults, setSearchResults] = useState<Product[] | null>(null);
     const [categories, setCategories] = useState<{ id: string, name: string, icon: string, color: string }[]>([]);
     const [brands, setBrands] = useState<{ id: string, name: string }[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [showScanner, setShowScanner] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('');
@@ -159,14 +160,30 @@ export default function ProductsPage() {
     const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
     const [showOnlyOffers, setShowOnlyOffers] = useState(false);
     const [categoryBanner, setCategoryBanner] = useState<any>(null);
-    const [totalCount, setTotalCount] = useState(0); // 🔥 Total products count
-    const [totalPages, setTotalPages] = useState(0); // 🔥 Total pages
 
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const location = useLocation();
     const { selectedBranch } = useBranch();
     const { addToCart } = useCart();
+    const branchId = selectedBranch?.id || 1;
+    const isSearchActive = searchResults !== null;
+    const productsQuery = useProducts({
+        branchId,
+        category: selectedCategory,
+        page: currentPage,
+        limit: ITEMS_PER_PAGE,
+        enabled: !isSearchActive
+    });
+    const baseProducts = productsQuery.data?.data ?? [];
+    const allProducts = searchResults ?? baseProducts;
+    const totalCount = isSearchActive
+        ? allProducts.length
+        : (productsQuery.data?.total ?? baseProducts.length);
+    const totalPages = isSearchActive
+        ? 1
+        : Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
+    const listLoading = loading || productsQuery.isLoading || productsQuery.isFetching;
 
     // Load categories from database API
     useEffect(() => {
@@ -318,50 +335,6 @@ export default function ProductsPage() {
         }
     }, [categories, selectedCategory]);
 
-    const fetchProducts = useCallback(async (page: number = 1) => {
-        setLoading(true);
-        try {
-            const branchId = selectedBranch?.id || 1;
-            const offset = (page - 1) * ITEMS_PER_PAGE;
-            console.log('📦 Fetching products for branch:', branchId, 'page:', page, 'offset:', offset);
-
-            let response;
-            if (selectedCategory && selectedCategory !== '') {
-                // Fetch products by category with pagination
-                console.log('🎯 Using API category filter:', selectedCategory);
-                response = await api.products.getByCategory(selectedCategory, branchId, ITEMS_PER_PAGE, offset);
-            } else {
-                // Fetch all products with pagination (20 per page)
-                console.log('🎯 Fetching products page', page, 'with limit', ITEMS_PER_PAGE);
-                response = await api.products.getAllByBranch(branchId, { limit: ITEMS_PER_PAGE, offset });
-            }
-
-            const list = Array.isArray(response?.data) ? response.data : (Array.isArray(response) ? response : []);
-            console.log('✅ Loaded products:', list.length, 'for page', page);
-            
-            // 🔥 Get pagination data from API response
-            if (response?.pagination) {
-                setTotalCount(response.pagination.total || 0);
-                setTotalPages(response.pagination.totalPages || 1);
-                console.log('📊 Total products:', response.pagination.total, 'Total pages:', response.pagination.totalPages);
-            } else {
-                // Fallback if no pagination data
-                setTotalCount(list.length);
-                setTotalPages(1);
-            }
-
-            // Batch state update for better performance
-            setAllProducts(list);
-        } catch (err) {
-            console.error('❌ Error fetching products:', err);
-            setAllProducts([]); // Clear on error
-            setTotalCount(0);
-            setTotalPages(0);
-        } finally {
-            setLoading(false);
-        }
-    }, [selectedBranch, selectedCategory]);
-
     const [scannedProduct, setScannedProduct] = useState<Product | null>(null);
     const [showProductModal, setShowProductModal] = useState(false);
 
@@ -417,16 +390,18 @@ export default function ProductsPage() {
         const looksLikeBarcode = /^\d{6,}$/.test(trimmed);
 
         if (looksLikeBarcode) {
+            setSearchResults(null);
             await handleBarcodeScanned(trimmed);
             return;
         }
 
         if (trimmed) {
             setLoading(true);
+            setSearchResults([]);
             try {
                 const data = await api.products.search(trimmed);
                 if (data.data) {
-                    setAllProducts(data.data);
+                    setSearchResults(data.data);
                 }
             } catch (err) {
                 console.error('Search error:', err);
@@ -434,9 +409,9 @@ export default function ProductsPage() {
                 setLoading(false);
             }
         } else {
-            fetchProducts();
+            setSearchResults(null);
         }
-    }, [handleBarcodeScanned, fetchProducts]);
+    }, [handleBarcodeScanned]);
 
     useEffect(() => {
         const category = searchParams.get('category');
@@ -467,11 +442,6 @@ export default function ProductsPage() {
 
         // Fetch products will be called automatically when selectedCategory changes
     }, [searchParams, handleSearch, handleBarcodeScanned]);
-
-    // Separate effect to fetch products when category or branch changes
-    useEffect(() => {
-        fetchProducts(currentPage);
-    }, [fetchProducts, currentPage]);
 
     // Reset to page 1 when filters change
     useEffect(() => {
@@ -591,6 +561,7 @@ export default function ProductsPage() {
         setShowOnlyOffers(false);
         setSortBy('newest');
         setSearchQuery('');
+        setSearchResults(null);
     };
 
     const hasActiveFilters = selectedCategory || selectedBrand || showOnlyOffers || priceRange[0] > 0 || priceRange[1] < 1000;
@@ -957,7 +928,7 @@ export default function ProductsPage() {
                     )}
 
                     {/* Products List */}
-                    {loading ? (
+                    {listLoading ? (
                         <ProductGridSkeleton count={12} />
                     ) : paginatedProducts.length === 0 ? (
                         <div className="text-center py-20">

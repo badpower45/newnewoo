@@ -139,7 +139,7 @@ const LiveChatDashboard = () => {
             }
 
             // Subscribe to new messages (Supabase fallback)
-            supabaseChatService.subscribeToMessages(convId, (newMsg) => {
+            supabaseChatService.subscribeToMessages(convId, agentId, (newMsg) => {
                 appendMessage({
                     id: newMsg.id,
                     conversationId: newMsg.conversation_id,

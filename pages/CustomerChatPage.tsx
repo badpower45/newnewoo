@@ -226,7 +226,7 @@ const CustomerChatPage: React.FC = () => {
             setMessages(displayMessages);
 
             // Subscribe to new messages
-            supabaseChatService.subscribeToMessages(conv.id, (newMessage) => {
+            supabaseChatService.subscribeToMessages(conv.id, customerId, (newMessage) => {
               const displayMsg: DisplayMessage = {
                 id: String(newMessage.id),
                 content: newMessage.message,

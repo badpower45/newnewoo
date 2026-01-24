@@ -81,7 +81,7 @@ export default function Chatbot() {
     // Subscribe to new messages
     useEffect(() => {
         if (conversationId) {
-            const subscription = supabaseChatService.subscribeToMessages(conversationId, (newMessage) => {
+            const subscription = supabaseChatService.subscribeToMessages(conversationId, user?.id ?? null, (newMessage) => {
                 if (newMessage.sender_type !== 'customer') {
                     setMessages(prev => {
                         // Check if message already exists
