@@ -34,13 +34,21 @@ const ProductDetailsPage = () => {
     const [showReviewForm, setShowReviewForm] = useState(false);
     const siteUrl = getSiteUrl();
     const productUrl = `${siteUrl}/product/${encodeURIComponent(id ?? '')}`;
+    const [reviewsLoaded, setReviewsLoaded] = useState(false);
 
-    // Fetch reviews from API
     useEffect(() => {
-        if (id) {
-            fetchReviews();
-        }
+        setReviewsLoaded(false);
+        setReviews([]);
+        setReviewStats(null);
     }, [id]);
+
+    // Fetch reviews only when the user opens the reviews tab
+    useEffect(() => {
+        if (!id) return;
+        if (activeTab !== 'reviews') return;
+        if (reviewsLoaded) return;
+        fetchReviews().finally(() => setReviewsLoaded(true));
+    }, [id, activeTab, reviewsLoaded]);
 
     const fetchReviews = async () => {
         try {

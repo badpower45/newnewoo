@@ -34,6 +34,7 @@ import homeSectionsRoutes from './routes/homeSections.js';
 import addressesRoutes from './routes/addresses.js';
 import loyaltyRoutes from './routes/loyalty.js';
 import reviewsRoutes from './routes/reviews.js';
+import adminMigrationsRoutes from './routes/adminMigrations.js';
 
 // dotenv is loaded in database.js with the correct path
 // No need to load it again here
@@ -176,6 +177,7 @@ app.use('/api/home-sections', homeSectionsRoutes);
 app.use('/api/addresses', addressesRoutes);
 app.use('/api/loyalty', loyaltyRoutes);
 app.use('/api/reviews', reviewsRoutes);
+app.use('/api/admin/migrations', adminMigrationsRoutes);
 
 // Image Upload Route
 import uploadRoutes from './routes/upload.js';

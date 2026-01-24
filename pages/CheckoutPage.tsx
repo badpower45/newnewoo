@@ -26,7 +26,7 @@ export default function CheckoutPage() {
     const isPickup = paymentMethod === 'branch_pickup';
 
     // State for Location
-    const [locationCoords, setLocationCoords] = useState<{lat: number, lng: number} | null>(null);
+    const [locationCoords, setLocationCoords] = useState<{ lat: number, lng: number } | null>(null);
     const [isLoadingLocation, setIsLoadingLocation] = useState(false);
     const [locationError, setLocationError] = useState('');
 
@@ -124,7 +124,7 @@ export default function CheckoutPage() {
                             subtotal: totalPrice
                         })
                     });
-                    
+
                     if (response.ok) {
                         const data = await response.json();
                         setDeliveryFee(data.deliveryFee || 0);
@@ -134,7 +134,7 @@ export default function CheckoutPage() {
                         return;
                     }
                 }
-                
+
                 // القيم الافتراضية إذا لم يتم اختيار محافظة
                 const baseFee = totalPrice >= 600 ? 0 : 20;
                 setDeliveryFee(baseFee);
@@ -267,12 +267,12 @@ export default function CheckoutPage() {
 
         setIsValidatingBarcode(true);
         setBarcodeError('');
-        
+
         try {
             console.log('🔍 Validating barcode:', barcodeInput.trim());
             const result = await api.loyaltyBarcode.validate(barcodeInput.trim());
             console.log('📦 Barcode validation result:', result);
-            
+
             if (!result || !result.valid) {
                 const errorMsg = result?.message || result?.error || 'الباركود غير صالح';
                 setBarcodeError(errorMsg);
@@ -285,11 +285,11 @@ export default function CheckoutPage() {
             // Apply the barcode discount
             const barcodeData = result.barcode;
             const discount = Number(barcodeData?.monetary_value ?? barcodeData?.value ?? 0) || 0;
-            
+
             setAppliedBarcode(barcodeData);
             setBarcodeDiscount(discount);
             showToast(`✅ تم تطبيق باركود بقيمة ${discount} جنيه`, 'success');
-            
+
         } catch (error: any) {
             console.error('❌ Barcode validation error:', error);
             const errorMsg = error.message || 'فشل التحقق من الباركود';
@@ -379,7 +379,7 @@ export default function CheckoutPage() {
             } catch (e) {
                 console.error('Failed availability check', e);
             }
-            
+
             // Prepare unavailable items list
             const unavailableItems: any[] = [];
             try {
@@ -399,7 +399,7 @@ export default function CheckoutPage() {
             } catch (e) {
                 console.error('Failed to check product availability', e);
             }
-            
+
             const orderData = {
                 userId: currentUserId,
                 branchId: branchId,
@@ -446,7 +446,7 @@ export default function CheckoutPage() {
             };
 
             console.log('📦 Creating order with data:', orderData);
-            
+
             // إذا كان الدفع بالبطاقة عبر Paymob - معطل مؤقتًا
             /* if (paymentMethod === 'paymob_card') {
                 console.log('💳 Initiating Paymob payment...');
@@ -502,14 +502,14 @@ export default function CheckoutPage() {
                 }
                 return; // إيقاف التنفيذ هنا
             } */
-            
+
             // الطرق الأخرى (COD, Branch Pickup, Visa on Delivery)
             const created = await api.orders.create(orderData);
             console.log('✅ Order API Response:', created);
-            
+
             const createdOrder = (created && (created.data || created)) || {};
             const newOrderId = createdOrder.id || createdOrder.orderId;
-            
+
             console.log('📋 Extracted Order ID:', newOrderId);
 
             if (newOrderId) {
@@ -544,18 +544,18 @@ export default function CheckoutPage() {
     return (
         <div className="min-h-screen bg-gray-50">
             <ToastContainer />
-            
+
             {/* Fixed App Bar */}
-            <div className="sticky top-0 z-50 bg-white shadow-md border-b border-gray-200">
+            <div className="sticky top-0 z-40 bg-white shadow-md border-b border-gray-200">
                 <div className="container mx-auto px-4 md:px-6 py-4">
                     <div className="flex items-center justify-between">
                         <Link to="/cart" className="flex items-center gap-2 text-slate-700 hover:text-brand-orange transition-colors">
                             <ArrowLeft size={20} className="" />
                             <span className="font-medium hidden md:inline">العودة للسلة</span>
                         </Link>
-                        
+
                         <h1 className="text-xl md:text-2xl font-bold text-gray-900">إتمام الطلب</h1>
-                        
+
                         {selectedBranch && (
                             <div className="flex items-center gap-2 text-sm">
                                 <MapPin size={16} className="text-brand-orange" />
@@ -568,570 +568,568 @@ export default function CheckoutPage() {
 
             <div className="container mx-auto px-4 md:px-6 py-8">
                 <div className="flex flex-col lg:flex-row gap-8">
-                {/* Form */}
-                <div className="flex-1 space-y-6">
-                    {/* Delivery Details */}
-                    <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
-                        <h3 className="text-xl font-bold text-slate-800 mb-2">{isPickup ? 'تفاصيل الاستلام من الفرع' : 'تفاصيل التوصيل'}</h3>
-                        {isPickup && (
-                            <p className="text-sm text-green-700 mb-4">لا نحتاج عنوان؛ فقط الاسم ورقم الهاتف، وسيتم تجهيز الطلب في الفرع المحدد.</p>
-                        )}
-                        
-                        {/* Saved Addresses - Show only if NOT pickup */}
-                        {!isPickup && user && (
-                            <div className="mb-6 p-4 bg-purple-50 rounded-xl border border-purple-200">
-                                <div className="flex items-center justify-between mb-3">
-                                    <h4 className="font-bold text-gray-900">العناوين المحفوظة</h4>
-                                    <button
-                                        type="button"
-                                        onClick={() => navigate('/addresses')}
-                                        className="text-sm text-purple-600 hover:underline font-medium"
-                                    >
-                                        إدارة العناوين
-                                    </button>
-                                </div>
-                                <SavedAddressSelector 
-                                    userId={user.id}
-                                    onSelect={(address: any) => {
-                                        const fullAddressLine = [
-                                            address.city,
-                                            address.governorate
-                                        ].filter(Boolean).join(', ');
-
-                                        setFormData(prev => ({
-                                            ...prev,
-                                            phone: address.phone || prev.phone,
-                                            // نستخدم السطر الأول كسطر أساسي (يلزم الحقل)
-                                            building: address.address_line1 || prev.building,
-                                            // السطر الثاني اختياري للشارع/المعلم
-                                            street: address.address_line2 || prev.street,
-                                            address: fullAddressLine || address.address_line1 || prev.address,
-                                            notes: address.address_line2 ? `${address.address_line2}${address.postal_code ? ` - ${address.postal_code}` : ''}` : prev.notes
-                                        }));
-                                    }}
-                                />
-                            </div>
-                        )}
-                        
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-700">الاسم الأول</label>
-                                <input
-                                    required
-                                    type="text"
-                                    name="firstName"
-                                    value={formData.firstName}
-                                    onChange={handleInputChange}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
-                                    placeholder="أحمد"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-700">الاسم الأخير</label>
-                                <input
-                                    required
-                                    type="text"
-                                    name="lastName"
-                                    value={formData.lastName}
-                                    onChange={handleInputChange}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
-                                    placeholder="محمد"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700">رقم الهاتف</label>
-                            <input
-                                required
-                                type="tel"
-                                name="phone"
-                                value={formData.phone}
-                                onChange={handleInputChange}
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
-                                placeholder="01xxxxxxxxx"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700">المحافظة <span className="text-red-500">*</span></label>
-                            <select
-                                required
-                                name="governorate"
-                                value={formData.governorate}
-                                onChange={handleInputChange}
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all bg-white"
-                            >
-                                <option value="">اختر المحافظة</option>
-                                {governorateOptions.map((gov) => (
-                                    <option key={gov} value={gov}>{gov}</option>
-                                ))}
-                            </select>
-                            {formData.governorate && (
-                                <p className="text-xs text-gray-500">
-                                    {formData.governorate === 'بورسعيد' && '🚚 رسوم التوصيل: 25 جنيه'}
-                                    {formData.governorate === 'بور فؤاد' && '🚚 رسوم التوصيل: 30 جنيه'}
-                                    {!['بورسعيد', 'بور فؤاد'].includes(formData.governorate) && '🚚 رسوم التوصيل: 20 جنيه'}
-                                    {totalPrice >= 600 && ' (مجاني للطلبات فوق 600 جنيه)'}
-                                </p>
+                    {/* Form */}
+                    <div className="flex-1 space-y-6">
+                        {/* Delivery Details */}
+                        <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
+                            <h3 className="text-xl font-bold text-slate-800 mb-2">{isPickup ? 'تفاصيل الاستلام من الفرع' : 'تفاصيل التوصيل'}</h3>
+                            {isPickup && (
+                                <p className="text-sm text-green-700 mb-4">لا نحتاج عنوان؛ فقط الاسم ورقم الهاتف، وسيتم تجهيز الطلب في الفرع المحدد.</p>
                             )}
-                        </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-700">اسم العمارة / المبنى <span className="text-red-500">*</span></label>
-                                <input
-                                    required
-                                    type="text"
-                                    name="building"
-                                    value={formData.building}
-                                    onChange={handleInputChange}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
-                                    placeholder="مثال: برج النخيل"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-700">اسم الشارع <span className="text-red-500">*</span></label>
-                                <input
-                                    required
-                                    type="text"
-                                    name="street"
-                                    value={formData.street}
-                                    onChange={handleInputChange}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
-                                    placeholder="شارع التحرير"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-700">الدور <span className="text-gray-400 font-normal">(اختياري)</span></label>
-                                <input
-                                    type="text"
-                                    name="floor"
-                                    value={formData.floor}
-                                    onChange={handleInputChange}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
-                                    placeholder="3"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-700">الشقة <span className="text-gray-400 font-normal">(اختياري)</span></label>
-                                <input
-                                    type="text"
-                                    name="apartment"
-                                    value={formData.apartment}
-                                    onChange={handleInputChange}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
-                                    placeholder="شقة 5"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                                <label className="text-sm font-bold text-slate-700 flex justify-between items-center">
-                                <span>تفاصيل العنوان الإضافية <span className="text-red-500">*</span></span>
-                                {/* Location Button */}
-                                <button
-                                    type="button"
-                                    onClick={handleGetLocation}
-                                    className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full flex items-center hover:bg-blue-100 transition-colors"
-                                        disabled={isLoadingLocation || isPickup}
-                                >
-                                    {isLoadingLocation ? <Loader size={12} className="animate-spin ml-1" /> : <MapPin size={12} className="ml-1" />}
-                                    {locationCoords ? 'تم تحديد الموقع ✓' : 'تحديد موقعي الحالي'}
-                                </button>
-                            </label>
-                            
-                            {locationError && <p className="text-xs text-red-500">{locationError}</p>}
-                            
-                            <textarea
-                                required
-                                rows={2}
-                                name="address"
-                                value={formData.address}
-                                onChange={handleInputChange}
-                                className={`w-full px-4 py-3 rounded-xl border ${isPickup ? 'border-dashed border-slate-200 bg-slate-50 text-slate-500' : 'border-slate-200'} focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all`}
-                                placeholder={isPickup ? 'العنوان غير مطلوب للاستلام من الفرع' : 'علامة مميزة أو تفاصيل إضافية للعنوان...'}
-                                disabled={isPickup}
-                            ></textarea>
-                            
-                            {locationCoords && (
-                                <p className="text-xs text-green-600 flex items-center">
-                                    <CheckCircle size={12} className="ml-1" /> تم حفظ الإحداثيات: {locationCoords.lat.toFixed(5)}, {locationCoords.lng.toFixed(5)}
-                                </p>
-                            )}
-                        </div>
-
-                        {/* Google Maps Link Field */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                                <Map size={16} className="text-blue-600" />
-                                <span>رابط جوجل مابس (اختياري)</span>
-                            </label>
-                            <input
-                                type="text"
-                                name="googleMapsLink"
-                                value={formData.googleMapsLink}
-                                onChange={handleInputChange}
-                                className={`w-full px-4 py-3 rounded-xl border ${isPickup ? 'border-dashed border-slate-200 bg-slate-50 text-slate-500' : 'border-slate-200'} focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition-all`}
-                                placeholder={isPickup ? 'غير مطلوب للاستلام من الفرع' : 'https://www.google.com/maps?q=30.0444,31.2357'}
-                                disabled={isPickup}
-                            />
-                            {!isPickup && (
-                                <p className="text-xs text-slate-500">
-                                    💡 الصق رابط موقعك من جوجل مابس ليسهل على المندوب الوصول إليك
-                                </p>
-                            )}
-                            {locationCoords && formData.googleMapsLink && (
-                                <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-xs">
-                                    <p className="text-green-700 font-medium mb-1">✓ تم استخراج الإحداثيات بنجاح</p>
-                                    <p className="text-green-600">
-                                        📍 {formatCoordinates(locationCoords)}
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* ملاحظات التوصيل */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700">ملاحظات للتوصيل (اختياري)</label>
-                            <textarea
-                                rows={2}
-                                name="notes"
-                                value={formData.notes}
-                                onChange={handleInputChange}
-                                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
-                                placeholder={isPickup ? 'مثال: موعد تقريبي لوصولك للفرع' : 'مثال: من فضلك اتصل قبل الوصول...'}
-                            ></textarea>
-                        </div>
-                        </form>
-                    </div>
-
-                    {/* Payment Method */}
-                    <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
-                        <h3 className="text-xl font-bold text-slate-800 mb-4">طريقة الدفع</h3>
-                        <div className="space-y-3">
-                            {/* Cash on Delivery */}
-                            <label className={`flex items-center p-4 border-2 rounded-xl transition ${!isPickup ? 'cursor-pointer hover:border-green-600' : 'opacity-50 cursor-not-allowed'}`}>
-                                <input
-                                    type="radio"
-                                    name="payment"
-                                    value="cod"
-                                    checked={paymentMethod === 'cod'}
-                                    onChange={(e) => setPaymentMethod(e.target.value)}
-                                    disabled={isPickup}
-                                    className="w-5 h-5 text-green-600"
-                                />
-                                <div className="mr-3">
-                                    <div className="font-medium">{PAYMENT_METHOD_LABELS.cod}</div>
-                                    <div className="text-sm text-slate-500">ادفع نقداً عند استلام الطلب</div>
-                                </div>
-                            </label>
-
-                            {/* Visa on Delivery */}
-                            <label className={`flex items-center p-4 border-2 rounded-xl transition ${!isPickup ? 'cursor-pointer hover:border-green-600' : 'opacity-50 cursor-not-allowed'}`}>
-                                <input
-                                    type="radio"
-                                    name="payment"
-                                    value="visa"
-                                    checked={paymentMethod === 'visa'}
-                                    onChange={(e) => setPaymentMethod(e.target.value)}
-                                    disabled={isPickup}
-                                    className="w-5 h-5 text-green-600"
-                                />
-                                <div className="mr-3">
-                                    <div className="font-medium">{PAYMENT_METHOD_LABELS.visa}</div>
-                                    <div className="text-sm text-slate-500">سيحضر مندوب التوصيل بماكينة الفيزا</div>
-                                </div>
-                            </label>
-
-                            {/* Branch Pickup */}
-                            <label className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition ${isPickup ? 'border-green-600 bg-green-50' : 'hover:border-green-600'}`}>
-                                <input
-                                    type="radio"
-                                    name="payment"
-                                    value="branch_pickup"
-                                    checked={paymentMethod === 'branch_pickup'}
-                                    onChange={(e) => setPaymentMethod(e.target.value)}
-                                    className="w-5 h-5 text-green-600"
-                                />
-                                <div className="mr-3">
-                                    <div className="font-medium">{PAYMENT_METHOD_LABELS.branch_pickup}</div>
-                                    <div className="text-sm text-slate-500">احضر للفرع وادفع عند الاستلام</div>
-                                </div>
-                            </label>
-
-                            {/* Online Card Payment - Paymob */}
-                            <label className={`flex items-center p-4 border-2 rounded-xl transition ${!isPickup ? 'cursor-pointer hover:border-blue-600' : 'opacity-50 cursor-not-allowed'}`}>
-                                <input
-                                    type="radio"
-                                    name="payment"
-                                    value="paymob_card"
-                                    checked={paymentMethod === 'paymob_card'}
-                                    onChange={(e) => setPaymentMethod(e.target.value)}
-                                    disabled={isPickup}
-                                    className="w-5 h-5 text-blue-600"
-                                />
-                                <div className="mr-3">
-                                    <div className="font-medium flex items-center gap-2">
-                                        <span>الدفع بالفيزا/ماستركارد 💳</span>
-                                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">آمن</span>
+                            {/* Saved Addresses - Show only if NOT pickup */}
+                            {!isPickup && user && (
+                                <div className="mb-6 p-4 bg-purple-50 rounded-xl border border-purple-200">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <h4 className="font-bold text-gray-900">العناوين المحفوظة</h4>
+                                        <button
+                                            type="button"
+                                            onClick={() => navigate('/addresses')}
+                                            className="text-sm text-purple-600 hover:underline font-medium"
+                                        >
+                                            إدارة العناوين
+                                        </button>
                                     </div>
-                                    <div className="text-sm text-slate-500">ادفع الآن ببطاقتك عبر Paymob (آمن ومشفر)</div>
+                                    <SavedAddressSelector
+                                        userId={user.id}
+                                        onSelect={(address: any) => {
+                                            const fullAddressLine = [
+                                                address.city,
+                                                address.governorate
+                                            ].filter(Boolean).join(', ');
+
+                                            setFormData(prev => ({
+                                                ...prev,
+                                                phone: address.phone || prev.phone,
+                                                // نستخدم السطر الأول كسطر أساسي (يلزم الحقل)
+                                                building: address.address_line1 || prev.building,
+                                                // السطر الثاني اختياري للشارع/المعلم
+                                                street: address.address_line2 || prev.street,
+                                                address: fullAddressLine || address.address_line1 || prev.address,
+                                                notes: address.address_line2 ? `${address.address_line2}${address.postal_code ? ` - ${address.postal_code}` : ''}` : prev.notes
+                                            }));
+                                        }}
+                                    />
                                 </div>
-                            </label>
+                            )}
 
-                            {/* Fawry - Coming Soon */}
-                            <label className="flex items-center p-4 border-2 rounded-xl cursor-pointer hover:border-green-600 transition opacity-50">
-                                <input
-                                    type="radio"
-                                    name="payment"
-                                    value="fawry"
-                                    disabled
-                                    className="w-5 h-5 text-green-600"
-                                />
-                                <span className="mr-3 font-medium">{PAYMENT_METHOD_LABELS.fawry} (قريباً)</span>
-                            </label>
-                        </div>
-                    </div>
+                            <form onSubmit={handleSubmit} className="space-y-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-slate-700">الاسم الأول</label>
+                                        <input
+                                            required
+                                            type="text"
+                                            name="firstName"
+                                            value={formData.firstName}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
+                                            placeholder="أحمد"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-slate-700">الاسم الأخير</label>
+                                        <input
+                                            required
+                                            type="text"
+                                            name="lastName"
+                                            value={formData.lastName}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
+                                            placeholder="محمد"
+                                        />
+                                    </div>
+                                </div>
 
-                    {/* Substitution Preferences */}
-                    <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
-                        <h3 className="text-xl font-bold text-slate-800 mb-4">تفضيلات الاستبدال</h3>
-                        <div className="space-y-4">
-                            {needsUnavailableContact && (
-                                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">
-                                        طريقة التواصل في حالة عدم توفر المنتج
-                                    </label>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-slate-700">رقم الهاتف</label>
+                                    <input
+                                        required
+                                        type="tel"
+                                        name="phone"
+                                        value={formData.phone}
+                                        onChange={handleInputChange}
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
+                                        placeholder="01xxxxxxxxx"
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-slate-700">المحافظة <span className="text-red-500">*</span></label>
                                     <select
-                                        value={unavailableContactMethod}
-                                        onChange={(e) => setUnavailableContactMethod(e.target.value)}
-                                        className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                        required
+                                        name="governorate"
+                                        value={formData.governorate}
+                                        onChange={handleInputChange}
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all bg-white"
                                     >
-                                        <option value="phone">اتصال هاتفي</option>
-                                        <option value="whatsapp">واتساب</option>
-                                        <option value="sms">رسالة SMS</option>
-                                        <option value="any">أي وسيلة متاحة</option>
+                                        <option value="">اختر المحافظة</option>
+                                        {governorateOptions.map((gov) => (
+                                            <option key={gov} value={gov}>{gov}</option>
+                                        ))}
                                     </select>
-                                    <p className="text-xs text-slate-500 mt-2">نستخدمها لو المنتج مش متوفر ونحتاج نرجع لك بسرعة.</p>
-                                </div>
-                            )}
-                            {items.map((item) => (
-                                <div key={item.id} className="flex items-center gap-4 pb-4 border-b last:border-0">
-                                    <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-lg" />
-                                    <div className="flex-1">
-                                        <h4 className="font-medium text-gray-900">{item.name}</h4>
-                                        <SubstitutionSelector
-                                            value={item.substitutionPreference || 'none'}
-                                            onChange={(value) => handleSubstitutionChange(item.id, value)}
-                                        />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {deliveryMessage && (
-                        <div className={`p-4 rounded-xl mb-4 ${
-                            freeDelivery ? 'bg-green-50 text-green-700' :
-                            !canDeliver ? 'bg-red-50 text-red-700' :
-                            'bg-blue-50 text-blue-700'
-                        }`}>
-                            <p className="text-sm font-medium text-center">{deliveryMessage}</p>
-                        </div>
-                    )}
-
-                    <button
-                        onClick={handleSubmit}
-                        disabled={(!isPickup && !canDeliver) || !meetsMinimumOrder}
-                        className={`w-full font-bold py-4 rounded-xl transition-colors shadow-lg ${
-                            (!isPickup && !canDeliver) || !meetsMinimumOrder
-                                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                : 'bg-green-600 text-white hover:bg-green-700'
-                        }`}
-                    >
-                        {(!isPickup && !canDeliver) ? 'لا يمكن إتمام الطلب' 
-                            : !meetsMinimumOrder 
-                                ? 'الحد الأدنى 200 جنيه' 
-                                : `تأكيد الطلب (${finalTotal.toFixed(2)} جنيه)`}
-                    </button>
-                </div>
-
-                {/* Order Summary (Mini) */}
-                <div className="w-full lg:w-80 flex-shrink-0">
-                    <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
-                        <h3 className="text-lg font-bold text-slate-800 mb-4">Order Summary</h3>
-                        <div className="space-y-3 mb-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-                            {items.map(item => (
-                                <div key={item.id} className="flex justify-between text-sm">
-                                    <span className="text-slate-600">{item.name || (item as any).title} <span className="text-xs text-slate-400">x{item.quantity}</span></span>
-                                    <span className="font-bold text-slate-800">{((item.price || 0) * item.quantity).toFixed(2)} EGP</span>
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-xl">
-                            <div className="flex items-center justify-between">
-                                <div className="text-sm text-purple-800 font-semibold">ستربح {loyaltyPointsEarned} نقطة من هذا الطلب</div>
-                                <Gift size={18} className="text-purple-600" />
-                            </div>
-                            {(!user || user.isGuest) && (
-                                <p className="text-xs text-purple-700 mt-2">سجّل دخولك ليتم حفظ نقاطك تلقائياً واستخدامها كخصومات لاحقاً.</p>
-                            )}
-                        </div>
-
-                        {/* مربع الكوبون */}
-                        <div className="mb-4 border-t border-slate-200 pt-4">
-                            <label className="text-sm font-bold text-slate-700 mb-2 block">كوبون الخصم</label>
-                            {!appliedCoupon ? (
-                                <div className="space-y-2">
-                                    <div className="flex gap-2">
-                                        <input
-                                            type="text"
-                                            value={couponCode}
-                                            onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                                            onKeyPress={(e) => e.key === 'Enter' && handleApplyCoupon()}
-                                            placeholder="أدخل كود الكوبون"
-                                            className="flex-1 px-3 py-2 rounded-lg border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all text-sm"
-                                        />
-                                        <button
-                                            onClick={handleApplyCoupon}
-                                            disabled={isValidatingCoupon || !couponCode.trim()}
-                                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-1 text-sm font-medium"
-                                        >
-                                            {isValidatingCoupon ? (
-                                                <Loader size={16} className="animate-spin" />
-                                            ) : (
-                                                <Tag size={16} />
-                                            )}
-                                            تطبيق
-                                        </button>
-                                    </div>
-                                    {couponError && (
-                                        <p className="text-xs text-red-600">{couponError}</p>
+                                    {formData.governorate && (
+                                        <p className="text-xs text-gray-500">
+                                            {formData.governorate === 'بورسعيد' && '🚚 رسوم التوصيل: 25 جنيه'}
+                                            {formData.governorate === 'بور فؤاد' && '🚚 رسوم التوصيل: 30 جنيه'}
+                                            {!['بورسعيد', 'بور فؤاد'].includes(formData.governorate) && '🚚 رسوم التوصيل: 20 جنيه'}
+                                            {totalPrice >= 600 && ' (مجاني للطلبات فوق 600 جنيه)'}
+                                        </p>
                                     )}
                                 </div>
-                            ) : (
-                                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <Tag size={16} className="text-green-600" />
-                                            <div>
-                                                <p className="text-sm font-bold text-green-900">{appliedCoupon.code}</p>
-                                                {appliedCoupon.description && (
-                                                    <p className="text-xs text-green-700">{appliedCoupon.description}</p>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-slate-700">اسم العمارة / المبنى <span className="text-red-500">*</span></label>
+                                        <input
+                                            required
+                                            type="text"
+                                            name="building"
+                                            value={formData.building}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
+                                            placeholder="مثال: برج النخيل"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-slate-700">اسم الشارع <span className="text-red-500">*</span></label>
+                                        <input
+                                            required
+                                            type="text"
+                                            name="street"
+                                            value={formData.street}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
+                                            placeholder="شارع التحرير"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-slate-700">الدور <span className="text-gray-400 font-normal">(اختياري)</span></label>
+                                        <input
+                                            type="text"
+                                            name="floor"
+                                            value={formData.floor}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
+                                            placeholder="3"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-bold text-slate-700">الشقة <span className="text-gray-400 font-normal">(اختياري)</span></label>
+                                        <input
+                                            type="text"
+                                            name="apartment"
+                                            value={formData.apartment}
+                                            onChange={handleInputChange}
+                                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
+                                            placeholder="شقة 5"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-slate-700 flex justify-between items-center">
+                                        <span>تفاصيل العنوان الإضافية <span className="text-red-500">*</span></span>
+                                        {/* Location Button */}
+                                        <button
+                                            type="button"
+                                            onClick={handleGetLocation}
+                                            className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full flex items-center hover:bg-blue-100 transition-colors"
+                                            disabled={isLoadingLocation || isPickup}
+                                        >
+                                            {isLoadingLocation ? <Loader size={12} className="animate-spin ml-1" /> : <MapPin size={12} className="ml-1" />}
+                                            {locationCoords ? 'تم تحديد الموقع ✓' : 'تحديد موقعي الحالي'}
+                                        </button>
+                                    </label>
+
+                                    {locationError && <p className="text-xs text-red-500">{locationError}</p>}
+
+                                    <textarea
+                                        required
+                                        rows={2}
+                                        name="address"
+                                        value={formData.address}
+                                        onChange={handleInputChange}
+                                        className={`w-full px-4 py-3 rounded-xl border ${isPickup ? 'border-dashed border-slate-200 bg-slate-50 text-slate-500' : 'border-slate-200'} focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all`}
+                                        placeholder={isPickup ? 'العنوان غير مطلوب للاستلام من الفرع' : 'علامة مميزة أو تفاصيل إضافية للعنوان...'}
+                                        disabled={isPickup}
+                                    ></textarea>
+
+                                    {locationCoords && (
+                                        <p className="text-xs text-green-600 flex items-center">
+                                            <CheckCircle size={12} className="ml-1" /> تم حفظ الإحداثيات: {locationCoords.lat.toFixed(5)}, {locationCoords.lng.toFixed(5)}
+                                        </p>
+                                    )}
+                                </div>
+
+                                {/* Google Maps Link Field */}
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
+                                        <Map size={16} className="text-blue-600" />
+                                        <span>رابط جوجل مابس (اختياري)</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="googleMapsLink"
+                                        value={formData.googleMapsLink}
+                                        onChange={handleInputChange}
+                                        className={`w-full px-4 py-3 rounded-xl border ${isPickup ? 'border-dashed border-slate-200 bg-slate-50 text-slate-500' : 'border-slate-200'} focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition-all`}
+                                        placeholder={isPickup ? 'غير مطلوب للاستلام من الفرع' : 'https://www.google.com/maps?q=30.0444,31.2357'}
+                                        disabled={isPickup}
+                                    />
+                                    {!isPickup && (
+                                        <p className="text-xs text-slate-500">
+                                            💡 الصق رابط موقعك من جوجل مابس ليسهل على المندوب الوصول إليك
+                                        </p>
+                                    )}
+                                    {locationCoords && formData.googleMapsLink && (
+                                        <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-xs">
+                                            <p className="text-green-700 font-medium mb-1">✓ تم استخراج الإحداثيات بنجاح</p>
+                                            <p className="text-green-600">
+                                                📍 {formatCoordinates(locationCoords)}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* ملاحظات التوصيل */}
+                                <div className="space-y-2">
+                                    <label className="text-sm font-bold text-slate-700">ملاحظات للتوصيل (اختياري)</label>
+                                    <textarea
+                                        rows={2}
+                                        name="notes"
+                                        value={formData.notes}
+                                        onChange={handleInputChange}
+                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
+                                        placeholder={isPickup ? 'مثال: موعد تقريبي لوصولك للفرع' : 'مثال: من فضلك اتصل قبل الوصول...'}
+                                    ></textarea>
+                                </div>
+                            </form>
+                        </div>
+
+                        {/* Payment Method */}
+                        <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
+                            <h3 className="text-xl font-bold text-slate-800 mb-4">طريقة الدفع</h3>
+                            <div className="space-y-3">
+                                {/* Cash on Delivery */}
+                                <label className={`flex items-center p-4 border-2 rounded-xl transition ${!isPickup ? 'cursor-pointer hover:border-green-600' : 'opacity-50 cursor-not-allowed'}`}>
+                                    <input
+                                        type="radio"
+                                        name="payment"
+                                        value="cod"
+                                        checked={paymentMethod === 'cod'}
+                                        onChange={(e) => setPaymentMethod(e.target.value)}
+                                        disabled={isPickup}
+                                        className="w-5 h-5 text-green-600"
+                                    />
+                                    <div className="mr-3">
+                                        <div className="font-medium">{PAYMENT_METHOD_LABELS.cod}</div>
+                                        <div className="text-sm text-slate-500">ادفع نقداً عند استلام الطلب</div>
+                                    </div>
+                                </label>
+
+                                {/* Visa on Delivery */}
+                                <label className={`flex items-center p-4 border-2 rounded-xl transition ${!isPickup ? 'cursor-pointer hover:border-green-600' : 'opacity-50 cursor-not-allowed'}`}>
+                                    <input
+                                        type="radio"
+                                        name="payment"
+                                        value="visa"
+                                        checked={paymentMethod === 'visa'}
+                                        onChange={(e) => setPaymentMethod(e.target.value)}
+                                        disabled={isPickup}
+                                        className="w-5 h-5 text-green-600"
+                                    />
+                                    <div className="mr-3">
+                                        <div className="font-medium">{PAYMENT_METHOD_LABELS.visa}</div>
+                                        <div className="text-sm text-slate-500">سيحضر مندوب التوصيل بماكينة الفيزا</div>
+                                    </div>
+                                </label>
+
+                                {/* Branch Pickup */}
+                                <label className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition ${isPickup ? 'border-green-600 bg-green-50' : 'hover:border-green-600'}`}>
+                                    <input
+                                        type="radio"
+                                        name="payment"
+                                        value="branch_pickup"
+                                        checked={paymentMethod === 'branch_pickup'}
+                                        onChange={(e) => setPaymentMethod(e.target.value)}
+                                        className="w-5 h-5 text-green-600"
+                                    />
+                                    <div className="mr-3">
+                                        <div className="font-medium">{PAYMENT_METHOD_LABELS.branch_pickup}</div>
+                                        <div className="text-sm text-slate-500">احضر للفرع وادفع عند الاستلام</div>
+                                    </div>
+                                </label>
+
+                                {/* Online Card Payment - Paymob */}
+                                <label className={`flex items-center p-4 border-2 rounded-xl transition ${!isPickup ? 'cursor-pointer hover:border-blue-600' : 'opacity-50 cursor-not-allowed'}`}>
+                                    <input
+                                        type="radio"
+                                        name="payment"
+                                        value="paymob_card"
+                                        checked={paymentMethod === 'paymob_card'}
+                                        onChange={(e) => setPaymentMethod(e.target.value)}
+                                        disabled={isPickup}
+                                        className="w-5 h-5 text-blue-600"
+                                    />
+                                    <div className="mr-3">
+                                        <div className="font-medium flex items-center gap-2">
+                                            <span>الدفع بالفيزا/ماستركارد 💳</span>
+                                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">آمن</span>
+                                        </div>
+                                        <div className="text-sm text-slate-500">ادفع الآن ببطاقتك عبر Paymob (آمن ومشفر)</div>
+                                    </div>
+                                </label>
+
+                                {/* Fawry - Coming Soon */}
+                                <label className="flex items-center p-4 border-2 rounded-xl cursor-pointer hover:border-green-600 transition opacity-50">
+                                    <input
+                                        type="radio"
+                                        name="payment"
+                                        value="fawry"
+                                        disabled
+                                        className="w-5 h-5 text-green-600"
+                                    />
+                                    <span className="mr-3 font-medium">{PAYMENT_METHOD_LABELS.fawry} (قريباً)</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        {/* Substitution Preferences */}
+                        <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
+                            <h3 className="text-xl font-bold text-slate-800 mb-4">تفضيلات الاستبدال</h3>
+                            <div className="space-y-4">
+                                {needsUnavailableContact && (
+                                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">
+                                            طريقة التواصل في حالة عدم توفر المنتج
+                                        </label>
+                                        <select
+                                            value={unavailableContactMethod}
+                                            onChange={(e) => setUnavailableContactMethod(e.target.value)}
+                                            className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                                        >
+                                            <option value="phone">اتصال هاتفي</option>
+                                            <option value="whatsapp">واتساب</option>
+                                            <option value="sms">رسالة SMS</option>
+                                            <option value="any">أي وسيلة متاحة</option>
+                                        </select>
+                                        <p className="text-xs text-slate-500 mt-2">نستخدمها لو المنتج مش متوفر ونحتاج نرجع لك بسرعة.</p>
+                                    </div>
+                                )}
+                                {items.map((item) => (
+                                    <div key={item.id} className="flex items-center gap-4 pb-4 border-b last:border-0">
+                                        <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-lg" />
+                                        <div className="flex-1">
+                                            <h4 className="font-medium text-gray-900">{item.name}</h4>
+                                            <SubstitutionSelector
+                                                value={item.substitutionPreference || 'none'}
+                                                onChange={(value) => handleSubstitutionChange(item.id, value)}
+                                            />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {deliveryMessage && (
+                            <div className={`p-4 rounded-xl mb-4 ${freeDelivery ? 'bg-green-50 text-green-700' :
+                                    !canDeliver ? 'bg-red-50 text-red-700' :
+                                        'bg-blue-50 text-blue-700'
+                                }`}>
+                                <p className="text-sm font-medium text-center">{deliveryMessage}</p>
+                            </div>
+                        )}
+
+                        <button
+                            onClick={handleSubmit}
+                            disabled={(!isPickup && !canDeliver) || !meetsMinimumOrder}
+                            className={`w-full font-bold py-4 rounded-xl transition-colors shadow-lg ${(!isPickup && !canDeliver) || !meetsMinimumOrder
+                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                    : 'bg-green-600 text-white hover:bg-green-700'
+                                }`}
+                        >
+                            {(!isPickup && !canDeliver) ? 'لا يمكن إتمام الطلب'
+                                : !meetsMinimumOrder
+                                    ? 'الحد الأدنى 200 جنيه'
+                                    : `تأكيد الطلب (${finalTotal.toFixed(2)} جنيه)`}
+                        </button>
+                    </div>
+
+                    {/* Order Summary (Mini) */}
+                    <div className="w-full lg:w-80 flex-shrink-0">
+                        <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                            <h3 className="text-lg font-bold text-slate-800 mb-4">Order Summary</h3>
+                            <div className="space-y-3 mb-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                                {items.map(item => (
+                                    <div key={item.id} className="flex justify-between text-sm">
+                                        <span className="text-slate-600">{item.name || (item as any).title} <span className="text-xs text-slate-400">x{item.quantity}</span></span>
+                                        <span className="font-bold text-slate-800">{((item.price || 0) * item.quantity).toFixed(2)} EGP</span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-xl">
+                                <div className="flex items-center justify-between">
+                                    <div className="text-sm text-purple-800 font-semibold">ستربح {loyaltyPointsEarned} نقطة من هذا الطلب</div>
+                                    <Gift size={18} className="text-purple-600" />
+                                </div>
+                                {(!user || user.isGuest) && (
+                                    <p className="text-xs text-purple-700 mt-2">سجّل دخولك ليتم حفظ نقاطك تلقائياً واستخدامها كخصومات لاحقاً.</p>
+                                )}
+                            </div>
+
+                            {/* مربع الكوبون */}
+                            <div className="mb-4 border-t border-slate-200 pt-4">
+                                <label className="text-sm font-bold text-slate-700 mb-2 block">كوبون الخصم</label>
+                                {!appliedCoupon ? (
+                                    <div className="space-y-2">
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={couponCode}
+                                                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                                                onKeyPress={(e) => e.key === 'Enter' && handleApplyCoupon()}
+                                                placeholder="أدخل كود الكوبون"
+                                                className="flex-1 px-3 py-2 rounded-lg border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all text-sm"
+                                            />
+                                            <button
+                                                onClick={handleApplyCoupon}
+                                                disabled={isValidatingCoupon || !couponCode.trim()}
+                                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-1 text-sm font-medium"
+                                            >
+                                                {isValidatingCoupon ? (
+                                                    <Loader size={16} className="animate-spin" />
+                                                ) : (
+                                                    <Tag size={16} />
                                                 )}
-                                            </div>
+                                                تطبيق
+                                            </button>
                                         </div>
-                                        <button
-                                            onClick={handleRemoveCoupon}
-                                            className="text-red-500 hover:text-red-700 p-1"
-                                            title="إزالة الكوبون"
-                                        >
-                                            <X size={16} />
-                                        </button>
+                                        {couponError && (
+                                            <p className="text-xs text-red-600">{couponError}</p>
+                                        )}
                                     </div>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* مربع الباركود */}
-                        <div className="mb-4 border-t border-slate-200 pt-4">
-                            <div className="flex items-center justify-between mb-2">
-                                <label className="text-sm font-bold text-slate-700">باركود الولاء</label>
-                            </div>
-                            {!appliedBarcode ? (
-                                <div className="space-y-2">
-                                    <div className="flex gap-2">
-                                        <input
-                                            type="text"
-                                            value={barcodeInput}
-                                            onChange={(e) => setBarcodeInput(e.target.value.toUpperCase())}
-                                            onKeyPress={(e) => e.key === 'Enter' && handleApplyBarcode()}
-                                            placeholder="أدخل رمز الباركود"
-                                            className="flex-1 px-3 py-2 rounded-lg border border-slate-200 focus:border-orange-600 focus:ring-2 focus:ring-orange-100 outline-none transition-all text-sm font-mono"
-                                        />
-                                        <button
-                                            onClick={handleApplyBarcode}
-                                            disabled={isValidatingBarcode || !barcodeInput.trim()}
-                                            className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-1 text-sm font-medium"
-                                        >
-                                            {isValidatingBarcode ? (
-                                                <Loader size={16} className="animate-spin" />
-                                            ) : (
-                                                <CheckCircle size={16} />
-                                            )}
-                                            تطبيق
-                                        </button>
-                                    </div>
-                                    {barcodeError && (
-                                        <p className="text-xs text-red-600">{barcodeError}</p>
-                                    )}
-                                </div>
-                            ) : (
-                                <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <CheckCircle size={16} className="text-orange-600" />
-                                            <div>
-                                                <p className="text-sm font-bold text-orange-900 font-mono">{appliedBarcode.barcode}</p>
-                                                <p className="text-xs text-orange-700">{appliedBarcode.monetary_value || 0} جنيه</p>
+                                ) : (
+                                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <Tag size={16} className="text-green-600" />
+                                                <div>
+                                                    <p className="text-sm font-bold text-green-900">{appliedCoupon.code}</p>
+                                                    {appliedCoupon.description && (
+                                                        <p className="text-xs text-green-700">{appliedCoupon.description}</p>
+                                                    )}
+                                                </div>
                                             </div>
+                                            <button
+                                                onClick={handleRemoveCoupon}
+                                                className="text-red-500 hover:text-red-700 p-1"
+                                                title="إزالة الكوبون"
+                                            >
+                                                <X size={16} />
+                                            </button>
                                         </div>
-                                        <button
-                                            onClick={handleRemoveBarcode}
-                                            className="text-red-500 hover:text-red-700 p-1"
-                                            title="إزالة الباركود"
-                                        >
-                                            <X size={16} />
-                                        </button>
                                     </div>
-                                </div>
-                            )}
-                        </div>
+                                )}
+                            </div>
 
-                        <div className="border-t border-slate-200 pt-4 space-y-2">
-                            <div className="flex justify-between items-center text-sm text-gray-600">
-                                <span>Subtotal</span>
-                                <span>{totalPrice.toFixed(2)} EGP</span>
-                            </div>
-                            <div className="flex justify-between items-center text-sm text-gray-600">
-                                <span>Service Tax</span>
-                                <span>{serviceFee.toFixed(2)} EGP</span>
-                            </div>
-                            <div className="flex justify-between items-center text-sm text-gray-600">
-                                <span>{isPickup ? 'Pickup' : 'Delivery'}</span>
-                                <span className={freeDelivery ? 'text-green-600 font-bold' : ''}>
-                                    {freeDelivery ? 'FREE!' : `${deliveryFee.toFixed(2)} EGP`}
-                                </span>
-                            </div>
-                            {couponDiscount > 0 && (
-                                <div className="flex justify-between items-center text-sm text-green-600 font-medium">
-                                    <span>Coupon Discount</span>
-                                    <span>-{couponDiscount.toFixed(2)} EGP</span>
+                            {/* مربع الباركود */}
+                            <div className="mb-4 border-t border-slate-200 pt-4">
+                                <div className="flex items-center justify-between mb-2">
+                                    <label className="text-sm font-bold text-slate-700">باركود الولاء</label>
                                 </div>
-                            )}
-                            {barcodeDiscount > 0 && (
-                                <div className="flex justify-between items-center text-sm text-orange-600 font-medium">
-                                    <span>Barcode Discount</span>
-                                    <span>-{(Number(barcodeDiscount) || 0).toFixed(2)} EGP</span>
-                                </div>
-                            )}
-                            <div className="flex justify-between items-center pt-2 border-t border-gray-200">
-                                <span className="font-bold text-slate-800">Total</span>
-                                <span className="font-bold text-xl text-primary">{(finalTotal).toFixed(2)} EGP</span>
+                                {!appliedBarcode ? (
+                                    <div className="space-y-2">
+                                        <div className="flex gap-2">
+                                            <input
+                                                type="text"
+                                                value={barcodeInput}
+                                                onChange={(e) => setBarcodeInput(e.target.value.toUpperCase())}
+                                                onKeyPress={(e) => e.key === 'Enter' && handleApplyBarcode()}
+                                                placeholder="أدخل رمز الباركود"
+                                                className="flex-1 px-3 py-2 rounded-lg border border-slate-200 focus:border-orange-600 focus:ring-2 focus:ring-orange-100 outline-none transition-all text-sm font-mono"
+                                            />
+                                            <button
+                                                onClick={handleApplyBarcode}
+                                                disabled={isValidatingBarcode || !barcodeInput.trim()}
+                                                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-1 text-sm font-medium"
+                                            >
+                                                {isValidatingBarcode ? (
+                                                    <Loader size={16} className="animate-spin" />
+                                                ) : (
+                                                    <CheckCircle size={16} />
+                                                )}
+                                                تطبيق
+                                            </button>
+                                        </div>
+                                        {barcodeError && (
+                                            <p className="text-xs text-red-600">{barcodeError}</p>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <CheckCircle size={16} className="text-orange-600" />
+                                                <div>
+                                                    <p className="text-sm font-bold text-orange-900 font-mono">{appliedBarcode.barcode}</p>
+                                                    <p className="text-xs text-orange-700">{appliedBarcode.monetary_value || 0} جنيه</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={handleRemoveBarcode}
+                                                className="text-red-500 hover:text-red-700 p-1"
+                                                title="إزالة الباركود"
+                                            >
+                                                <X size={16} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
-                            {!meetsMinimumOrder && (
-                                <p className="text-xs text-red-600 pt-1">الحد الأدنى للطلب 200 جنيه - أضف منتجات أكثر لإكمال الطلب</p>
-                            )}
+
+                            <div className="border-t border-slate-200 pt-4 space-y-2">
+                                <div className="flex justify-between items-center text-sm text-gray-600">
+                                    <span>Subtotal</span>
+                                    <span>{totalPrice.toFixed(2)} EGP</span>
+                                </div>
+                                <div className="flex justify-between items-center text-sm text-gray-600">
+                                    <span>Service Tax</span>
+                                    <span>{serviceFee.toFixed(2)} EGP</span>
+                                </div>
+                                <div className="flex justify-between items-center text-sm text-gray-600">
+                                    <span>{isPickup ? 'Pickup' : 'Delivery'}</span>
+                                    <span className={freeDelivery ? 'text-green-600 font-bold' : ''}>
+                                        {freeDelivery ? 'FREE!' : `${deliveryFee.toFixed(2)} EGP`}
+                                    </span>
+                                </div>
+                                {couponDiscount > 0 && (
+                                    <div className="flex justify-between items-center text-sm text-green-600 font-medium">
+                                        <span>Coupon Discount</span>
+                                        <span>-{couponDiscount.toFixed(2)} EGP</span>
+                                    </div>
+                                )}
+                                {barcodeDiscount > 0 && (
+                                    <div className="flex justify-between items-center text-sm text-orange-600 font-medium">
+                                        <span>Barcode Discount</span>
+                                        <span>-{(Number(barcodeDiscount) || 0).toFixed(2)} EGP</span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                                    <span className="font-bold text-slate-800">Total</span>
+                                    <span className="font-bold text-xl text-primary">{(finalTotal).toFixed(2)} EGP</span>
+                                </div>
+                                {!meetsMinimumOrder && (
+                                    <p className="text-xs text-red-600 pt-1">الحد الأدنى للطلب 200 جنيه - أضف منتجات أكثر لإكمال الطلب</p>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
             </div>
             <Footer />
         </div>

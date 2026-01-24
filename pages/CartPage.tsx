@@ -15,7 +15,7 @@ const CartPage = () => {
     const [deliveryFee, setDeliveryFee] = useState(25);
     const [freeDelivery, setFreeDelivery] = useState(false);
     const [isRedeeming, setIsRedeeming] = useState(false);
-    
+
     // Constants
     const MINIMUM_ORDER_AMOUNT = 200;
     const FREE_SHIPPING_THRESHOLD = 600;
@@ -183,7 +183,7 @@ const CartPage = () => {
                                         </div>
                                         <div className="text-right">
                                             <p className="font-bold text-brand-orange text-lg">
-                                                {((Number(item.price) || 0) * item.quantity).toFixed(2)} 
+                                                {((Number(item.price) || 0) * item.quantity).toFixed(2)}
                                                 <span className="text-xs text-gray-500 mr-1">جنيه</span>
                                             </p>
                                             <p className="text-xs text-gray-400">شامل الضريبة</p>
@@ -221,7 +221,7 @@ const CartPage = () => {
                                         أضف {(FREE_SHIPPING_THRESHOLD - totalPrice).toFixed(2)} جنيه للحصول على شحن مجاني! 🎉
                                     </p>
                                     <div className="w-full bg-blue-200 rounded-full h-2">
-                                        <div 
+                                        <div
                                             className="bg-blue-600 h-2 rounded-full transition-all"
                                             style={{ width: `${Math.min((totalPrice / FREE_SHIPPING_THRESHOLD) * 100, 100)}%` }}
                                         />
@@ -239,23 +239,12 @@ const CartPage = () => {
                                         </div>
                                         <span className="text-2xl font-bold text-purple-600">+{loyaltyPointsEarned}</span>
                                     </div>
-                                    <p className="text-xs text-purple-700 mb-3">
+                                    <p className="text-xs text-purple-700 mb-2">
                                         ستحصل على {loyaltyPointsEarned} نقطة من هذا الطلب!
                                     </p>
-                                    {user.loyalty_points >= 1000 && (
-                                        <button
-                                            onClick={handleRedeemRewards}
-                                            disabled={isRedeeming}
-                                            className="w-full bg-purple-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors text-sm disabled:opacity-50"
-                                        >
-                                            {isRedeeming ? 'جاري الاسترداد...' : 'استبدل 1000 نقطة بـ 35 جنيه! 🎁'}
-                                        </button>
-                                    )}
-                                    {user.loyalty_points < 1000 && (
-                                        <div className="text-xs text-purple-600 bg-white/50 rounded-lg p-2">
-                                            لديك {user.loyalty_points || 0} نقطة. تحتاج {1000 - (user.loyalty_points || 0)} نقطة للحصول على كوبون 35 جنيه
-                                        </div>
-                                    )}
+                                    <div className="text-xs text-purple-600 bg-white/50 rounded-lg p-2">
+                                        لديك {user.loyalty_points || 0} نقطة حالياً. يمكنك تحويلها لكوبونات من صفحة "نقاطي"
+                                    </div>
                                 </div>
                             )}
                             {(!user || user.isGuest) && (
@@ -300,7 +289,7 @@ const CartPage = () => {
                                 disabled={!meetsMinimumOrder}
                                 className="w-full bg-brand-orange text-white font-bold py-4 rounded-xl shadow-lg hover:bg-orange-600 transition-colors disabled:bg-gray-300 disabled:cursor-not-allowed"
                             >
-                                {!meetsMinimumOrder 
+                                {!meetsMinimumOrder
                                     ? `احتاج ${(MINIMUM_ORDER_AMOUNT - totalPrice).toFixed(2)} جنيه أخرى`
                                     : 'إتمام الطلب'
                                 }
@@ -311,7 +300,7 @@ const CartPage = () => {
             </div>
 
             {/* Mobile: Fixed Bottom Summary - Above Taskbar */}
-            <div 
+            <div
                 className="lg:hidden fixed bottom-16 left-0 right-0 bg-white border-t-2 border-gray-200 p-4 shadow-2xl z-50 rounded-t-2xl"
                 style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)', willChange: 'transform' }}
             >
@@ -322,15 +311,7 @@ const CartPage = () => {
                             <Gift className="text-purple-600" size={16} />
                             <span className="text-xs font-bold text-purple-900">ستربح {loyaltyPointsEarned} نقطة!</span>
                         </div>
-                        {user.loyalty_points >= 1000 && (
-                            <button
-                                onClick={handleRedeemRewards}
-                                disabled={isRedeeming}
-                                className="bg-purple-600 text-white text-xs font-bold py-1 px-3 rounded-lg hover:bg-purple-700 transition-colors disabled:opacity-50"
-                            >
-                                استبدل نقاطك 🎁
-                            </button>
-                        )}
+                        <span className="text-xs text-purple-600">لديك {user.loyalty_points || 0}</span>
                     </div>
                 )}
 
