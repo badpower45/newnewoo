@@ -65,7 +65,7 @@ const HotDealsManager = () => {
         setLoading(true);
         setError('');
         try {
-            const res = await api.hotDeals.getAll();
+            const res = await api.hotDeals.getAdminList();
             const payload = res?.data ?? res;
             setDeals(Array.isArray(payload) ? payload : Array.isArray(payload?.data) ? payload.data : []);
         } catch (err) {
@@ -79,15 +79,8 @@ const HotDealsManager = () => {
     const loadProducts = async () => {
         setLoadingProducts(true);
         try {
-            const res = await fetch(`${API_URL}/products?includeAllBranches=true&limit=300`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('token') || ''}`
-                }
-            });
-            const data = await res.json();
-            const list = Array.isArray(data) ? data : data?.data || [];
-            setProducts(list);
+            const list = await api.products.getAdminList({ limit: 300 });
+            setProducts(Array.isArray(list) ? list : []);
         } catch (err) {
             console.error('Failed to load products for hot deals quick add:', err);
         } finally {
@@ -98,6 +91,10 @@ const HotDealsManager = () => {
     const handleQuickAddProduct = async (product: any) => {
         setAddingProductId(product.id);
         try {
+            const fullProduct = product.image
+                ? product
+                : await api.products.getOne(product.id);
+            const productImage = fullProduct?.image || product.image || '';
             const discount = product.discount_price
                 ? Math.round(((product.price - product.discount_price) / product.price) * 100)
                 : 10;
@@ -107,7 +104,7 @@ const HotDealsManager = () => {
                 price: product.discount_price || product.price || 0,
                 old_price: product.price || 0,
                 discount_percentage: discount,
-                image: product.image,
+                image: productImage,
                 total_quantity: 100,
                 end_time: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // +1 day
                 is_flash_deal: false,
@@ -161,25 +158,32 @@ const HotDealsManager = () => {
         }
     };
 
-    const handleEdit = (deal: HotDeal) => {
-        setEditingDeal(deal);
-        const endDate = new Date(deal.end_time);
-        const formattedDate = endDate.toISOString().slice(0, 16);
-        
-        setFormData({
-            name: deal.name,
-            name_en: deal.name_en || '',
-            price: String(deal.price),
-            old_price: String(deal.old_price),
-            discount_percentage: String(deal.discount_percentage),
-            image: deal.image || '',
-            total_quantity: String(deal.total_quantity),
-            end_time: formattedDate,
-            is_flash_deal: deal.is_flash_deal,
-            is_active: deal.is_active
-        });
-        setSendPush(false);
-        setShowModal(true);
+    const handleEdit = async (deal: HotDeal) => {
+        try {
+            const res = await api.hotDeals.getById(deal.id);
+            const fullDeal = res?.data || res;
+            setEditingDeal(fullDeal);
+            const endDate = new Date(fullDeal.end_time);
+            const formattedDate = endDate.toISOString().slice(0, 16);
+            
+            setFormData({
+                name: fullDeal.name,
+                name_en: fullDeal.name_en || '',
+                price: String(fullDeal.price),
+                old_price: String(fullDeal.old_price),
+                discount_percentage: String(fullDeal.discount_percentage),
+                image: fullDeal.image || '',
+                total_quantity: String(fullDeal.total_quantity),
+                end_time: formattedDate,
+                is_flash_deal: fullDeal.is_flash_deal,
+                is_active: fullDeal.is_active
+            });
+            setSendPush(false);
+            setShowModal(true);
+        } catch (err) {
+            console.error('Failed to load deal details:', err);
+            alert('تعذر تحميل بيانات العرض كاملة');
+        }
     };
 
     const handleDelete = async (id: number) => {

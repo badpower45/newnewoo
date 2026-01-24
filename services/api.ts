@@ -29,6 +29,8 @@ const mapProduct = (p: any) => {
     return {
         id: p.i ?? p.id,
         name: p.n ?? p.name,
+        name_ar: p.na ?? p.name_ar,
+        barcode: p.b ?? p.barcode,
         category: p.c ?? p.category,
         image: p.im ?? p.image,
         weight: p.w ?? p.weight,
@@ -277,10 +279,13 @@ export const api = {
             return list;
         },
         // Admin: جلب المنتجات بدون ربط فرع محدد
-        getAdminList: async (options?: { limit?: number; offset?: number; search?: string }) => {
+        getAdminList: async (options?: { limit?: number; offset?: number; page?: number; search?: string; branchId?: number }) => {
             const limitValue = options?.limit ?? 200;
             const offsetValue = options?.offset ?? 0;
-            let url = `${API_URL}/products?includeAllBranches=true&limit=${limitValue}&offset=${offsetValue}`;
+            const pageFromOffset = Math.floor(offsetValue / limitValue) + 1;
+            const pageValue = options?.page ?? pageFromOffset;
+            let url = `${API_URL}/products/admin/list?page=${pageValue}&limit=${limitValue}`;
+            if (options?.branchId) url += `&branchId=${options.branchId}`;
             if (options?.search) {
                 url += `&search=${encodeURIComponent(options.search)}`;
             }
@@ -1312,6 +1317,18 @@ export const api = {
             const res = await fetch(url, { headers: getHeaders() });
             return res.json();
         },
+        // Admin: جلب قائمة خفيفة (بدون الصور)
+        getAdminList: async (options?: { page?: number; limit?: number }) => {
+            const pageValue = options?.page ?? 1;
+            const limitValue = options?.limit ?? 200;
+            const res = await fetch(`${API_URL}/magazine/admin/list?page=${pageValue}&limit=${limitValue}`, { headers: getHeaders() });
+            return res.json();
+        },
+        // Admin: جلب عرض مفصل
+        getById: async (id: number) => {
+            const res = await fetch(`${API_URL}/magazine/${id}`, { headers: getHeaders() });
+            return res.json();
+        },
 
         // جلب الفئات
         getCategories: async () => {
@@ -1368,6 +1385,18 @@ export const api = {
             let url = `${API_URL}/hot-deals`;
             if (brandId) url += `?brandId=${brandId}`;
             const res = await fetch(url, { headers: getHeaders() });
+            return res.json();
+        },
+        // Admin: جلب قائمة خفيفة (بدون الصور)
+        getAdminList: async (options?: { page?: number; limit?: number }) => {
+            const pageValue = options?.page ?? 1;
+            const limitValue = options?.limit ?? 200;
+            const res = await fetch(`${API_URL}/hot-deals/admin/list?page=${pageValue}&limit=${limitValue}`, { headers: getHeaders() });
+            return res.json();
+        },
+        // Admin: جلب عرض مفصل
+        getById: async (id: number) => {
+            const res = await fetch(`${API_URL}/hot-deals/${id}`, { headers: getHeaders() });
             return res.json();
         },
 
@@ -1514,6 +1543,18 @@ export const api = {
             console.log('📡 Admin categories data:', json);
             return json;
         },
+        // Admin: Get lightweight category list (without banners/images)
+        getAdminList: async (options?: { page?: number; limit?: number }) => {
+            const pageValue = options?.page ?? 1;
+            const limitValue = options?.limit ?? 100;
+            const res = await fetch(`${API_URL}/categories/admin/list?page=${pageValue}&limit=${limitValue}`, {
+                headers: getHeaders()
+            });
+            if (!res.ok) {
+                throw new Error('Failed to fetch admin category list');
+            }
+            return res.json();
+        },
 
         // Admin: Create category
         create: async (data: {
@@ -1584,6 +1625,14 @@ export const api = {
 
         getAllAdmin: async () => {
             const res = await fetch(`${API_URL}/stories/admin/all`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+        getAdminList: async (options?: { page?: number; limit?: number }) => {
+            const pageValue = options?.page ?? 1;
+            const limitValue = options?.limit ?? 200;
+            const res = await fetch(`${API_URL}/stories/admin/list?page=${pageValue}&limit=${limitValue}`, {
                 headers: getHeaders()
             });
             return res.json();
@@ -1743,6 +1792,14 @@ export const api = {
 
         getAllAdmin: async () => {
             const res = await fetch(`${API_URL}/brand-offers/admin`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+        getAdminList: async (options?: { page?: number; limit?: number }) => {
+            const pageValue = options?.page ?? 1;
+            const limitValue = options?.limit ?? 200;
+            const res = await fetch(`${API_URL}/brand-offers/admin/list?page=${pageValue}&limit=${limitValue}`, {
                 headers: getHeaders()
             });
             return res.json();
@@ -1992,6 +2049,22 @@ export const api = {
             if (!res.ok) throw new Error('Failed to fetch brands');
             return res.json();
         },
+        getAdminList: async (options?: { page?: number; limit?: number }) => {
+            const pageValue = options?.page ?? 1;
+            const limitValue = options?.limit ?? 50;
+            const res = await fetch(`${API_URL}/brands/admin/list?page=${pageValue}&limit=${limitValue}`, {
+                headers: getHeaders()
+            });
+            if (!res.ok) throw new Error('Failed to fetch admin brands');
+            return res.json();
+        },
+        getById: async (id: string) => {
+            const res = await fetch(`${API_URL}/brands/${id}`, {
+                headers: getHeaders()
+            });
+            if (!res.ok) throw new Error('Failed to fetch brand');
+            return res.json();
+        },
         create: async (data: any) => {
             const res = await fetch(`${API_URL}/brands`, {
                 method: 'POST',
@@ -2164,7 +2237,19 @@ export const api = {
                 headers: getHeaders()
             });
             if (!res.ok) throw new Error('Failed to fetch home sections');
-            return res.json();
+            const json = await res.json();
+
+            // Map products in each section to include frames and other mapped fields
+            if (json.data && Array.isArray(json.data)) {
+                json.data = json.data.map((section: any) => {
+                    if (section.products && Array.isArray(section.products)) {
+                        section.products = section.products.map(mapProduct);
+                    }
+                    return section;
+                });
+            }
+
+            return json;
         }
     },
 

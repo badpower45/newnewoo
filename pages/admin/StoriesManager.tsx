@@ -7,7 +7,7 @@ interface Story {
     user_id?: number;
     circle_name?: string;
     title: string;
-    media_url: string;
+    media_url?: string;
     media_type: 'image' | 'video';
     duration: number;
     link_url?: string;
@@ -88,7 +88,7 @@ const StoriesManager: React.FC = () => {
         setLoading(true);
         setErrorMessage('');
         try {
-            const response = await api.stories.getAllAdmin();
+            const response = await api.stories.getAdminList();
             const fetched = Array.isArray(response) ? response : response?.data || [];
             setStories(fetched);
         } catch (error) {
@@ -116,11 +116,11 @@ const StoriesManager: React.FC = () => {
         stories.forEach((story) => {
             const name = story.circle_name?.trim() || 'بدون دائرة';
             const createdAt = new Date(story.created_at).getTime();
-            const ytId = extractYoutubeId(story.link_url || story.media_url);
+            const ytId = extractYoutubeId(story.link_url || story.media_url || '');
             const cover =
                 story.media_type === 'video'
                     ? youtubeThumbnail(ytId)
-                    : story.media_url;
+                    : (story.media_url || '');
 
             const existing = circles.get(name);
             if (!existing) {
@@ -224,22 +224,29 @@ const StoriesManager: React.FC = () => {
         }
     };
 
-    const openEditModal = (story: Story) => {
-        setEditingStory(story);
-        setFormData({
-            circle_name: story.circle_name || '',
-            expires_in_hours: 24,
-            priority: story.priority
-        });
-        setStoryItems([{
-            title: story.title,
-            media_url: story.media_url,
-            media_type: story.media_type,
-            duration: story.duration,
-            link_url: story.link_url || '',
-            link_text: story.link_text || ''
-        }]);
-        setShowModal(true);
+    const openEditModal = async (story: Story) => {
+        try {
+            const response = await api.stories.getById(story.id);
+            const fullStory = response?.data || response;
+            setEditingStory(fullStory);
+            setFormData({
+                circle_name: fullStory.circle_name || '',
+                expires_in_hours: 24,
+                priority: fullStory.priority
+            });
+            setStoryItems([{
+                title: fullStory.title,
+                media_url: fullStory.media_url || '',
+                media_type: fullStory.media_type,
+                duration: fullStory.duration,
+                link_url: fullStory.link_url || '',
+                link_text: fullStory.link_text || ''
+            }]);
+            setShowModal(true);
+        } catch (error) {
+            console.error('Failed to load story details:', error);
+            alert('تعذر تحميل بيانات الاستوري كاملة');
+        }
     };
 
     const resetForm = (presetCircle?: string) => {
@@ -380,18 +387,25 @@ const StoriesManager: React.FC = () => {
                         >
                             {/* Preview */}
                             <div className="relative aspect-[9/16] bg-gray-100">
-                                {story.media_type === 'video' ? (
-                                    <video 
-                                        src={story.media_url} 
-                                        className="w-full h-full object-cover"
-                                        muted
-                                    />
+                                {story.media_url ? (
+                                    story.media_type === 'video' ? (
+                                        <video 
+                                            src={story.media_url} 
+                                            className="w-full h-full object-cover"
+                                            muted
+                                        />
+                                    ) : (
+                                        <img 
+                                            src={story.media_url} 
+                                            alt={story.title}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    )
                                 ) : (
-                                    <img 
-                                        src={story.media_url} 
-                                        alt={story.title}
-                                        className="w-full h-full object-cover"
-                                    />
+                                    <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
+                                        <Image className="w-8 h-8 mb-2" />
+                                        <span className="text-xs">بدون معاينة</span>
+                                    </div>
                                 )}
                                 
                                 {/* Status Badge */}

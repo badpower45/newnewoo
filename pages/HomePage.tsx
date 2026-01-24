@@ -46,6 +46,8 @@ const HomePage = () => {
     const [categories, setCategories] = useState<Category[]>([]);
     const [homeSections, setHomeSections] = useState<HomeSection[]>([]);
     const [sectionsLoading, setSectionsLoading] = useState(true);
+    const [sectionsLoaded, setSectionsLoaded] = useState(false);
+    const [needsFallbackProducts, setNeedsFallbackProducts] = useState(true);
     const [branchMap, setBranchMap] = useState<Record<string | number, { price?: number; stockQuantity?: number; reservedQuantity?: number }>>({});
     const [loading, setLoading] = useState(true);
     const [categoriesLoading, setCategoriesLoading] = useState(true);
@@ -123,6 +125,8 @@ const HomePage = () => {
     // Fetch home sections from API
     const fetchHomeSections = async () => {
         setSectionsLoading(true);
+        setSectionsLoaded(false);
+        setNeedsFallbackProducts(true);
         try {
             const branchId = selectedBranch?.id || DEFAULT_BRANCH_ID;
             console.log('🏠 Loading home sections for branch:', selectedBranch?.name || 'Default', 'ID:', branchId);
@@ -130,13 +134,18 @@ const HomePage = () => {
             const response = await api.homeSections.get(branchId);
             const sectionsData = response?.data || response || [];
             setHomeSections(Array.isArray(sectionsData) ? sectionsData : []);
+            const hasSectionProducts = Array.isArray(sectionsData) &&
+                sectionsData.some((section: HomeSection) => Array.isArray(section.products) && section.products.length > 0);
+            setNeedsFallbackProducts(!hasSectionProducts);
             
             console.log('✅ Home sections loaded:', sectionsData?.length || 0, 'sections');
         } catch (err) {
             console.error('Error fetching sections:', err);
             setHomeSections([]);
+            setNeedsFallbackProducts(true);
         } finally {
             setSectionsLoading(false);
+            setSectionsLoaded(true);
         }
     };
 
@@ -147,14 +156,14 @@ const HomePage = () => {
             const branchId = selectedBranch?.id || DEFAULT_BRANCH_ID;
             console.log('🏪 Loading limited products for HomePage - Branch:', selectedBranch?.name || 'Default', 'ID:', branchId);
             
-            // ✅ جلب 100 منتج للصفحة الرئيسية
-            let list = await api.products.getAllByBranch(branchId, { limit: 100 });
+            // ✅ جلب عدد قليل للصفحة الرئيسية (تقليل الترانسفير)
+            let list = await api.products.getAllByBranch(branchId, { limit: 24 });
 
             // Fallback if empty (مع limit)
             if (!list || list.length === 0) {
                 console.log('⚠️ No products found for branch, trying paginated fallback...');
                 try {
-                    list = await api.products.getPaginated(1, 100, branchId);
+                    list = await api.products.getPaginated(1, 24, branchId);
                 } catch (fallbackErr) {
                     console.error('Fallback getPaginated failed', fallbackErr);
                     list = [];
@@ -188,10 +197,19 @@ const HomePage = () => {
             .replace(/[-_]/g, '');
 
     useEffect(() => {
-        fetchProducts();
         fetchCategories();
         fetchHomeSections();
     }, [selectedBranch]);
+
+    useEffect(() => {
+        if (!sectionsLoaded) return;
+        if (needsFallbackProducts) {
+            fetchProducts();
+        } else {
+            setProducts([]);
+            setLoading(false);
+        }
+    }, [sectionsLoaded, needsFallbackProducts, selectedBranch?.id]);
 
     useEffect(() => {
         // Skip branch-products API (404 on current backend)

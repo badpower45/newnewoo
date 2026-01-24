@@ -75,6 +75,7 @@ export default function BrandOffersAdminPage() {
     const [productSearchLoading, setProductSearchLoading] = useState(false);
     const [brands, setBrands] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadingDetails, setLoadingDetails] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editingOffer, setEditingOffer] = useState<Partial<BrandOffer> | null>(null);
     const [saving, setSaving] = useState(false);
@@ -92,7 +93,7 @@ export default function BrandOffersAdminPage() {
 
     const fetchOffers = async () => {
         try {
-            const res = await api.brandOffers.getAllAdmin();
+            const res = await api.brandOffers.getAdminList();
             if (res.data) {
                 setOffers(res.data);
             }
@@ -117,7 +118,7 @@ export default function BrandOffersAdminPage() {
 
     const fetchBrands = async () => {
         try {
-            const res = await api.brands.getAll();
+            const res = await api.brands.getAdminList({ limit: 500 });
             const data = res.data || res;
             if (Array.isArray(data)) {
                 setBrands(data);
@@ -192,6 +193,21 @@ export default function BrandOffersAdminPage() {
             setOffers(newOffers);
         } catch (err) {
             console.error('Error reordering:', err);
+        }
+    };
+
+    const openEdit = async (offer: BrandOffer) => {
+        setLoadingDetails(true);
+        try {
+            const res = await api.brandOffers.getById(offer.id);
+            const fullOffer = res?.data || res;
+            setEditingOffer(fullOffer);
+            setShowModal(true);
+        } catch (err) {
+            console.error('Error fetching offer details:', err);
+            alert('تعذر تحميل بيانات العرض كاملة');
+        } finally {
+            setLoadingDetails(false);
         }
     };
 
@@ -425,10 +441,8 @@ export default function BrandOffersAdminPage() {
                                                     {offer.is_active ? <EyeOff size={18} /> : <Eye size={18} />}
                                                 </button>
                                                 <button
-                                                    onClick={() => {
-                                                        setEditingOffer(offer);
-                                                        setShowModal(true);
-                                                    }}
+                                                    onClick={() => openEdit(offer)}
+                                                    disabled={loadingDetails}
                                                     className="p-2 hover:bg-blue-50 text-blue-600 rounded-lg"
                                                 >
                                                     <Edit size={18} />

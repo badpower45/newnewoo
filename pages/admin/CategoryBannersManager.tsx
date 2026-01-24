@@ -11,6 +11,7 @@ interface Category {
     name_ar?: string;
     icon?: string;
     banner_image?: string;
+    has_banner?: boolean;
 }
 
 const CategoryBannersManager: React.FC = () => {
@@ -21,17 +22,27 @@ const CategoryBannersManager: React.FC = () => {
     const [editForm, setEditForm] = useState<Partial<Category>>({});
     const [saving, setSaving] = useState(false);
     const [uploadingImage, setUploadingImage] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
+    const ITEMS_PER_PAGE = 50;
+    const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
 
     useEffect(() => {
         fetchCategories();
-    }, []);
+    }, [currentPage]);
 
     const fetchCategories = async () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await api.categories.getAll();
-            setCategories(response.data || []);
+            const response = await api.categories.getAdminList({ page: currentPage, limit: ITEMS_PER_PAGE });
+            const data = Array.isArray(response) ? response : response?.data || [];
+            setCategories(data);
+            if (response && typeof response === 'object' && !Array.isArray(response) && response.total !== undefined) {
+                setTotalCount(Number(response.total));
+            } else {
+                setTotalCount(data.length);
+            }
         } catch (err) {
             setError('فشل تحميل التصنيفات');
             console.error(err);
@@ -40,11 +51,20 @@ const CategoryBannersManager: React.FC = () => {
         }
     };
 
-    const handleEdit = (category: Category) => {
+    const handleEdit = async (category: Category) => {
         setEditingId(category.id);
-        setEditForm({
-            banner_image: category.banner_image || ''
-        });
+        try {
+            const response = await api.categories.getOne(category.id);
+            const fullCategory = response?.data || response;
+            setEditForm({
+                banner_image: fullCategory?.banner_image || ''
+            });
+        } catch (err) {
+            console.error('Failed to fetch category details', err);
+            setEditForm({
+                banner_image: ''
+            });
+        }
     };
 
     const handleSave = async (categoryId: number) => {
@@ -200,7 +220,7 @@ const CategoryBannersManager: React.FC = () => {
                                         <Edit2 size={16} />
                                         تعديل
                                     </button>
-                                    {category.banner_image && (
+                                    {category.has_banner && (
                                         <button
                                             onClick={() => handleRemoveBanner(category.id)}
                                             className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center gap-2"
@@ -278,13 +298,13 @@ const CategoryBannersManager: React.FC = () => {
                                 </div>
                             ) : (
                                 // Banner Preview (when not editing)
-                                category.banner_image ? (
-                                    <div className="relative overflow-hidden rounded-2xl shadow-lg border border-gray-200">
-                                        <img
-                                            src={category.banner_image}
-                                            alt={category.name_ar || category.name}
-                                            className="w-full h-48 object-cover"
-                                        />
+                                category.has_banner ? (
+                                    <div className="relative overflow-hidden rounded-2xl shadow-lg border border-gray-200 bg-gray-50">
+                                        <div className="flex flex-col items-center justify-center h-48 text-gray-500">
+                                            <ImagePlus size={36} className="mb-2 text-gray-400" />
+                                            <p>بانر محفوظ (بدون تحميل الصورة)</p>
+                                            <p className="text-sm">اضغط على "تعديل" لعرضه</p>
+                                        </div>
                                     </div>
                                 ) : (
                                     <div className="text-center py-8 text-gray-500">
@@ -297,6 +317,30 @@ const CategoryBannersManager: React.FC = () => {
                         </div>
                     </div>
                 ))}
+            </div>
+            <div className="flex items-center justify-between bg-white rounded-lg shadow-sm px-4 py-3">
+                <span className="text-sm text-gray-600">
+                    عرض {categories.length} من {totalCount}
+                </span>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="px-3 py-1 rounded-lg border border-gray-300 text-sm disabled:opacity-50"
+                    >
+                        السابق
+                    </button>
+                    <span className="text-sm text-gray-600">
+                        {currentPage} / {totalPages}
+                    </span>
+                    <button
+                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        disabled={currentPage >= totalPages}
+                        className="px-3 py-1 rounded-lg border border-gray-300 text-sm disabled:opacity-50"
+                    >
+                        التالي
+                    </button>
+                </div>
             </div>
         </div>
     );

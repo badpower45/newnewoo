@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Loader, BookOpen, Search, Filter, AlertCircle, ShoppingBag } from 'lucide-react';
 import { api } from '../../services/api';
 import { TableSkeleton } from '../../components/Skeleton';
-import { API_URL } from '../../src/config';
 
 interface MagazineOffer {
     id: number;
@@ -59,7 +58,7 @@ const MagazineManager = () => {
         setLoading(true);
         setError('');
         try {
-            const res = await api.magazine.getAll();
+            const res = await api.magazine.getAdminList();
             const data = res?.data ?? res;
             setOffers(Array.isArray(data) ? data : Array.isArray(data?.data) ? data.data : []);
         } catch (err) {
@@ -73,15 +72,8 @@ const MagazineManager = () => {
     const loadProducts = async () => {
         setLoadingProducts(true);
         try {
-            const res = await fetch(`${API_URL}/products?includeAllBranches=true&limit=300`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${localStorage.getItem('token') || ''}`
-                }
-            });
-            const data = await res.json();
-            const list = Array.isArray(data) ? data : data?.data || [];
-            setProducts(list);
+            const list = await api.products.getAdminList({ limit: 300 });
+            setProducts(Array.isArray(list) ? list : []);
         } catch (err) {
             console.error('Failed to load products for magazine quick add:', err);
         } finally {
@@ -92,6 +84,10 @@ const MagazineManager = () => {
     const handleQuickAddProduct = async (product: any) => {
         setAddingProductId(product.id);
         try {
+            const fullProduct = product.image
+                ? product
+                : await api.products.getOne(product.id);
+            const productImage = fullProduct?.image || product.image || '';
             await api.magazine.create({
                 name: product.name,
                 name_en: product.name_en || product.name,
@@ -99,7 +95,7 @@ const MagazineManager = () => {
                 old_price: product.discount_price || product.price || 0,
                 unit: product.weight || 'قطعة',
                 discount_percentage: product.discount_price ? Math.round(((product.price - product.discount_price) / product.price) * 100) : null,
-                image: product.image,
+                image: productImage,
                 category: product.category || 'عروض',
                 product_id: product.id,
                 branch_id: product.branch_id || product.branchId || 1
@@ -143,23 +139,30 @@ const MagazineManager = () => {
         }
     };
 
-    const handleEdit = (offer: MagazineOffer) => {
-        setEditingOffer(offer);
-        setFormData({
-            name: offer.name,
-            name_en: offer.name_en || '',
-            price: String(offer.price),
-            old_price: offer.old_price ? String(offer.old_price) : '',
-            unit: offer.unit || 'كجم',
-            discount_percentage: offer.discount_percentage ? String(offer.discount_percentage) : '',
-            image: offer.image || '',
-            category: offer.category || 'جميع العروض',
-            bg_color: offer.bg_color || 'from-orange-500 to-orange-600',
-            is_active: offer.is_active,
-            start_date: offer.start_date ? offer.start_date.split('T')[0] : '',
-            end_date: offer.end_date ? offer.end_date.split('T')[0] : ''
-        });
-        setShowModal(true);
+    const handleEdit = async (offer: MagazineOffer) => {
+        try {
+            const res = await api.magazine.getById(offer.id);
+            const fullOffer = res?.data || res;
+            setEditingOffer(fullOffer);
+            setFormData({
+                name: fullOffer.name,
+                name_en: fullOffer.name_en || '',
+                price: String(fullOffer.price),
+                old_price: fullOffer.old_price ? String(fullOffer.old_price) : '',
+                unit: fullOffer.unit || 'كجم',
+                discount_percentage: fullOffer.discount_percentage ? String(fullOffer.discount_percentage) : '',
+                image: fullOffer.image || '',
+                category: fullOffer.category || 'جميع العروض',
+                bg_color: fullOffer.bg_color || 'from-orange-500 to-orange-600',
+                is_active: fullOffer.is_active,
+                start_date: fullOffer.start_date ? fullOffer.start_date.split('T')[0] : '',
+                end_date: fullOffer.end_date ? fullOffer.end_date.split('T')[0] : ''
+            });
+            setShowModal(true);
+        } catch (err) {
+            console.error('Failed to load offer details:', err);
+            alert('تعذر تحميل بيانات العرض كاملة');
+        }
     };
 
     const handleDelete = async (id: number) => {

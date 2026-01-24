@@ -27,6 +27,10 @@ const BrandsManager: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
     const [showAddForm, setShowAddForm] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
+    const ITEMS_PER_PAGE = 50;
+    const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
     const [formData, setFormData] = useState<Partial<Brand>>({
         name_ar: '',
         name_en: '',
@@ -52,13 +56,19 @@ const BrandsManager: React.FC = () => {
 
     useEffect(() => {
         fetchBrands();
-    }, []);
+    }, [currentPage]);
 
     const fetchBrands = async () => {
         try {
             setLoading(true);
-            const response = await api.brands.getAll();
-            setBrands(response.data || []);
+            const response = await api.brands.getAdminList({ page: currentPage, limit: ITEMS_PER_PAGE });
+            const data = Array.isArray(response) ? response : response?.data || [];
+            setBrands(data);
+            if (response && typeof response === 'object' && !Array.isArray(response) && response.total !== undefined) {
+                setTotalCount(Number(response.total));
+            } else {
+                setTotalCount(data.length);
+            }
         } catch (error) {
             console.error('Error fetching brands:', error);
         } finally {
@@ -96,10 +106,20 @@ const BrandsManager: React.FC = () => {
         }
     };
 
-    const handleEdit = (brand: Brand) => {
-        setEditingBrand(brand);
-        setFormData(brand);
-        setShowAddForm(true);
+    const handleEdit = async (brand: Brand) => {
+        try {
+            setLoading(true);
+            const response = await api.brands.getById(brand.id);
+            const fullBrand = response?.data || response;
+            setEditingBrand(fullBrand);
+            setFormData(fullBrand);
+            setShowAddForm(true);
+        } catch (error) {
+            console.error('Error fetching brand details:', error);
+            alert('تعذر تحميل بيانات البراند كاملة');
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleDelete = async (brandId: string) => {
@@ -499,12 +519,13 @@ const BrandsManager: React.FC = () => {
                         </button>
                     </div>
                 ) : (
-                    <div className="grid gap-4">
-                        {brands.map((brand) => (
-                            <div
-                                key={brand.id}
-                                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-                            >
+                    <div className="space-y-4">
+                        <div className="grid gap-4">
+                            {brands.map((brand) => (
+                                <div
+                                    key={brand.id}
+                                    className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                                >
                                 <div className="flex items-center p-4 gap-4">
                                     {/* Logo */}
                                     <div className="flex-shrink-0">
@@ -582,8 +603,33 @@ const BrandsManager: React.FC = () => {
                                         />
                                     </div>
                                 )}
+                                </div>
+                            ))}
+                        </div>
+                        <div className="flex items-center justify-between bg-white rounded-lg shadow-md px-4 py-3">
+                            <span className="text-sm text-gray-600">
+                                عرض {brands.length} من {totalCount}
+                            </span>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                    disabled={currentPage === 1}
+                                    className="px-3 py-1 rounded-lg border border-gray-300 text-sm disabled:opacity-50"
+                                >
+                                    السابق
+                                </button>
+                                <span className="text-sm text-gray-600">
+                                    {currentPage} / {totalPages}
+                                </span>
+                                <button
+                                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                                    disabled={currentPage >= totalPages}
+                                    className="px-3 py-1 rounded-lg border border-gray-300 text-sm disabled:opacity-50"
+                                >
+                                    التالي
+                                </button>
                             </div>
-                        ))}
+                        </div>
                     </div>
                 )}
             </div>
