@@ -15,6 +15,17 @@ const mapProduct = (p: any) => {
             rawFrameEnabled === 1 ||
             rawFrameEnabled === '1'
         );
+
+    // 🖼️ Debug logging for frames
+    if (frameOverlayUrl || rawFrameEnabled) {
+        console.log('🖼️ Product with frame detected:', {
+            id: p.i ?? p.id,
+            name: (p.n ?? p.name)?.substring(0, 30),
+            frameOverlayUrl,
+            rawFrameEnabled,
+            frameEnabled
+        });
+    }
     return {
         id: p.i ?? p.id,
         name: p.n ?? p.name,
@@ -41,14 +52,14 @@ const getHeaders = () => {
     const headers: Record<string, string> = {
         'Content-Type': 'application/json'
     };
-    
+
     if (token && token !== 'null' && token !== 'undefined') {
         headers['Authorization'] = `Bearer ${token}`;
         console.log('📤 Sending request with token:', token.substring(0, 20) + '...');
     } else {
         console.warn('⚠️ No valid token found in localStorage');
     }
-    
+
     return headers;
 };
 
@@ -112,10 +123,10 @@ export const api = {
             if (!res.ok) throw new Error(data.error);
             return data;
         },
-        googleLogin: async (googleData: { 
-            googleId: string; 
-            email: string; 
-            name: string; 
+        googleLogin: async (googleData: {
+            googleId: string;
+            email: string;
+            name: string;
             picture?: string;
             phone?: string;
             birthDate?: string;
@@ -157,10 +168,10 @@ export const api = {
             }
             return data;
         },
-        facebookLogin: async (fbData: { 
-            facebookId: string; 
-            email?: string; 
-            name: string; 
+        facebookLogin: async (fbData: {
+            facebookId: string;
+            email?: string;
+            name: string;
             picture?: string;
             phone?: string;
             birthDate?: string;
@@ -184,7 +195,7 @@ export const api = {
             const token = localStorage.getItem('token');
             const res = await fetch(`${API_URL}/auth/complete-profile`, {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
@@ -221,12 +232,20 @@ export const api = {
             const normalize = (p: any) => ({ ...mapProduct(p), price: Number(mapProduct(p)?.price) || 0 });
             const data = Array.isArray(json) ? json : (json.data || []);
             const list = data.map(normalize);
-            if (json && typeof json === 'object' && !Array.isArray(json)) {
-                if (json.total !== undefined) (list as any).total = Number(json.total);
-                if (json.page !== undefined) (list as any).page = Number(json.page);
-            }
+            const total = (json && typeof json === 'object' && !Array.isArray(json) && json.total !== undefined)
+                ? Number(json.total)
+                : list.length;
+            const pageResult = (json && typeof json === 'object' && !Array.isArray(json) && json.page !== undefined)
+                ? Number(json.page)
+                : pageValue;
 
-            return list;
+            return {
+                data: list,
+                products: list,
+                total,
+                page: pageResult,
+                limit: limitValue
+            };
         },
         // جلب منتجات بنظام Pagination لتقليل Egress
         getPaginated: async (
@@ -243,7 +262,7 @@ export const api = {
             const limitValue = typeof limitCandidate === 'number' && Number.isFinite(limitCandidate) && limitCandidate > 0 ? limitCandidate : 20;
             let url = `${API_URL}/products?page=${pageValue}&limit=${limitValue}`;
             if (options.branchId) url += `&branchId=${options.branchId}`;
-            
+
             const res = await fetch(url, { headers: getHeaders() });
             const json = await res.json();
             const normalize = (p: any) => ({ ...mapProduct(p), price: Number(mapProduct(p)?.price) || 0 });
@@ -253,7 +272,7 @@ export const api = {
                 if (json.total !== undefined) (list as any).total = Number(json.total);
                 if (json.page !== undefined) (list as any).page = Number(json.page);
             }
-            
+
             console.log(`📦 Loaded ${data.length} products (page ${pageValue}, limit ${limitValue})`);
             return list;
         },
@@ -275,12 +294,12 @@ export const api = {
         getBySection: async (category: string, branchId?: number, limit: number = 8) => {
             let url = `${API_URL}/products?category=${encodeURIComponent(category)}&limit=${limit}`;
             if (branchId) url += `&branchId=${branchId}`;
-            
+
             const res = await fetch(url, { headers: getHeaders() });
             const json = await res.json();
             const normalize = (p: any) => ({ ...mapProduct(p), price: Number(mapProduct(p)?.price) || 0 });
             const data = Array.isArray(json) ? json : (json.data || []);
-            
+
             console.log(`📦 Loaded ${data.length} products for ${category} (limit ${limit})`);
             return data.map(normalize);
         },
@@ -324,7 +343,7 @@ export const api = {
             return json.pagination ? { ...json, data: list } : list;
         },
         getOne: async (id: string, branchId?: number) => {
-            const url = branchId 
+            const url = branchId
                 ? `${API_URL}/products/${id}?branchId=${branchId}`
                 : `${API_URL}/products/${id}`;
             const res = await fetch(url, { headers: getHeaders() });
@@ -415,7 +434,7 @@ export const api = {
             return res.json();
         },
         getByBarcode: async (barcode: string, branchId?: number) => {
-            const url = branchId 
+            const url = branchId
                 ? `${API_URL}/products/barcode/${barcode}?branchId=${branchId}`
                 : `${API_URL}/products/barcode/${barcode}`;
             const res = await fetch(url, { headers: getHeaders() });
@@ -424,11 +443,11 @@ export const api = {
         // Frame management APIs
         uploadFrame: async (formData: FormData) => {
             const token = localStorage.getItem('token');
-            
+
             if (!token || token === 'null' || token === 'undefined') {
                 throw new Error('غير مصرح - يرجى تسجيل الدخول مرة أخرى');
             }
-            
+
             const res = await fetch(`${API_URL}/products/upload-frame`, {
                 method: 'POST',
                 headers: {
@@ -437,12 +456,12 @@ export const api = {
                 },
                 body: formData
             });
-            
+
             if (!res.ok) {
                 const error = await res.json();
                 throw new Error(error.error || error.message || 'فشل رفع الإطار');
             }
-            
+
             return res.json();
         },
         getFrames: async () => {
@@ -930,12 +949,12 @@ export const api = {
             return res.json();
         }
     },
-    
+
     // Distribution APIs (توزيع الطلبات)
     distribution: {
         // موظفي التوصيل
         getDeliveryStaff: async (branchId?: number) => {
-            const url = branchId 
+            const url = branchId
                 ? `${API_URL}/distribution/delivery-staff?branchId=${branchId}`
                 : `${API_URL}/distribution/delivery-staff`;
             const res = await fetch(url, { headers: getHeaders() });
@@ -964,7 +983,7 @@ export const api = {
             });
             return res.json();
         },
-        
+
         // طلبات للتحضير
         getOrdersToPrepare: async (branchId?: number, status?: string) => {
             let url = `${API_URL}/distribution/orders-to-prepare?`;
@@ -973,7 +992,7 @@ export const api = {
             const res = await fetch(url, { headers: getHeaders() });
             return res.json();
         },
-        
+
         // بدء تحضير الطلب
         startPreparation: async (orderId: number) => {
             const res = await fetch(`${API_URL}/distribution/start-preparation/${orderId}`, {
@@ -982,11 +1001,11 @@ export const api = {
             });
             return res.json();
         },
-        
+
         // عناصر التحضير
         getPreparationItems: async (orderId: number) => {
-            const res = await fetch(`${API_URL}/distribution/preparation-items/${orderId}`, { 
-                headers: getHeaders() 
+            const res = await fetch(`${API_URL}/distribution/preparation-items/${orderId}`, {
+                headers: getHeaders()
             });
             return res.json();
         },
@@ -1003,7 +1022,7 @@ export const api = {
             });
             return res.json();
         },
-        
+
         // إتمام التحضير
         completePreparation: async (orderId: number) => {
             const res = await fetch(`${API_URL}/distribution/complete-preparation/${orderId}`, {
@@ -1012,21 +1031,21 @@ export const api = {
             });
             return res.json();
         },
-        
+
         // موظفي التوصيل المتاحين
         getAvailableDelivery: async (branchId: number) => {
-            const res = await fetch(`${API_URL}/distribution/available-delivery/${branchId}`, { 
-                headers: getHeaders() 
+            const res = await fetch(`${API_URL}/distribution/available-delivery/${branchId}`, {
+                headers: getHeaders()
             });
             return res.json();
         },
-        
+
         // تعيين ديليفري للطلب
         assignDelivery: async (orderId: number, deliveryStaffId: number, acceptTimeoutMinutes?: number, expectedDeliveryMinutes?: number) => {
             const res = await fetch(`${API_URL}/distribution/assign-delivery/${orderId}`, {
                 method: 'POST',
                 headers: getHeaders(),
-                body: JSON.stringify({ 
+                body: JSON.stringify({
                     deliveryStaffId,
                     acceptTimeoutMinutes: acceptTimeoutMinutes || 5,
                     expectedDeliveryMinutes: expectedDeliveryMinutes || 30
@@ -1034,7 +1053,7 @@ export const api = {
             });
             return res.json();
         },
-        
+
         // الديليفري يقبل الطلب
         acceptOrder: async (orderId: number) => {
             const res = await fetch(`${API_URL}/distribution/accept-order/${orderId}`, {
@@ -1043,7 +1062,7 @@ export const api = {
             });
             return res.json();
         },
-        
+
         // الديليفري يستلم الطلب من الفرع
         pickupOrder: async (orderId: number) => {
             const res = await fetch(`${API_URL}/distribution/pickup-order/${orderId}`, {
@@ -1052,7 +1071,7 @@ export const api = {
             });
             return res.json();
         },
-        
+
         // الديليفري يوصل الطلب
         deliverOrder: async (orderId: number) => {
             const res = await fetch(`${API_URL}/distribution/deliver-order/${orderId}`, {
@@ -1061,7 +1080,7 @@ export const api = {
             });
             return res.json();
         },
-        
+
         // جلب طلبات الديليفري الحالي
         getDeliveryOrders: async () => {
             const res = await fetch(`${API_URL}/distribution/my-delivery-orders`, {
@@ -1069,7 +1088,7 @@ export const api = {
             });
             return res.json();
         },
-        
+
         // الديليفري وصل - في انتظار العميل
         arrivingOrder: async (orderId: number) => {
             const res = await fetch(`${API_URL}/distribution/arriving-order/${orderId}`, {
@@ -1078,7 +1097,7 @@ export const api = {
             });
             return res.json();
         },
-        
+
         // الديليفري يرفض الطلب
         rejectOrder: async (orderId: number, reason: string) => {
             const res = await fetch(`${API_URL}/distribution/reject-order/${orderId}`, {
@@ -1088,7 +1107,7 @@ export const api = {
             });
             return res.json();
         },
-        
+
         // انتهاء وقت قبول الطلب
         expireOrder: async (orderId: number) => {
             const res = await fetch(`${API_URL}/distribution/expire-order/${orderId}`, {
@@ -1097,7 +1116,7 @@ export const api = {
             });
             return res.json();
         },
-        
+
         // تقييم الديليفري
         rateDelivery: async (orderId: number, ratingData: {
             orderRating: number;
@@ -1112,7 +1131,7 @@ export const api = {
             });
             return res.json();
         },
-        
+
         // جلب التقييمات المعلقة (بعد 15 دقيقة من التوصيل)
         checkPendingRatings: async () => {
             const res = await fetch(`${API_URL}/distribution/pending-ratings`, {
@@ -1120,7 +1139,7 @@ export const api = {
             });
             return res.json();
         },
-        
+
         // جلب إحصائيات الديليفري
         getDeliveryStats: async () => {
             const res = await fetch(`${API_URL}/distribution/delivery-stats`, {
@@ -1128,10 +1147,10 @@ export const api = {
             });
             return res.json();
         },
-        
+
         // جلب جميع التوصيلات النشطة للموزع
         getActiveDeliveries: async (branchId?: number) => {
-            const url = branchId 
+            const url = branchId
                 ? `${API_URL}/distribution/active-deliveries?branchId=${branchId}`
                 : `${API_URL}/distribution/active-deliveries`;
             const res = await fetch(url, {
@@ -1139,10 +1158,10 @@ export const api = {
             });
             return res.json();
         },
-        
+
         // جلب جميع موظفي التوصيل مع إحصائياتهم
         getAllDeliveryStaff: async (branchId?: number) => {
-            const url = branchId 
+            const url = branchId
                 ? `${API_URL}/distribution/all-delivery-staff?branchId=${branchId}`
                 : `${API_URL}/distribution/all-delivery-staff`;
             const res = await fetch(url, {
@@ -1150,7 +1169,7 @@ export const api = {
             });
             return res.json();
         },
-        
+
         // تحديث بيانات الفرع
         updateBranchContact: async (branchId: number, data: any) => {
             const res = await fetch(`${API_URL}/distribution/branches/${branchId}/contact`, {
@@ -1822,7 +1841,7 @@ export const api = {
             const token = localStorage.getItem('token');
             const formData = new FormData();
             formData.append('file', file);
-            
+
             const res = await fetch(`${API_URL}/products/bulk-import`, {
                 method: 'POST',
                 headers: {
@@ -1831,7 +1850,7 @@ export const api = {
                 },
                 body: formData
             });
-            
+
             return res.json();
         },
 
@@ -1843,7 +1862,7 @@ export const api = {
                     'apikey': SUPABASE_ANON_KEY
                 }
             });
-            
+
             return res.blob();
         }
     },
@@ -2004,7 +2023,7 @@ export const api = {
     reviews: {
         getByProduct: async (productId: string, page = 1, limit = 10, sort = 'recent') => {
             const res = await fetch(
-                `${API_URL}/reviews/product/${productId}?page=${page}&limit=${limit}&sort=${sort}`, 
+                `${API_URL}/reviews/product/${productId}?page=${page}&limit=${limit}&sort=${sort}`,
                 { headers: getHeaders() }
             );
             if (!res.ok) throw new Error('Failed to fetch reviews');
@@ -2101,7 +2120,7 @@ export const api = {
         upload: async (file: File) => {
             const formData = new FormData();
             formData.append('image', file);
-            
+
             const res = await fetch(`${API_URL}/upload/single`, {
                 method: 'POST',
                 headers: {
@@ -2119,7 +2138,7 @@ export const api = {
             formData.append('type', type);
             if (brandId) formData.append('brandId', brandId);
             else formData.append('brandId', `temp_${Date.now()}`);
-            
+
             const res = await fetch(`${API_URL}/upload/brand`, {
                 method: 'POST',
                 headers: {
@@ -2138,7 +2157,7 @@ export const api = {
 
     homeSections: {
         get: async (branchId?: number) => {
-            const url = branchId 
+            const url = branchId
                 ? `${API_URL}/home-sections?branchId=${branchId}`
                 : `${API_URL}/home-sections`;
             const res = await fetch(url, {

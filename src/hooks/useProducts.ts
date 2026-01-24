@@ -33,7 +33,7 @@ export function useProducts(options: UseProductsOptions = {}) {
                 const offset = (page - 1) * limit;
                 response = await api.products.getByCategory(category, branchId, limit, offset);
             } else {
-                response = await api.products.getAllByBranch(branchId, { limit, page });
+                response = await api.products.getProducts({ page, limit, branchId });
             }
 
             const data = Array.isArray((response as any)?.data)
