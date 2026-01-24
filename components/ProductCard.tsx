@@ -35,7 +35,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
   const hasDiscount = priceBeforeDiscount > 0 && priceBeforeDiscount > currentPrice;
   // نسبة الخصم
   const discountPercent = hasDiscount ? Math.round(((priceBeforeDiscount - currentPrice) / priceBeforeDiscount) * 100) : 0;
-  const frameOverlayUrl = (product as any).frame_overlay_url;
+  const frameOverlayUrl = (product as any).fo || (product as any).frame_overlay_url; // API returns 'fo' (shortened)
   const frameEnabledValue = (product as any).frame_enabled;
   const isFrameEnabled = Boolean(frameOverlayUrl) && (
     frameEnabledValue === true ||
@@ -91,12 +91,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
               -{discountPercent}%
             </span>
           )}
-          <img 
-            src={image || "https://placehold.co/100x100?text=Product"} 
-            alt={title} 
+          <img
+            src={image || "https://placehold.co/100x100?text=Product"}
+            alt={title}
             loading="lazy"
             decoding="async"
-            className="w-full h-full object-contain mix-blend-multiply" 
+            className="w-full h-full object-contain mix-blend-multiply"
           />
           {isFrameEnabled && (
             <img
@@ -161,12 +161,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
 
         {/* Product Image - Lazy Loaded */}
         <div className="relative w-full h-full p-2 flex items-center justify-center">
-          <img 
-            src={image || "https://placehold.co/150x150?text=Product"} 
+          <img
+            src={image || "https://placehold.co/150x150?text=Product"}
             alt={title}
             loading="lazy"
             decoding="async"
-            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300" 
+            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
           />
           {isFrameEnabled && (
             <img
@@ -177,16 +177,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
             />
           )}
         </div>
-        
+
         {/* Quick Add Button */}
         {available && quantityInCart === 0 && (
           <button
             onClick={handleAddToCart}
-            className={`absolute bottom-1.5 right-1.5 w-7 h-7 rounded-full flex items-center justify-center shadow-md transition-all z-10 ${
-              isAdding 
-                ? 'bg-green-500 text-white scale-110' 
+            className={`absolute bottom-1.5 right-1.5 w-7 h-7 rounded-full flex items-center justify-center shadow-md transition-all z-10 ${isAdding
+                ? 'bg-green-500 text-white scale-110'
                 : 'bg-orange-500 text-white hover:bg-orange-600'
-            }`}
+              }`}
           >
             {isAdding ? <Check size={14} /> : <Plus size={16} strokeWidth={2.5} />}
           </button>
@@ -226,17 +225,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
             </span>
           </Link>
         )}
-        
+
         {/* اسم المنتج - واضح وبارز */}
         <h4 className="text-sm font-bold text-gray-900 line-clamp-2 mb-1.5 leading-snug min-h-[2.5rem]">
           {getProductName(product)}
         </h4>
-        
+
         {/* الوزن/الحجم */}
         {weight && (
           <p className="text-xs text-gray-500 mb-1">{weight}</p>
         )}
-        
+
         {/* التقييم - إذا كان موجوداً */}
         {product.rating > 0 && (
           <div className="flex items-center gap-1 mb-1.5">
@@ -249,14 +248,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
             )}
           </div>
         )}
-        
+
         {/* الموقع */}
         {product.shelf_location && (
           <p className="text-[10px] text-orange-500 mb-1.5 flex items-center gap-0.5">
             📍 {product.shelf_location}
           </p>
         )}
-        
+
         {/* السعر */}
         <div className="mt-auto">
           <div className="flex items-center gap-1.5 flex-wrap">

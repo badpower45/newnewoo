@@ -112,70 +112,52 @@ const OrdersManager = () => {
             </div>
             </div>
 
-            {/* Orders Table */}
+            {/* Orders List/Table */}
             {loading ? (
                 <TableSkeleton rows={6} cols={6} />
             ) : (
-            <div className="admin-table-container">
-                <div className="overflow-x-auto">
-                    <table className="admin-table min-w-[700px]">
-                        <thead>
-                        <tr>
-                            <th className="px-3 sm:px-6 py-3 sm:py-4">رقم الطلب</th>
-                            <th className="px-3 sm:px-6 py-3 sm:py-4 hidden sm:table-cell">التاريخ</th>
-                            <th className="px-3 sm:px-6 py-3 sm:py-4 hidden md:table-cell">العميل</th>
-                            <th className="px-3 sm:px-6 py-3 sm:py-4">الإجمالي</th>
-                            <th className="px-3 sm:px-6 py-3 sm:py-4">الحالة</th>
-                            <th className="px-3 sm:px-6 py-3 sm:py-4 text-right">إجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                <>
+                    {/* Mobile Cards */}
+                    <div className="sm:hidden space-y-3">
                         {filteredOrders.map((order) => (
-                            <tr key={order.id}>
-                                <td className="px-3 sm:px-6 py-3 sm:py-4 font-medium text-xs sm:text-sm">#{order.id}</td>
-                                <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm hidden sm:table-cell">
-                                    {new Date(order.date || order.created_at || Date.now()).toLocaleDateString('ar-EG')}
-                                </td>
-                                <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm hidden md:table-cell">
-                                    {order.userId || order.user_id}
-                                </td>
-                                <td className="px-3 sm:px-6 py-3 sm:py-4 font-medium text-xs sm:text-sm">
-                                    {(Number(order.total) || 0).toFixed(0)} ج
-                                </td>
-                                <td className="px-3 sm:px-6 py-3 sm:py-4">
-                                    <span
+                            <div key={order.id} className="bg-white border border-gray-100 rounded-2xl p-3 shadow-sm">
+                                <div className="flex items-center justify-between">
+                                    <div className="font-bold text-gray-900 text-sm">طلب #{order.id}</div>
+                                    <button
                                         onClick={() => order.rejection_reason && setReasonModal({ orderId: order.id, reason: order.rejection_reason })}
                                         className={`px-2 py-1 text-xs font-bold rounded-full ${getStatusColor(order.status)} ${
-                                            order.rejection_reason ? 'cursor-pointer hover:shadow' : ''
+                                            order.rejection_reason ? 'cursor-pointer' : ''
                                         }`}
                                         title={order.rejection_reason ? 'عرض سبب الإلغاء' : undefined}
                                     >
-                                        <span className="hidden sm:inline">
-                                            {ORDER_STATUS_LABELS[order.status] || order.status}
-                                        </span>
-                                        <span className="sm:hidden">
-                                            {order.status === 'pending' ? '⏳' : 
-                                             order.status === 'confirmed' ? '✓' :
-                                             order.status === 'delivered' ? '✅' :
-                                             order.status === 'cancelled' ? '❌' : '📦'}
-                                        </span>
+                                        {ORDER_STATUS_LABELS[order.status] || order.status}
                                         {order.rejection_reason && (
                                             <Info size={12} className="inline-block ml-1 align-middle" />
                                         )}
+                                    </button>
+                                </div>
+                                <div className="mt-2 text-xs text-gray-500 flex flex-wrap gap-2">
+                                    <span>
+                                        {new Date(order.date || order.created_at || Date.now()).toLocaleDateString('ar-EG')}
                                     </span>
-                                </td>
-                                <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
-                                    <div className="flex items-center justify-end gap-1 sm:gap-2">
+                                    <span className="text-gray-300">•</span>
+                                    <span>عميل: {order.userId || order.user_id || '-'}</span>
+                                </div>
+                                <div className="mt-3 flex items-center justify-between gap-3">
+                                    <div className="text-sm font-semibold text-gray-900">
+                                        {(Number(order.total) || 0).toFixed(0)} ج
+                                    </div>
+                                    <div className="flex items-center gap-2">
                                         <button
                                             onClick={() => { setSelectedOrder(order); setShowModal(true); }}
-                                            className="p-1.5 sm:p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                            className="px-3 py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 rounded-lg"
                                         >
-                                            <Eye size={16} className="sm:w-5 sm:h-5" />
+                                            عرض
                                         </button>
                                         <select
                                             value={order.status}
                                             onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
-                                            className="text-xs sm:text-sm border border-gray-200 rounded px-1 sm:px-2 py-1"
+                                            className="text-xs border border-gray-200 rounded px-2 py-1"
                                         >
                                             <option value="pending">بانتظار التأكيد</option>
                                             <option value="confirmed">تم التأكيد</option>
@@ -186,13 +168,90 @@ const OrdersManager = () => {
                                             <option value="cancelled">ملغي</option>
                                         </select>
                                     </div>
-                                </td>
-                            </tr>
+                                </div>
+                            </div>
                         ))}
-                    </tbody>
-                </table>
-                </div>
-            </div>
+                    </div>
+
+                    {/* Desktop Table */}
+                    <div className="hidden sm:block admin-table-container">
+                        <div className="overflow-x-auto">
+                            <table className="admin-table min-w-[700px]">
+                                <thead>
+                                    <tr>
+                                        <th className="px-3 sm:px-6 py-3 sm:py-4">رقم الطلب</th>
+                                        <th className="px-3 sm:px-6 py-3 sm:py-4 hidden sm:table-cell">التاريخ</th>
+                                        <th className="px-3 sm:px-6 py-3 sm:py-4 hidden md:table-cell">العميل</th>
+                                        <th className="px-3 sm:px-6 py-3 sm:py-4">الإجمالي</th>
+                                        <th className="px-3 sm:px-6 py-3 sm:py-4">الحالة</th>
+                                        <th className="px-3 sm:px-6 py-3 sm:py-4 text-right">إجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredOrders.map((order) => (
+                                        <tr key={order.id}>
+                                            <td className="px-3 sm:px-6 py-3 sm:py-4 font-medium text-xs sm:text-sm">#{order.id}</td>
+                                            <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm hidden sm:table-cell">
+                                                {new Date(order.date || order.created_at || Date.now()).toLocaleDateString('ar-EG')}
+                                            </td>
+                                            <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm hidden md:table-cell">
+                                                {order.userId || order.user_id}
+                                            </td>
+                                            <td className="px-3 sm:px-6 py-3 sm:py-4 font-medium text-xs sm:text-sm">
+                                                {(Number(order.total) || 0).toFixed(0)} ج
+                                            </td>
+                                            <td className="px-3 sm:px-6 py-3 sm:py-4">
+                                                <span
+                                                    onClick={() => order.rejection_reason && setReasonModal({ orderId: order.id, reason: order.rejection_reason })}
+                                                    className={`px-2 py-1 text-xs font-bold rounded-full ${getStatusColor(order.status)} ${
+                                                        order.rejection_reason ? 'cursor-pointer hover:shadow' : ''
+                                                    }`}
+                                                    title={order.rejection_reason ? 'عرض سبب الإلغاء' : undefined}
+                                                >
+                                                    <span className="hidden sm:inline">
+                                                        {ORDER_STATUS_LABELS[order.status] || order.status}
+                                                    </span>
+                                                    <span className="sm:hidden">
+                                                        {order.status === 'pending' ? '⏳' : 
+                                                        order.status === 'confirmed' ? '✓' :
+                                                        order.status === 'delivered' ? '✅' :
+                                                        order.status === 'cancelled' ? '❌' : '📦'}
+                                                    </span>
+                                                    {order.rejection_reason && (
+                                                        <Info size={12} className="inline-block ml-1 align-middle" />
+                                                    )}
+                                                </span>
+                                            </td>
+                                            <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
+                                                <div className="flex items-center justify-end gap-1 sm:gap-2">
+                                                    <button
+                                                        onClick={() => { setSelectedOrder(order); setShowModal(true); }}
+                                                        className="p-1.5 sm:p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                    >
+                                                        <Eye size={16} className="sm:w-5 sm:h-5" />
+                                                    </button>
+                                                    <select
+                                                        value={order.status}
+                                                        onChange={(e) => handleStatusUpdate(order.id, e.target.value)}
+                                                        className="text-xs sm:text-sm border border-gray-200 rounded px-1 sm:px-2 py-1"
+                                                    >
+                                                        <option value="pending">بانتظار التأكيد</option>
+                                                        <option value="confirmed">تم التأكيد</option>
+                                                        <option value="preparing">جاري التحضير</option>
+                                                        <option value="ready">جاهز للتوصيل</option>
+                                                        <option value="out_for_delivery">في الطريق</option>
+                                                        <option value="delivered">تم التوصيل</option>
+                                                        <option value="cancelled">ملغي</option>
+                                                    </select>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </>
             )}
 
             {/* Order Details Modal */}

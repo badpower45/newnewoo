@@ -216,7 +216,7 @@ const ProductDetailsPage = () => {
     const oldPrice = Number(product.discount_price) || Number(product.originalPrice) || (displayPrice * 1.15); // 15% higher as old price if not set
     const discountPercentage = oldPrice > displayPrice ? Math.round(((oldPrice - displayPrice) / oldPrice) * 100) : 0;
     const savings = oldPrice - displayPrice;
-    const frameOverlayUrl = (product as any).frame_overlay_url;
+    const frameOverlayUrl = (product as any).fo || (product as any).frame_overlay_url; // API returns 'fo' (shortened)
     const frameEnabledValue = (product as any).frame_enabled;
     const isFrameEnabled = Boolean(frameOverlayUrl) && (
         frameEnabledValue === true ||
@@ -335,8 +335,8 @@ const ProductDetailsPage = () => {
                         >
                             <Heart
                                 className={`w-5 h-5 transition-all ${isFavorite(product.id)
-                                        ? 'fill-[#F97316] text-[#F97316] animate-pulse'
-                                        : 'text-[#23110C]'
+                                    ? 'fill-[#F97316] text-[#F97316] animate-pulse'
+                                    : 'text-[#23110C]'
                                     }`}
                             />
                         </button>
@@ -507,8 +507,8 @@ const ProductDetailsPage = () => {
                                                 <Star
                                                     key={star}
                                                     className={`w-4 h-4 ${star <= Math.floor(productRating)
-                                                            ? 'fill-[#FFC107] text-[#FFC107]'
-                                                            : 'fill-[#E5E7EB] text-[#E5E7EB]'
+                                                        ? 'fill-[#FFC107] text-[#FFC107]'
+                                                        : 'fill-[#E5E7EB] text-[#E5E7EB]'
                                                         }`}
                                                 />
                                             ))}
@@ -576,8 +576,8 @@ const ProductDetailsPage = () => {
                             <button
                                 onClick={() => setActiveTab('description')}
                                 className={`px-5 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition-all ${activeTab === 'description'
-                                        ? 'bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white shadow-lg scale-105'
-                                        : 'bg-[#F3F4F6] text-[#6B7280] hover:bg-[#E5E7EB]'
+                                    ? 'bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white shadow-lg scale-105'
+                                    : 'bg-[#F3F4F6] text-[#6B7280] hover:bg-[#E5E7EB]'
                                     }`}
                             >
                                 <div className="flex items-center gap-2">
@@ -588,8 +588,8 @@ const ProductDetailsPage = () => {
                             <button
                                 onClick={() => setActiveTab('reviews')}
                                 className={`px-5 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition-all ${activeTab === 'reviews'
-                                        ? 'bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white shadow-lg scale-105'
-                                        : 'bg-[#F3F4F6] text-[#6B7280] hover:bg-[#E5E7EB]'
+                                    ? 'bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white shadow-lg scale-105'
+                                    : 'bg-[#F3F4F6] text-[#6B7280] hover:bg-[#E5E7EB]'
                                     }`}
                             >
                                 <div className="flex items-center gap-2">
@@ -600,8 +600,8 @@ const ProductDetailsPage = () => {
                             <button
                                 onClick={() => setActiveTab('info')}
                                 className={`px-5 py-2.5 rounded-xl font-bold text-sm whitespace-nowrap transition-all ${activeTab === 'info'
-                                        ? 'bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white shadow-lg scale-105'
-                                        : 'bg-[#F3F4F6] text-[#6B7280] hover:bg-[#E5E7EB]'
+                                    ? 'bg-gradient-to-r from-[#F97316] to-[#EA580C] text-white shadow-lg scale-105'
+                                    : 'bg-[#F3F4F6] text-[#6B7280] hover:bg-[#E5E7EB]'
                                     }`}
                             >
                                 <div className="flex items-center gap-2">
@@ -664,8 +664,8 @@ const ProductDetailsPage = () => {
                                                         >
                                                             <Star
                                                                 className={`w-6 h-6 transition-colors ${star <= userReview.rating
-                                                                        ? 'fill-yellow-400 text-yellow-400'
-                                                                        : 'fill-gray-300 text-gray-300'
+                                                                    ? 'fill-yellow-400 text-yellow-400'
+                                                                    : 'fill-gray-300 text-gray-300'
                                                                     }`}
                                                             />
                                                         </button>
@@ -798,8 +798,8 @@ const ProductDetailsPage = () => {
                                                     <Star
                                                         key={star}
                                                         className={`w-4 h-4 ${star <= Math.floor(productRating)
-                                                                ? 'fill-[#FFC107] text-[#FFC107]'
-                                                                : 'fill-[#E5E7EB] text-[#E5E7EB]'
+                                                            ? 'fill-[#FFC107] text-[#FFC107]'
+                                                            : 'fill-[#E5E7EB] text-[#E5E7EB]'
                                                             }`}
                                                     />
                                                 ))}
@@ -864,7 +864,7 @@ const ProductDetailsPage = () => {
                                                     <div className="flex items-center justify-between mb-2">
                                                         <div>
                                                             <p className="text-[#F97316] text-lg font-bold">
-                                                                {itemPrice.toFixed(0)}
+                                                                {itemPrice.toFixed(0)} جنيه
                                                             </p>
                                                             {itemOldPrice > itemPrice && (
                                                                 <p className="text-[#9CA3AF] line-through text-xs">
@@ -1028,8 +1028,8 @@ const ProductDetailsPage = () => {
                             onClick={handleAddToCart}
                             disabled={!available}
                             className={`w-full py-3 px-4 rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all ${available
-                                    ? 'bg-gradient-to-r from-[#F97316] to-[#ea580c] text-white hover:shadow-xl active:scale-[0.98]'
-                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                ? 'bg-gradient-to-r from-[#F97316] to-[#ea580c] text-white hover:shadow-xl active:scale-[0.98]'
+                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                 }`}
                         >
                             <ShoppingCart className="w-5 h-5" />
