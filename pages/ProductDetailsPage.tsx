@@ -10,6 +10,7 @@ import { useAuth } from '../context/AuthContext';
 import { ProductDetailsSkeleton } from '../components/Skeleton';
 import Footer from '../components/Footer';
 import Seo, { getSiteUrl } from '../components/Seo';
+import { optimizeProductDetailImage, optimizeFrameImage } from '../utils/imageOptimization';
 
 const ProductDetailsPage = () => {
     const navigate = useNavigate();
@@ -373,7 +374,7 @@ const ProductDetailsPage = () => {
                             )}
 
                             <img
-                                src={product.image}
+                                src={optimizeProductDetailImage(product.image)}
                                 alt={product.name}
                                 className="w-80 h-80 sm:w-96 sm:h-96 object-contain drop-shadow-2xl bg-white"
                                 onError={(e) => {
@@ -382,7 +383,7 @@ const ProductDetailsPage = () => {
                             />
                             {isFrameEnabled && (
                                 <img
-                                    src={frameOverlayUrl}
+                                    src={optimizeFrameImage(frameOverlayUrl)}
                                     alt=""
                                     aria-hidden="true"
                                     className="absolute inset-0 w-full h-full object-contain pointer-events-none"

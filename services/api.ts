@@ -41,6 +41,9 @@ const mapProduct = (p: any) => {
         price: p.p ?? p.price,
         discount_price: p.dp ?? p.discount_price,
         stock_quantity: p.sq ?? p.stock_quantity,
+        brand_id: p.bi ?? p.brand_id,
+        brand_name_ar: p.bna ?? p.brand_name_ar,
+        brand_name: p.bne ?? p.brand_name ?? p.name_en,
         is_available: true, // Always true (filtered by backend)
         in_magazine: p.mg === 1 || p.in_magazine === true,
         // Removed fields to save bandwidth:
@@ -2229,10 +2232,15 @@ export const api = {
     },
 
     homeSections: {
-        get: async (branchId?: number) => {
-            const url = branchId
-                ? `${API_URL}/home-sections?branchId=${branchId}`
-                : `${API_URL}/home-sections`;
+        get: async (branchId?: number, options?: { page?: number; limit?: number; productLimit?: number; all?: boolean }) => {
+            const params = new URLSearchParams();
+            if (branchId) params.append('branchId', String(branchId));
+            if (options?.page) params.append('page', String(options.page));
+            if (options?.limit) params.append('limit', String(options.limit));
+            if (options?.productLimit) params.append('productLimit', String(options.productLimit));
+            if (options?.all) params.append('all', 'true');
+            const query = params.toString();
+            const url = `${API_URL}/home-sections${query ? `?${query}` : ''}`;
             const res = await fetch(url, {
                 headers: getHeaders()
             });

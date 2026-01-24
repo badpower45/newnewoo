@@ -26,8 +26,9 @@ const AdminHomeSections = () => {
 
     const fetchSections = async () => {
         try {
-            const response = await api.get('/home-sections');
-            setSections(response.data || []);
+            const response = await api.get('/home-sections?all=true');
+            const sectionsData = response?.data?.data || response?.data || [];
+            setSections(sectionsData);
         } catch (error) {
             console.error('Error fetching sections:', error);
             setSections([]);

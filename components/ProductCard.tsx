@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext';
 import { useFavorites } from '../context/FavoritesContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useLocalization } from '../utils/localization';
+import { optimizeProductCardImage, optimizeFrameImage } from '../utils/imageOptimization';
 
 import { Product } from '../types';
 
@@ -92,7 +93,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
             </span>
           )}
           <img
-            src={image || "https://placehold.co/100x100?text=Product"}
+            src={optimizeProductCardImage(image) || "https://placehold.co/100x100?text=Product"}
             alt={title}
             loading="lazy"
             decoding="async"
@@ -100,7 +101,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
           />
           {isFrameEnabled && (
             <img
-              src={frameOverlayUrl}
+              src={optimizeFrameImage(frameOverlayUrl)}
               alt=""
               aria-hidden="true"
               className="absolute inset-0 w-full h-full object-contain pointer-events-none"
@@ -162,7 +163,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
         {/* Product Image - Lazy Loaded */}
         <div className="relative w-full h-full p-2 flex items-center justify-center">
           <img
-            src={image || "https://placehold.co/150x150?text=Product"}
+            src={optimizeProductCardImage(image) || "https://placehold.co/150x150?text=Product"}
             alt={title}
             loading="lazy"
             decoding="async"
@@ -170,7 +171,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
           />
           {isFrameEnabled && (
             <img
-              src={frameOverlayUrl}
+              src={optimizeFrameImage(frameOverlayUrl)}
               alt=""
               aria-hidden="true"
               className="absolute inset-0 w-full h-full object-contain pointer-events-none"
@@ -183,8 +184,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
           <button
             onClick={handleAddToCart}
             className={`absolute bottom-1.5 right-1.5 w-7 h-7 rounded-full flex items-center justify-center shadow-md transition-all z-10 ${isAdding
-                ? 'bg-green-500 text-white scale-110'
-                : 'bg-orange-500 text-white hover:bg-orange-600'
+              ? 'bg-green-500 text-white scale-110'
+              : 'bg-orange-500 text-white hover:bg-orange-600'
               }`}
           >
             {isAdding ? <Check size={14} /> : <Plus size={16} strokeWidth={2.5} />}

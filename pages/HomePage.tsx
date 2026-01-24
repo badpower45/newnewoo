@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import TopBar from '../components/TopBar';
 import Banner from '../components/Banner';
@@ -47,6 +47,9 @@ const HomePage = () => {
     const [homeSections, setHomeSections] = useState<HomeSection[]>([]);
     const [sectionsLoading, setSectionsLoading] = useState(true);
     const [sectionsLoaded, setSectionsLoaded] = useState(false);
+    const [sectionsPage, setSectionsPage] = useState(1);
+    const [sectionsHasMore, setSectionsHasMore] = useState(true);
+    const [sectionsLoadingMore, setSectionsLoadingMore] = useState(false);
     const [needsFallbackProducts, setNeedsFallbackProducts] = useState(true);
     const [branchMap, setBranchMap] = useState<Record<string | number, { price?: number; stockQuantity?: number; reservedQuantity?: number }>>({});
     const [loading, setLoading] = useState(true);
@@ -55,6 +58,7 @@ const HomePage = () => {
     const { isAuthenticated } = useAuth();
     const { selectedBranch } = useBranch();
     const { t } = useLanguage();
+    const loadMoreRef = useRef<HTMLDivElement | null>(null);
     const siteUrl = getSiteUrl();
     const heroImage = homeSections[0]?.banner_image || categories[0]?.image || '';
     const featuredCategories = categories.slice(0, 6).map(cat => cat.name_ar || cat.name).filter(Boolean);
@@ -122,32 +126,52 @@ const HomePage = () => {
         return translations[name] || name;
     };
 
-    // Fetch home sections from API
-    const fetchHomeSections = async () => {
-        setSectionsLoading(true);
-        setSectionsLoaded(false);
-        setNeedsFallbackProducts(true);
+    const SECTION_PAGE_SIZE = 3;
+
+    // Fetch home sections from API (paged)
+    const fetchHomeSections = useCallback(async (page = 1, append = false) => {
+        if (append) {
+            setSectionsLoadingMore(true);
+        } else {
+            setSectionsLoading(true);
+            setSectionsLoaded(false);
+            setNeedsFallbackProducts(true);
+        }
         try {
             const branchId = selectedBranch?.id || DEFAULT_BRANCH_ID;
-            console.log('🏠 Loading home sections for branch:', selectedBranch?.name || 'Default', 'ID:', branchId);
-            
-            const response = await api.homeSections.get(branchId);
+            const response = await api.homeSections.get(branchId, { page, limit: SECTION_PAGE_SIZE });
             const sectionsData = response?.data || response || [];
-            setHomeSections(Array.isArray(sectionsData) ? sectionsData : []);
-            const hasSectionProducts = Array.isArray(sectionsData) &&
-                sectionsData.some((section: HomeSection) => Array.isArray(section.products) && section.products.length > 0);
-            setNeedsFallbackProducts(!hasSectionProducts);
-            
-            console.log('✅ Home sections loaded:', sectionsData?.length || 0, 'sections');
+            const nextSections = Array.isArray(sectionsData) ? sectionsData : [];
+            setHomeSections(prev => {
+                const merged = append ? [...prev, ...nextSections] : nextSections;
+                const seen = new Set<number>();
+                return merged.filter(section => {
+                    if (!section?.id) return false;
+                    if (seen.has(section.id)) return false;
+                    seen.add(section.id);
+                    return true;
+                });
+            });
+            const hasMore = typeof response?.hasMore === 'boolean'
+                ? response.hasMore
+                : nextSections.length === SECTION_PAGE_SIZE;
+            setSectionsHasMore(hasMore);
+            setSectionsPage(page);
         } catch (err) {
             console.error('Error fetching sections:', err);
-            setHomeSections([]);
-            setNeedsFallbackProducts(true);
+            if (!append) {
+                setHomeSections([]);
+            }
+            setSectionsHasMore(false);
         } finally {
-            setSectionsLoading(false);
-            setSectionsLoaded(true);
+            if (append) {
+                setSectionsLoadingMore(false);
+            } else {
+                setSectionsLoading(false);
+                setSectionsLoaded(true);
+            }
         }
-    };
+    }, [selectedBranch]);
 
     const fetchProducts = async () => {
         setLoading(true);
@@ -198,18 +222,51 @@ const HomePage = () => {
 
     useEffect(() => {
         fetchCategories();
-        fetchHomeSections();
-    }, [selectedBranch]);
+        setHomeSections([]);
+        setSectionsPage(1);
+        setSectionsHasMore(true);
+        fetchHomeSections(1, false);
+    }, [selectedBranch, fetchHomeSections]);
 
     useEffect(() => {
         if (!sectionsLoaded) return;
-        if (needsFallbackProducts) {
+        const hasSectionProducts = homeSections.some(section =>
+            Array.isArray(section.products) && section.products.length > 0
+        );
+        if (hasSectionProducts) {
+            setNeedsFallbackProducts(false);
+            setLoading(false);
+            return;
+        }
+        if (!sectionsHasMore) {
+            setNeedsFallbackProducts(true);
+        }
+    }, [sectionsLoaded, homeSections, sectionsHasMore]);
+
+    useEffect(() => {
+        if (!sectionsLoaded) return;
+        if (needsFallbackProducts && !sectionsHasMore) {
             fetchProducts();
-        } else {
+        } else if (!needsFallbackProducts) {
             setProducts([]);
             setLoading(false);
         }
-    }, [sectionsLoaded, needsFallbackProducts, selectedBranch?.id]);
+    }, [sectionsLoaded, needsFallbackProducts, sectionsHasMore, selectedBranch?.id]);
+
+    useEffect(() => {
+        if (!loadMoreRef.current) return;
+        if (!sectionsHasMore || sectionsLoadingMore || sectionsLoading) return;
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0]?.isIntersecting) {
+                    fetchHomeSections(sectionsPage + 1, true);
+                }
+            },
+            { rootMargin: '300px' }
+        );
+        observer.observe(loadMoreRef.current);
+        return () => observer.disconnect();
+    }, [sectionsHasMore, sectionsLoadingMore, sectionsLoading, sectionsPage, fetchHomeSections]);
 
     useEffect(() => {
         // Skip branch-products API (404 on current backend)
@@ -387,6 +444,8 @@ const HomePage = () => {
                                             <img 
                                                 src={section.banner_image} 
                                                 alt={section.section_name_ar}
+                                                loading="lazy"
+                                                decoding="async"
                                                 className="w-full h-full object-cover"
                                             />
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
@@ -449,6 +508,12 @@ const HomePage = () => {
                 ) : (
                     <div className="text-center py-12">
                         <p className="text-gray-500">لا توجد أقسام متاحة حالياً</p>
+                    </div>
+                )}
+
+                {sectionsHasMore && (
+                    <div className="flex items-center justify-center py-4 text-sm text-gray-500" ref={loadMoreRef}>
+                        {sectionsLoadingMore ? 'جاري تحميل المزيد...' : 'تحميل المزيد عند النزول'}
                     </div>
                 )}
 
