@@ -1,16 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import { loadDotLottiePlayer } from '../utils/loadDotLottie';
 
 interface LottieLoaderProps {
     onComplete?: () => void;
     duration?: number;
-}
-
-declare global {
-    namespace JSX {
-        interface IntrinsicElements {
-            'dotlottie-player': React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement>;
-        }
-    }
 }
 
 const DOT_LOTTIE_SRC = 'https://lottie.host/5527c3be-5de8-428e-9392-86f486676eeb/WlfpbU5EZl.lottie';
@@ -19,18 +12,7 @@ const LottieLoader: React.FC<LottieLoaderProps> = ({ onComplete, duration = 2000
     const [fadeOut, setFadeOut] = useState(false);
 
     useEffect(() => {
-        // Load dotlottie player script only once
-        const alreadyLoaded = (window as any)?.customElements?.get?.('dotlottie-player');
-        if (!alreadyLoaded) {
-            const existingScript = document.querySelector('script[data-dotlottie]');
-            if (!existingScript) {
-                const script = document.createElement('script');
-                script.src = 'https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.js';
-                script.defer = true;
-                script.setAttribute('data-dotlottie', 'true');
-                document.body.appendChild(script);
-            }
-        }
+        loadDotLottiePlayer();
     }, []);
 
     useEffect(() => {

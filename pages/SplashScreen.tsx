@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { loadDotLottiePlayer } from '../utils/loadDotLottie';
 
 interface SplashScreenProps {
     duration?: number;
@@ -13,17 +14,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ duration = 2600, onComplete
 
     // Ensure lottie player script is loaded once
     useEffect(() => {
-        const alreadyLoaded = (window as any)?.customElements?.get?.('dotlottie-player');
-        if (!alreadyLoaded) {
-            const existingScript = document.querySelector('script[data-dotlottie]');
-            if (!existingScript) {
-                const script = document.createElement('script');
-                script.src = 'https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.js';
-                script.defer = true;
-                script.setAttribute('data-dotlottie', 'true');
-                document.body.appendChild(script);
-            }
-        }
+        loadDotLottiePlayer();
     }, []);
 
     // Auto-hide splash after the animation finishes

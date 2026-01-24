@@ -13,6 +13,7 @@
     "clean": "rimraf dist node_modules/.vite .vercel"
   },
   "dependencies": {
+    "@dotlottie/player-component": "^2.7.12",
     "@supabase/supabase-js": "^2.48.0",
     "@tanstack/react-query": "^5.90.20",
     "axios": "^1.13.2",
