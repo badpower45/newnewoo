@@ -1,5 +1,6 @@
 // Helper functions للتحقق من البلوك
 import { supabase } from './supabaseClient';
+import { supabaseCache, generateCacheKey } from '../utils/supabaseCache';
 
 export interface BlockCheckResult {
   isBlocked: boolean;
@@ -11,12 +12,17 @@ export interface BlockCheckResult {
 export const blockingService = {
   // التحقق من البلوك بالإيميل أو الموبايل
   checkIfBlocked: async (email?: string, phone?: string): Promise<BlockCheckResult> => {
-    try {
-      // استدعاء الـ function في الداتابيز
-      const { data, error } = await supabase.rpc('is_user_blocked', {
-        p_email: email || null,
-        p_phone: phone || null
-      });
+    const cacheKey = generateCacheKey('block:check', { email, phone });
+    
+    return supabaseCache.get(
+      cacheKey,
+      async () => {
+        try {
+          // استدعاء الـ function في الداتابيز
+          const { data, error } = await supabase.rpc('is_user_blocked', {
+            p_email: email || null,
+            p_phone: phone || null
+          });
 
       if (error) {
         console.error('Error checking block status:', error);
@@ -52,10 +58,13 @@ export const blockingService = {
       }
 
       return { isBlocked: false };
-    } catch (error) {
-      console.error('Block check error:', error);
-      return { isBlocked: false };
-    }
+        } catch (error) {
+          console.error('Block check error:', error);
+          return { isBlocked: false };
+        }
+      },
+      { ttl: supabaseCache.TTL.USER } // Cache for 1 minute
+    );
   },
 
   // تسجيل محاولة فاشلة

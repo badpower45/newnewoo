@@ -1,0 +1,13 @@
+# Vercel Cron Jobs Configuration
+# تشغيل rebuild تلقائي كل أسبوع
+
+crons:
+  # Rebuild static data every Sunday at 2 AM
+  - path: /api/rebuild-static-data
+    schedule: '0 2 * * 0'
+    description: 'Weekly static data rebuild'
+  
+  # Alternative: Daily rebuild at 3 AM
+  # - path: /api/rebuild-static-data
+  #   schedule: '0 3 * * *'
+  #   description: 'Daily static data rebuild'
