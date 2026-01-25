@@ -233,126 +233,16 @@ router.get('/special-offers', async (req, res) => {
     }
 });
 
-// Admin list view: lightweight products (exclude image/description)
-router.get('/admin/list', [verifyToken, isAdmin], async (req, res) => {
-    const { branchId, page, limit, search } = req.query;
-    const branchValue = branchId ? parseInt(branchId, 10) : null;
-    const pageRaw = parseInt(page, 10);
-    const limitRaw = parseInt(limit, 10);
-    const pageValue = Number.isFinite(pageRaw) && pageRaw > 0 ? pageRaw : 1;
-    const limitValue = Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : 50;
-    const offsetValue = (pageValue - 1) * limitValue;
-    const searchTerm = typeof search === 'string' ? search.trim() : '';
-    const hasSearch = searchTerm.length > 0;
-    const searchValue = `%${searchTerm}%`;
-
-    try {
-        let sql;
-        let countSql;
-        let params = [];
-        let countParams = [];
-
-        if (branchValue) {
-            const where = [`bp.branch_id = $1`];
-            params = [branchValue];
-            countParams = [branchValue];
-            let paramIndex = 2;
-
-            if (hasSearch) {
-                where.push(`(p.name ILIKE $${paramIndex} OR p.name_ar ILIKE $${paramIndex} OR p.barcode ILIKE $${paramIndex})`);
-                params.push(searchValue);
-                countParams.push(searchValue);
-                paramIndex++;
-            }
-
-            const limitParamIndex = paramIndex;
-            const offsetParamIndex = paramIndex + 1;
-            params.push(limitValue, offsetValue);
-
-            sql = `
-                SELECT p.id,
-                       p.name,
-                       p.name_ar,
-                       p.barcode,
-                       p.category AS category_id,
-                       COALESCE(bp.price, 0) AS price,
-                       COALESCE(bp.stock_quantity, 0) AS stock
-                FROM products p
-                JOIN branch_products bp
-                  ON p.id = bp.product_id
-                WHERE ${where.join(' AND ')}
-                ORDER BY p.id
-                LIMIT $${limitParamIndex} OFFSET $${offsetParamIndex}
-            `;
-            countSql = `
-                SELECT COUNT(*) AS total
-                FROM products p
-                JOIN branch_products bp
-                  ON p.id = bp.product_id
-                WHERE ${where.join(' AND ')}
-            `;
-        } else {
-            const where = [];
-            if (hasSearch) {
-                where.push(`(p.name ILIKE $1 OR p.name_ar ILIKE $1 OR p.barcode ILIKE $1)`);
-                params = [searchValue];
-                countParams = [searchValue];
-            }
-            const whereClause = where.length > 0 ? `WHERE ${where.join(' AND ')}` : '';
-            const limitParamIndex = hasSearch ? 2 : 1;
-            const offsetParamIndex = hasSearch ? 3 : 2;
-            params.push(limitValue, offsetValue);
-
-            sql = `
-                SELECT p.id,
-                       p.name,
-                       p.name_ar,
-                       p.barcode,
-                       p.category AS category_id,
-                       COALESCE(MAX(bp.price), 0) AS price,
-                       COALESCE(SUM(bp.stock_quantity), 0) AS stock
-                FROM products p
-                LEFT JOIN branch_products bp ON p.id = bp.product_id
-                ${whereClause}
-                GROUP BY p.id, p.name, p.category
-                ORDER BY p.id
-                LIMIT $${limitParamIndex} OFFSET $${offsetParamIndex}
-            `;
-            countSql = `
-                SELECT COUNT(*) AS total
-                FROM products p
-                ${whereClause}
-            `;
-        }
-
-        const [{ rows }, { rows: countRows }] = await Promise.all([
-            query(sql, params),
-            query(countSql, countParams)
-        ]);
-        const total = parseInt(countRows[0]?.total || '0', 10);
-        return res.json({ message: 'success', data: rows, page: pageValue, total, limit: limitValue });
-    } catch (err) {
-        console.error('Error fetching admin product list:', err);
-        return res.status(500).json({ error: err.message });
-    }
-});
-
 // Get all products (filtered by branch)
 router.get('/', async (req, res) => {
-    const { branchId, category, search, limit, offset, includeAllBranches, includeMagazine, page } = req.query;
-
-    const limitRaw = parseInt(limit, 10);
-    const offsetRaw = parseInt(offset, 10);
-    const pageRaw = parseInt(page, 10);
-
-    const defaultLimit = includeAllBranches === 'true' ? 10000 : 20;
-    const limitValue = Number.isFinite(limitRaw) && limitRaw > 0 ? limitRaw : defaultLimit;
-    const offsetValue = Number.isFinite(offsetRaw) && offsetRaw >= 0
-        ? offsetRaw
-        : (Number.isFinite(pageRaw) && pageRaw > 0 ? (pageRaw - 1) * limitValue : 0);
-    const pageValue = Number.isFinite(pageRaw) && pageRaw > 0
-        ? pageRaw
-        : Math.floor(offsetValue / limitValue) + 1;
+    const { branchId, category, search, limit, offset, includeAllBranches, includeMagazine } = req.query;
+    
+    // 🔥 For admin panel: no limit (get all products)
+    // For users: default 100 products
+    const limitValue = includeAllBranches === 'true' 
+        ? (limit ? parseInt(limit) : 10000) // Admin: get up to 10k products
+        : (limit ? parseInt(limit) : 100);   // Users: default 100
+    const offsetValue = offset ? parseInt(offset) : 0;
 
     // For admin panel - show all products with their branch data
     if (includeAllBranches === 'true') {
@@ -444,9 +334,7 @@ router.get('/', async (req, res) => {
         // Enforce branch selection as per requirements
         return res.json({
             "message": "success",
-            "data": [],
-            "page": pageValue,
-            "total": 0
+            "data": []
         });
     }
 
@@ -617,13 +505,11 @@ router.get('/', async (req, res) => {
         res.json({
             "message": "success",
             "data": cleanedRows,
-            "page": pageValue,
-            "total": totalCount,
             "pagination": {
                 "total": totalCount,
                 "limit": limitValue,
                 "offset": offsetValue,
-                "page": pageValue,
+                "page": Math.floor(offsetValue / limitValue) + 1,
                 "totalPages": Math.ceil(totalCount / limitValue)
             }
         });
@@ -643,59 +529,14 @@ router.get('/:id', async (req, res) => {
 
         if (branchId) {
             sql = `
-                SELECT 
-                    p.id,
-                    p.name,
-                    p.name_ar,
-                    p.category,
-                    p.subcategory,
-                    p.image,
-                    p.weight,
-                    p.rating,
-                    p.reviews,
-                    p.is_organic,
-                    p.is_new,
-                    p.description,
-                    p.barcode,
-                    p.shelf_location,
-                    p.expiry_date,
-                    p.brand_id,
-                    p.frame_overlay_url,
-                    p.frame_enabled,
-                    bp.price,
-                    bp.discount_price,
-                    bp.stock_quantity,
-                    bp.is_available,
-                    bp.branch_id
+                SELECT p.*, bp.price, bp.discount_price, bp.stock_quantity, bp.is_available
                 FROM products p
                 LEFT JOIN branch_products bp ON p.id = bp.product_id AND bp.branch_id = $2
                 WHERE p.id = $1
             `;
             params = [id, branchId];
         } else {
-            sql = `
-                SELECT 
-                    id,
-                    name,
-                    name_ar,
-                    category,
-                    subcategory,
-                    image,
-                    weight,
-                    rating,
-                    reviews,
-                    is_organic,
-                    is_new,
-                    description,
-                    barcode,
-                    shelf_location,
-                    expiry_date,
-                    brand_id,
-                    frame_overlay_url,
-                    frame_enabled
-                FROM products
-                WHERE id = $1
-            `;
+            sql = "SELECT * FROM products WHERE id = $1";
             params = [id];
         }
 
@@ -722,30 +563,12 @@ router.get('/barcode/:barcode', async (req, res) => {
 
         // First try to get product with specified branch
         let sql = `
-            SELECT 
-                p.id,
-                p.name,
-                p.name_ar,
-                p.category,
-                p.subcategory,
-                p.image,
-                p.weight,
-                p.rating,
-                p.reviews,
-                p.is_organic,
-                p.is_new,
-                p.description,
-                p.barcode,
-                p.shelf_location,
-                p.expiry_date,
-                p.brand_id,
-                p.frame_overlay_url,
-                p.frame_enabled,
-                bp.price, 
-                bp.discount_price, 
-                bp.stock_quantity, 
-                bp.is_available,
-                bp.branch_id
+            SELECT p.*, 
+                   bp.price, 
+                   bp.discount_price, 
+                   bp.stock_quantity, 
+                   bp.is_available,
+                   bp.branch_id
             FROM products p
             LEFT JOIN branch_products bp ON p.id = bp.product_id AND bp.branch_id = $2
             WHERE p.barcode = $1

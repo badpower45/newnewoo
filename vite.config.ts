@@ -72,22 +72,53 @@ export default defineConfig(({ mode }) => {
               return 'supabase';
             }
             
-            // UI/Animation libraries
-            if (id.includes('node_modules/lucide-react') || 
-                id.includes('node_modules/framer-motion') ||
-                id.includes('node_modules/lottie-react')) {
-              return 'ui-libs';
+            // Framer Motion (large library)
+            if (id.includes('node_modules/framer-motion')) {
+              return 'framer-motion';
             }
             
-            // Utilities (barcode, excel, etc)
-            if (id.includes('node_modules/html5-qrcode') || 
-                id.includes('node_modules/xlsx')) {
-              return 'utilities';
+            // Lucide icons
+            if (id.includes('node_modules/lucide-react')) {
+              return 'lucide-icons';
             }
             
-            // Other node_modules
+            // Lottie animation
+            if (id.includes('node_modules/lottie-react') || 
+                id.includes('node_modules/@dotlottie')) {
+              return 'lottie';
+            }
+            
+            // Excel/XLSX (very large)
+            if (id.includes('node_modules/xlsx')) {
+              return 'xlsx';
+            }
+            
+            // Barcode scanner
+            if (id.includes('node_modules/html5-qrcode')) {
+              return 'qrcode';
+            }
+            
+            // Helmet (SEO)
+            if (id.includes('node_modules/react-helmet-async')) {
+              return 'seo';
+            }
+            
+            // Other UI libs
+            if (id.includes('node_modules') && 
+                (id.includes('bcryptjs') || id.includes('jsonwebtoken'))) {
+              return 'crypto';
+            }
+            
+            // Other node_modules - split into smaller chunks
             if (id.includes('node_modules')) {
-              return 'vendor';
+              // Get the package name
+              const parts = id.split('node_modules/')[1].split('/');
+              const packageName = parts[0].startsWith('@') 
+                ? `${parts[0]}/${parts[1]}` 
+                : parts[0];
+              
+              // Group small packages together
+              return 'vendor-libs';
             }
           },
           // Optimize chunk names
@@ -96,7 +127,7 @@ export default defineConfig(({ mode }) => {
           assetFileNames: 'assets/[name]-[hash].[ext]',
         }
       },
-      chunkSizeWarningLimit: 500, // Lower threshold to warn about large chunks
+      chunkSizeWarningLimit: 300, // Lower threshold to warn about large chunks
       sourcemap: false,
       // Use terser for better minification (smaller size)
       minify: 'terser',
@@ -105,7 +136,11 @@ export default defineConfig(({ mode }) => {
           drop_console: true, // Remove console.logs in production
           drop_debugger: true,
           pure_funcs: ['console.log', 'console.info', 'console.debug'],
-          passes: 2, // Multiple passes for better compression
+          passes: 3, // Multiple passes for better compression
+          unsafe: true,
+          unsafe_comps: true,
+          unsafe_math: true,
+          unsafe_proto: true,
         },
         mangle: {
           safari10: true,
