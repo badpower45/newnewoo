@@ -72,13 +72,24 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         res.set('Cache-Control', 'public, max-age=300, s-maxage=3600, stale-while-revalidate=300');
+        const shouldCache = !req.headers.authorization;
+        const cacheKey = shouldCache ? `branches:by-id:${req.originalUrl}` : null;
+        if (cacheKey) {
+            const cached = responseCache.get(cacheKey);
+            if (cached) {
+                return res.json(cached);
+            }
+        }
         const { rows } = await query("SELECT * FROM branches WHERE id = $1", [req.params.id]);
         
         if (rows.length === 0) {
             return res.status(404).json({ error: 'Branch not found' });
         }
-
-        res.json({ message: 'success', data: rows[0] });
+        const payload = { message: 'success', data: rows[0] };
+        if (cacheKey) {
+            responseCache.set(cacheKey, payload, CacheTTL.LONG);
+        }
+        res.json(payload);
     } catch (err) {
         console.error("Error fetching branch:", err);
         res.status(500).json({ error: err.message });
