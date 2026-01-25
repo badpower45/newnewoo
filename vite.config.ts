@@ -82,12 +82,6 @@ export default defineConfig(({ mode }) => {
               return 'lucide-icons';
             }
             
-            // Lottie animation
-            if (id.includes('node_modules/lottie-react') || 
-                id.includes('node_modules/@dotlottie')) {
-              return 'lottie';
-            }
-            
             // Excel/XLSX (very large)
             if (id.includes('node_modules/xlsx')) {
               return 'xlsx';
@@ -155,10 +149,8 @@ export default defineConfig(({ mode }) => {
       assetsInlineLimit: 0,
       // Target modern browsers
       target: 'es2020',
-      // Module preload optimization
-      modulePreload: {
-        polyfill: false, // Don't polyfill if targeting modern browsers
-      },
+      // Disable module preload to avoid preloading unused chunks
+      modulePreload: false,
     },
     optimizeDeps: {
       exclude: ['lucide-react']
