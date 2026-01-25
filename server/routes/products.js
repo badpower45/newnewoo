@@ -3,6 +3,7 @@ import { query } from '../database.js'; // Use the exported query helper
 import { verifyToken, isAdmin } from '../middleware/auth.js';
 import { createExcelUploader, createFrameUploader, verifyFileContent, handleUploadError } from '../middleware/fileUpload.js';
 import { validate, productSchema, searchSchema } from '../middleware/validation.js';
+import { responseCache, CacheTTL } from '../services/responseCache.js';
 import * as xlsx from 'xlsx';
 import fs from 'fs';
 import path from 'path';
@@ -204,10 +205,19 @@ router.post('/dev/fix-prices', [verifyToken, isAdmin], async (req, res) => {
 router.get('/special-offers', async (req, res) => {
     const { branchId } = req.query;
     const branch = branchId || 1; // Default branch
+    const shouldCache = !req.headers.authorization;
+    const cacheKey = shouldCache ? `products:special-offers:${req.originalUrl}` : null;
     
     try {
         // Add cache headers - 6 hours for special offers
         res.set('Cache-Control', 'public, s-maxage=21600, stale-while-revalidate=300, max-age=600');
+
+        if (cacheKey) {
+            const cached = responseCache.get(cacheKey);
+            if (cached) {
+                return res.json(cached);
+            }
+        }
         
         const { rows } = await query(`
             SELECT DISTINCT p.id, p.name, p.category, p.image, p.weight, p.rating, p.reviews,
@@ -226,7 +236,11 @@ router.get('/special-offers', async (req, res) => {
         `, [branch]);
         
         console.log(`✨ Special offers loaded: ${rows.length} products with discount`);
-        return res.json({ data: rows });
+        const payload = { data: rows };
+        if (cacheKey) {
+            responseCache.set(cacheKey, payload, CacheTTL.MEDIUM);
+        }
+        return res.json(payload);
     } catch (err) {
         console.error('Special offers API failed:', err);
         return res.status(500).json({ error: err.message });
@@ -341,6 +355,15 @@ router.get('/', async (req, res) => {
     try {
         // Add cache headers - 6 hours cache for aggressive optimization
         res.set('Cache-Control', 'public, s-maxage=21600, stale-while-revalidate=300, max-age=600');
+
+        const shouldCache = !req.headers.authorization;
+        const cacheKey = shouldCache ? `products:list:${req.originalUrl}` : null;
+        if (cacheKey) {
+            const cached = responseCache.get(cacheKey);
+            if (cached) {
+                return res.json(cached);
+            }
+        }
         
         const params = [branchId];
         let paramIndex = 2;
@@ -502,7 +525,7 @@ router.get('/', async (req, res) => {
         console.log(`✅ Returned ${rows.length} products (Total: ${totalCount}, Page: ${Math.floor(offsetValue / limitValue) + 1}/${Math.ceil(totalCount / limitValue)})`);
         console.log(`📦 Avg size: ${JSON.stringify(cleanedRows[0] || {}).length} bytes/product`);
 
-        res.json({
+        const payload = {
             "message": "success",
             "data": cleanedRows,
             "pagination": {
@@ -512,7 +535,13 @@ router.get('/', async (req, res) => {
                 "page": Math.floor(offsetValue / limitValue) + 1,
                 "totalPages": Math.ceil(totalCount / limitValue)
             }
-        });
+        };
+
+        if (cacheKey) {
+            responseCache.set(cacheKey, payload, CacheTTL.SHORT);
+        }
+
+        res.json(payload);
     } catch (err) {
         console.error("Error fetching products:", err);
         res.status(500).json({ "error": err.message });

@@ -1,43 +1,23 @@
 /**
- * Static Data Generator - ISR Implementation
- * يبني البيانات الثابتة ويخزنها ويجددها تلقائياً
+ * Static Data Generator - ISR Implementation (Server-Side Only!)
+ * 
+ * ⚠️ WARNING: This file is for Node.js environments ONLY (build scripts)
+ * DO NOT import this file in browser code!
+ * 
+ * Use staticDataClient.ts instead for browser environments
  */
 
-import { api } from '../services/api';
-import fs from 'fs';
-import path from 'path';
-
-interface StaticData {
-  homeSections: any[];
-  categories: any[];
-  branches: any[];
-  featuredProducts: any[];
-  timestamp: number;
-  expiresAt: number;
+// This file should only be imported by Node.js scripts like build-static-data.js
+if (typeof window !== 'undefined') {
+  throw new Error('staticDataGenerator.ts should not be imported in browser code!');
 }
 
-const STATIC_DATA_DIR = path.join(process.cwd(), 'public', 'static-data');
-const STATIC_DATA_FILE = path.join(STATIC_DATA_DIR, 'site-data.json');
-const REVALIDATE_INTERVAL = 7 * 24 * 60 * 60 * 1000; // 7 days
+export {};
 
-/**
- * Build static data from database
+/*
+ * Original implementation moved to scripts/build-static-data.js
+ * This file is kept as placeholder to prevent accidental browser imports
  */
-export async function buildStaticData(): Promise<StaticData> {
-  console.log('[ISR] Building static data...');
-  
-  try {
-    // Fetch all data in parallel
-    const [homeSections, categories, branches, featuredProducts] = await Promise.all([
-      api.homeSections.getAll(), // Fetch all home sections
-      api.categories.getAll(),   // Fetch all categories
-      api.branches.getAll(),     // Fetch all branches
-      api.products.getFeatured(), // Fetch featured products
-    ]);
-
-    const staticData: StaticData = {
-      homeSections: homeSections || [],
-      categories: categories || [],
       branches: branches || [],
       featuredProducts: featuredProducts || [],
       timestamp: Date.now(),

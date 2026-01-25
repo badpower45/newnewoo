@@ -16,6 +16,7 @@ import { useBranch } from '../context/BranchContext';
 import Seo, { getSiteUrl } from '../components/Seo';
 import { useCart } from '../context/CartContext';
 import { useProducts } from '../src/hooks/useProducts';
+import { staticData } from '../utils/staticDataClient';
 
 const SORT_OPTIONS = [
     { id: 'newest', name: 'الأحدث', icon: Clock },
@@ -189,11 +190,15 @@ export default function ProductsPage() {
     useEffect(() => {
         const loadCategories = async () => {
             try {
-                console.log('📦 Loading categories from database...');
-                const response = await api.categories.getAll();
-                const apiCategories = response?.data || response || [];
+                console.log('📦 Loading categories...');
+                
+                // Try loading from static data first (instant!)
+                const data = await staticData.load();
+                const apiCategories = data.categories || [];
 
                 if (Array.isArray(apiCategories) && apiCategories.length > 0) {
+                    console.log('✅ Loaded from static data:', apiCategories.length, 'categories');
+                    
                     // Transform database categories to match ProductsPage format
                     const categoriesFromDB = apiCategories
                         .filter((cat: any) => cat.is_active !== false && !cat.parent_id) // Only active parent categories
@@ -240,17 +245,74 @@ export default function ProductsPage() {
                             .values()
                     );
 
-                    console.log('✅ Loaded', categoriesFromDB.length, 'categories from database');
+                    console.log('✅ Processed', categoriesFromDB.length, 'categories from static data');
 
                     setCategories([
                         { id: '', name: 'الكل', icon: '🛒', color: 'from-brand-brown to-brand-brown/80' },
                         ...uniqueCategories
                     ]);
                 } else {
-                    console.warn('⚠️ No categories from API, falling back to "All"');
-                    setCategories([
-                        { id: '', name: 'الكل', icon: '🛒', color: 'from-brand-brown to-brand-brown/80' }
-                    ]);
+                    // Fallback to API if static data is empty
+                    console.warn('⚠️ Static data empty, falling back to API...');
+                    const response = await api.categories.getAll();
+                    const fallbackCategories = response?.data || response || [];
+                    
+                    if (Array.isArray(fallbackCategories) && fallbackCategories.length > 0) {
+                        const categoriesFromDB = fallbackCategories
+                            .filter((cat: any) => cat.is_active !== false && !cat.parent_id)
+                            .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
+                            .map((cat: any) => {
+                                const rawName = cat.name_ar || cat.name || '';
+                                const displayName = mapCategoryLabel(rawName);
+                                return {
+                                    id: rawName,
+                                    name: displayName,
+                                    icon: cat.icon || '📦',
+                                    color: cat.bg_color || 'from-brand-orange to-amber-500',
+                                    product_count: cat.products_count || 0
+                                };
+                            })
+                            .filter((cat: any) => cat.id);
+                        
+                        const uniqueCategories = Array.from(
+                            categoriesFromDB.reduce((acc, current) => {
+                                const key = normalizeCategoryValue(current.name || current.id);
+                                if (!key) return acc;
+                                const existing = acc.get(key);
+                                if (!existing) {
+                                    acc.set(key, current);
+                                    return acc;
+                                }
+                                const existingCount = existing.product_count || 0;
+                                const currentCount = current.product_count || 0;
+                                const existingIsArabic = hasArabicChars(existing.id || existing.name);
+                                const currentIsArabic = hasArabicChars(current.id || current.name);
+                                if (currentCount > existingCount) {
+                                    acc.set(key, current);
+                                    return acc;
+                                }
+                                if (currentCount === existingCount && currentIsArabic && !existingIsArabic) {
+                                    acc.set(key, current);
+                                    return acc;
+                                }
+                                if (!existing.icon && current.icon) {
+                                    acc.set(key, { ...existing, icon: current.icon });
+                                }
+                                return acc;
+                            }, new Map())
+                                .values()
+                        );
+                        
+                        setCategories([
+                            { id: '', name: 'الكل', icon: '🛒', color: 'from-brand-brown to-brand-brown/80' },
+                            ...uniqueCategories
+                        ]);
+                    } else {
+                        console.warn('⚠️ No categories from API, falling back to "All"');
+                        setCategories([
+                            { id: '', name: 'الكل', icon: '🛒', color: 'from-brand-brown to-brand-brown/80' }
+                        ]);
+                    }
                 }
             } catch (error) {
                 console.error('❌ Error loading categories:', error);

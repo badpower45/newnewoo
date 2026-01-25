@@ -5,6 +5,7 @@ import CategoryCard from '../components/CategoryCard';
 import { api } from '../services/api';
 import { useLanguage } from '../context/LanguageContext';
 import Seo, { getSiteUrl } from '../components/Seo';
+import { staticData } from '../utils/staticDataClient';
 
 interface Category {
     id?: number;
@@ -56,10 +57,21 @@ const CategoriesPage = () => {
     const loadCategories = async () => {
         setLoading(true);
         try {
-            const res = await api.categories.getAll();
-            const list = res.data || res || [];
-            if (Array.isArray(list)) {
+            // Try loading from static data first (instant!)
+            const data = await staticData.load();
+            const list = data.categories || [];
+            
+            if (Array.isArray(list) && list.length > 0) {
+                console.log('[Categories] ✅ Loaded from static data:', list.length);
                 setCategories(list);
+            } else {
+                // Fallback to API if static data is empty
+                console.log('[Categories] ⚠️ Static data empty, falling back to API');
+                const res = await api.categories.getAll();
+                const apiList = res.data || res || [];
+                if (Array.isArray(apiList)) {
+                    setCategories(apiList);
+                }
             }
         } catch (err) {
             console.error('Failed to load categories:', err);

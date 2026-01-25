@@ -13,13 +13,18 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Simple fetch replacement using native Node.js
-async function fetchData(url) {
+// Simple fetch replacement using native Node.js with timeout
+async function fetchData(url, timeoutMs = 10000) {
   return new Promise((resolve, reject) => {
     const urlObj = new URL(url);
     const protocol = urlObj.protocol === 'https:' ? https : http;
     
-    protocol.get(url, (res) => {
+    // Timeout handler
+    const timeout = setTimeout(() => {
+      reject(new Error(`Request timeout after ${timeoutMs}ms`));
+    }, timeoutMs);
+    
+    const request = protocol.get(url, (res) => {
       let data = '';
       
       res.on('data', (chunk) => {
@@ -27,14 +32,24 @@ async function fetchData(url) {
       });
       
       res.on('end', () => {
+        clearTimeout(timeout);
         try {
           resolve(JSON.parse(data));
         } catch (error) {
           reject(error);
         }
       });
-    }).on('error', (error) => {
+    });
+    
+    request.on('error', (error) => {
+      clearTimeout(timeout);
       reject(error);
+    });
+    
+    request.on('timeout', () => {
+      request.destroy();
+      clearTimeout(timeout);
+      reject(new Error('Request timeout'));
     });
   });
 }
@@ -55,7 +70,10 @@ async function fetchEndpoint(endpoint) {
 
 async function buildStaticData() {
   console.log('🚀 Building static data...\n');
-  console.log(`API URL: ${API_URL}\n`);
+  console.log(`API URL: ${API_URL}`);
+  console.log(`⏱️  Timeout: 10 seconds per request\n`);
+
+  const startTime = Date.now();
 
   try {
     // Fetch all data in parallel
@@ -72,6 +90,9 @@ async function buildStaticData() {
       fetchEndpoint('/branches'),
       fetchEndpoint('/products?page=1&limit=50'),
     ]);
+
+    const fetchTime = ((Date.now() - startTime) / 1000).toFixed(2);
+    console.log(`✅ Data fetched in ${fetchTime}s\n`);
 
     // Extract data
     const homeSections = Array.isArray(homeSectionsRes) 
@@ -117,10 +138,15 @@ async function buildStaticData() {
     console.log(`   - Featured Products: ${staticData.featuredProducts.length}`);
     console.log(`\n📁 Output: ${OUTPUT_FILE}`);
     console.log(`📅 Build Date: ${staticData.buildDate}`);
-    console.log(`⏰ Expires: ${new Date(staticData.expiresAt).toLocaleString()}\n`);
+    console.log(`⏰ Expires: ${new Date(staticData.expiresAt).toLocaleString()}`);
+    console.log(`⚡ Total build time: ${((Date.now() - startTime) / 1000).toFixed(2)}s\n`);
 
   } catch (error) {
     console.error('\n❌ Build failed:', error.message);
+    console.error('\n💡 Tips:');
+    console.error('   - Check if API is running: ' + API_URL);
+    console.error('   - Try building without static data: npm run build');
+    console.error('   - Increase timeout in build-static-data.js\n');
     process.exit(1);
   }
 }

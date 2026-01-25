@@ -8,9 +8,9 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "npm run build:static && vite build --mode production",
+    "build": "vite build --mode production",
+    "build:with-static": "npm run build:static && vite build --mode production",
     "build:static": "node scripts/build-static-data.js",
-    "build:quick": "vite build --mode production",
     "preview": "vite preview",
     "clean": "rimraf dist node_modules/.vite .vercel"
   },

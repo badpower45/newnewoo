@@ -1,5 +1,6 @@
 import express from 'express';
 import pool from '../database.js';
+import { responseCache, CacheTTL } from '../services/responseCache.js';
 
 const router = express.Router();
 
