@@ -1,7 +1,7 @@
 /**
- * Cloudinary Image Optimization Utility
+ * Cloudinary & Supabase Image Optimization Utility
  * 
- * يوفر functions لتحسين الصور عبر Cloudinary transformations
+ * يوفر functions لتحسين الصور عبر Cloudinary transformations و Supabase transforms
  * التوفير المتوقع: 85-95% من حجم الصور! 🔥
  */
 
@@ -13,72 +13,74 @@ export const IMAGE_SIZES = {
     CARD_THUMBNAIL: {
         width: 200,
         height: 200,
-        quality: 'auto:eco', // Cloudinary auto quality (eco = lower quality, smaller size)
-        format: 'auto'       // Cloudinary auto format (WebP if supported, JPEG fallback)
+        quality: 70,
+        format: 'webp'
     },
 
     // Product Details Page
     PRODUCT_DETAIL: {
         width: 600,
         height: 600,
-        quality: 'auto:good',
-        format: 'auto'
+        quality: 80,
+        format: 'webp'
     },
 
     // Frames
     FRAME_OVERLAY: {
         width: 200,
         height: 200,
-        quality: 'auto:eco',
-        format: 'auto'
+        quality: 70,
+        format: 'webp'
     },
 
     // Hero Images / Banners
     BANNER: {
         width: 1200,
         height: 400,
-        quality: 'auto:good',
-        format: 'auto'
+        quality: 85,
+        format: 'webp'
     },
 
     // Thumbnails صغيرة جداً
     TINY_THUMB: {
         width: 100,
         height: 100,
-        quality: 'auto:low',
-        format: 'auto'
+        quality: 60,
+        format: 'webp'
     }
 };
 
 /**
- * تحسين Cloudinary URL بإضافة transformations
- * 
- * @param url - الـ URL الأصلي
- * @param size - الحجم المطلوب (من IMAGE_SIZES)
- * @returns الـ URL المحسّن
+ * تحسين Supabase Storage URL
+ * Supabase supports transformation via query params
  * 
  * @example
- * const optimized = optimizeCloudinaryImage(
- *   'https://res.cloudinary.com/xyz/image/upload/product.jpg',
- *   IMAGE_SIZES.CARD_THUMBNAIL
- * );
- * // Returns: https://res.cloudinary.com/xyz/image/upload/w_200,h_200,q_auto:eco,f_auto/product.jpg
+ * https://xxx.supabase.co/storage/v1/object/public/bucket/image.jpg
+ * -> https://xxx.supabase.co/storage/v1/object/public/bucket/image.jpg?width=200&quality=70
  */
-export function optimizeCloudinaryImage(
-    url: string | undefined | null,
+function optimizeSupabaseImage(
+    url: string,
     size: typeof IMAGE_SIZES[keyof typeof IMAGE_SIZES]
 ): string {
-    // إذا URL فاضي، ارجع placeholder
-    if (!url) {
-        return `https://placehold.co/${size.width}x${size.height}?text=Product`;
-    }
-
-    // تحقق إذا الـ URL من Cloudinary
-    if (!url.includes('cloudinary.com') && !url.includes('res.cloudinary')) {
-        // لو مش Cloudinary URL، ارجعه زي ما هو
+    try {
+        // Check if already has params
+        const hasParams = url.includes('?');
+        const separator = hasParams ? '&' : '?';
+        
+        // Add transformation params
+        return `${url}${separator}width=${size.width}&height=${size.height}&quality=${size.quality}&format=${size.format}&resize=cover`;
+    } catch (error) {
         return url;
     }
+}
 
+/**
+ * تحسين Cloudinary URL بإضافة transformations
+ */
+function optimizeCloudinaryImage(
+    url: string,
+    size: typeof IMAGE_SIZES[keyof typeof IMAGE_SIZES]
+): string {
     // لو الـ URL already optimized (فيه transformations)، ارجعه زي ما هو
     if (url.includes('w_') || url.includes('q_auto')) {
         return url;
@@ -98,6 +100,7 @@ export function optimizeCloudinaryImage(
             `h_${size.height}`,
             `q_${size.quality}`,
             `f_${size.format}`,
+            `f_${size.format}`,
             'c_fill' // Crop to fill (maintain aspect ratio)
         ].join(',');
 
@@ -110,38 +113,74 @@ export function optimizeCloudinaryImage(
 }
 
 /**
- * تحسين صورة منتج للـ Card
+ * تحسين أي صورة (Cloudinary أو Supabase أو غيرها)
+ * 
+ * @param url - الـ URL الأصلي
+ * @param size - الحجم المطلوب
+ * @returns الـ URL المحسّن
+ */
+export function optimizeImage(
+    url: string | undefined | null,
+    size: typeof IMAGE_SIZES[keyof typeof IMAGE_SIZES]
+): string {
+    // إذا URL فاضي، ارجع placeholder
+    if (!url) {
+        return `https://placehold.co/${size.width}x${size.height}/e5e7eb/6b7280?text=Image`;
+    }
+
+    // Supabase Storage
+    if (url.includes('supabase.co/storage')) {
+        return optimizeSupabaseImage(url, size);
+    }
+
+    // Cloudinary
+    if (url.includes('cloudinary.com') || url.includes('res.cloudinary')) {
+        return optimizeCloudinaryImage(url, size);
+    }
+
+    // External URLs - add query params if possible
+    try {
+        const hasParams = url.includes('?');
+        const separator = hasParams ? '&' : '?';
+        return `${url}${separator}w=${size.width}&q=${size.quality}`;
+    } catch {
+        return url;
+    }
+}
+
+/**
+ * تحسين صورة منتج للـ Card (أهم optimization!)
  */
 export function optimizeProductCardImage(url: string | undefined | null): string {
-    return optimizeCloudinaryImage(url, IMAGE_SIZES.CARD_THUMBNAIL);
+    return optimizeImage(url, IMAGE_SIZES.CARD_THUMBNAIL);
 }
 
 /**
  * تحسين صورة منتج للـ Details Page
  */
 export function optimizeProductDetailImage(url: string | undefined | null): string {
-    return optimizeCloudinaryImage(url, IMAGE_SIZES.PRODUCT_DETAIL);
+    return optimizeImage(url, IMAGE_SIZES.PRODUCT_DETAIL);
 }
 
 /**
  * تحسين Frame overlay
  */
 export function optimizeFrameImage(url: string | undefined | null): string {
-    return optimizeCloudinaryImage(url, IMAGE_SIZES.FRAME_OVERLAY);
+    return optimizeImage(url, IMAGE_SIZES.FRAME_OVERLAY);
 }
 
 /**
  * تحسين Banner image
  */
 export function optimizeBannerImage(url: string | undefined | null): string {
-    return optimizeCloudinaryImage(url, IMAGE_SIZES.BANNER);
+    return optimizeImage(url, IMAGE_SIZES.BANNER);
 }
 
 /**
  * تحسين thumbnail صغير جداً
  */
 export function optimizeTinyThumb(url: string | undefined | null): string {
-    return optimizeCloudinaryImage(url, IMAGE_SIZES.TINY_THUMB);
+    return optimizeImage(url, IMAGE_SIZES.TINY_THUMB);
 }
 
 /**
@@ -162,11 +201,11 @@ export function generateSrcSet(
 
     return widths
         .map(width => {
-            const optimized = optimizeCloudinaryImage(url, {
+            const optimized = optimizeImage(url, {
                 width,
                 height: width,
-                quality: 'auto:eco',
-                format: 'auto'
+                quality: 70,
+                format: 'webp'
             });
             return `${optimized} ${width}w`;
         })
