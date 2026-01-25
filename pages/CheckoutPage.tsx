@@ -11,6 +11,7 @@ import { useAuth } from '../context/AuthContext';
 import { PAYMENT_METHOD_LABELS } from '../src/config';
 import { useToast } from '../components/Toast';
 import { extractCoordinatesFromMapsLink, validateCoordinates, formatCoordinates } from '../utils/googleMapsHelper';
+import { optimizeProductCardImage } from '../utils/imageOptimization';
 
 // Constants
 const MINIMUM_ORDER_AMOUNT = 200;
@@ -922,7 +923,7 @@ export default function CheckoutPage() {
                                 )}
                                 {items.map((item) => (
                                     <div key={item.id} className="flex items-center gap-4 pb-4 border-b last:border-0">
-                                        <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-lg" />
+                                        <img src={optimizeProductCardImage(item.image)} alt={item.name} loading="lazy" className="w-16 h-16 object-cover rounded-lg" />
                                         <div className="flex-1">
                                             <h4 className="font-medium text-gray-900">{item.name}</h4>
                                             <SubstitutionSelector

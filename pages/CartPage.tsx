@@ -6,6 +6,7 @@ import { useBranch } from '../context/BranchContext';
 import { useAuth } from '../context/AuthContext';
 import Footer from '../components/Footer';
 import { api } from '../services/api';
+import { optimizeProductCardImage } from '../utils/imageOptimization';
 
 const CartPage = () => {
     const navigate = useNavigate();
@@ -144,7 +145,7 @@ const CartPage = () => {
                         {items.map((item) => (
                             <div key={item.id} className="bg-white p-4 rounded-2xl shadow-sm flex gap-4">
                                 <div className="w-24 h-24 bg-gray-50 rounded-xl flex items-center justify-center p-2 flex-shrink-0">
-                                    <img src={item.image} alt={item.name || item.title} className="w-full h-full object-contain mix-blend-multiply" />
+                                    <img src={optimizeProductCardImage(item.image)} alt={item.name || item.title} loading="lazy" className="w-full h-full object-contain mix-blend-multiply" />
                                 </div>
                                 <div className="flex-1 flex flex-col justify-between min-w-0">
                                     <div className="flex justify-between items-start gap-2">
