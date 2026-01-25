@@ -70,6 +70,8 @@ const BrandsCarousel: React.FC<BrandsCarouselProps> = ({ title = "Featured Brand
                                 <img 
                                     src={brand.banner_url || brand.logo_url || fallbackImage}
                                     alt={brand.name_ar}
+                                    loading="lazy"
+                                    decoding="async"
                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                                     onError={(e) => {
                                         (e.target as HTMLImageElement).src = fallbackImage;

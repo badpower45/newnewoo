@@ -6,6 +6,7 @@ import { useFavorites } from '../context/FavoritesContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useLocalization } from '../utils/localization';
 import { optimizeProductCardImage, optimizeFrameImage } from '../utils/imageOptimization';
+import { PRODUCT_PLACEHOLDER_BASE64, FRAME_PLACEHOLDER_BASE64 } from '../utils/inlinePlaceholders';
 
 import { Product } from '../types';
 
@@ -93,7 +94,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
             </span>
           )}
           <img
-            src={optimizeProductCardImage(image) || "https://placehold.co/100x100?text=Product"}
+            src={optimizeProductCardImage(image) || PRODUCT_PLACEHOLDER_BASE64}
             alt={title}
             loading="lazy"
             decoding="async"
@@ -163,7 +164,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
         {/* Product Image - Lazy Loaded */}
         <div className="relative w-full h-full p-2 flex items-center justify-center">
           <img
-            src={optimizeProductCardImage(image) || "https://placehold.co/150x150?text=Product"}
+            src={optimizeProductCardImage(image) || PRODUCT_PLACEHOLDER_BASE64}
             alt={title}
             loading="lazy"
             decoding="async"

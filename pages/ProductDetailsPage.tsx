@@ -130,41 +130,26 @@ const ProductDetailsPage = () => {
                     setSelectedSize(loadedProduct.weight);
                 }
 
-                // Load similar products
+                // Load similar products (reduced to 3 max - EXTREME)
                 if (loadedProduct.category) {
                     try {
-                        const similarList = await api.products.getByCategory(loadedProduct.category, branchId || 1, 4); // Only 4 products
-                        // API may return {data: [...]} or array directly
+                        const similarList = await api.products.getByCategory(loadedProduct.category, branchId || 1, 3); // 🔥 Only 3!
                         const data = Array.isArray(similarList)
                             ? similarList
                             : (similarList.data || similarList.products || []);
                         const filtered = data
                             .filter((p: Product) => String(p.id) !== String(id))
-                            .slice(0, 4);
+                            .slice(0, 3);
                         setSimilarProducts(filtered);
-                        console.log('Similar products:', filtered.length, 'products'); // Debug log
+                        console.log('Similar products:', filtered.length, 'products');
                     } catch (e) {
                         console.error('Failed to load similar products', e);
                         setSimilarProducts([]);
                     }
                 }
 
-                // Load recommended products (small paginated sample to reduce transfer)
-                try {
-                    const recSource = await api.products.getPaginated(1, 24, branchId || 1);
-                    const recList = Array.isArray(recSource)
-                        ? recSource
-                        : (recSource.data || recSource.products || []);
-                    const filtered = Array.isArray(recList)
-                        ? recList
-                            .filter((p: Product) => String(p.id) !== String(id))
-                            .sort(() => Math.random() - 0.5)
-                            .slice(0, 6)
-                        : [];
-                    setRecommendedProducts(filtered);
-                } catch (e) {
-                    console.error('Failed to load recommended products', e);
-                }
+                // 🔥 REMOVED: Recommended products entirely to save bandwidth!
+                setRecommendedProducts([]);
 
             } catch (e) {
                 console.error('Failed to load product', e);

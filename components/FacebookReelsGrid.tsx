@@ -224,6 +224,8 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
                                     <img
                                         src={video.thumbnail}
                                         alt={video.title}
+                                        loading="lazy"
+                                        decoding="async"
                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                                     />
                                     
@@ -354,6 +356,8 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
                                             <img
                                                 src={current?.thumbnail}
                                                 alt={current?.title}
+                                                loading="lazy"
+                                                decoding="async"
                                                 className="w-full h-full object-cover"
                                             />
                                             <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50">

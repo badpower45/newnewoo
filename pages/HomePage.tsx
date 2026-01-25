@@ -81,7 +81,7 @@ const HomePage = () => {
         try {
             const res = await api.categories.getAll();
             const data = res?.data ?? res;
-            
+
             // Transform data based on response type
             if (Array.isArray(data)) {
                 // If backend returns array of strings, transform to objects
@@ -126,7 +126,7 @@ const HomePage = () => {
         return translations[name] || name;
     };
 
-    const SECTION_PAGE_SIZE = 3;
+    const SECTION_PAGE_SIZE = 2;
 
     // Fetch home sections from API (paged)
     const fetchHomeSections = useCallback(async (page = 1, append = false) => {
@@ -139,7 +139,7 @@ const HomePage = () => {
         }
         try {
             const branchId = selectedBranch?.id || DEFAULT_BRANCH_ID;
-            const response = await api.homeSections.get(branchId, { page, limit: SECTION_PAGE_SIZE });
+            const response = await api.homeSections.get(branchId, { page, limit: SECTION_PAGE_SIZE, productLimit: 6 });
             const sectionsData = response?.data || response || [];
             const nextSections = Array.isArray(sectionsData) ? sectionsData : [];
             setHomeSections(prev => {
@@ -179,15 +179,15 @@ const HomePage = () => {
         try {
             const branchId = selectedBranch?.id || DEFAULT_BRANCH_ID;
             console.log('🏪 Loading limited products for HomePage - Branch:', selectedBranch?.name || 'Default', 'ID:', branchId);
-            
-            // ✅ جلب عدد قليل للصفحة الرئيسية (تقليل الترانسفير)
-            let list = await api.products.getAllByBranch(branchId, { limit: 24 });
+
+            // ✅ جلب عدد قليل جداً للصفحة الرئيسية (8 بدل 24) - تقليل الترانسفير
+            let list = await api.products.getAllByBranch(branchId, { limit: 8 });
 
             // Fallback if empty (مع limit)
             if (!list || list.length === 0) {
                 console.log('⚠️ No products found for branch, trying paginated fallback...');
                 try {
-                    list = await api.products.getPaginated(1, 24, branchId);
+                    list = await api.products.getPaginated(1, 8, branchId);
                 } catch (fallbackErr) {
                     console.error('Fallback getPaginated failed', fallbackErr);
                     list = [];
@@ -196,7 +196,7 @@ const HomePage = () => {
 
             setProducts(Array.isArray(list) ? list : []);
             console.log('✅ Products loaded:', list?.length || 0, 'products (limited for performance)');
-            
+
             if (!list || list.length === 0) {
                 setError('لا توجد منتجات متاحة حالياً لهذا الفرع');
             }
@@ -301,226 +301,226 @@ const HomePage = () => {
                 ]}
                 structuredData={homeStructuredData}
             />
-            
+
             {/* Popups - الإعلانات المنبثقة */}
             <AnnouncementPopup page="homepage" />
-            
+
             <div className="bg-[#FAFAFA] min-h-screen pb-24 md:pb-8">
-            <TopBar />
+                <TopBar />
 
-            <div className="px-4 py-3 space-y-5 max-w-7xl mx-auto">
-                {/* Stories Section */}
-                <StoriesSection />
+                <div className="px-4 py-3 space-y-5 max-w-7xl mx-auto">
+                    {/* Stories Section */}
+                    <StoriesSection />
 
-                {/* Hero Offers Carousel - Main Banner with Wave */}
-                <div className="mt-8">
-                    <HeroCarousel />
-                </div>
-
-                {/* Featured Brands Carousel */}
-                <BrandsCarousel title={t('home.featuredBrands')} />
-
-                {/* Brand Offers Section */}
-                <BrandOffersSection />
-
-                {/* Desktop Grid for Banners */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {/* Login Banner - Only show if not authenticated */}
-                    {!isAuthenticated && <Banner type="login" />}
-                </div>
-
-                {/* Quick Access - Hot Deals & Magazine */}
-                <div className="grid grid-cols-2 gap-3">
-                    {/* العروض الساخنة */}
-                    <Link to="/deals" className="group">
-                        <div className="bg-gradient-to-br from-[#FF4500] via-[#FF6B35] to-[#FF8C42] rounded-2xl p-4 h-32 relative overflow-hidden hover:shadow-xl hover:shadow-red-200 transition-all active:scale-[0.98]">
-                            {/* Fire Animation Background */}
-                            <div className="absolute inset-0 overflow-hidden">
-                                {/* Animated flames */}
-                                <div className="absolute bottom-0 left-2 w-6 h-10 bg-gradient-to-t from-yellow-400 via-orange-500 to-transparent rounded-t-full opacity-80 animate-pulse" style={{animationDelay: '0s'}} />
-                                <div className="absolute bottom-0 left-6 w-4 h-8 bg-gradient-to-t from-yellow-300 via-red-500 to-transparent rounded-t-full opacity-70 animate-pulse" style={{animationDelay: '0.2s'}} />
-                                <div className="absolute bottom-0 left-9 w-5 h-12 bg-gradient-to-t from-orange-400 via-red-600 to-transparent rounded-t-full opacity-75 animate-pulse" style={{animationDelay: '0.4s'}} />
-                                <div className="absolute bottom-0 right-4 w-5 h-9 bg-gradient-to-t from-yellow-500 via-orange-600 to-transparent rounded-t-full opacity-60 animate-pulse" style={{animationDelay: '0.3s'}} />
-                                <div className="absolute bottom-0 right-10 w-4 h-7 bg-gradient-to-t from-yellow-400 via-red-500 to-transparent rounded-t-full opacity-65 animate-pulse" style={{animationDelay: '0.5s'}} />
-                                {/* Sparkles */}
-                                <div className="absolute top-4 right-6 w-2 h-2 bg-yellow-300 rounded-full animate-ping opacity-75" />
-                                <div className="absolute top-8 right-12 w-1.5 h-1.5 bg-orange-200 rounded-full animate-ping opacity-60" style={{animationDelay: '0.3s'}} />
-                                <div className="absolute top-6 left-8 w-1 h-1 bg-white rounded-full animate-ping opacity-50" style={{animationDelay: '0.6s'}} />
-                            </div>
-                            {/* Content */}
-                            <div className="relative z-10 h-full flex flex-col justify-between">
-                                <div className="flex items-center gap-2">
-                                    <div className="bg-white/20 backdrop-blur-sm rounded-full p-2">
-                                        <Flame className="w-5 h-5 text-white" />
-                                    </div>
-                                    <span className="text-white/90 text-[10px] font-bold bg-red-600 px-2 py-0.5 rounded-full animate-pulse">🔥 HOT</span>
-                                </div>
-                                <div>
-                                    <h3 className="text-white font-black text-lg leading-tight">{t('home.hotDeals')}</h3>
-                                    <p className="text-white/80 text-xs">{t('home.hotDealsDescription')}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </Link>
-                    
-                    {/* مجلة العروض */}
-                    <Link to="/magazine" className="group">
-                        <div className="bg-gradient-to-br from-[#F97316] via-[#FB923C] to-[#FDBA74] rounded-2xl p-4 h-32 relative overflow-hidden hover:shadow-xl hover:shadow-orange-200 transition-all active:scale-[0.98]">
-                            {/* Magazine Design Background */}
-                            <div className="absolute inset-0 overflow-hidden">
-                                {/* Stacked magazines effect */}
-                                <div className="absolute bottom-1 right-2 w-14 h-18 bg-white/20 rounded-lg transform rotate-[-8deg] shadow-lg" />
-                                <div className="absolute bottom-2 right-4 w-14 h-18 bg-white/30 rounded-lg transform rotate-[-4deg] shadow-lg" />
-                                <div className="absolute bottom-3 right-6 w-14 h-18 bg-white/40 rounded-lg transform rotate-[2deg] shadow-lg flex flex-col p-1.5">
-                                    <div className="bg-orange-400/50 h-1.5 w-8 rounded mb-1" />
-                                    <div className="bg-orange-300/40 h-1 w-6 rounded mb-2" />
-                                    <div className="flex-1 bg-gradient-to-br from-orange-200/30 to-orange-400/20 rounded" />
-                                </div>
-                                {/* Decorative elements */}
-                                <div className="absolute top-3 left-3 w-8 h-8 border-2 border-white/20 rounded-lg transform rotate-12" />
-                                <div className="absolute top-6 left-8 w-4 h-4 bg-yellow-300/30 rounded-full" />
-                                {/* Stars/Sparkles */}
-                                <div className="absolute top-4 right-3">
-                                    <span className="text-yellow-200 text-sm">✨</span>
-                                </div>
-                            </div>
-                            {/* Content */}
-                            <div className="relative z-10 h-full flex flex-col justify-between">
-                                <div className="flex items-center gap-2">
-                                    <div className="bg-white/20 backdrop-blur-sm rounded-full p-2">
-                                        <BookOpen className="w-5 h-5 text-white" />
-                                    </div>
-                                    <span className="text-white/90 text-[10px] font-bold bg-orange-600 px-2 py-0.5 rounded-full">📖 جديد</span>
-                                </div>
-                                <div>
-                                    <h3 className="text-white font-black text-lg leading-tight">{t('home.magazine')}</h3>
-                                    <p className="text-white/80 text-xs">{t('home.magazineDescription')}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </Link>
-                </div>
-
-                {/* Dynamic Sections from Database */}
-                {sectionsLoading ? (
-                    <div className="space-y-6">
-                        {[1, 2, 3].map(i => (
-                            <div key={i} className="space-y-4">
-                                <div className="h-6 bg-gray-200 rounded w-32 animate-pulse" />
-                                <div className="h-40 bg-gray-200 rounded-2xl animate-pulse" />
-                                <div className="grid grid-cols-4 gap-3">
-                                    {[1, 2, 3, 4].map(j => (
-                                        <div key={j} className="h-48 bg-gray-200 rounded-xl animate-pulse" />
-                                    ))}
-                                </div>
-                            </div>
-                        ))}
+                    {/* Hero Offers Carousel - Main Banner with Wave */}
+                    <div className="mt-8">
+                        <HeroCarousel />
                     </div>
-                ) : homeSections.length > 0 ? (
-                    homeSections.map((section, sectionIndex) => {
-                        const categoryCandidates = [
-                            section.category,
-                            section.section_name_ar,
-                            section.section_name
-                        ].filter(Boolean) as string[];
-                        const normalizedCandidates = categoryCandidates.map(normalizeCategoryValue);
-                        const matchingCategory = categories.find(cat => {
-                            const normalizedName = normalizeCategoryValue(cat.name || '');
-                            const normalizedNameAr = normalizeCategoryValue(cat.name_ar || '');
-                            return normalizedCandidates.some(candidate =>
-                                candidate === normalizedName || candidate === normalizedNameAr
-                            );
-                        });
-                        const categoryParam = matchingCategory?.name_ar || matchingCategory?.name || section.section_name_ar || section.category;
-                        const categoryLabel = matchingCategory?.name_ar || section.section_name_ar || section.category;
-                        const resolvedCategoryKey = normalizeCategoryValue(categoryParam || section.category || '');
-                        
-                        return (
-                            <section key={section.id} className="relative mt-12">
-                                <div className="rounded-[28px] overflow-hidden shadow-[0_12px_30px_rgba(0,0,0,0.06)] border border-white/60 bg-white/90 backdrop-blur-[2px]">
-                                    {/* Section Banner */}
-                                    {section.banner_image && (
-                                        <div className="relative h-44 md:h-48 overflow-hidden">
-                                            <img 
-                                                src={section.banner_image} 
-                                                alt={section.section_name_ar}
-                                                loading="lazy"
-                                                decoding="async"
-                                                className="w-full h-full object-cover"
-                                            />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-                                            <div className="absolute bottom-4 right-4 md:bottom-6 md:right-6 text-white">
-                                                <h2 className="text-2xl md:text-3xl font-bold drop-shadow-lg">{section.section_name_ar}</h2>
-                                                <p className="text-sm md:text-base text-white/90 mt-1">{section.section_name}</p>
-                                            </div>
-                                        </div>
-                                    )}
-                                    
-                                    <div className="px-3 sm:px-4 md:px-5 pb-5 pt-4 bg-white">
-                                        <div className="flex items-center justify-between mb-4">
-                                            <h2 className="text-xl font-bold text-gray-900">{section.section_name_ar}</h2>
-                                            <Link
-                                                to={`/products?category=${encodeURIComponent(categoryParam)}`}
-                                                className="text-[#FF4500] text-sm font-semibold flex items-center gap-1 hover:gap-2 transition-all"
-                                            >
-                                                عرض المزيد <ChevronRight className="w-4 h-4" />
-                                            </Link>
-                                        </div>
 
-                                        <div className="flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible mt-1">
-                                            {/* عرض المنتجات من الـ API أولاً، ثم fallback للمنتجات المحلية */}
-                                            {section.products && section.products.length > 0 ? (
-                                                section.products.slice(0, section.max_products || 8).map(product => (
-                                                    <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
-                                                        <ProductCard product={product} />
-                                                    </div>
-                                                ))
-                                            ) : (
-                                                // Fallback: البحث في المنتجات المحلية باستخدام مطابقة أكثر مرونة
-                                                products.filter(p => {
-                                                    if (!p.category || !resolvedCategoryKey) return false;
-                                                    const pCat = normalizeCategoryValue(p.category);
-                                                    return pCat === resolvedCategoryKey;
-                                                }).slice(0, section.max_products || 8).length > 0 ? (
-                                                    products.filter(p => {
-                                                        if (!p.category || !resolvedCategoryKey) return false;
-                                                        const pCat = normalizeCategoryValue(p.category);
-                                                        return pCat === resolvedCategoryKey;
-                                                    }).slice(0, section.max_products || 8).map(product => (
+                    {/* Featured Brands Carousel */}
+                    <BrandsCarousel title={t('home.featuredBrands')} />
+
+                    {/* Brand Offers Section */}
+                    <BrandOffersSection />
+
+                    {/* Desktop Grid for Banners */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {/* Login Banner - Only show if not authenticated */}
+                        {!isAuthenticated && <Banner type="login" />}
+                    </div>
+
+                    {/* Quick Access - Hot Deals & Magazine */}
+                    <div className="grid grid-cols-2 gap-3">
+                        {/* العروض الساخنة */}
+                        <Link to="/deals" className="group">
+                            <div className="bg-gradient-to-br from-[#FF4500] via-[#FF6B35] to-[#FF8C42] rounded-2xl p-4 h-32 relative overflow-hidden hover:shadow-xl hover:shadow-red-200 transition-all active:scale-[0.98]">
+                                {/* Fire Animation Background */}
+                                <div className="absolute inset-0 overflow-hidden">
+                                    {/* Animated flames */}
+                                    <div className="absolute bottom-0 left-2 w-6 h-10 bg-gradient-to-t from-yellow-400 via-orange-500 to-transparent rounded-t-full opacity-80 animate-pulse" style={{ animationDelay: '0s' }} />
+                                    <div className="absolute bottom-0 left-6 w-4 h-8 bg-gradient-to-t from-yellow-300 via-red-500 to-transparent rounded-t-full opacity-70 animate-pulse" style={{ animationDelay: '0.2s' }} />
+                                    <div className="absolute bottom-0 left-9 w-5 h-12 bg-gradient-to-t from-orange-400 via-red-600 to-transparent rounded-t-full opacity-75 animate-pulse" style={{ animationDelay: '0.4s' }} />
+                                    <div className="absolute bottom-0 right-4 w-5 h-9 bg-gradient-to-t from-yellow-500 via-orange-600 to-transparent rounded-t-full opacity-60 animate-pulse" style={{ animationDelay: '0.3s' }} />
+                                    <div className="absolute bottom-0 right-10 w-4 h-7 bg-gradient-to-t from-yellow-400 via-red-500 to-transparent rounded-t-full opacity-65 animate-pulse" style={{ animationDelay: '0.5s' }} />
+                                    {/* Sparkles */}
+                                    <div className="absolute top-4 right-6 w-2 h-2 bg-yellow-300 rounded-full animate-ping opacity-75" />
+                                    <div className="absolute top-8 right-12 w-1.5 h-1.5 bg-orange-200 rounded-full animate-ping opacity-60" style={{ animationDelay: '0.3s' }} />
+                                    <div className="absolute top-6 left-8 w-1 h-1 bg-white rounded-full animate-ping opacity-50" style={{ animationDelay: '0.6s' }} />
+                                </div>
+                                {/* Content */}
+                                <div className="relative z-10 h-full flex flex-col justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div className="bg-white/20 backdrop-blur-sm rounded-full p-2">
+                                            <Flame className="w-5 h-5 text-white" />
+                                        </div>
+                                        <span className="text-white/90 text-[10px] font-bold bg-red-600 px-2 py-0.5 rounded-full animate-pulse">🔥 HOT</span>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-white font-black text-lg leading-tight">{t('home.hotDeals')}</h3>
+                                        <p className="text-white/80 text-xs">{t('home.hotDealsDescription')}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </Link>
+
+                        {/* مجلة العروض */}
+                        <Link to="/magazine" className="group">
+                            <div className="bg-gradient-to-br from-[#F97316] via-[#FB923C] to-[#FDBA74] rounded-2xl p-4 h-32 relative overflow-hidden hover:shadow-xl hover:shadow-orange-200 transition-all active:scale-[0.98]">
+                                {/* Magazine Design Background */}
+                                <div className="absolute inset-0 overflow-hidden">
+                                    {/* Stacked magazines effect */}
+                                    <div className="absolute bottom-1 right-2 w-14 h-18 bg-white/20 rounded-lg transform rotate-[-8deg] shadow-lg" />
+                                    <div className="absolute bottom-2 right-4 w-14 h-18 bg-white/30 rounded-lg transform rotate-[-4deg] shadow-lg" />
+                                    <div className="absolute bottom-3 right-6 w-14 h-18 bg-white/40 rounded-lg transform rotate-[2deg] shadow-lg flex flex-col p-1.5">
+                                        <div className="bg-orange-400/50 h-1.5 w-8 rounded mb-1" />
+                                        <div className="bg-orange-300/40 h-1 w-6 rounded mb-2" />
+                                        <div className="flex-1 bg-gradient-to-br from-orange-200/30 to-orange-400/20 rounded" />
+                                    </div>
+                                    {/* Decorative elements */}
+                                    <div className="absolute top-3 left-3 w-8 h-8 border-2 border-white/20 rounded-lg transform rotate-12" />
+                                    <div className="absolute top-6 left-8 w-4 h-4 bg-yellow-300/30 rounded-full" />
+                                    {/* Stars/Sparkles */}
+                                    <div className="absolute top-4 right-3">
+                                        <span className="text-yellow-200 text-sm">✨</span>
+                                    </div>
+                                </div>
+                                {/* Content */}
+                                <div className="relative z-10 h-full flex flex-col justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div className="bg-white/20 backdrop-blur-sm rounded-full p-2">
+                                            <BookOpen className="w-5 h-5 text-white" />
+                                        </div>
+                                        <span className="text-white/90 text-[10px] font-bold bg-orange-600 px-2 py-0.5 rounded-full">📖 جديد</span>
+                                    </div>
+                                    <div>
+                                        <h3 className="text-white font-black text-lg leading-tight">{t('home.magazine')}</h3>
+                                        <p className="text-white/80 text-xs">{t('home.magazineDescription')}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </Link>
+                    </div>
+
+                    {/* Dynamic Sections from Database */}
+                    {sectionsLoading ? (
+                        <div className="space-y-6">
+                            {[1, 2, 3].map(i => (
+                                <div key={i} className="space-y-4">
+                                    <div className="h-6 bg-gray-200 rounded w-32 animate-pulse" />
+                                    <div className="h-40 bg-gray-200 rounded-2xl animate-pulse" />
+                                    <div className="grid grid-cols-4 gap-3">
+                                        {[1, 2, 3, 4].map(j => (
+                                            <div key={j} className="h-48 bg-gray-200 rounded-xl animate-pulse" />
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : homeSections.length > 0 ? (
+                        homeSections.map((section, sectionIndex) => {
+                            const categoryCandidates = [
+                                section.category,
+                                section.section_name_ar,
+                                section.section_name
+                            ].filter(Boolean) as string[];
+                            const normalizedCandidates = categoryCandidates.map(normalizeCategoryValue);
+                            const matchingCategory = categories.find(cat => {
+                                const normalizedName = normalizeCategoryValue(cat.name || '');
+                                const normalizedNameAr = normalizeCategoryValue(cat.name_ar || '');
+                                return normalizedCandidates.some(candidate =>
+                                    candidate === normalizedName || candidate === normalizedNameAr
+                                );
+                            });
+                            const categoryParam = matchingCategory?.name_ar || matchingCategory?.name || section.section_name_ar || section.category;
+                            const categoryLabel = matchingCategory?.name_ar || section.section_name_ar || section.category;
+                            const resolvedCategoryKey = normalizeCategoryValue(categoryParam || section.category || '');
+
+                            return (
+                                <section key={section.id} className="relative mt-12">
+                                    <div className="rounded-[28px] overflow-hidden shadow-[0_12px_30px_rgba(0,0,0,0.06)] border border-white/60 bg-white/90 backdrop-blur-[2px]">
+                                        {/* Section Banner */}
+                                        {section.banner_image && (
+                                            <div className="relative h-44 md:h-48 overflow-hidden">
+                                                <img
+                                                    src={section.banner_image}
+                                                    alt={section.section_name_ar}
+                                                    loading="lazy"
+                                                    decoding="async"
+                                                    className="w-full h-full object-cover"
+                                                />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                                                <div className="absolute bottom-4 right-4 md:bottom-6 md:right-6 text-white">
+                                                    <h2 className="text-2xl md:text-3xl font-bold drop-shadow-lg">{section.section_name_ar}</h2>
+                                                    <p className="text-sm md:text-base text-white/90 mt-1">{section.section_name}</p>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="px-3 sm:px-4 md:px-5 pb-5 pt-4 bg-white">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <h2 className="text-xl font-bold text-gray-900">{section.section_name_ar}</h2>
+                                                <Link
+                                                    to={`/products?category=${encodeURIComponent(categoryParam)}`}
+                                                    className="text-[#FF4500] text-sm font-semibold flex items-center gap-1 hover:gap-2 transition-all"
+                                                >
+                                                    عرض المزيد <ChevronRight className="w-4 h-4" />
+                                                </Link>
+                                            </div>
+
+                                            <div className="flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible mt-1">
+                                                {/* عرض المنتجات من الـ API أولاً، ثم fallback للمنتجات المحلية */}
+                                                {section.products && section.products.length > 0 ? (
+                                                    section.products.slice(0, section.max_products || 8).map(product => (
                                                         <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
                                                             <ProductCard product={product} />
                                                         </div>
                                                     ))
                                                 ) : (
-                                                    <div className="col-span-full text-center py-8">
-                                                        <p className="text-gray-500 text-sm">
-                                                            لا توجد منتجات متاحة في فئة "{categoryLabel}" حالياً
-                                                        </p>
-                                                    </div>
-                                                )
-                                            )}
+                                                    // Fallback: البحث في المنتجات المحلية باستخدام مطابقة أكثر مرونة
+                                                    products.filter(p => {
+                                                        if (!p.category || !resolvedCategoryKey) return false;
+                                                        const pCat = normalizeCategoryValue(p.category);
+                                                        return pCat === resolvedCategoryKey;
+                                                    }).slice(0, section.max_products || 8).length > 0 ? (
+                                                        products.filter(p => {
+                                                            if (!p.category || !resolvedCategoryKey) return false;
+                                                            const pCat = normalizeCategoryValue(p.category);
+                                                            return pCat === resolvedCategoryKey;
+                                                        }).slice(0, section.max_products || 8).map(product => (
+                                                            <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
+                                                                <ProductCard product={product} />
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        <div className="col-span-full text-center py-8">
+                                                            <p className="text-gray-500 text-sm">
+                                                                لا توجد منتجات متاحة في فئة "{categoryLabel}" حالياً
+                                                            </p>
+                                                        </div>
+                                                    )
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </section>
-                        );
-                    })
-                ) : (
-                    <div className="text-center py-12">
-                        <p className="text-gray-500">لا توجد أقسام متاحة حالياً</p>
-                    </div>
-                )}
+                                </section>
+                            );
+                        })
+                    ) : (
+                        <div className="text-center py-12">
+                            <p className="text-gray-500">لا توجد أقسام متاحة حالياً</p>
+                        </div>
+                    )}
 
-                {sectionsHasMore && (
-                    <div className="flex items-center justify-center py-4 text-sm text-gray-500" ref={loadMoreRef}>
-                        {sectionsLoadingMore ? 'جاري تحميل المزيد...' : 'تحميل المزيد عند النزول'}
-                    </div>
-                )}
+                    {sectionsHasMore && (
+                        <div className="flex items-center justify-center py-4 text-sm text-gray-500" ref={loadMoreRef}>
+                            {sectionsLoadingMore ? 'جاري تحميل المزيد...' : 'تحميل المزيد عند النزول'}
+                        </div>
+                    )}
 
-                {/* Facebook Reels Section */}
-                <FacebookReelsGrid pageUsername="Alloshchocolates" pageName="Allosh Chocolates" />
+                    {/* Facebook Reels Section */}
+                    <FacebookReelsGrid pageUsername="Alloshchocolates" pageName="Allosh Chocolates" />
+                </div>
             </div>
-        </div>
         </>
     );
 };

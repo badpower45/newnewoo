@@ -143,6 +143,8 @@ const BrandsPage: React.FC = () => {
                                             <img
                                                 src={brand.logo_url || brand.banner_url || 'https://images.unsplash.com/photo-1606312619070-d48b4c652a52?w=400'}
                                                 alt={brand.name_ar}
+                                                loading="lazy"
+                                                decoding="async"
                                                 className="w-full h-full object-contain"
                                             />
                                         ) : (
