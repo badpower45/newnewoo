@@ -1,6 +1,7 @@
 import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
+import { compression } from 'vite-plugin-compression2';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
@@ -18,7 +19,21 @@ export default defineConfig(({ mode }) => {
         }
       }
     },
-    plugins: [react()],
+    plugins: [
+      react(),
+      // Gzip compression
+      compression({
+        algorithm: 'gzip',
+        exclude: [/\.(br)$/, /\.(gz)$/],
+        threshold: 1024, // Only compress files > 1KB
+      }),
+      // Brotli compression (better than gzip)
+      compression({
+        algorithm: 'brotliCompress',
+        exclude: [/\.(br)$/, /\.(gz)$/],
+        threshold: 1024,
+      }),
+    ],
     define: {
       'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
@@ -31,26 +46,84 @@ export default defineConfig(({ mode }) => {
     build: {
       rollupOptions: {
         output: {
-          manualChunks: {
-            // React core
-            'react-vendor': ['react', 'react-dom'],
+          manualChunks: (id) => {
+            // React core - smallest chunk
+            if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+              return 'react-vendor';
+            }
+            
             // Routing
-            'router': ['react-router-dom'],
+            if (id.includes('node_modules/react-router-dom')) {
+              return 'router';
+            }
+            
             // Real-time communication
-            'socket': ['socket.io-client'],
-            // UI libraries
-            'ui-libs': ['lucide-react', 'framer-motion'],
-          }
+            if (id.includes('node_modules/socket.io-client')) {
+              return 'socket';
+            }
+            
+            // Data fetching
+            if (id.includes('node_modules/@tanstack/react-query') || id.includes('node_modules/axios')) {
+              return 'data-fetching';
+            }
+            
+            // Supabase
+            if (id.includes('node_modules/@supabase')) {
+              return 'supabase';
+            }
+            
+            // UI/Animation libraries
+            if (id.includes('node_modules/lucide-react') || 
+                id.includes('node_modules/framer-motion') ||
+                id.includes('node_modules/lottie-react')) {
+              return 'ui-libs';
+            }
+            
+            // Utilities (barcode, excel, etc)
+            if (id.includes('node_modules/html5-qrcode') || 
+                id.includes('node_modules/xlsx')) {
+              return 'utilities';
+            }
+            
+            // Other node_modules
+            if (id.includes('node_modules')) {
+              return 'vendor';
+            }
+          },
+          // Optimize chunk names
+          chunkFileNames: 'assets/[name]-[hash].js',
+          entryFileNames: 'assets/[name]-[hash].js',
+          assetFileNames: 'assets/[name]-[hash].[ext]',
         }
       },
-      chunkSizeWarningLimit: 1000,
+      chunkSizeWarningLimit: 500, // Lower threshold to warn about large chunks
       sourcemap: false,
-      // Minification options - using esbuild (faster, built-in)
-      minify: 'esbuild',
+      // Use terser for better minification (smaller size)
+      minify: 'terser',
+      terserOptions: {
+        compress: {
+          drop_console: true, // Remove console.logs in production
+          drop_debugger: true,
+          pure_funcs: ['console.log', 'console.info', 'console.debug'],
+          passes: 2, // Multiple passes for better compression
+        },
+        mangle: {
+          safari10: true,
+        },
+        format: {
+          comments: false, // Remove all comments
+        },
+      },
       // CSS code splitting
       cssCodeSplit: true,
-      // Asset inlining threshold (4KB)
-      assetsInlineLimit: 4096,
+      // Don't inline any assets (better caching)
+      assetsInlineLimit: 0,
+      // Target modern browsers
+      target: 'es2020',
+      // Module preload optimization
+      modulePreload: {
+        polyfill: false, // Don't polyfill if targeting modern browsers
+      },
     },
     optimizeDeps: {
       exclude: ['lucide-react']

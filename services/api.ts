@@ -2052,6 +2052,13 @@ export const api = {
             if (!res.ok) throw new Error('Failed to fetch brands');
             return res.json();
         },
+        getFeatured: async () => {
+            const res = await fetch(`${API_URL}/brands/featured`, {
+                headers: getHeaders()
+            });
+            if (!res.ok) throw new Error('Failed to fetch featured brands');
+            return res.json();
+        },
         getAdminList: async (options?: { page?: number; limit?: number }) => {
             const pageValue = options?.page ?? 1;
             const limitValue = options?.limit ?? 50;

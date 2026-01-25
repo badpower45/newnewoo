@@ -25,10 +25,10 @@ const BrandsCarousel: React.FC<BrandsCarouselProps> = ({ title = "Featured Brand
     useEffect(() => {
         const loadBrands = async () => {
             try {
-                const response = await api.brands.getAll();
+                const response = await api.brands.getFeatured();
                 const list = (response as any)?.data || response || [];
-                const featured = list.filter((b: Brand) => b.is_featured !== false).slice(0, 6);
-                setBrands(featured);
+                const featured = list.slice(0, 6);
+                setBrands(featured as Brand[]);
             } catch (error) {
                 console.error('Failed to load brands', error);
                 setBrands([]);

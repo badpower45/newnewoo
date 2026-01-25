@@ -51,6 +51,7 @@ const HomePage = () => {
     const [sectionsHasMore, setSectionsHasMore] = useState(true);
     const [sectionsLoadingMore, setSectionsLoadingMore] = useState(false);
     const [needsFallbackProducts, setNeedsFallbackProducts] = useState(true);
+    const [fallbackRequested, setFallbackRequested] = useState(false);
     const [branchMap, setBranchMap] = useState<Record<string | number, { price?: number; stockQuantity?: number; reservedQuantity?: number }>>({});
     const [loading, setLoading] = useState(true);
     const [categoriesLoading, setCategoriesLoading] = useState(true);
@@ -225,6 +226,7 @@ const HomePage = () => {
         setHomeSections([]);
         setSectionsPage(1);
         setSectionsHasMore(true);
+        setFallbackRequested(false);
         fetchHomeSections(1, false);
     }, [selectedBranch, fetchHomeSections]);
 
@@ -238,20 +240,27 @@ const HomePage = () => {
             setLoading(false);
             return;
         }
+        if (!fallbackRequested && homeSections.length > 0) {
+            setNeedsFallbackProducts(true);
+            setFallbackRequested(true);
+            fetchProducts();
+            return;
+        }
         if (!sectionsHasMore) {
             setNeedsFallbackProducts(true);
         }
-    }, [sectionsLoaded, homeSections, sectionsHasMore]);
+    }, [sectionsLoaded, homeSections, sectionsHasMore, fallbackRequested]);
 
     useEffect(() => {
         if (!sectionsLoaded) return;
-        if (needsFallbackProducts && !sectionsHasMore) {
+        if (needsFallbackProducts && !sectionsHasMore && !fallbackRequested) {
+            setFallbackRequested(true);
             fetchProducts();
         } else if (!needsFallbackProducts) {
             setProducts([]);
             setLoading(false);
         }
-    }, [sectionsLoaded, needsFallbackProducts, sectionsHasMore, selectedBranch?.id]);
+    }, [sectionsLoaded, needsFallbackProducts, sectionsHasMore, selectedBranch?.id, fallbackRequested]);
 
     useEffect(() => {
         if (!loadMoreRef.current) return;

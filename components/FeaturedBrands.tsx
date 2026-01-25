@@ -30,15 +30,10 @@ const FeaturedBrands: React.FC<FeaturedBrandsProps> = ({ maxBrands = 6 }) => {
 
     const fetchFeaturedBrands = async () => {
         try {
-            const response = await api.brands.getAll();
+            const response = await api.brands.getFeatured();
             const allBrands = (response as any)?.data || response || [];
-            
-            // Filter only featured brands
-            const featured = allBrands
-                .filter((b: Brand) => b.is_featured)
-                .slice(0, maxBrands);
-            
-            setBrands(featured);
+            const featured = allBrands.slice(0, maxBrands);
+            setBrands(featured as Brand[]);
         } catch (error) {
             console.error('Error fetching featured brands:', error);
         } finally {
