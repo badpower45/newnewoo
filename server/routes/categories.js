@@ -38,14 +38,31 @@ router.get('/admin/all', async (req, res) => {
 // Get category by name (for products page) - MUST BE BEFORE /:id
 router.get('/name/:name', async (req, res) => {
     try {
+        res.set('Cache-Control', 'public, max-age=300, s-maxage=3600, stale-while-revalidate=300');
         const { name } = req.params;
+        const shouldCache = !req.headers.authorization;
+        const cacheKey = shouldCache ? `categories:by-name:${req.originalUrl}` : null;
+        if (cacheKey) {
+            const cached = responseCache.get(cacheKey);
+            if (cached) {
+                return res.json(cached);
+            }
+        }
         const result = await pool.query('SELECT * FROM categories WHERE name = $1 OR name_ar = $1', [name]);
         
         if (result.rows.length === 0) {
-            return res.json({ success: true, data: { name, name_ar: name, image: null, bg_color: 'bg-orange-50' } });
+            const payload = { success: true, data: { name, name_ar: name, image: null, bg_color: 'bg-orange-50' } };
+            if (cacheKey) {
+                responseCache.set(cacheKey, payload, CacheTTL.LONG);
+            }
+            return res.json(payload);
         }
         
-        res.json({ success: true, data: result.rows[0] });
+        const payload = { success: true, data: result.rows[0] };
+        if (cacheKey) {
+            responseCache.set(cacheKey, payload, CacheTTL.LONG);
+        }
+        res.json(payload);
     } catch (error) {
         console.error('Error fetching category:', error);
         res.status(500).json({ success: false, error: 'Failed to fetch category' });
@@ -121,6 +138,15 @@ router.post('/dev/seed', async (req, res) => {
 // Get all categories with images
 router.get('/', async (req, res) => {
     try {
+        res.set('Cache-Control', 'public, max-age=300, s-maxage=3600, stale-while-revalidate=300');
+        const shouldCache = !req.headers.authorization;
+        const cacheKey = shouldCache ? `categories:list:${req.originalUrl}` : null;
+        if (cacheKey) {
+            const cached = responseCache.get(cacheKey);
+            if (cached) {
+                return res.json(cached);
+            }
+        }
         const result = await pool.query(`
             SELECT 
                 c.*,
@@ -137,7 +163,11 @@ router.get('/', async (req, res) => {
             ORDER BY c.display_order ASC, c.name ASC
         `);
         
-        res.json({ success: true, data: result.rows });
+        const payload = { success: true, data: result.rows };
+        if (cacheKey) {
+            responseCache.set(cacheKey, payload, CacheTTL.LONG);
+        }
+        res.json(payload);
     } catch (error) {
         console.error('Error fetching categories:', error);
         // Return empty array instead of fallback from products
@@ -149,13 +179,26 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
+        res.set('Cache-Control', 'public, max-age=300, s-maxage=3600, stale-while-revalidate=300');
+        const shouldCache = !req.headers.authorization;
+        const cacheKey = shouldCache ? `categories:by-id:${req.originalUrl}` : null;
+        if (cacheKey) {
+            const cached = responseCache.get(cacheKey);
+            if (cached) {
+                return res.json(cached);
+            }
+        }
         const result = await pool.query('SELECT * FROM categories WHERE id = $1', [id]);
         
         if (result.rows.length === 0) {
             return res.status(404).json({ success: false, error: 'Category not found' });
         }
         
-        res.json({ success: true, data: result.rows[0] });
+        const payload = { success: true, data: result.rows[0] };
+        if (cacheKey) {
+            responseCache.set(cacheKey, payload, CacheTTL.LONG);
+        }
+        res.json(payload);
     } catch (error) {
         console.error('Error fetching category:', error);
         res.status(500).json({ success: false, error: 'Failed to fetch category' });
@@ -356,13 +399,26 @@ router.post('/reorder', async (req, res) => {
 router.get('/:id/subcategories', async (req, res) => {
     try {
         const { id } = req.params;
+        res.set('Cache-Control', 'public, max-age=300, s-maxage=3600, stale-while-revalidate=300');
+        const shouldCache = !req.headers.authorization;
+        const cacheKey = shouldCache ? `categories:subcategories:${req.originalUrl}` : null;
+        if (cacheKey) {
+            const cached = responseCache.get(cacheKey);
+            if (cached) {
+                return res.json(cached);
+            }
+        }
         const result = await pool.query(`
             SELECT * FROM categories 
             WHERE parent_id = $1 AND is_active = true
             ORDER BY display_order ASC, name ASC
         `, [id]);
-        
-        res.json({ success: true, data: result.rows });
+
+        const payload = { success: true, data: result.rows };
+        if (cacheKey) {
+            responseCache.set(cacheKey, payload, CacheTTL.LONG);
+        }
+        res.json(payload);
     } catch (error) {
         console.error('Error fetching subcategories:', error);
         res.status(500).json({ success: false, error: 'Failed to fetch subcategories' });

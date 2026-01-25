@@ -1,6 +1,7 @@
 import express from 'express';
 import { query } from '../database.js';
 import { verifyToken, isAdmin } from '../middleware/auth.js';
+import { responseCache, CacheTTL } from '../services/responseCache.js';
 
 const router = express.Router();
 
@@ -8,6 +9,14 @@ const router = express.Router();
 router.get('/', async (req, res) => {
     try {
         res.set('Cache-Control', 'public, max-age=60, s-maxage=120, stale-while-revalidate=600');
+        const shouldCache = !req.headers.authorization;
+        const cacheKey = shouldCache ? `magazine:list:${req.originalUrl}` : null;
+        if (cacheKey) {
+            const cached = responseCache.get(cacheKey);
+            if (cached) {
+                return res.json(cached);
+            }
+        }
         const { category, brandId } = req.query;
         
         let sql = `
@@ -53,10 +62,16 @@ router.get('/', async (req, res) => {
         
         const { rows } = await query(sql, params);
         
-        res.json({
+        const payload = {
             success: true,
             data: rows
-        });
+        };
+
+        if (cacheKey) {
+            responseCache.set(cacheKey, payload, CacheTTL.MEDIUM);
+        }
+
+        res.json(payload);
     } catch (err) {
         console.error('Error fetching magazine offers:', err);
         res.status(500).json({ error: err.message });
@@ -66,6 +81,14 @@ router.get('/', async (req, res) => {
 // Get magazine categories
 router.get('/categories', async (req, res) => {
     try {
+        const shouldCache = !req.headers.authorization;
+        const cacheKey = shouldCache ? `magazine:categories:${req.originalUrl}` : null;
+        if (cacheKey) {
+            const cached = responseCache.get(cacheKey);
+            if (cached) {
+                return res.json(cached);
+            }
+        }
         const { rows } = await query(`
             SELECT DISTINCT category FROM magazine_offers 
             WHERE is_active = true
@@ -74,10 +97,16 @@ router.get('/categories', async (req, res) => {
         
         const categories = ['جميع العروض', ...rows.map(r => r.category).filter(c => c !== 'جميع العروض')];
         
-        res.json({
+        const payload = {
             success: true,
             data: categories
-        });
+        };
+
+        if (cacheKey) {
+            responseCache.set(cacheKey, payload, CacheTTL.LONG);
+        }
+
+        res.json(payload);
     } catch (err) {
         console.error('Error fetching categories:', err);
         res.status(500).json({ error: err.message });

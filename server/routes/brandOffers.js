@@ -1,6 +1,7 @@
 import express from 'express';
 import { query } from '../database.js';
 import { verifyToken, isAdmin } from '../middleware/auth.js';
+import { responseCache, CacheTTL } from '../services/responseCache.js';
 
 const router = express.Router();
 
@@ -8,6 +9,14 @@ const router = express.Router();
 router.get('/', async (req, res) => {
     try {
         res.set('Cache-Control', 'public, max-age=60, s-maxage=120, stale-while-revalidate=600');
+        const shouldCache = !req.headers.authorization;
+        const cacheKey = shouldCache ? `brand-offers:list:${req.originalUrl}` : null;
+        if (cacheKey) {
+            const cached = responseCache.get(cacheKey);
+            if (cached) {
+                return res.json(cached);
+            }
+        }
         const { rows } = await query(`
             SELECT 
                 id,
@@ -38,7 +47,11 @@ router.get('/', async (req, res) => {
             AND (expires_at IS NULL OR expires_at >= NOW())
             ORDER BY display_order ASC
         `);
-        res.json({ data: rows, message: 'success' });
+        const payload = { data: rows, message: 'success' };
+        if (cacheKey) {
+            responseCache.set(cacheKey, payload, CacheTTL.MEDIUM);
+        }
+        res.json(payload);
     } catch (err) {
         console.error('Error fetching brand offers:', err);
         res.status(500).json({ error: err.message });
@@ -116,13 +129,25 @@ router.get('/admin/list', [verifyToken, isAdmin], async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
+        const shouldCache = !req.headers.authorization;
+        const cacheKey = shouldCache ? `brand-offers:by-id:${req.originalUrl}` : null;
+        if (cacheKey) {
+            const cached = responseCache.get(cacheKey);
+            if (cached) {
+                return res.json(cached);
+            }
+        }
         const { rows } = await query('SELECT * FROM brand_offers WHERE id = $1', [id]);
         
         if (rows.length === 0) {
             return res.status(404).json({ error: 'Brand offer not found' });
         }
         
-        res.json({ data: rows[0], message: 'success' });
+        const payload = { data: rows[0], message: 'success' };
+        if (cacheKey) {
+            responseCache.set(cacheKey, payload, CacheTTL.MEDIUM);
+        }
+        res.json(payload);
     } catch (err) {
         console.error('Error fetching brand offer:', err);
         res.status(500).json({ error: err.message });

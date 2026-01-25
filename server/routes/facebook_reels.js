@@ -1,5 +1,6 @@
 import express from 'express';
 import pool from '../database.js';
+import { responseCache, CacheTTL } from '../services/responseCache.js';
 
 const router = express.Router();
 
@@ -7,6 +8,14 @@ const router = express.Router();
 router.get('/', async (req, res) => {
     try {
         res.set('Cache-Control', 'public, max-age=60, s-maxage=180, stale-while-revalidate=600');
+        const shouldCache = !req.headers.authorization;
+        const cacheKey = shouldCache ? `facebook-reels:list:${req.originalUrl}` : null;
+        if (cacheKey) {
+            const cached = responseCache.get(cacheKey);
+            if (cached) {
+                return res.json(cached);
+            }
+        }
         const result = await pool.query(`
             SELECT 
                 id,
@@ -22,7 +31,11 @@ router.get('/', async (req, res) => {
             WHERE is_active = true 
             ORDER BY display_order ASC, created_at DESC
         `);
-        res.json({ success: true, data: result.rows });
+        const payload = { success: true, data: result.rows };
+        if (cacheKey) {
+            responseCache.set(cacheKey, payload, CacheTTL.MEDIUM);
+        }
+        res.json(payload);
     } catch (error) {
         console.error('Error fetching facebook reels:', error);
         res.status(500).json({ success: false, error: 'Failed to fetch reels' });
@@ -47,13 +60,25 @@ router.get('/admin/all', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
+        const shouldCache = !req.headers.authorization;
+        const cacheKey = shouldCache ? `facebook-reels:by-id:${req.originalUrl}` : null;
+        if (cacheKey) {
+            const cached = responseCache.get(cacheKey);
+            if (cached) {
+                return res.json(cached);
+            }
+        }
         const result = await pool.query('SELECT * FROM facebook_reels WHERE id = $1', [id]);
         
         if (result.rows.length === 0) {
             return res.status(404).json({ success: false, error: 'Reel not found' });
         }
         
-        res.json({ success: true, data: result.rows[0] });
+        const payload = { success: true, data: result.rows[0] };
+        if (cacheKey) {
+            responseCache.set(cacheKey, payload, CacheTTL.MEDIUM);
+        }
+        res.json(payload);
     } catch (error) {
         console.error('Error fetching reel:', error);
         res.status(500).json({ success: false, error: 'Failed to fetch reel' });

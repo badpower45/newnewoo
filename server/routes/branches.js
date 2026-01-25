@@ -1,6 +1,7 @@
 import express from 'express';
 import { query } from '../database.js';
 import { verifyToken, isAdmin } from '../middleware/auth.js';
+import { responseCache, CacheTTL } from '../services/responseCache.js';
 
 const router = express.Router();
 
@@ -37,6 +38,15 @@ router.get('/', async (req, res) => {
     const { active } = req.query;
 
     try {
+        res.set('Cache-Control', 'public, max-age=300, s-maxage=3600, stale-while-revalidate=300');
+        const shouldCache = !req.headers.authorization;
+        const cacheKey = shouldCache ? `branches:list:${req.originalUrl}` : null;
+        if (cacheKey) {
+            const cached = responseCache.get(cacheKey);
+            if (cached) {
+                return res.json(cached);
+            }
+        }
         let sql = 'SELECT * FROM branches';
         const params = [];
 
@@ -47,7 +57,11 @@ router.get('/', async (req, res) => {
         sql += ' ORDER BY name';
 
         const { rows } = await query(sql, params);
-        res.json({ message: 'success', data: rows });
+        const payload = { message: 'success', data: rows };
+        if (cacheKey) {
+            responseCache.set(cacheKey, payload, CacheTTL.LONG);
+        }
+        res.json(payload);
     } catch (err) {
         console.error("Error fetching branches:", err);
         res.status(500).json({ error: err.message });
@@ -57,6 +71,7 @@ router.get('/', async (req, res) => {
 // Get single branch
 router.get('/:id', async (req, res) => {
     try {
+        res.set('Cache-Control', 'public, max-age=300, s-maxage=3600, stale-while-revalidate=300');
         const { rows } = await query("SELECT * FROM branches WHERE id = $1", [req.params.id]);
         
         if (rows.length === 0) {

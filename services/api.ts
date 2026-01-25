@@ -52,21 +52,26 @@ const mapProduct = (p: any) => {
 };
 
 // Enhanced getHeaders with better token handling
-const getHeaders = () => {
+const getHeaders = (options: { auth?: boolean } = {}) => {
+    const { auth = true } = options;
     const token = localStorage.getItem('token');
     const headers: Record<string, string> = {
         'Content-Type': 'application/json'
     };
 
-    if (token && token !== 'null' && token !== 'undefined') {
-        headers['Authorization'] = `Bearer ${token}`;
-        console.log('📤 Sending request with token:', token.substring(0, 20) + '...');
-    } else {
-        console.warn('⚠️ No valid token found in localStorage');
+    if (auth) {
+        if (token && token !== 'null' && token !== 'undefined') {
+            headers['Authorization'] = `Bearer ${token}`;
+            console.log('📤 Sending request with token:', token.substring(0, 20) + '...');
+        } else {
+            console.warn('⚠️ No valid token found in localStorage');
+        }
     }
 
     return headers;
 };
+
+const getPublicHeaders = () => getHeaders({ auth: false });
 
 export const api = {
     API_URL, // Export API_URL for direct use
@@ -217,7 +222,7 @@ export const api = {
         // ⚠️ DEPRECATED: يستهلك Egress كبير - استخدم getByCategory أو getPaginated
         getAll: async () => {
             console.warn('⚠️ getAll() is deprecated - use getPaginated() to reduce egress!');
-            const res = await fetch(`${API_URL}/products`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/products`, { headers: getPublicHeaders() });
             const json = await res.json();
             const normalize = (p: any) => ({ ...mapProduct(p), price: Number(mapProduct(p)?.price) || 0 });
             const data = Array.isArray(json) ? json : (json.data || []);
@@ -292,7 +297,7 @@ export const api = {
             if (options?.search) {
                 url += `&search=${encodeURIComponent(options.search)}`;
             }
-            const res = await fetch(url, { headers: getHeaders() });
+            const res = await fetch(url, { headers: getPublicHeaders() });
             const json = await res.json();
             const normalize = (p: any) => ({ ...mapProduct(p), price: Number(mapProduct(p)?.price) || 0 });
             const data = Array.isArray(json) ? json : (json.data || []);
@@ -303,7 +308,7 @@ export const api = {
             let url = `${API_URL}/products?category=${encodeURIComponent(category)}&limit=${limit}`;
             if (branchId) url += `&branchId=${branchId}`;
 
-            const res = await fetch(url, { headers: getHeaders() });
+            const res = await fetch(url, { headers: getPublicHeaders() });
             const json = await res.json();
             const normalize = (p: any) => ({ ...mapProduct(p), price: Number(mapProduct(p)?.price) || 0 });
             const data = Array.isArray(json) ? json : (json.data || []);
@@ -324,11 +329,11 @@ export const api = {
             if (options?.includeMagazine) {
                 url += '&includeMagazine=true';
             }
-            const res = await fetch(url, { headers: getHeaders() });
+            const res = await fetch(url, { headers: getPublicHeaders() });
             if (!res.ok && res.status === 404) {
                 // backend missing branch filter; fallback to all products
                 let fallbackUrl = `${API_URL}/products?page=${pageValue}&limit=${limitValue}`;
-                const all = await fetch(fallbackUrl, { headers: getHeaders() });
+                const all = await fetch(fallbackUrl, { headers: getPublicHeaders() });
                 const jsonAll = await all.json();
                 const normalize = (p: any) => ({ ...mapProduct(p), price: Number(mapProduct(p)?.price) || 0 });
                 const data = Array.isArray(jsonAll) ? jsonAll : (jsonAll.data || []);
@@ -354,7 +359,7 @@ export const api = {
             const url = branchId
                 ? `${API_URL}/products/${id}?branchId=${branchId}`
                 : `${API_URL}/products/${id}`;
-            const res = await fetch(url, { headers: getHeaders() });
+            const res = await fetch(url, { headers: getPublicHeaders() });
             const json = await res.json();
             // Backend returns product directly, not wrapped
             const product = json.data || json;
@@ -373,7 +378,7 @@ export const api = {
                 url += `&branchId=${branchId}`;
             }
             url += `&limit=${limitValue}&page=${pageValue}`;
-            const res = await fetch(url, { headers: getHeaders() });
+            const res = await fetch(url, { headers: getPublicHeaders() });
             const json = await res.json();
             const normalize = (p: any) => ({ ...mapProduct(p), price: Number(mapProduct(p)?.price) || 0 });
             // Backend returns array directly
@@ -387,13 +392,13 @@ export const api = {
         },
         search: async (query: string) => {
             const branchId = localStorage.getItem('selectedBranchId') || '1';
-            const res = await fetch(`${API_URL}/products/search?q=${encodeURIComponent(query)}&branchId=${branchId}`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/products/search?q=${encodeURIComponent(query)}&branchId=${branchId}`, { headers: getPublicHeaders() });
             return res.json();
         },
         // ✅ NEW: جلب العروض الخاصة فقط (توفير Egress كبير)
         getSpecialOffers: async (branchId?: number) => {
             const branch = branchId || localStorage.getItem('selectedBranchId') || '1';
-            const res = await fetch(`${API_URL}/products/special-offers?branchId=${branch}`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/products/special-offers?branchId=${branch}`, { headers: getPublicHeaders() });
             const json = await res.json();
             const normalize = (p: any) => ({ ...mapProduct(p), price: Number(mapProduct(p)?.price) || 0 });
             const data = Array.isArray(json) ? json : (json.data || []);
@@ -445,7 +450,7 @@ export const api = {
             const url = branchId
                 ? `${API_URL}/products/barcode/${barcode}?branchId=${branchId}`
                 : `${API_URL}/products/barcode/${barcode}`;
-            const res = await fetch(url, { headers: getHeaders() });
+            const res = await fetch(url, { headers: getPublicHeaders() });
             return res.json();
         },
         // Frame management APIs
@@ -473,7 +478,7 @@ export const api = {
             return res.json();
         },
         getFrames: async () => {
-            const res = await fetch(`${API_URL}/products/frames`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/products/frames`, { headers: getPublicHeaders() });
             if (!res.ok) {
                 throw new Error('فشل تحميل الإطارات');
             }
@@ -512,8 +517,7 @@ export const api = {
         // Public fetch for homepage
         getAll: async (options?: { all?: boolean }) => {
             const qs = options?.all ? '?all=true' : '';
-            const token = localStorage.getItem('token');
-            const headers: Record<string, string> = token ? { 'Authorization': `Bearer ${token}` } : {};
+            const headers = options?.all ? getHeaders() : getPublicHeaders();
             const res = await fetch(`${API_URL}/hero-sections${qs}`, { headers });
             const text = await res.text();
             try {
@@ -533,7 +537,7 @@ export const api = {
     },
     popups: {
         getAll: async () => {
-            const res = await fetch(`${API_URL}/popups`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/popups`, { headers: getPublicHeaders() });
             return res.json();
         },
         create: async (data: any) => {
@@ -807,7 +811,7 @@ export const api = {
     },
     branches: {
         getAll: async () => {
-            const res = await fetch(`${API_URL}/branches`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/branches`, { headers: getPublicHeaders() });
             if (!res.ok) {
                 throw new Error('Failed to fetch branches');
             }
@@ -816,12 +820,12 @@ export const api = {
             return json.data || json;
         },
         getOne: async (id: number) => {
-            const res = await fetch(`${API_URL}/branches/${id}`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/branches/${id}`, { headers: getPublicHeaders() });
             return res.json();
         },
         getNearby: async (lat: number, lng: number, radius: number = 10) => {
             const res = await fetch(`${API_URL}/branches/nearby?lat=${lat}&lng=${lng}&radius=${radius}`, {
-                headers: getHeaders()
+                headers: getPublicHeaders()
             });
             return res.json();
         },
@@ -1317,7 +1321,7 @@ export const api = {
             if (params.length) {
                 url += `?${params.join('&')}`;
             }
-            const res = await fetch(url, { headers: getHeaders() });
+            const res = await fetch(url, { headers: getPublicHeaders() });
             return res.json();
         },
         // Admin: جلب قائمة خفيفة (بدون الصور)
@@ -1335,7 +1339,7 @@ export const api = {
 
         // جلب الفئات
         getCategories: async () => {
-            const res = await fetch(`${API_URL}/magazine/categories`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/magazine/categories`, { headers: getPublicHeaders() });
             return res.json();
         },
 
@@ -1372,11 +1376,11 @@ export const api = {
     // Magazine Pages API
     magazinePages: {
         getAll: async () => {
-            const res = await fetch(`${API_URL}/magazine/pages`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/magazine/pages`, { headers: getPublicHeaders() });
             return res.json();
         },
         getOne: async (id: number) => {
-            const res = await fetch(`${API_URL}/magazine/pages/${id}`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/magazine/pages/${id}`, { headers: getPublicHeaders() });
             return res.json();
         }
     },
@@ -1387,7 +1391,7 @@ export const api = {
         getAll: async (brandId?: number) => {
             let url = `${API_URL}/hot-deals`;
             if (brandId) url += `?brandId=${brandId}`;
-            const res = await fetch(url, { headers: getHeaders() });
+            const res = await fetch(url, { headers: getPublicHeaders() });
             return res.json();
         },
         // Admin: جلب قائمة خفيفة (بدون الصور)
@@ -1405,7 +1409,7 @@ export const api = {
 
         // جلب العرض السريع (Flash Deal)
         getFlashDeal: async () => {
-            const res = await fetch(`${API_URL}/hot-deals/flash`, { headers: getHeaders() });
+            const res = await fetch(`${API_URL}/hot-deals/flash`, { headers: getPublicHeaders() });
             return res.json();
         },
 
@@ -1502,7 +1506,7 @@ export const api = {
         getAll: async () => {
             console.log('📡 Calling API: GET /categories');
             const res = await fetch(`${API_URL}/categories`, {
-                headers: getHeaders()
+                headers: getPublicHeaders()
             });
             console.log('📡 Response status:', res.status);
             if (!res.ok) {
@@ -1517,7 +1521,7 @@ export const api = {
         // Get single category
         getOne: async (id: number) => {
             const res = await fetch(`${API_URL}/categories/${id}`, {
-                headers: getHeaders()
+                headers: getPublicHeaders()
             });
             return res.json();
         },
@@ -1525,7 +1529,7 @@ export const api = {
         // Get category by name
         getByName: async (name: string) => {
             const res = await fetch(`${API_URL}/categories/name/${encodeURIComponent(name)}`, {
-                headers: getHeaders()
+                headers: getPublicHeaders()
             });
             return res.json();
         },
@@ -1611,7 +1615,7 @@ export const api = {
         // Get subcategories
         getSubcategories: async (parentId: number) => {
             const res = await fetch(`${API_URL}/categories/${parentId}/subcategories`, {
-                headers: getHeaders()
+                headers: getPublicHeaders()
             });
             return res.json();
         }
@@ -1621,7 +1625,7 @@ export const api = {
     stories: {
         getAll: async () => {
             const res = await fetch(`${API_URL}/stories`, {
-                headers: getHeaders()
+                headers: getPublicHeaders()
             });
             return res.json();
         },
@@ -1643,7 +1647,7 @@ export const api = {
 
         getById: async (id: number) => {
             const res = await fetch(`${API_URL}/stories/${id}`, {
-                headers: getHeaders()
+                headers: getPublicHeaders()
             });
             return res.json();
         },
@@ -1711,7 +1715,7 @@ export const api = {
     facebookReels: {
         getAll: async () => {
             const res = await fetch(`${API_URL}/facebook-reels`, {
-                headers: getHeaders()
+                headers: getPublicHeaders()
             });
             return res.json();
         },
@@ -1725,7 +1729,7 @@ export const api = {
 
         getById: async (id: number) => {
             const res = await fetch(`${API_URL}/facebook-reels/${id}`, {
-                headers: getHeaders()
+                headers: getPublicHeaders()
             });
             return res.json();
         },
@@ -1788,7 +1792,7 @@ export const api = {
     brandOffers: {
         getAll: async () => {
             const res = await fetch(`${API_URL}/brand-offers`, {
-                headers: getHeaders()
+                headers: getPublicHeaders()
             });
             return res.json();
         },
@@ -1810,7 +1814,7 @@ export const api = {
 
         getById: async (id: number) => {
             const res = await fetch(`${API_URL}/brand-offers/${id}`, {
-                headers: getHeaders()
+                headers: getPublicHeaders()
             });
             return res.json();
         },
@@ -2249,7 +2253,7 @@ export const api = {
             const query = params.toString();
             const url = `${API_URL}/home-sections${query ? `?${query}` : ''}`;
             const res = await fetch(url, {
-                headers: getHeaders()
+                headers: options?.all ? getHeaders() : getPublicHeaders()
             });
             if (!res.ok) throw new Error('Failed to fetch home sections');
             const json = await res.json();

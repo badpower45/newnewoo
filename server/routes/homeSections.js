@@ -1,5 +1,6 @@
 import express from 'express';
 import { query } from '../database.js';
+import { responseCache, CacheTTL } from '../services/responseCache.js';
 
 const router = express.Router();
 const clampNumber = (value, fallback, max) => {
@@ -25,6 +26,14 @@ const normalizeCategoryValue = (value = '') =>
 router.get('/', async (req, res) => {
     try {
         res.set('Cache-Control', 'public, max-age=60, s-maxage=120, stale-while-revalidate=600');
+        const shouldCache = !req.headers.authorization;
+        const cacheKey = shouldCache ? `home-sections:list:${req.originalUrl}` : null;
+        if (cacheKey) {
+            const cached = responseCache.get(cacheKey);
+            if (cached) {
+                return res.json(cached);
+            }
+        }
         const branchId = req.query.branchId;
         const all = req.query.all === 'true';
         const pageValue = clampNumber(req.query.page, 1, 1000);
@@ -158,13 +167,19 @@ router.get('/', async (req, res) => {
         const currentCount = sectionsWithProducts.length;
         const hasMore = all ? false : offsetValue + currentCount < total;
 
-        res.json({
+        const payload = {
             data: sectionsWithProducts,
             page: all ? 1 : pageValue,
             limit: all ? total : limitValue,
             total,
             hasMore
-        });
+        };
+
+        if (cacheKey) {
+            responseCache.set(cacheKey, payload, CacheTTL.MEDIUM);
+        }
+
+        res.json(payload);
     } catch (error) {
         console.error('Error fetching home sections:', error);
         console.error('Error stack:', error.stack);

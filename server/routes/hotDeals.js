@@ -1,6 +1,7 @@
 import express from 'express';
 import { query } from '../database.js';
 import { verifyToken, isAdmin } from '../middleware/auth.js';
+import { responseCache, CacheTTL } from '../services/responseCache.js';
 
 const router = express.Router();
 
@@ -8,6 +9,14 @@ const router = express.Router();
 router.get('/', async (req, res) => {
     try {
         res.set('Cache-Control', 'public, max-age=60, s-maxage=120, stale-while-revalidate=600');
+        const shouldCache = !req.headers.authorization;
+        const cacheKey = shouldCache ? `hot-deals:list:${req.originalUrl}` : null;
+        if (cacheKey) {
+            const cached = responseCache.get(cacheKey);
+            if (cached) {
+                return res.json(cached);
+            }
+        }
         const { brandId } = req.query;
         let sql = `
             SELECT 
@@ -48,10 +57,16 @@ router.get('/', async (req, res) => {
                 : deal.sold_percentage
         }));
         
-        res.json({
+        const payload = {
             success: true,
             data: deals
-        });
+        };
+
+        if (cacheKey) {
+            responseCache.set(cacheKey, payload, CacheTTL.SHORT);
+        }
+
+        res.json(payload);
     } catch (err) {
         console.error('Error fetching hot deals:', err);
         res.status(500).json({ error: err.message });
@@ -62,6 +77,14 @@ router.get('/', async (req, res) => {
 router.get('/flash', async (req, res) => {
     try {
         res.set('Cache-Control', 'public, max-age=60, s-maxage=120, stale-while-revalidate=600');
+        const shouldCache = !req.headers.authorization;
+        const cacheKey = shouldCache ? `hot-deals:flash:${req.originalUrl}` : null;
+        if (cacheKey) {
+            const cached = responseCache.get(cacheKey);
+            if (cached) {
+                return res.json(cached);
+            }
+        }
         const { rows } = await query(`
             SELECT 
                 id,
@@ -87,10 +110,11 @@ router.get('/flash', async (req, res) => {
         `);
         
         if (rows.length === 0) {
-            return res.json({
-                success: true,
-                data: null
-            });
+            const payload = { success: true, data: null };
+            if (cacheKey) {
+                responseCache.set(cacheKey, payload, CacheTTL.SHORT);
+            }
+            return res.json(payload);
         }
         
         const deal = rows[0];
@@ -99,10 +123,16 @@ router.get('/flash', async (req, res) => {
             ? Math.round((deal.sold_quantity / deal.total_quantity) * 100) 
             : deal.sold_percentage;
         
-        res.json({
+        const payload = {
             success: true,
             data: deal
-        });
+        };
+
+        if (cacheKey) {
+            responseCache.set(cacheKey, payload, CacheTTL.SHORT);
+        }
+
+        res.json(payload);
     } catch (err) {
         console.error('Error fetching flash deal:', err);
         res.status(500).json({ error: err.message });

@@ -1,5 +1,6 @@
 import express from 'express';
 import pool from '../database.js';
+import { responseCache, CacheTTL } from '../services/responseCache.js';
 
 const router = express.Router();
 
@@ -71,6 +72,14 @@ router.get('/admin/list', async (req, res) => {
 router.get('/', async (req, res) => {
     try {
         res.set('Cache-Control', 'public, max-age=30, s-maxage=60, stale-while-revalidate=300');
+        const shouldCache = !req.headers.authorization;
+        const cacheKey = shouldCache ? `stories:list:${req.originalUrl}` : null;
+        if (cacheKey) {
+            const cached = responseCache.get(cacheKey);
+            if (cached) {
+                return res.json(cached);
+            }
+        }
         const result = await pool.query(`
             SELECT 
                 s.id,
@@ -96,7 +105,11 @@ router.get('/', async (req, res) => {
             ORDER BY s.priority DESC, s.created_at DESC
         `);
         
-        res.json({ success: true, data: result.rows });
+        const payload = { success: true, data: result.rows };
+        if (cacheKey) {
+            responseCache.set(cacheKey, payload, CacheTTL.SHORT);
+        }
+        res.json(payload);
     } catch (error) {
         console.error('Error fetching stories:', error);
         res.status(500).json({ success: false, error: 'Failed to fetch stories' });
@@ -107,6 +120,14 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
+        const shouldCache = !req.headers.authorization;
+        const cacheKey = shouldCache ? `stories:by-id:${req.originalUrl}` : null;
+        if (cacheKey) {
+            const cached = responseCache.get(cacheKey);
+            if (cached) {
+                return res.json(cached);
+            }
+        }
         const result = await pool.query(`
             SELECT 
                 s.*,
@@ -120,7 +141,11 @@ router.get('/:id', async (req, res) => {
             return res.status(404).json({ success: false, error: 'Story not found' });
         }
         
-        res.json({ success: true, data: result.rows[0] });
+        const payload = { success: true, data: result.rows[0] };
+        if (cacheKey) {
+            responseCache.set(cacheKey, payload, CacheTTL.SHORT);
+        }
+        res.json(payload);
     } catch (error) {
         console.error('Error fetching story:', error);
         res.status(500).json({ success: false, error: 'Failed to fetch story' });
