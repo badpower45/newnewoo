@@ -220,14 +220,25 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
                                 onClick={() => openVideoModal(index)}
                             >
                                 {/* Video Thumbnail */}
-                                <div className="relative aspect-[9/16] rounded-2xl overflow-hidden bg-gray-100 shadow-md group-hover:shadow-xl transition-all">
+                                <div className="relative aspect-[9/16] rounded-2xl overflow-hidden bg-gradient-to-br from-blue-500 to-purple-600 shadow-md group-hover:shadow-xl transition-all">
                                     <img
                                         src={video.thumbnail}
                                         alt={video.title}
                                         loading="lazy"
                                         decoding="async"
+                                        onError={(e) => {
+                                            const target = e.target as HTMLImageElement;
+                                            // استخدام gradient placeholder
+                                            target.style.display = 'none';
+                                            target.onerror = null;
+                                        }}
                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                                     />
+                                    
+                                    {/* Fallback Icon */}
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <Facebook className="w-16 h-16 text-white/30" />
+                                    </div>
                                     
                                     {/* Gradient Overlay */}
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
