@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { X, ScanLine, CheckCircle2, AlertCircle, Keyboard, ArrowLeft } from 'lucide-react';
+
+// Lazy load html5-qrcode to reduce initial bundle size
+let Html5Qrcode: any;
+let Html5QrcodeSupportedFormats: any;
 
 interface BarcodeScannerProps {
     onScan: (barcode: string) => void;
@@ -31,6 +34,13 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
             setError('');
             setSuccess(false);
             setScannedCode('');
+            
+            // Lazy load html5-qrcode only when scanner is opened
+            if (!Html5Qrcode) {
+                const module = await import('html5-qrcode');
+                Html5Qrcode = module.Html5Qrcode;
+                Html5QrcodeSupportedFormats = module.Html5QrcodeSupportedFormats;
+            }
             
             const html5QrCode = new Html5Qrcode(readerIdRef.current);
             scannerRef.current = html5QrCode;

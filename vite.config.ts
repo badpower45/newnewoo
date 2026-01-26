@@ -145,15 +145,18 @@ export default defineConfig(({ mode }) => {
       },
       // CSS code splitting
       cssCodeSplit: true,
-      // Don't inline any assets (better caching)
-      assetsInlineLimit: 0,
+      // Inline small assets for better performance
+      assetsInlineLimit: 4096,
       // Target modern browsers
       target: 'es2020',
-      // Disable module preload to avoid preloading unused chunks
-      modulePreload: false,
+      // Enable module preload for faster loads
+      modulePreload: {
+        polyfill: false,
+      },
     },
     optimizeDeps: {
-      exclude: ['lucide-react']
+      exclude: ['html5-qrcode', 'xlsx'], // Don't pre-bundle heavy libraries
+      include: ['react', 'react-dom', 'react-router-dom']
     }
   };
 });

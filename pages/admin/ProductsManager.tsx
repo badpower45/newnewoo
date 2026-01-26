@@ -5,7 +5,6 @@ import { Product } from '../../types';
 import { useNavigate } from 'react-router-dom';
 import { TableSkeleton } from '../../components/Skeleton';
 import { API_URL } from '../../src/config';
-import * as XLSX from 'xlsx';
 
 const emptyProduct = {
     barcode: '',
@@ -732,6 +731,9 @@ const ProductsManager = () => {
                 alert('⚠️ لم يتم معالجة أي منتجات!');
                 return;
             }
+
+            // Lazy load XLSX library only when exporting
+            const XLSX = await import('xlsx');
 
             // Create worksheet
             const ws = XLSX.utils.json_to_sheet(productsWithFullDetails);
