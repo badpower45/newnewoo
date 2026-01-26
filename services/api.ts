@@ -904,12 +904,12 @@ export const api = {
         getByBranch: async (branchId: number, date?: string) => {
             let url = `${API_URL}/delivery-slots/${branchId}`;
             if (date) url += `?date=${date}`;
-            const res = await fetch(url, { headers: getHeaders() });
+            const res = await fetch(url, { headers: getPublicHeaders() });
             return res.json();
         },
         getOne: async (slotId: number) => {
             const res = await fetch(`${API_URL}/delivery-slots/${slotId}`, {
-                headers: getHeaders()
+                headers: getPublicHeaders()
             });
             return res.json();
         },
@@ -1218,7 +1218,7 @@ export const api = {
         // الحصول على جميع رسوم المحافظات (جديد)
         getAllGovernorates: async () => {
             const res = await fetch(`${API_URL}/delivery-fees/governorates/all`, {
-                headers: getHeaders()
+                headers: getPublicHeaders()
             });
             return res.json();
         },
@@ -1236,7 +1236,7 @@ export const api = {
         // الحصول على إعدادات رسوم التوصيل لفرع
         getByBranch: async (branchId: number) => {
             const res = await fetch(`${API_URL}/delivery-fees/${branchId}`, {
-                headers: getHeaders()
+                headers: getPublicHeaders()
             });
             return res.json();
         },

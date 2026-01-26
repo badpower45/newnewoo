@@ -2,7 +2,6 @@ import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import BottomNav from './components/BottomNav';
 import { CartProvider } from './context/CartContext';
-import { analyticsService } from './services/analyticsService';
 import { AuthProvider } from './context/AuthContext';
 import { BranchProvider } from './context/BranchContext';
 import { useAuth } from './context/AuthContext';
@@ -49,7 +48,6 @@ const CompleteProfilePage = lazy(() => import('./pages/CompleteProfilePage'));
 // Admin pages - lazy loaded separately
 const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'));
 const DashboardOverview = lazy(() => import('./pages/admin/DashboardOverview'));
-const CustomerAnalyticsPage = lazy(() => import('./pages/admin/CustomerAnalyticsPage'));
 const ProductsManager = lazy(() => import('./pages/admin/ProductsManager'));
 const ProductUploadPage = lazy(() => import('./pages/admin/ProductUploadPage'));
 const ProductImporter = lazy(() => import('./pages/admin/ProductImporter'));
@@ -130,22 +128,6 @@ function AppContent() {
   const { loading: branchLoading } = useBranch();
   const globalLoading = authLoading || branchLoading;
 
-  // Track page views
-  React.useEffect(() => {
-    if (!showSplash && appReady) {
-      analyticsService.trackPageView({
-        page_path: path,
-        page_title: document.title,
-        user_id: user?.id
-      });
-    }
-  }, [path, showSplash, appReady, user]);
-
-  // Setup beforeunload tracking
-  React.useEffect(() => {
-    analyticsService.setupBeforeUnload();
-  }, []);
-
   // Show splash screen on first load
   if (showSplash) {
     return (
@@ -225,7 +207,6 @@ function AppContent() {
             {/* Admin Routes - Protected with role-based access */}
             <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin', 'manager', 'distributor']}><AdminLayout /></ProtectedRoute>}>
               <Route index element={<DashboardOverview />} />
-              <Route path="analytics" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><CustomerAnalyticsPage /></ProtectedRoute>} />
               <Route path="products" element={<ProductsManager />} />
               <Route path="product-importer" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><ProductImporter /></ProtectedRoute>} />
               <Route path="returns" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><ReturnsManager /></ProtectedRoute>} />

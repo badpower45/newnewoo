@@ -40,7 +40,6 @@ const AdminLayout = () => {
             title: '📊 الإحصائيات',
             items: [
                 { path: '/admin', icon: <LayoutDashboard size={20} />, label: 'لوحة التحكم', roles: ['admin', 'manager'] },
-                { path: '/admin/analytics', icon: <BarChart3 size={20} />, label: 'تحليلات العملاء', roles: ['admin', 'manager'] },
             ]
         },
         {
