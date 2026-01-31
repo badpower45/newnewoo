@@ -78,10 +78,18 @@ const ProductImporter: React.FC = () => {
     const handleDrag = (e: React.DragEvent) => {
         e.preventDefault();
         e.stopPropagation();
+        
         if (e.type === "dragenter" || e.type === "dragover") {
             setDragActive(true);
         } else if (e.type === "dragleave") {
-            setDragActive(false);
+            // Only set false if we're leaving the dropzone itself, not its children
+            const rect = e.currentTarget.getBoundingClientRect();
+            const x = e.clientX;
+            const y = e.clientY;
+            
+            if (x < rect.left || x >= rect.right || y < rect.top || y >= rect.bottom) {
+                setDragActive(false);
+            }
         }
     };
 
