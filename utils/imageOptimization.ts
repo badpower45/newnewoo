@@ -13,7 +13,7 @@ export const IMAGE_SIZES = {
     CARD_THUMBNAIL: {
         width: 200,
         height: 200,
-        quality: 70,
+        quality: 60, // Reduced from 70
         format: 'webp'
     },
 
@@ -21,7 +21,7 @@ export const IMAGE_SIZES = {
     PRODUCT_DETAIL: {
         width: 600,
         height: 600,
-        quality: 80,
+        quality: 75, // Reduced from 80
         format: 'webp'
     },
 
@@ -29,7 +29,7 @@ export const IMAGE_SIZES = {
     FRAME_OVERLAY: {
         width: 200,
         height: 200,
-        quality: 70,
+        quality: 60, // Reduced from 70
         format: 'webp'
     },
 
@@ -37,7 +37,7 @@ export const IMAGE_SIZES = {
     BANNER: {
         width: 1200,
         height: 400,
-        quality: 85,
+        quality: 80, // Reduced from 85
         format: 'webp'
     },
 
@@ -45,7 +45,7 @@ export const IMAGE_SIZES = {
     TINY_THUMB: {
         width: 100,
         height: 100,
-        quality: 60,
+        quality: 50, // Reduced from 60
         format: 'webp'
     }
 };
@@ -94,14 +94,15 @@ function optimizeCloudinaryImage(
         const beforeUpload = url.substring(0, uploadIndex + 8); // Include '/upload/'
         const afterUpload = url.substring(uploadIndex + 8);
 
-        // Build transformations
+        // Build transformations with aggressive compression
         const transformations = [
             `w_${size.width}`,
             `h_${size.height}`,
             `q_${size.quality}`,
             `f_${size.format}`,
-            `f_${size.format}`,
-            'c_fill' // Crop to fill (maintain aspect ratio)
+            'c_fill', // Crop to fill (maintain aspect ratio)
+            'fl_progressive', // Progressive loading
+            'fl_lossy' // Lossy compression for smaller files
         ].join(',');
 
         // Construct optimized URL

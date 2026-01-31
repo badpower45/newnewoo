@@ -1,0 +1,293 @@
+/**
+ * Browser-Specific Optimizations
+ * معالجة مشاكل الأداء والعرض على Safari و Chrome
+ */
+
+/* ============================================
+   🔥 Performance Optimizations
+   ============================================ */
+
+/* Enable hardware acceleration for smoother animations */
+* {
+  -webkit-transform: translateZ(0);
+  -moz-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-perspective: 1000;
+  perspective: 1000;
+}
+
+/* Optimize image rendering */
+img {
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  will-change: transform;
+}
+
+/* Smooth scrolling for all browsers */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overflow-scrolling: touch;
+}
+
+/* ============================================
+   🌐 Safari-Specific Fixes
+   ============================================ */
+
+/* Fix Safari image loading issues */
+@supports (-webkit-appearance: none) {
+  img {
+    -webkit-user-drag: none;
+    user-drag: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  
+  /* Better font rendering on Safari */
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  
+  /* Fix Safari flexbox issues */
+  .flex {
+    -webkit-box-flex: 1;
+  }
+  
+  /* Optimize Safari transforms */
+  .transform {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* ============================================
+   🎨 Chrome-Specific Optimizations
+   ============================================ */
+
+/* Chrome performance hints */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  /* Better Chrome scrolling */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Chrome image optimization */
+  img {
+    content-visibility: auto;
+  }
+  
+  /* Chrome layout optimization */
+  .contain {
+    contain: layout style paint;
+  }
+}
+
+/* ============================================
+   📱 Mobile Safari Fixes
+   ============================================ */
+
+@supports (-webkit-touch-callout: none) {
+  /* Fix mobile Safari 100vh issue */
+  .min-h-screen {
+    min-height: -webkit-fill-available;
+  }
+  
+  /* Better touch experience */
+  button, a, input, select {
+    -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Fix iOS zoom on input focus */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* ============================================
+   🖼️ Image Loading Optimizations
+   ============================================ */
+
+/* Lazy loading hint */
+img[loading="lazy"] {
+  content-visibility: auto;
+}
+
+/* Priority loading */
+img[loading="eager"] {
+  content-visibility: visible;
+}
+
+/* WebP support detection and fallback */
+.webp-support img {
+  image-rendering: -webkit-optimize-contrast;
+}
+
+.no-webp-support img {
+  image-rendering: auto;
+}
+
+/* ============================================
+   ⚡ Transfer & Bandwidth Optimization
+   ============================================ */
+
+/* Reduce repaints */
+.will-change-transform {
+  will-change: transform;
+}
+
+.will-change-opacity {
+  will-change: opacity;
+}
+
+/* Contain layout recalculations */
+.product-card,
+.category-card {
+  contain: layout style;
+}
+
+/* Optimize animations */
+@media (prefers-reduced-motion: no-preference) {
+  .animate-smooth {
+    animation-duration: 0.3s;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* Disable animations for low-end devices */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================
+   🎯 Display & Layout Fixes
+   ============================================ */
+
+/* Fix rendering issues */
+.fix-render {
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  -webkit-perspective: 1000px;
+  perspective: 1000px;
+}
+
+/* Better text rendering */
+.text-optimize {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "kern" 1;
+  font-kerning: normal;
+}
+
+/* Fix blurry images on retina */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  img {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* ============================================
+   💾 Memory Optimization
+   ============================================ */
+
+/* Limit GPU memory for images */
+.optimize-memory {
+  max-width: 100%;
+  height: auto;
+  contain: size layout paint;
+}
+
+/* Virtual scrolling container */
+.virtual-scroll {
+  contain: strict;
+  content-visibility: auto;
+}
+
+/* ============================================
+   🔧 Specific Bug Fixes
+   ============================================ */
+
+/* Fix Safari date input */
+input[type="date"]::-webkit-inner-spin-button,
+input[type="date"]::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+}
+
+/* Fix Chrome autofill colors */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: inherit;
+  -webkit-box-shadow: 0 0 0px 1000px white inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Fix flexbox in Safari */
+.safari-flex-fix {
+  flex-shrink: 0;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* ============================================
+   🌐 Cross-Browser Compatibility
+   ============================================ */
+
+/* Consistent box-sizing */
+*, *::before, *::after {
+  box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+}
+
+/* Remove default margins */
+body, h1, h2, h3, h4, h5, h6, p {
+  margin: 0;
+  padding: 0;
+}
+
+/* Better button rendering */
+button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+/* ============================================
+   📊 Network Optimization Classes
+   ============================================ */
+
+/* For critical above-the-fold content */
+.critical-content {
+  content-visibility: visible;
+  contain-intrinsic-size: auto 500px;
+}
+
+/* For below-the-fold content */
+.lazy-content {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 500px;
+}
+
+/* For offscreen content */
+.offscreen-content {
+  content-visibility: hidden;
+}

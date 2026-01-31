@@ -59,10 +59,12 @@ router.post('/image', upload.single('image'), async (req, res) => {
                     folder: 'products',
                     public_id: productId,
                     resource_type: 'image',
+                    format: 'webp', // Force WebP for all images
                     transformation: [
                         { width: 800, height: 800, crop: 'limit' },
-                        { quality: 'auto:good' },
-                        { fetch_format: 'auto' }
+                        { quality: 'auto:eco' }, // More aggressive compression
+                        { fetch_format: 'webp' }, // Force WebP
+                        { flags: 'progressive' } // Progressive loading
                     ]
                 },
                 (error, result) => {
