@@ -116,7 +116,7 @@ const ProductsManager = () => {
                 name: item.name,
                 category: item.category_id || item.category || '',
                 price: Number(item.price) || 0,
-                stock_quantity: Number(item.stock) || 0,
+                stock_quantity: Number(item.stock_quantity || item.stock) || 0,
                 barcode: item.barcode || '',
                 subcategory: item.subcategory || '',
                 image: '', // intentionally empty to avoid loading Base64 in list view
