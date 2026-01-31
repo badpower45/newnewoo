@@ -169,6 +169,28 @@ export default function ProductsPage() {
     const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
     const [showOnlyOffers, setShowOnlyOffers] = useState(false);
     const [categoryBanner, setCategoryBanner] = useState<any>(null);
+    const [renderError, setRenderError] = useState<Error | null>(null);
+
+    // Error boundary
+    if (renderError) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="bg-white p-8 rounded-2xl shadow-lg max-w-md">
+                    <h2 className="text-2xl font-bold text-red-600 mb-4">حدث خطأ</h2>
+                    <p className="text-gray-700 mb-4">{renderError.message}</p>
+                    <button
+                        onClick={() => {
+                            setRenderError(null);
+                            window.location.reload();
+                        }}
+                        className="w-full px-4 py-2 bg-brand-orange text-white rounded-lg hover:bg-brand-orange/90"
+                    >
+                        إعادة تحميل الصفحة
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
@@ -177,15 +199,18 @@ export default function ProductsPage() {
     const { addToCart } = useCart();
     const branchId = selectedBranch?.id || 1;
     const isSearchActive = searchResults !== null;
+    
+    // Safe products query with error handling
     const productsQuery = useProducts({
         branchId,
         category: selectedCategory || '',
         page: currentPage,
         limit: ITEMS_PER_PAGE,
-        enabled: !isSearchActive
+        enabled: !isSearchActive && !!branchId
     });
-    const baseProducts = productsQuery.data?.data ?? [];
-    const allProducts = searchResults ?? baseProducts;
+    
+    const baseProducts = Array.isArray(productsQuery.data?.data) ? productsQuery.data.data : [];
+    const allProducts = Array.isArray(searchResults) ? searchResults : baseProducts;
     const hasError = productsQuery.error;
     
     // Log any errors
@@ -399,8 +424,10 @@ export default function ProductsPage() {
         fetchCategoryBanner();
     }, [selectedCategory]);
 
+    // Normalize selected category on mount/change (run once after categories load)
     useEffect(() => {
         if (!selectedCategory || categories.length === 0) return;
+        
         const normalizedSelected = normalizeCategoryValue(mapCategoryLabel(selectedCategory) || selectedCategory);
         const matched = categories.find((cat) => {
             return (
@@ -408,10 +435,14 @@ export default function ProductsPage() {
                 normalizeCategoryValue(mapCategoryLabel(cat.name || '')) === normalizedSelected
             );
         });
+        
+        // Only update if we found a match AND it's different
         if (matched && matched.id !== selectedCategory) {
+            console.log('🔄 Normalizing category:', selectedCategory, '→', matched.id);
             setSelectedCategory(matched.id);
         }
-    }, [categories, selectedCategory]);
+    }, [categories.length]); // Only run when categories are loaded, not on every selectedCategory change
+
 
     const [scannedProduct, setScannedProduct] = useState<Product | null>(null);
     const [showProductModal, setShowProductModal] = useState(false);
