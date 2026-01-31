@@ -25,18 +25,14 @@ const BrandsCarousel: React.FC<BrandsCarouselProps> = ({ title = "Featured Brand
     useEffect(() => {
         const loadBrands = async () => {
             try {
-                // Backend doesn't have /brands endpoint yet - use fallback
-                // TODO: Create backend /brands endpoint
-                setBrands([]);
-                setLoading(false);
-                return;
-                
-                // const response = await api.brands.getFeatured();
-                // const list = (response as any)?.data || response || [];
-                // const featured = list.slice(0, 6);
-                // setBrands(featured as Brand[]);
+                console.log('🏷️ Loading brands...');
+                const response = await api.brands.getAll();
+                const list = (response as any)?.data || response || [];
+                console.log('✅ Brands loaded:', list.length);
+                const featured = Array.isArray(list) ? list.filter((b: any) => b.is_featured).slice(0, 6) : [];
+                setBrands(featured.length > 0 ? featured : list.slice(0, 6) as Brand[]);
             } catch (error) {
-                console.error('Failed to load brands', error);
+                console.error('❌ Failed to load brands', error);
                 setBrands([]);
             } finally {
                 setLoading(false);
