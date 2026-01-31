@@ -71,19 +71,19 @@ git push origin main
 
 ```bash
 # Test 1: Health Check
-curl https://bkaa.vercel.app/api/health
+curl https://bodeelezaby-backend-test.hf.space/api/health
 # Expected: {"status":"ok","timestamp":"..."}
 
 # Test 2: Products
-curl https://bkaa.vercel.app/api/products
+curl https://bodeelezaby-backend-test.hf.space/api/products
 # Expected: Array of products or []
 
 # Test 3: Branches
-curl https://bkaa.vercel.app/api/branches
+curl https://bodeelezaby-backend-test.hf.space/api/branches
 # Expected: {"message":"success","data":[...]}
 
 # Test 4: Categories
-curl https://bkaa.vercel.app/api/categories
+curl https://bodeelezaby-backend-test.hf.space/api/categories
 # Expected: {"success":true,"data":[...]}
 ```
 
@@ -132,10 +132,10 @@ curl https://bkaa.vercel.app/api/categories
 1. **تحديث البيانات الأساسية:**
    ```bash
    # Seed branches
-   curl -X POST https://bkaa.vercel.app/api/branches/dev/seed
+   curl -X POST https://bodeelezaby-backend-test.hf.space/api/branches/dev/seed
    
    # Seed categories
-   curl -X POST https://bkaa.vercel.app/api/categories/dev/seed
+   curl -X POST https://bodeelezaby-backend-test.hf.space/api/categories/dev/seed
    ```
 
 2. **اختبار Admin UI:**
@@ -164,16 +164,16 @@ curl https://bkaa.vercel.app/api/categories
 ```bash
 # احتمال: Cold start issue
 # الحل: زور أي endpoint لعمل warm-up
-curl https://bkaa.vercel.app/api/health
-curl https://bkaa.vercel.app/api/products
+curl https://bodeelezaby-backend-test.hf.space/api/health
+curl https://bodeelezaby-backend-test.hf.space/api/products
 ```
 
 ### السيناريو 3: Specific endpoints failing
 ```bash
 # Test each route individually
-curl https://bkaa.vercel.app/api/branches
-curl https://bkaa.vercel.app/api/categories
-curl https://bkaa.vercel.app/api/branches/dev/seed -X POST
+curl https://bodeelezaby-backend-test.hf.space/api/branches
+curl https://bodeelezaby-backend-test.hf.space/api/categories
+curl https://bodeelezaby-backend-test.hf.space/api/branches/dev/seed -X POST
 ```
 
 ---

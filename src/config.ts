@@ -3,7 +3,7 @@
  * ⚠️ CRITICAL: These URLs are HARDCODED on purpose!
  * 
  * DO NOT use environment variables from Vercel Dashboard
- * because they contain old URLs (bkaa.vercel.app, newnewoo-backend.vercel.app)
+ * because they contain old URLs (bodeelezaby-backend-test.hf.space, newnewoo-backend.vercel.app)
  * 
  * Version: 2.1 - Force Hardcoded URLs
  */

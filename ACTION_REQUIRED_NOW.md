@@ -4,7 +4,7 @@
 
 Console يقول:
 ```javascript
-🔧 Using VITE_API_URL: https://bkaa.vercel.app/api ❌
+🔧 Using VITE_API_URL: https://bodeelezaby-backend-test.hf.space/api ❌
 🔧 Using VITE_SOCKET_URL: https://newnewoo-backend.vercel.app ❌
 ```
 

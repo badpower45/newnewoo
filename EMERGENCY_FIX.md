@@ -113,7 +113,7 @@ export const query = async (text, params) => {
 بعد تغيير DATABASE_URL، اختبر:
 
 ```bash
-curl https://bkaa.vercel.app/health
+curl https://bodeelezaby-backend-test.hf.space/health
 ```
 
 **Expected:** 

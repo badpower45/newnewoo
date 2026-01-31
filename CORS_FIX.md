@@ -2,7 +2,7 @@
 
 ## المشكلة
 ```
-Access to fetch at 'https://bkaa.vercel.app/api/...' from origin 'https://newnewoo.vercel.app' 
+Access to fetch at 'https://bodeelezaby-backend-test.hf.space/api/...' from origin 'https://newnewoo.vercel.app' 
 has been blocked by CORS policy
 ```
 
@@ -28,7 +28,7 @@ has been blocked by CORS policy
 
 ## خطوات إعادة Deploy
 
-### للـ Backend (bkaa.vercel.app):
+### للـ Backend (bodeelezaby-backend-test.hf.space):
 ```bash
 cd server
 vercel --prod
@@ -40,7 +40,7 @@ vercel --prod --cwd server
 ```
 
 ### تأكد من:
-1. ✅ الـ Backend deployed على `bkaa.vercel.app`
+1. ✅ الـ Backend deployed على `bodeelezaby-backend-test.hf.space`
 2. ✅ الـ Frontend deployed على `newnewoo.vercel.app`
 3. ✅ Environment variables صحيحة في Vercel
 
@@ -48,7 +48,7 @@ vercel --prod --cwd server
 
 ### في Console:
 ```javascript
-fetch('https://bkaa.vercel.app/api/health', {
+fetch('https://bodeelezaby-backend-test.hf.space/api/health', {
   method: 'OPTIONS',
   headers: {
     'Origin': 'https://newnewoo.vercel.app'

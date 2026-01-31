@@ -318,7 +318,7 @@ Test Product 2  | 20.00 | https://via.placeholder.com/200 | Test
 2. Auto-deploy triggers
 3. Endpoint available at:
    ```
-   https://bkaa.vercel.app/api/products/bulk-import
+   https://bodeelezaby-backend-test.hf.space/api/products/bulk-import
    ```
 
 ### Environment Variables:

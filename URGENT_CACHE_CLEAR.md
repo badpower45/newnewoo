@@ -1,7 +1,7 @@
 # 🚨 URGENT: Clear Cache Instructions
 
 ## ⚠️ المشكلة
-Console يظهر أخطاء من `bkaa.vercel.app` - هذا URL قديم!
+Console يظهر أخطاء من `bodeelezaby-backend-test.hf.space` - هذا URL قديم!
 
 ## ✅ الحل (3 دقائق)
 
@@ -47,7 +47,7 @@ location.reload(true);
 🌐 Using PRODUCTION API: https://newnewoo-server.vercel.app/api
 🌐 Using PRODUCTION Socket: https://newnewoo-server.vercel.app
 
-// لو طلع bkaa.vercel.app = المشكلة لسه موجودة
+// لو طلع bodeelezaby-backend-test.hf.space = المشكلة لسه موجودة
 ```
 
 ### Force New Build
@@ -103,7 +103,7 @@ const PRODUCTION_SOCKET_URL = 'https://newnewoo-server.vercel.app';
   🌐 Using PRODUCTION API: https://newnewoo-server.vercel.app/api
   📋 Config Loaded: {...}
   ```
-- [ ] تحقق من Network tab - لا يوجد `bkaa.vercel.app`
+- [ ] تحقق من Network tab - لا يوجد `bodeelezaby-backend-test.hf.space`
 - [ ] اختبر Admin pages (Orders, Categories, etc.)
 - [ ] اختبر Chat (Socket connection)
 
@@ -112,14 +112,14 @@ const PRODUCTION_SOCKET_URL = 'https://newnewoo-server.vercel.app';
 ## 🔍 Known Issues Fixed
 
 ✅ Fixed:
-- bkaa.vercel.app/api/orders - 404
-- bkaa.vercel.app/api/categories/admin/all - 404
-- bkaa.vercel.app/api/coupons - 404
-- bkaa.vercel.app/api/stories/admin/all - 404
-- bkaa.vercel.app/api/brand-offers/admin - 404
-- bkaa.vercel.app/api/magazine - 404
-- bkaa.vercel.app/api/hot-deals - 404
-- bkaa.vercel.app/api/users - 404
+- bodeelezaby-backend-test.hf.space/api/orders - 404
+- bodeelezaby-backend-test.hf.space/api/categories/admin/all - 404
+- bodeelezaby-backend-test.hf.space/api/coupons - 404
+- bodeelezaby-backend-test.hf.space/api/stories/admin/all - 404
+- bodeelezaby-backend-test.hf.space/api/brand-offers/admin - 404
+- bodeelezaby-backend-test.hf.space/api/magazine - 404
+- bodeelezaby-backend-test.hf.space/api/hot-deals - 404
+- bodeelezaby-backend-test.hf.space/api/users - 404
 - Socket connection errors
 
 ✅ All endpoints now use: `https://newnewoo-server.vercel.app`

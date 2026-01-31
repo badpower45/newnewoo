@@ -78,7 +78,7 @@ Deployments > Latest > ⋯ > Redeploy
 
 ### بعد التغيير في Vercel:
 
-1. افتح: `https://bkaa.vercel.app/api/health`
+1. افتح: `https://bodeelezaby-backend-test.hf.space/api/health`
 2. يجب أن ترى:
    ```json
    {

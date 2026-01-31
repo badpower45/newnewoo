@@ -158,13 +158,13 @@ const handleInviteFriend = async () => {
 **الملف:** `src/config.ts`
 
 **المشكلة:** 
-- كان الموقع يرسل طلبات لـ `https://bkaa.vercel.app` (خطأ)
+- كان الموقع يرسل طلبات لـ `https://bodeelezaby-backend-test.hf.space` (خطأ)
 - يسبب 404 errors في console
 
 **الحل:**
 ```typescript
 // قبل التعديل:
-return 'https://bkaa.vercel.app/api';
+return 'https://bodeelezaby-backend-test.hf.space/api';
 
 // بعد التعديل:
 return 'https://newnewoo-server.vercel.app/api';

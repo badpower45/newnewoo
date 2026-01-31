@@ -1,5 +1,5 @@
 // Test creating order with your account
-const API_URL = 'https://bkaa.vercel.app/api';
+const API_URL = 'https://bodeelezaby-backend-test.hf.space/api';
 
 async function testCreateOrder() {
     console.log('🧪 Testing order creation...\n');

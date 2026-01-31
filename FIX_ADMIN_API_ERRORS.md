@@ -10,7 +10,7 @@
 ```
 
 ## السبب
-الـ backend على Vercel (https://bkaa.vercel.app) لم يتم تحديثه بآخر التعديلات التي تحتوي على seed endpoints الجديدة.
+الـ backend على Vercel (https://bodeelezaby-backend-test.hf.space) لم يتم تحديثه بآخر التعديلات التي تحتوي على seed endpoints الجديدة.
 
 ---
 
@@ -55,7 +55,7 @@ npx vercel --prod
 
 **اختبار Branches Seed:**
 ```bash
-curl -X POST https://bkaa.vercel.app/api/branches/dev/seed
+curl -X POST https://bodeelezaby-backend-test.hf.space/api/branches/dev/seed
 ```
 
 **النتيجة المتوقعة:**
@@ -68,7 +68,7 @@ curl -X POST https://bkaa.vercel.app/api/branches/dev/seed
 
 **اختبار Categories Seed:**
 ```bash
-curl -X POST https://bkaa.vercel.app/api/categories/dev/seed
+curl -X POST https://bodeelezaby-backend-test.hf.space/api/categories/dev/seed
 ```
 
 **النتيجة المتوقعة:**
@@ -86,14 +86,14 @@ curl -X POST https://bkaa.vercel.app/api/categories/dev/seed
 3. اضغط زر **"إضافة فروع"**
 4. شوف الـ logs في Console:
    ```
-   🚀 Seeding branches to: https://bkaa.vercel.app/api/branches/dev/seed
+   🚀 Seeding branches to: https://bodeelezaby-backend-test.hf.space/api/branches/dev/seed
    ✅ Branches seeded: {success: true, ...}
    ```
 
 5. اضغط زر **"إضافة تصنيفات"**
 6. شوف الـ logs في Console:
    ```
-   🚀 Seeding categories to: https://bkaa.vercel.app/api/categories/dev/seed
+   🚀 Seeding categories to: https://bodeelezaby-backend-test.hf.space/api/categories/dev/seed
    ✅ Categories seeded: {success: true, ...}
    ```
 
@@ -136,7 +136,7 @@ app.use(cors({
 **الحل**:
 1. اختبر health endpoint:
    ```bash
-   curl https://bkaa.vercel.app/api/health
+   curl https://bodeelezaby-backend-test.hf.space/api/health
    ```
 2. إذا مفيش رد، يعني Backend offline → redeploy
 
@@ -213,7 +213,7 @@ router.post('/dev/seed', async (req, res) => {
 3. اختبر API مباشرة بـ Postman أو curl
 4. تأكد من Environment Variables في Vercel
 
-**Backend URL الحالي**: https://bkaa.vercel.app/api
+**Backend URL الحالي**: https://bodeelezaby-backend-test.hf.space/api
 **Frontend URL الحالي**: https://newnewoo.vercel.app
 
 ---

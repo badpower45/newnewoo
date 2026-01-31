@@ -2,17 +2,17 @@
 
 ## ❌ الأخطاء المكتشفة / Detected Errors
 
-### 1. **bkaa.vercel.app API Errors** ❌
+### 1. **bodeelezaby-backend-test.hf.space API Errors** ❌
 ```
-GET bkaa.vercel.app/api/orders - 400
-GET bkaa.vercel.app/api/categories/admin/all - 404
-GET bkaa.vercel.app/api/orders/admin/all - 404
-GET bkaa.vercel.app/api/distribution/delivery-staff - 404
+GET bodeelezaby-backend-test.hf.space/api/orders - 400
+GET bodeelezaby-backend-test.hf.space/api/categories/admin/all - 404
+GET bodeelezaby-backend-test.hf.space/api/orders/admin/all - 404
+GET bodeelezaby-backend-test.hf.space/api/distribution/delivery-staff - 404
 ```
 
 **السبب:** 
 - Old cached build من الـ API URL القديم
-- Vercel لسه بيستخدم build قديم فيه `bkaa.vercel.app`
+- Vercel لسه بيستخدم build قديم فيه `bodeelezaby-backend-test.hf.space`
 
 **الحل:** ✅
 1. التأكد إن `src/config.ts` بيستخدم الـ URL الصحيح ← ✅ موجود
@@ -222,7 +222,7 @@ npm run build
 
 | المشكلة | الحالة | الحل |
 |---------|--------|------|
-| bkaa.vercel.app errors | ✅ محلولة | Force rebuild على Vercel |
+| bodeelezaby-backend-test.hf.space errors | ✅ محلولة | Force rebuild على Vercel |
 | Missing auth headers | ✅ محلولة | إضافة `getHeaders()` |
 | webcomponents error | ✅ محلولة | `hmr.overlay: false` |
 | /admin/slots route | ✅ محلولة | تم في commit سابق |
@@ -272,7 +272,7 @@ localStorage.clear();
 location.reload();
 ```
 
-### إذا لسه بيستخدم bkaa.vercel.app:
+### إذا لسه بيستخدم bodeelezaby-backend-test.hf.space:
 1. افتح DevTools (F12)
 2. Application → Clear storage
 3. Check "Cache storage"

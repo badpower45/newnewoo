@@ -45,12 +45,12 @@
 
 #### إضافة الفروع:
 ```bash
-curl -X POST https://bkaa.vercel.app/api/branches/dev/seed
+curl -X POST https://bodeelezaby-backend-test.hf.space/api/branches/dev/seed
 ```
 
 #### إضافة التصنيفات:
 ```bash
-curl -X POST https://bkaa.vercel.app/api/categories/dev/seed
+curl -X POST https://bodeelezaby-backend-test.hf.space/api/categories/dev/seed
 ```
 
 ---

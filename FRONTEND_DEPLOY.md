@@ -1,9 +1,9 @@
 # Frontend Deployment Guide
 
-Backend: `https://bkaa.vercel.app/api`
+Backend: `https://bodeelezaby-backend-test.hf.space/api`
 
 ## Update API base URL
-- Set the frontend API base URL to `https://bkaa.vercel.app/api` (check your API config file, e.g., `services/api.ts` or similar). Ensure CORS on backend includes your frontend domain.
+- Set the frontend API base URL to `https://bodeelezaby-backend-test.hf.space/api` (check your API config file, e.g., `services/api.ts` or similar). Ensure CORS on backend includes your frontend domain.
 
 ## Option A: Deploy to Vercel (recommended, fast)
 1) From repo root (frontend lives at repository root), push latest code to GitHub.
@@ -14,7 +14,7 @@ Backend: `https://bkaa.vercel.app/api`
    - Output Directory: `dist`
    - Install Command: `npm install`
 3) Environment Variables:
-   - `VITE_API_URL=https://bkaa.vercel.app/api`
+   - `VITE_API_URL=https://bodeelezaby-backend-test.hf.space/api`
 4) Deploy. After deploy, test: `https://<your-frontend>.vercel.app`.
 
 ## Option B: Deploy to Netlify
@@ -22,7 +22,7 @@ Backend: `https://bkaa.vercel.app/api`
 2) New Site → Import repo.
    - Build command: `npm run build`
    - Publish directory: `dist`
-3) Env vars: `VITE_API_URL=https://bkaa.vercel.app/api`
+3) Env vars: `VITE_API_URL=https://bodeelezaby-backend-test.hf.space/api`
 4) Deploy and test.
 
 ## Option C: Static upload to cPanel
@@ -37,7 +37,7 @@ Backend: `https://bkaa.vercel.app/api`
 
 ## Quick checks after deploy
 - Open `/` and verify products load (no CORS errors in console).
-- Network call to `/api/products` should hit `https://bkaa.vercel.app/api/products` and return 200.
+- Network call to `/api/products` should hit `https://bodeelezaby-backend-test.hf.space/api/products` and return 200.
 - If 500 appears, check backend logs on Vercel.
 
 ## Common gotchas

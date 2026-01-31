@@ -4,7 +4,7 @@
 
 Vercel Dashboard فيه environment variables قديمة:
 ```
-VITE_API_URL = https://bkaa.vercel.app/api ❌
+VITE_API_URL = https://bodeelezaby-backend-test.hf.space/api ❌
 VITE_SOCKET_URL = https://newnewoo-backend.vercel.app ❌
 ```
 
@@ -73,7 +73,7 @@ Settings → Environment Variables
 
 ### Before (مع env vars):
 ```
-🔧 Using VITE_API_URL: https://bkaa.vercel.app/api ❌
+🔧 Using VITE_API_URL: https://bodeelezaby-backend-test.hf.space/api ❌
 🔧 Using VITE_SOCKET_URL: https://newnewoo-backend.vercel.app ❌
 ```
 

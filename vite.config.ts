@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => {
       },
       proxy: {
         '/api': {
-          target: 'https://bkaa.vercel.app',
+          target: 'https://bodeelezaby-backend-test.hf.space',
           changeOrigin: true,
         }
       }

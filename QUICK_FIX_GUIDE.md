@@ -1,7 +1,7 @@
 # 🔧 Quick Fix Guide - إصلاح مشاكل الـ API URLs
 
 ## المشكلة
-تظهر أخطاء 404 من `bkaa.vercel.app` في Console
+تظهر أخطاء 404 من `bodeelezaby-backend-test.hf.space` في Console
 
 ## السبب
 Old cached build من Vercel بيستخدم API URLs قديمة
@@ -56,7 +56,7 @@ chmod +x clean-build.sh
 ```
 ✅ API:    https://newnewoo-server.vercel.app/api
 ✅ Socket: https://newnewoo-server.vercel.app
-❌ OLD:    https://bkaa.vercel.app (لا تستخدم هذا)
+❌ OLD:    https://bodeelezaby-backend-test.hf.space (لا تستخدم هذا)
 ```
 
 ---
@@ -83,7 +83,7 @@ git push
 
 ## 🔍 Troubleshooting
 
-### Problem: لسه بيظهر bkaa.vercel.app
+### Problem: لسه بيظهر bodeelezaby-backend-test.hf.space
 **Solution:**
 1. امسح browser cache تماماً
 2. اعمل hard refresh
@@ -126,5 +126,5 @@ location.href = '/login';
 إذا المشكلة لسه موجودة:
 1. افتح Console (F12)
 2. اعمل screenshot للـ errors
-3. شوف الـ Network tab → اي request فيه bkaa.vercel.app
+3. شوف الـ Network tab → اي request فيه bodeelezaby-backend-test.hf.space
 4. تواصل مع الـ dev team

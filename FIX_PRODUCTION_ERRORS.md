@@ -81,7 +81,7 @@ ALTER PUBLICATION supabase_realtime ADD TABLE conversations;
 
 ### المشكلة:
 ```
-bkaa.vercel.app/socket.io/ - 404 Not Found
+bodeelezaby-backend-test.hf.space/socket.io/ - 404 Not Found
 ```
 
 ### السبب:
@@ -99,7 +99,7 @@ Vercel لا يدعم WebSocket servers. Socket.io يحتاج إلى سيرفر �
 
 ### المشكلة:
 ```
-bkaa.vercel.app/api/cart?userId=1&branchId=1 - 500 Internal Server Error
+bodeelezaby-backend-test.hf.space/api/cart?userId=1&branchId=1 - 500 Internal Server Error
 ```
 
 ### الأسباب المحتملة:
@@ -141,7 +141,7 @@ CREATE TABLE IF NOT EXISTS cart (
 
 ### المشكلة:
 ```
-bkaa.vercel.app/api/orders - 500 Internal Server Error
+bodeelezaby-backend-test.hf.space/api/orders - 500 Internal Server Error
 ```
 
 ### الحل:
@@ -156,7 +156,7 @@ bkaa.vercel.app/api/orders - 500 Internal Server Error
 
 ### المشكلة:
 ```
-bkaa.vercel.app/api/products/bulk-import - 500 Internal Server Error
+bodeelezaby-backend-test.hf.space/api/products/bulk-import - 500 Internal Server Error
 ```
 
 ### الحل:

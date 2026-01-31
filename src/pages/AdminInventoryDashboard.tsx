@@ -16,7 +16,7 @@ import {
 import axios from 'axios';
 
 // Use the same API URL as the rest of the app (configured in src/config.ts)
-const API_URL = import.meta.env.VITE_API_URL || 'https://bkaa.vercel.app/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://bodeelezaby-backend-test.hf.space/api';
 
 interface DashboardStats {
   total_products: number;
