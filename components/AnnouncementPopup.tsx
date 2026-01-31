@@ -69,39 +69,9 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
 
     const fetchPopup = async () => {
         try {
-            console.log('🎯 Fetching popups for page:', page);
-            const response = await api.popups.getActive(page);
-            const activePopup = response?.data || null;
-
-            console.log('✅ Active popup found:', activePopup ? activePopup.id : 'none');
-
-            if (activePopup) {
-                // تحقق من الـ dismissed (دائم)
-                const dismissed = getDismissedPopups();
-                if (dismissed.includes(activePopup.id)) {
-                    console.log('⏭️ Popup was permanently dismissed');
-                    return;
-                }
-
-                // 🔥 لو في الـ homepage: دائماً اعرض (حتى لو ظهر قبل كده في الجلسة)
-                if (page === 'homepage') {
-                    console.log('🏠 Homepage: Always show popup');
-                    setPopup(activePopup);
-                    setTimeout(() => setIsVisible(true), 800);
-                    markShownThisSession(); // سجل إنه ظهر
-                    return;
-                }
-
-                // 🔥 لو في صفحة تانية: اعرض فقط لو ما ظهرش قبل كده في الجلسة
-                if (!hasShownThisSession()) {
-                    console.log('📄 First time in session: Show popup');
-                    setPopup(activePopup);
-                    setTimeout(() => setIsVisible(true), 800);
-                    markShownThisSession(); // سجل إنه ظهر
-                } else {
-                    console.log('⏭️ Already shown this session');
-                }
-            }
+            console.log('🎯 Popups disabled - no backend route available');
+            // Popups feature disabled - backend route doesn't exist
+            return;
         } catch (error) {
             console.error('❌ Error fetching popup:', error);
         }
