@@ -97,6 +97,18 @@ import SplashScreen from './pages/SplashScreen';
 import CartErrorBoundary from './components/CartErrorBoundary';
 import BlockedUserGuard from './components/BlockedUserGuard';
 import Seo, { getSiteUrl } from './components/Seo';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+// Create a client for React Query
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 // Loading component for lazy routes
 const RouteLoader = () => <FullPageSkeleton />;
@@ -258,22 +270,24 @@ function AppContent() {
 
 function App() {
   return (
-    <LanguageProvider>
-      <AuthProvider>
-        <BranchProvider>
-          <FavoritesProvider>
-            <CartProvider>
-              <DebugProvider>
-                <Router>
-                  <ScrollToTop />
-                  <AppContent />
-                </Router>
-              </DebugProvider>
-            </CartProvider>
-          </FavoritesProvider>
-        </BranchProvider>
-      </AuthProvider>
-    </LanguageProvider>
+    <QueryClientProvider client={queryClient}>
+      <LanguageProvider>
+        <AuthProvider>
+          <BranchProvider>
+            <FavoritesProvider>
+              <CartProvider>
+                <DebugProvider>
+                  <Router>
+                    <ScrollToTop />
+                    <AppContent />
+                  </Router>
+                </DebugProvider>
+              </CartProvider>
+            </FavoritesProvider>
+          </BranchProvider>
+        </AuthProvider>
+      </LanguageProvider>
+    </QueryClientProvider>
   );
 }
 
