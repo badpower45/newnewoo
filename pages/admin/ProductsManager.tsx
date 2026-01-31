@@ -92,7 +92,8 @@ const ProductsManager = () => {
     const loadProducts = async (page = currentPage) => {
         setLoading(true);
         try {
-            let url = `${API_URL}/products/admin/list?page=${page}&limit=${ITEMS_PER_PAGE}`;
+            // Use the correct backend route: /products with includeAllBranches=true
+            let url = `${API_URL}/products?includeAllBranches=true&limit=${ITEMS_PER_PAGE}&offset=${(page - 1) * ITEMS_PER_PAGE}`;
             if (selectedBranchFilter !== 'all') {
                 url += `&branchId=${selectedBranchFilter}`;
             }

@@ -290,14 +290,13 @@ export const api = {
         getAdminList: async (options?: { limit?: number; offset?: number; page?: number; search?: string; branchId?: number }) => {
             const limitValue = options?.limit ?? 200;
             const offsetValue = options?.offset ?? 0;
-            const pageFromOffset = Math.floor(offsetValue / limitValue) + 1;
-            const pageValue = options?.page ?? pageFromOffset;
-            let url = `${API_URL}/products/admin/list?page=${pageValue}&limit=${limitValue}`;
+            // Use the correct backend route with includeAllBranches=true
+            let url = `${API_URL}/products?includeAllBranches=true&limit=${limitValue}&offset=${offsetValue}`;
             if (options?.branchId) url += `&branchId=${options.branchId}`;
             if (options?.search) {
                 url += `&search=${encodeURIComponent(options.search)}`;
             }
-            const res = await fetch(url, { headers: getPublicHeaders() });
+            const res = await fetch(url, { headers: getHeaders() });
             const json = await res.json();
             const normalize = (p: any) => ({ ...mapProduct(p), price: Number(mapProduct(p)?.price) || 0 });
             const data = Array.isArray(json) ? json : (json.data || []);
