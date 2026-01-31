@@ -372,13 +372,23 @@ export const api = {
             const pageValue = typeof offset === 'number' && Number.isFinite(offset) && offset >= 0
                 ? Math.floor(offset / limitValue) + 1
                 : 1;
-            let url = `${API_URL}/products?category=${encodeURIComponent(category)}`;
+            
+            // Use the dedicated category endpoint
+            let url = `${API_URL}/products/category/${encodeURIComponent(category)}`;
             if (branchId) {
-                url += `&branchId=${branchId}`;
+                url += `?branchId=${branchId}`;
             }
-            url += `&limit=${limitValue}&page=${pageValue}`;
+            
+            console.log('🔍 Fetching category products:', url);
+            
             const res = await fetch(url, { headers: getPublicHeaders() });
+            if (!res.ok) {
+                console.error('❌ Category fetch failed:', res.status, res.statusText);
+                throw new Error(`Failed to fetch category: ${res.statusText}`);
+            }
             const json = await res.json();
+            console.log('✅ Category response:', json);
+            
             const normalize = (p: any) => ({ ...mapProduct(p), price: Number(mapProduct(p)?.price) || 0 });
             // Backend returns array directly
             const data = Array.isArray(json) ? json : (json.data || []);
@@ -387,7 +397,13 @@ export const api = {
                 if (json.total !== undefined) (list as any).total = Number(json.total);
                 if (json.page !== undefined) (list as any).page = Number(json.page);
             }
-            return json.pagination ? { ...json, data: list } : list;
+            
+            // Add pagination info for compatibility
+            return {
+                data: list,
+                total: list.length,
+                page: pageValue
+            };
         },
         search: async (query: string) => {
             const branchId = localStorage.getItem('selectedBranchId') || '1';

@@ -133,7 +133,15 @@ const categoryMapping: Record<string, string> = {
     لحوم: 'لحوم',
     Meat: 'لحوم',
     meat: 'لحوم',
-    'فواكه وخضار': 'فواكه وخضار'
+    'فواكه وخضار': 'فواكه وخضار',
+    // Canned/Preserved
+    معلبات: 'معلبات',
+    معلب: 'معلبات',
+    Canned: 'معلبات',
+    canned: 'معلبات',
+    // Preserved
+    محفوظات: 'محفوظات',
+    preserved: 'محفوظات'
 };
 
 const hasArabicChars = (value: string = '') => /[\u0600-\u06FF]/.test(value);
@@ -171,13 +179,21 @@ export default function ProductsPage() {
     const isSearchActive = searchResults !== null;
     const productsQuery = useProducts({
         branchId,
-        category: selectedCategory,
+        category: selectedCategory || '',
         page: currentPage,
         limit: ITEMS_PER_PAGE,
         enabled: !isSearchActive
     });
     const baseProducts = productsQuery.data?.data ?? [];
     const allProducts = searchResults ?? baseProducts;
+    const hasError = productsQuery.error;
+    
+    // Log any errors
+    useEffect(() => {
+        if (hasError) {
+            console.error('❌ Products query error:', hasError);
+        }
+    }, [hasError]);
     const totalCount = isSearchActive
         ? allProducts.length
         : (productsQuery.data?.total ?? baseProducts.length);
