@@ -4,9 +4,7 @@ import {
     CheckCircle, XCircle, AlertCircle, Loader, Save, Upload, 
     Trash2, Edit2, Eye, EyeOff, Image as ImageIcon, Package
 } from 'lucide-react';
-
-// API URL Configuration
-const API_URL = import.meta.env.VITE_API_BASE_URL || 'https://bodeelezaby-backend-test.hf.space/api';
+import { API_URL } from '../../src/config';
 
 interface DraftProduct {
     id: number;

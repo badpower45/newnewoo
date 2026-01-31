@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { RotateCcw, Search, Filter, CheckCircle, XCircle, Clock, Package, User, Phone, Mail, Calendar, DollarSign, Plus, FileText, Download } from 'lucide-react';
 import axios from 'axios';
+import { API_URL } from '../../src/config';
 
 interface ReturnItem {
     id: number;
@@ -60,7 +61,8 @@ const ReturnsManager = () => {
     const [deliveredOrders, setDeliveredOrders] = useState<any[]>([]);
     const [showDeliveredOrders, setShowDeliveredOrders] = useState(false);
 
-    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://bodeelezaby-backend-test.hf.space';
+    const apiUrlClean = API_URL.replace(/\/+$/, '');
+    const API_BASE_URL = apiUrlClean.endsWith('/api') ? apiUrlClean.slice(0, -4) : apiUrlClean;
 
     useEffect(() => {
         fetchReturns();

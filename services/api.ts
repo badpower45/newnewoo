@@ -551,8 +551,14 @@ export const api = {
         }
     },
     popups: {
+        // Public: active popup for a page
+        getActive: async (page = 'homepage') => {
+            const res = await fetch(`${API_URL}/popups/active?page=${page}`);
+            return res.json();
+        },
+        // Admin: get all popups
         getAll: async () => {
-            const res = await fetch(`${API_URL}/popups`, { headers: getPublicHeaders() });
+            const res = await fetch(`${API_URL}/popups`, { headers: getHeaders() });
             return res.json();
         },
         create: async (data: any) => {
@@ -2042,8 +2048,18 @@ export const api = {
     },
 
     loyalty: {
-        getTransactions: async (userId: number) => {
-            const res = await fetch(`${API_URL}/loyalty/transactions?userId=${userId}`, {
+        getPoints: async () => {
+            const res = await fetch(`${API_URL}/loyalty/balance`, {
+                headers: getHeaders()
+            });
+            if (!res.ok) throw new Error('Failed to fetch loyalty points');
+            return res.json();
+        },
+        getTransactions: async (userId?: number) => {
+            const url = userId 
+                ? `${API_URL}/loyalty/transactions?userId=${userId}`
+                : `${API_URL}/loyalty/transactions`;
+            const res = await fetch(url, {
                 headers: getHeaders()
             });
             if (!res.ok) throw new Error('Failed to fetch loyalty transactions');
@@ -2341,6 +2357,13 @@ export const api = {
             if (!res.ok) throw new Error('Failed to create return');
             return res.json();
         },
+        // Admin: get all returns
+        getAll: async () => {
+            const res = await fetch(`${API_URL}/returns-enhanced`, {
+                headers: getHeaders()
+            });
+            return res.json();
+        },
         getMyReturns: async (status?: string, limit = 20, offset = 0) => {
             const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
             if (status) params.append('status', status);
@@ -2362,6 +2385,12 @@ export const api = {
                 headers: getHeaders()
             });
             if (!res.ok) throw new Error('Failed to fetch stats');
+            return res.json();
+        },
+        getStatsDetailed: async () => {
+            const res = await fetch(`${API_URL}/returns-enhanced/stats`, {
+                headers: getHeaders()
+            });
             return res.json();
         }
     },
@@ -2476,70 +2505,7 @@ export const api = {
         }
     },
 
-    // Enhanced Returns API (Smart Returns)
-    returnsEnhanced: {
-        // جلب جميع المرتجعات مع تفاصيل كاملة
-        getAll: async () => {
-            const res = await fetch(`${API_URL}/returns-enhanced`, {
-                headers: getHeaders()
-            });
-            return res.json();
-        },
-
-        // جلب إحصائيات المرتجعات
-        getStats: async () => {
-            const res = await fetch(`${API_URL}/returns-enhanced/stats`, {
-                headers: getHeaders()
-            });
-            return res.json();
-        }
-    },
-
-    // Popups API
-    popups: {
-        // Get active popup
-        getActive: async (page = 'homepage') => {
-            const res = await fetch(`${API_URL}/popups/active?page=${page}`);
-            return res.json();
-        },
-
-        // Get all popups (Admin)
-        getAll: async () => {
-            const res = await fetch(`${API_URL}/popups`, {
-                headers: getHeaders()
-            });
-            return res.json();
-        },
-
-        // Create popup (Admin)
-        create: async (data: any) => {
-            const res = await fetch(`${API_URL}/popups`, {
-                method: 'POST',
-                headers: getHeaders(),
-                body: JSON.stringify(data)
-            });
-            return res.json();
-        },
-
-        // Update popup (Admin)
-        update: async (id: number, data: any) => {
-            const res = await fetch(`${API_URL}/popups/${id}`, {
-                method: 'PUT',
-                headers: getHeaders(),
-                body: JSON.stringify(data)
-            });
-            return res.json();
-        },
-
-        // Delete popup (Admin)
-        delete: async (id: number) => {
-            const res = await fetch(`${API_URL}/popups/${id}`, {
-                method: 'DELETE',
-                headers: getHeaders()
-            });
-            return res.json();
-        }
-    }
+    
 };
 
 export default api;

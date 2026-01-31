@@ -102,7 +102,6 @@ const categoryMapping: Record<string, string> = {
     تجميل: 'تجميل',
     // Canned food
     Cannedfood: 'معلبات',
-    معلبات: 'معلبات',
     // Legumes
     Legumes: 'بقوليات',
     بقوليات: 'بقوليات',

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../services/supabaseClient';
+import { API_URL } from '../src/config';
 
 interface Branch {
   id: number;
@@ -54,7 +55,7 @@ export const BranchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setError(null);
     try {
       // Try backend API first
-      const apiUrl = import.meta.env.VITE_API_URL || 'https://bodeelezaby-backend-test.hf.space/api';
+      const apiUrl = API_URL;
       console.log('🔍 Fetching branches from:', `${apiUrl}/branches`);
       
       const response = await fetch(`${apiUrl}/branches`);
@@ -116,7 +117,7 @@ export const BranchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const findNearbyBranches = async (lat: number, lng: number, radius: number = 10): Promise<Branch[]> => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_API_URL}/branches/nearby?lat=${lat}&lng=${lng}&radius=${radius}`
+        `${API_URL}/branches/nearby?lat=${lat}&lng=${lng}&radius=${radius}`
       );
       if (!response.ok) throw new Error('Failed to fetch nearby branches');
       const data = await response.json();
@@ -130,7 +131,7 @@ export const BranchProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Auto select branch using nearest branch endpoint
   const autoSelectByLocation = async (lat: number, lng: number): Promise<Branch | null> => {
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'https://bodeelezaby-backend-test.hf.space/api';
+      const apiUrl = API_URL;
       console.log('📍 Finding nearest branch for location:', lat, lng);
       
       // Use the new nearest branch endpoint

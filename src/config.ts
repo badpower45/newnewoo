@@ -1,21 +1,40 @@
 /**
  * Application Configuration
- * ⚠️ CRITICAL: These URLs are HARDCODED on purpose!
- * 
- * DO NOT use environment variables from Vercel Dashboard
- * because they contain old URLs (bodeelezaby-backend-test.hf.space, newnewoo-backend.vercel.app)
- * 
- * Version: 2.1 - Force Hardcoded URLs
+ * ✅ Use env URLs when present (and not legacy),
+ * otherwise fall back to the hardcoded production URLs.
  */
 
-// 🔒 HARDCODED URLs - NEVER USE ENV VARS IN PRODUCTION
-// ⚠️ تحديث: استخدام localhost للتطوير المحلي و backend production URL الصحيح
+// 🔒 Fallback URLs (update when production backend moves)
 const PRODUCTION_API_URL = 'https://bodeelezaby-backend-test.hf.space/api';
 const PRODUCTION_SOCKET_URL = 'https://bodeelezaby-backend-test.hf.space';
 const LOCAL_API_URL = 'http://localhost:3001/api'; // Local backend للتطوير
 const LOCAL_SOCKET_URL = 'http://localhost:3001';
 
-// Determine API URL - FORCE HARDCODED (ignore env vars from Vercel Dashboard)
+const ENV_API_URL = import.meta.env.VITE_API_URL;
+const ENV_SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
+const LEGACY_HOSTS = [
+  'bodeelezaby-backend-test.hf.space',
+  'newnewoo-backend.vercel.app'
+];
+
+const isLegacyUrl = (url: string | undefined) => {
+  if (!url) return false;
+  return LEGACY_HOSTS.some((host) => url.includes(host));
+};
+
+const stripTrailingSlashes = (url: string) => url.replace(/\/+$/, '');
+
+const normalizeApiUrl = (url: string) => {
+  const clean = stripTrailingSlashes(url);
+  return clean.endsWith('/api') ? clean : `${clean}/api`;
+};
+
+const normalizeSocketUrl = (url: string) => {
+  const clean = stripTrailingSlashes(url);
+  return clean.endsWith('/api') ? clean.slice(0, -4) : clean;
+};
+
+// Determine API URL - prefer env if it's not legacy
 const getApiUrl = () => {
     // Check if localhost ONLY
     const host = typeof window !== 'undefined' ? window.location.hostname : '';
@@ -26,9 +45,14 @@ const getApiUrl = () => {
         return LOCAL_API_URL;
     }
     
-    // PRODUCTION - ALWAYS use hardcoded URL (ignore env vars)
-    console.log('🌐 PRODUCTION MODE - Using:', PRODUCTION_API_URL);
-    console.log('⚠️ IGNORING environment variables - using hardcoded URLs only');
+    if (ENV_API_URL && !isLegacyUrl(ENV_API_URL)) {
+        const normalized = normalizeApiUrl(ENV_API_URL);
+        console.log('🌐 PRODUCTION MODE - Using ENV API URL:', normalized);
+        return normalized;
+    }
+
+    // PRODUCTION - fallback to hardcoded URL
+    console.log('🌐 PRODUCTION MODE - Using fallback API URL:', PRODUCTION_API_URL);
     return PRODUCTION_API_URL;
 };
 
@@ -42,8 +66,20 @@ const getSocketUrl = () => {
         return LOCAL_SOCKET_URL;
     }
     
-    // PRODUCTION - ALWAYS use hardcoded URL (ignore env vars)
-    console.log('🌐 PRODUCTION MODE - Using:', PRODUCTION_SOCKET_URL);
+    if (ENV_SOCKET_URL && !isLegacyUrl(ENV_SOCKET_URL)) {
+        const normalized = normalizeSocketUrl(ENV_SOCKET_URL);
+        console.log('🌐 PRODUCTION MODE - Using ENV SOCKET URL:', normalized);
+        return normalized;
+    }
+
+    if (ENV_API_URL && !isLegacyUrl(ENV_API_URL)) {
+        const normalizedFromApi = normalizeSocketUrl(ENV_API_URL);
+        console.log('🌐 PRODUCTION MODE - Derived SOCKET URL from API URL:', normalizedFromApi);
+        return normalizedFromApi;
+    }
+
+    // PRODUCTION - fallback to hardcoded URL
+    console.log('🌐 PRODUCTION MODE - Using fallback SOCKET URL:', PRODUCTION_SOCKET_URL);
     return PRODUCTION_SOCKET_URL;
 };
 

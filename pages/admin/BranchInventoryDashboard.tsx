@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Store, Package, AlertCircle, TrendingUp, DollarSign, Navigation, MapPin, Phone, Edit, Trash2, Plus, Activity } from 'lucide-react';
 import { api } from '../../services/api';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+import { API_URL } from '../../src/config';
 
 interface Branch {
   id: number;

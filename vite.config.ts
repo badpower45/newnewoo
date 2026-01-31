@@ -5,6 +5,8 @@ import { compression } from 'vite-plugin-compression2';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
+  const apiUrl = env.VITE_API_URL || 'http://localhost:3001/api';
+  const apiTarget = apiUrl.replace(/\/api\/?$/, '');
   return {
     server: {
       port: 5173,
@@ -14,7 +16,7 @@ export default defineConfig(({ mode }) => {
       },
       proxy: {
         '/api': {
-          target: 'https://bodeelezaby-backend-test.hf.space',
+          target: apiTarget,
           changeOrigin: true,
         }
       }

@@ -8,7 +8,7 @@ import SavedAddressSelector from '../components/SavedAddressSelector';
 import Footer from '../components/Footer';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { PAYMENT_METHOD_LABELS } from '../src/config';
+import { API_URL, PAYMENT_METHOD_LABELS } from '../src/config';
 import { useToast } from '../components/Toast';
 import { extractCoordinatesFromMapsLink, validateCoordinates, formatCoordinates } from '../utils/googleMapsHelper';
 import { optimizeProductCardImage } from '../utils/imageOptimization';
@@ -117,7 +117,7 @@ export default function CheckoutPage() {
             try {
                 // إذا المستخدم اختار محافظة، نستخدم رسوم المحافظة
                 if (formData.governorate && formData.governorate.trim()) {
-                    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3001/api'}/delivery-fees/calculate-by-governorate`, {
+                    const response = await fetch(`${API_URL}/delivery-fees/calculate-by-governorate`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
