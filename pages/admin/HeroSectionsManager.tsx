@@ -107,8 +107,8 @@ export default function HeroSectionsManager() {
     const fetchHeroSections = async () => {
         try {
             const token = localStorage.getItem('token');
-            console.log('🔍 Fetching hero sections from:', `${API_BASE_URL}/hero-sections?all=true`);
-            const response = await fetch(`${API_BASE_URL}/hero-sections?all=true`, {
+            console.log('🔍 Fetching hero sections from:', `${API_BASE_URL}/home-sections?all=true`);
+            const response = await fetch(`${API_BASE_URL}/home-sections?all=true`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -181,8 +181,8 @@ export default function HeroSectionsManager() {
             }
 
             const url = editingSection
-                ? `${API_BASE_URL}/hero-sections/${editingSection.id}`
-                : `${API_BASE_URL}/hero-sections`;
+                ? `${API_BASE_URL}/home-sections/${editingSection.id}`
+                : `${API_BASE_URL}/home-sections`;
 
             const response = await fetch(url, {
                 method: editingSection ? 'PUT' : 'POST',
@@ -215,7 +215,7 @@ export default function HeroSectionsManager() {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${API_BASE_URL}/hero-sections/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/home-sections/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -267,7 +267,7 @@ export default function HeroSectionsManager() {
 
         try {
             const token = localStorage.getItem('token');
-            await fetch(`${API_BASE_URL}/hero-sections/reorder`, {
+            await fetch(`${API_BASE_URL}/home-sections/reorder`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,

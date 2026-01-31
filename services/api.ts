@@ -518,7 +518,7 @@ export const api = {
         getAll: async (options?: { all?: boolean }) => {
             const qs = options?.all ? '?all=true' : '';
             const headers = options?.all ? getHeaders() : getPublicHeaders();
-            const res = await fetch(`${API_URL}/hero-sections${qs}`, { headers });
+            const res = await fetch(`${API_URL}/home-sections${qs}`, { headers });
             const text = await res.text();
             try {
                 const json = text ? JSON.parse(text) : {};
