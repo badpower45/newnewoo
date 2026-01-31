@@ -25,10 +25,16 @@ const BrandsCarousel: React.FC<BrandsCarouselProps> = ({ title = "Featured Brand
     useEffect(() => {
         const loadBrands = async () => {
             try {
-                const response = await api.brands.getFeatured();
-                const list = (response as any)?.data || response || [];
-                const featured = list.slice(0, 6);
-                setBrands(featured as Brand[]);
+                // Backend doesn't have /brands endpoint yet - use fallback
+                // TODO: Create backend /brands endpoint
+                setBrands([]);
+                setLoading(false);
+                return;
+                
+                // const response = await api.brands.getFeatured();
+                // const list = (response as any)?.data || response || [];
+                // const featured = list.slice(0, 6);
+                // setBrands(featured as Brand[]);
             } catch (error) {
                 console.error('Failed to load brands', error);
                 setBrands([]);
