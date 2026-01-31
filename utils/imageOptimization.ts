@@ -129,6 +129,11 @@ export function optimizeImage(
         return `https://placehold.co/${size.width}x${size.height}/e5e7eb/6b7280?text=Image`;
     }
 
+    // Data/Blob URLs should not be modified (would break base64/blob)
+    if (url.startsWith('data:') || url.startsWith('blob:')) {
+        return url;
+    }
+
     // Supabase Storage
     if (url.includes('supabase.co/storage')) {
         return optimizeSupabaseImage(url, size);
