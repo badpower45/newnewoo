@@ -69,9 +69,20 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
 
     const fetchPopup = async () => {
         try {
-            console.log('🎯 Popups disabled - no backend route available');
-            // Popups feature disabled - backend route doesn't exist
-            return;
+            if (hasShownThisSession()) return;
+
+            const res = await api.popups.getActive(page);
+            const payload = res?.data ?? res?.popup ?? res;
+            const popupData = Array.isArray(payload) ? payload[0] : payload;
+
+            if (!popupData?.id) return;
+
+            const dismissed = getDismissedPopups();
+            if (dismissed.includes(popupData.id)) return;
+
+            setPopup(popupData);
+            setIsVisible(true);
+            markShownThisSession();
         } catch (error) {
             console.error('❌ Error fetching popup:', error);
         }

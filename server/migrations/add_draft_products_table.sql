@@ -38,9 +38,10 @@ CREATE INDEX IF NOT EXISTS idx_draft_products_status ON draft_products(status);
 CREATE INDEX IF NOT EXISTS idx_draft_products_batch ON draft_products(import_batch_id);
 CREATE INDEX IF NOT EXISTS idx_draft_products_imported_by ON draft_products(imported_by);
 
--- Drop old function signature before redefining (return type changed)
-DROP FUNCTION IF EXISTS publish_draft_product(INTEGER);
-DROP FUNCTION IF EXISTS publish_draft_product(TEXT);
+-- Drop ALL old function signatures before redefining
+DROP FUNCTION IF EXISTS publish_draft_product(INTEGER) CASCADE;
+DROP FUNCTION IF EXISTS publish_draft_product(TEXT) CASCADE;
+DROP FUNCTION IF EXISTS publish_draft_product CASCADE;
 
 -- Function to publish draft product to main products table
 CREATE OR REPLACE FUNCTION publish_draft_product(draft_id TEXT)

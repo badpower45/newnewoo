@@ -13,7 +13,6 @@ const LOCAL_SOCKET_URL = 'http://localhost:3001';
 const ENV_API_URL = import.meta.env.VITE_API_URL;
 const ENV_SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
 const LEGACY_HOSTS = [
-  'bodeelezaby-backend-test.hf.space',
   'newnewoo-backend.vercel.app'
 ];
 
@@ -34,21 +33,20 @@ const normalizeSocketUrl = (url: string) => {
   return clean.endsWith('/api') ? clean.slice(0, -4) : clean;
 };
 
-// Determine API URL - prefer env if it's not legacy
+// Determine API URL - prefer env if it's not legacy (even on localhost)
 const getApiUrl = () => {
-    // Check if localhost ONLY
-    const host = typeof window !== 'undefined' ? window.location.hostname : '';
-    const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '::1';
-    
-    if (isLocal) {
-        console.log('🏠 LOCAL MODE - Using:', LOCAL_API_URL);
-        return LOCAL_API_URL;
-    }
-    
     if (ENV_API_URL && !isLegacyUrl(ENV_API_URL)) {
         const normalized = normalizeApiUrl(ENV_API_URL);
         console.log('🌐 PRODUCTION MODE - Using ENV API URL:', normalized);
         return normalized;
+    }
+
+    // Check if localhost ONLY
+    const host = typeof window !== 'undefined' ? window.location.hostname : '';
+    const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '::1';
+    if (isLocal) {
+        console.log('🏠 LOCAL MODE - Using:', LOCAL_API_URL);
+        return LOCAL_API_URL;
     }
 
     // PRODUCTION - fallback to hardcoded URL
@@ -57,15 +55,6 @@ const getApiUrl = () => {
 };
 
 const getSocketUrl = () => {
-    // Check if localhost ONLY
-    const host = typeof window !== 'undefined' ? window.location.hostname : '';
-    const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '::1';
-    
-    if (isLocal) {
-        console.log('🏠 LOCAL MODE - Using:', LOCAL_SOCKET_URL);
-        return LOCAL_SOCKET_URL;
-    }
-    
     if (ENV_SOCKET_URL && !isLegacyUrl(ENV_SOCKET_URL)) {
         const normalized = normalizeSocketUrl(ENV_SOCKET_URL);
         console.log('🌐 PRODUCTION MODE - Using ENV SOCKET URL:', normalized);
@@ -76,6 +65,14 @@ const getSocketUrl = () => {
         const normalizedFromApi = normalizeSocketUrl(ENV_API_URL);
         console.log('🌐 PRODUCTION MODE - Derived SOCKET URL from API URL:', normalizedFromApi);
         return normalizedFromApi;
+    }
+
+    // Check if localhost ONLY
+    const host = typeof window !== 'undefined' ? window.location.hostname : '';
+    const isLocal = host === 'localhost' || host === '127.0.0.1' || host === '::1';
+    if (isLocal) {
+        console.log('🏠 LOCAL MODE - Using:', LOCAL_SOCKET_URL);
+        return LOCAL_SOCKET_URL;
     }
 
     // PRODUCTION - fallback to hardcoded URL
