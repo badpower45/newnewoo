@@ -19,8 +19,7 @@ const ProductFramesManager: React.FC = () => {
     const [uploadModalOpen, setUploadModalOpen] = useState(false);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [preview, setPreview] = useState<string>('');
-    const [frameName, setFrameName] = useState('');
-    const [frameNameAr, setFrameNameAr] = useState('');
+    const [productId, setProductId] = useState('');
     const [frameCategory, setFrameCategory] = useState('general');
 
     useEffect(() => {
@@ -61,15 +60,15 @@ const ProductFramesManager: React.FC = () => {
     };
 
     const handleUpload = async () => {
-        if (!selectedFile || !frameName || !frameNameAr) {
-            alert('⚠️ يرجى ملء جميع الحقول واختيار صورة');
+        if (!selectedFile || !productId) {
+            alert('⚠️ يرجى إدخال رقم المنتج واختيار صورة');
             return;
         }
 
         try {
             setLoading(true);
             
-            // 🔥 تحويل لـ base64 للإرسال
+            // Convert to base64
             const reader = new FileReader();
             reader.readAsDataURL(selectedFile);
             
@@ -79,9 +78,9 @@ const ProductFramesManager: React.FC = () => {
             });
             
             const frameBase64 = await base64Promise;
-            console.log('📤 Uploading frame (will be uploaded to Cloudinary by backend)...');
+            console.log('📤 Uploading frame for product:', productId);
             
-            // إرسال JSON بدلاً من FormData
+            // Send to backend
             const response = await fetch(`${api.API_URL}/products/upload-frame`, {
                 method: 'POST',
                 headers: {
@@ -89,9 +88,7 @@ const ProductFramesManager: React.FC = () => {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
                 body: JSON.stringify({
-                    name: frameName,
-                    name_ar: frameNameAr,
-                    category: frameCategory,
+                    productId: productId,
                     frame_base64: frameBase64
                 })
             });
@@ -103,10 +100,10 @@ const ProductFramesManager: React.FC = () => {
             }
             
             console.log('✅ Frame uploaded:', result);
-            alert(`✅ تم رفع الإطار بنجاح!\n${result.data?.name || ''}`);
+            alert(`✅ تم رفع الإطار بنجاح للمنتج: ${result.data?.name || productId}`);
             setUploadModalOpen(false);
             resetForm();
-            await loadFrames(); // Wait for frames to reload
+            await loadFrames();
         } catch (error: any) {
             console.error('Error uploading frame:', error);
             alert(`❌ فشل رفع الإطار: ${error.message || 'خطأ غير معروف'}`);
@@ -163,8 +160,7 @@ const ProductFramesManager: React.FC = () => {
     const resetForm = () => {
         setSelectedFile(null);
         setPreview('');
-        setFrameName('');
-        setFrameNameAr('');
+        setProductId('');
         setFrameCategory('general');
     };
 
@@ -308,45 +304,20 @@ const ProductFramesManager: React.FC = () => {
 
                         {/* Modal Body */}
                         <div className="admin-modal-body">
-                            {/* اسم الإطار بالإنجليزي */}
+                            {/* رقم المنتج */}
                             <div>
-                                <label className="admin-form-label">اسم الإطار (EN) *</label>
+                                <label className="admin-form-label">رقم المنتج (ID) *</label>
                                 <input
                                     type="text"
-                                    value={frameName}
-                                    onChange={(e) => setFrameName(e.target.value)}
+                                    value={productId}
+                                    onChange={(e) => setProductId(e.target.value)}
                                     className="admin-form-input"
-                                    placeholder="Gold Border"
+                                    placeholder="مثال: 6223000350065"
+                                    dir="ltr"
                                 />
-                            </div>
-
-                            {/* اسم الإطار بالعربي */}
-                            <div>
-                                <label className="admin-form-label">اسم الإطار (AR) *</label>
-                                <input
-                                    type="text"
-                                    value={frameNameAr}
-                                    onChange={(e) => setFrameNameAr(e.target.value)}
-                                    className="admin-form-input"
-                                    placeholder="إطار ذهبي"
-                                    dir="rtl"
-                                />
-                            </div>
-
-                            {/* الفئة */}
-                            <div>
-                                <label className="admin-form-label">الفئة</label>
-                                <select
-                                    value={frameCategory}
-                                    onChange={(e) => setFrameCategory(e.target.value)}
-                                    className="admin-form-select"
-                                >
-                                    <option value="general">عام</option>
-                                    <option value="premium">مميز</option>
-                                    <option value="sale">تخفيض</option>
-                                    <option value="new">جديد</option>
-                                    <option value="organic">عضوي</option>
-                                </select>
+                                <p className="text-xs text-gray-500 mt-1">
+                                    💡 يمكنك نسخ رقم المنتج من صفحة المنتجات
+                                </p>
                             </div>
 
                             {/* رفع الملف */}
