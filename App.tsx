@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import BottomNav from './components/BottomNav';
 import { CartProvider } from './context/CartContext';
@@ -7,6 +7,7 @@ import { BranchProvider } from './context/BranchContext';
 import { useAuth } from './context/AuthContext';
 import { useBranch } from './context/BranchContext';
 import FullPageSkeleton from './components/FullPageSkeleton';
+import { registerImageCacheServiceWorker } from './utils/imageCacheSW';
 
 // Lazy load all pages for better code splitting
 const HomePage = lazy(() => import('./pages/HomePage'));
@@ -127,6 +128,11 @@ function AppContent() {
   const [showSplash, setShowSplash] = React.useState(true);
   const [appReady, setAppReady] = React.useState(false);
   const location = useLocation();
+
+  // 🔥 Register Image Cache Service Worker
+  useEffect(() => {
+    registerImageCacheServiceWorker();
+  }, []);
   const path = location.pathname;
   const { user } = useAuth();
   const isAdminRoute = path.startsWith('/admin');

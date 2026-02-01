@@ -9,27 +9,27 @@
  * أحجام الصور المختلفة حسب الاستخدام
  */
 export const IMAGE_SIZES = {
-    // Product Cards في القوائم
+    // Product Cards في القوائم - AGGRESSIVE OPTIMIZATION 🔥
     CARD_THUMBNAIL: {
-        width: 200,
-        height: 200,
-        quality: 60, // Reduced from 70
+        width: 180,      // Reduced from 200
+        height: 180,     // Reduced from 200
+        quality: 50,     // Reduced from 60 ⚡
         format: 'webp'
     },
 
     // Product Details Page
     PRODUCT_DETAIL: {
-        width: 600,
-        height: 600,
-        quality: 75, // Reduced from 80
+        width: 500,      // Reduced from 600
+        height: 500,     // Reduced from 600
+        quality: 65,     // Reduced from 75 ⚡
         format: 'webp'
     },
 
-    // Frames
+    // Frames - يجب أن تكون خفيفة جداً
     FRAME_OVERLAY: {
-        width: 200,
-        height: 200,
-        quality: 60, // Reduced from 70
+        width: 180,      // Same as cards
+        height: 180,     // Same as cards
+        quality: 50,     // Reduced from 60 ⚡
         format: 'webp'
     },
 
@@ -37,15 +37,15 @@ export const IMAGE_SIZES = {
     BANNER: {
         width: 1200,
         height: 400,
-        quality: 80, // Reduced from 85
+        quality: 70,     // Reduced from 80 ⚡
         format: 'webp'
     },
 
     // Thumbnails صغيرة جداً
     TINY_THUMB: {
-        width: 100,
-        height: 100,
-        quality: 50, // Reduced from 60
+        width: 80,       // Reduced from 100
+        height: 80,      // Reduced from 100
+        quality: 40,     // Reduced from 50 ⚡
         format: 'webp'
     }
 };
@@ -56,7 +56,7 @@ export const IMAGE_SIZES = {
  * 
  * @example
  * https://xxx.supabase.co/storage/v1/object/public/bucket/image.jpg
- * -> https://xxx.supabase.co/storage/v1/object/public/bucket/image.jpg?width=200&quality=70
+ * -> https://xxx.supabase.co/storage/v1/object/public/bucket/image.jpg?width=180&quality=50&format=webp
  */
 function optimizeSupabaseImage(
     url: string,
@@ -67,8 +67,8 @@ function optimizeSupabaseImage(
         const hasParams = url.includes('?');
         const separator = hasParams ? '&' : '?';
         
-        // Add transformation params
-        return `${url}${separator}width=${size.width}&height=${size.height}&quality=${size.quality}&format=${size.format}&resize=cover`;
+        // Add transformation params with AGGRESSIVE settings 🔥
+        return `${url}${separator}width=${size.width}&height=${size.height}&quality=${size.quality}&format=${size.format}&resize=cover&smart=true`;
     } catch (error) {
         return url;
     }
@@ -94,15 +94,18 @@ function optimizeCloudinaryImage(
         const beforeUpload = url.substring(0, uploadIndex + 8); // Include '/upload/'
         const afterUpload = url.substring(uploadIndex + 8);
 
-        // Build transformations with aggressive compression
+        // Build transformations with ULTRA AGGRESSIVE compression 🔥
         const transformations = [
             `w_${size.width}`,
             `h_${size.height}`,
             `q_${size.quality}`,
             `f_${size.format}`,
-            'c_fill', // Crop to fill (maintain aspect ratio)
-            'fl_progressive', // Progressive loading
-            'fl_lossy' // Lossy compression for smaller files
+            'c_fill',          // Crop to fill (maintain aspect ratio)
+            'fl_progressive',  // Progressive loading
+            'fl_lossy',        // Lossy compression for smaller files
+            'dpr_auto',        // Auto device pixel ratio ⚡
+            'f_auto',          // Auto format (AVIF > WebP > JPEG) ⚡
+            'q_auto:eco'       // Maximum compression! ⚡⚡⚡
         ].join(',');
 
         // Construct optimized URL

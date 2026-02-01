@@ -168,13 +168,21 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
             alt={title}
             loading="lazy"
             decoding="async"
+            fetchpriority="low"
             className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+            style={{ 
+              contentVisibility: 'auto',
+              backgroundColor: '#f3f4f6'
+            }}
           />
           {isFrameEnabled && (
             <img
               src={optimizeFrameImage(frameOverlayUrl)}
               alt=""
               aria-hidden="true"
+              loading="lazy"
+              decoding="async"
+              fetchpriority="low"
               className="absolute inset-0 w-full h-full object-contain pointer-events-none"
             />
           )}
