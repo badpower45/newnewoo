@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { Home, Grid, ShoppingCart, Tag, MoreHorizontal } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
@@ -18,7 +19,7 @@ const BottomNav = () => {
         { icon: MoreHorizontal, label: t('more'), path: '/more' },
     ];
 
-    return (
+    const content = (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 py-2 px-4 pb-safe z-50">
             <div className="flex justify-between items-center max-w-md mx-auto">
                 {navItems.map((item) => {
@@ -45,6 +46,12 @@ const BottomNav = () => {
             </div>
         </div>
     );
+
+    if (typeof document === 'undefined') {
+        return content;
+    }
+
+    return createPortal(content, document.body);
 };
 
 export default BottomNav;
