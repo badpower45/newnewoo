@@ -16,16 +16,26 @@ interface Brand {
 
 interface BrandsCarouselProps {
     title?: string;
+    brands?: Brand[]; // 🚀 Accept brands from parent to avoid extra API call
 }
 
-const BrandsCarousel: React.FC<BrandsCarouselProps> = ({ title = "Featured Brands" }) => {
+const BrandsCarousel: React.FC<BrandsCarouselProps> = ({ title = "Featured Brands", brands: propBrands }) => {
     const [brands, setBrands] = useState<Brand[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        // 🚀 If brands provided via props, use them directly (no API call)
+        if (propBrands && propBrands.length > 0) {
+            console.log('✅ Using brands from props:', propBrands.length);
+            setBrands(propBrands.slice(0, 6));
+            setLoading(false);
+            return;
+        }
+
+        // Fallback: Load brands via API if not provided
         const loadBrands = async () => {
             try {
-                console.log('🏷️ Loading brands...');
+                console.log('🏷️ Loading brands via API...');
                 const response = await api.brands.getAll();
                 const list = (response as any)?.data || response || [];
                 console.log('✅ Brands loaded:', list.length);
@@ -40,7 +50,7 @@ const BrandsCarousel: React.FC<BrandsCarouselProps> = ({ title = "Featured Brand
         };
 
         loadBrands();
-    }, []);
+    }, [propBrands]);
 
     const fallbackImage = 'https://images.unsplash.com/photo-1606312619070-d48b4c652a52?w=400';
 

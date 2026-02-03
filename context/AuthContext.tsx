@@ -97,9 +97,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         let cancelled = false;
         const hydrate = async () => {
-            const token = localStorage.getItem('token');
+            const isSupabaseToken = (token?: string | null) => {
+                if (!token) return false;
+                try {
+                    const payload = JSON.parse(atob(token.split('.')[1] || ''));
+                    return typeof payload?.iss === 'string' && payload.iss.includes('supabase');
+                } catch {
+                    return false;
+                }
+            };
+
+            const storedToken = localStorage.getItem('token');
+            const backendTokenCandidate = localStorage.getItem('backend_token')
+                || (storedToken && !isSupabaseToken(storedToken) ? storedToken : null);
+            if (storedToken && isSupabaseToken(storedToken)) {
+                localStorage.removeItem('token');
+            }
+            const hasBackendToken = !!(backendTokenCandidate && backendTokenCandidate !== 'null' && backendTokenCandidate !== 'undefined');
             const savedUser = localStorage.getItem('user');
-            const parsedUser = savedUser ? JSON.parse(savedUser) : null;
+            let parsedUser = savedUser ? JSON.parse(savedUser) : null;
+
+            if (parsedUser && !parsedUser.isGuest && !hasBackendToken) {
+                localStorage.removeItem('user');
+                parsedUser = null;
+            }
 
             if (parsedUser && !cancelled) {
                 setUser(parsedUser);
@@ -113,18 +134,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             try {
                 const session = await supabaseAuth.getSession();
                 if (session?.user) {
-                    const mapped = mapSupabaseSessionToUser(session);
-                    if (!cancelled) {
-                        localStorage.setItem('token', session.access_token || 'supabase-session');
-                        localStorage.setItem('user', JSON.stringify(mapped));
-                        setUser(mapped);
-                    }
+                    localStorage.setItem('supabase_token', session.access_token || 'supabase-session');
                 }
             } catch (e) {
                 // ignore hydrate errors
             }
 
-            if (token) {
+            if (hasBackendToken) {
                 try {
                     const profile = await api.users.getProfile();
                     if (profile && !cancelled) {
@@ -160,6 +176,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (!data?.auth || !data?.user) {
                 throw new Error(data?.message || data?.error || 'Login failed');
             }
+            localStorage.setItem('backend_token', data.token);
             localStorage.setItem('token', data.token);
             let userWithGuestStatus = { ...data.user, isGuest: false };
 
@@ -211,6 +228,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 throw new Error(data?.message || data?.error || 'Registration failed');
             }
             
+            localStorage.setItem('backend_token', data.token);
             localStorage.setItem('token', data.token);
             let userWithGuestStatus = { ...data.user, isGuest: false };
 
@@ -248,7 +266,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const logout = async () => {
+        localStorage.removeItem('backend_token');
         localStorage.removeItem('token');
+        localStorage.removeItem('supabase_token');
         localStorage.removeItem('user');
         setUser(null);
         setLoading(false);

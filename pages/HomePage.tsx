@@ -45,6 +45,7 @@ const HomePage = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [homeSections, setHomeSections] = useState<HomeSection[]>([]);
+    const [brands, setBrands] = useState<any[]>([]); // Store brands from unified API
     const [sectionsLoading, setSectionsLoading] = useState(true);
     const [sectionsLoaded, setSectionsLoaded] = useState(false);
     const [sectionsPage, setSectionsPage] = useState(1);
@@ -129,7 +130,58 @@ const HomePage = () => {
 
     const SECTION_PAGE_SIZE = 2;
 
-    // Fetch home sections from API (paged)
+    // 🚀 Unified Home Data Fetch - ONE API call instead of 3+
+    const fetchUnifiedHomeData = useCallback(async () => {
+        setSectionsLoading(true);
+        setSectionsLoaded(false);
+        setNeedsFallbackProducts(true);
+        
+        try {
+            const branchId = selectedBranch?.id || DEFAULT_BRANCH_ID;
+            console.log('🚀 Fetching unified home data for branch:', branchId);
+            
+            // Single API call that gets: brands + home sections + hero sections
+            const response = await api.homeData.getAll(branchId, {
+                sectionsLimit: 3,
+                productsPerSection: 6,
+                brandsLimit: 10,
+                heroLimit: 5
+            });
+
+            if (response.success && response.data) {
+                // Set brands
+                if (response.data.brands) {
+                    setBrands(response.data.brands);
+                    console.log('✅ Loaded', response.data.brands.length, 'brands');
+                }
+
+                // Set home sections
+                if (response.data.homeSections) {
+                    setHomeSections(response.data.homeSections);
+                    console.log('✅ Loaded', response.data.homeSections.length, 'sections with', response.meta.totalProducts, 'products');
+                }
+
+                // Hero sections would go here if needed
+                // setHeroSections(response.data.heroSections);
+
+                const hasSectionProducts = response.data.homeSections?.some(
+                    (section: any) => Array.isArray(section.products) && section.products.length > 0
+                );
+
+                setNeedsFallbackProducts(!hasSectionProducts);
+            }
+        } catch (err) {
+            console.error('❌ Error fetching unified home data:', err);
+            setHomeSections([]);
+            setBrands([]);
+            setNeedsFallbackProducts(true);
+        } finally {
+            setSectionsLoading(false);
+            setSectionsLoaded(true);
+        }
+    }, [selectedBranch]);
+
+    // Fetch home sections from API (paged) - DEPRECATED: Use fetchUnifiedHomeData instead
     const fetchHomeSections = useCallback(async (page = 1, append = false) => {
         if (append) {
             setSectionsLoadingMore(true);
@@ -223,12 +275,9 @@ const HomePage = () => {
 
     useEffect(() => {
         fetchCategories();
-        setHomeSections([]);
-        setSectionsPage(1);
-        setSectionsHasMore(true);
-        setFallbackRequested(false);
-        fetchHomeSections(1, false);
-    }, [selectedBranch, fetchHomeSections]);
+        // 🚀 Use unified API instead of multiple calls
+        fetchUnifiedHomeData();
+    }, [selectedBranch, fetchUnifiedHomeData]);
 
     useEffect(() => {
         if (!sectionsLoaded) return;
@@ -326,8 +375,8 @@ const HomePage = () => {
                         <HeroCarousel />
                     </div>
 
-                    {/* Featured Brands Carousel */}
-                    <BrandsCarousel title={t('home.featuredBrands')} />
+                    {/* Featured Brands Carousel - 🚀 Using brands from unified API */}
+                    <BrandsCarousel title={t('home.featuredBrands')} brands={brands} />
 
                     {/* Brand Offers Section */}
                     <BrandOffersSection />

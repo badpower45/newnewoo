@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { ChevronLeft, Loader2, User, Mail, Phone, Lock, Calendar, Eye, EyeOff, UserPlus, Ban } from 'lucide-react';
 import { supabaseAuth } from '../services/supabaseAuth';
+import { api } from '../services/api';
 import { blockingService } from '../services/blockingService';
 
 const RegisterPage = () => {
@@ -56,6 +57,26 @@ const RegisterPage = () => {
                 phone,
                 birthDate
             });
+
+            // Try to sync user with backend (so protected APIs work)
+            try {
+                const backendRegister = await api.auth.register({
+                    firstName,
+                    lastName,
+                    name: `${firstName} ${lastName}`.trim(),
+                    email,
+                    phone,
+                    birthDate,
+                    password
+                });
+                if (backendRegister?.auth && backendRegister?.token) {
+                    localStorage.setItem('backend_token', backendRegister.token);
+                    localStorage.setItem('token', backendRegister.token);
+                    localStorage.setItem('user', JSON.stringify({ ...backendRegister.user, isGuest: false }));
+                }
+            } catch (backendErr) {
+                console.warn('⚠️ Backend registration failed (will continue with Supabase only):', backendErr);
+            }
             
             if (user && !session) {
                 // Email verification required
@@ -72,7 +93,7 @@ const RegisterPage = () => {
             } else if (session) {
                 // Auto logged in (email confirmation disabled in Supabase)
                 // Store session and navigate
-                localStorage.setItem('supabase.auth.token', session.access_token);
+                localStorage.setItem('supabase_token', session.access_token);
                 navigate('/');
             }
         } catch (err: any) {

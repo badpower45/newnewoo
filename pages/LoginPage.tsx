@@ -88,7 +88,7 @@ const LoginPage = () => {
                 session = supabaseLogin.session;
                 user = supabaseLogin.user;
                 if (session?.access_token) {
-                    localStorage.setItem('supabase.auth.token', session.access_token);
+                    localStorage.setItem('supabase_token', session.access_token);
                 }
             } catch (e) {
                 supabaseError = e;
@@ -105,6 +105,7 @@ const LoginPage = () => {
                 if (backendLogin?.auth && backendLogin?.token) {
                     backendToken = backendLogin.token;
                     backendUser = backendLogin.user;
+                    localStorage.setItem('backend_token', backendToken);
                     localStorage.setItem('token', backendToken);
                     console.log('✅ Backend login successful, token stored');
                 } else {
@@ -133,12 +134,41 @@ const LoginPage = () => {
             }
 
             if (!backendToken && session?.access_token) {
-                localStorage.setItem('token', session.access_token);
-                console.log('⚠️ Using Supabase token as fallback');
+                const noUser = backendError?.status === 404 || String(backendError?.message || '').includes('No user');
+                if (noUser) {
+                    try {
+                        const nameFromEmail = email.trim().split('@')[0] || 'User';
+                        const registerPayload = {
+                            name: user?.user_metadata?.full_name || user?.user_metadata?.name || nameFromEmail,
+                            email: email.trim(),
+                            password
+                        };
+                        const backendRegister = await api.auth.register(registerPayload);
+                        if (backendRegister?.auth && backendRegister?.token) {
+                            backendToken = backendRegister.token;
+                            backendUser = backendRegister.user;
+                            localStorage.setItem('backend_token', backendToken);
+                            localStorage.setItem('token', backendToken);
+                            console.log('✅ Backend user created & token stored');
+                        }
+                    } catch (regErr) {
+                        console.error('❌ Backend auto-register failed:', regErr);
+                    }
+                }
             }
 
-            if (!backendToken && !session?.access_token) {
-                throw backendError || supabaseError || new Error('فشل تسجيل الدخول');
+            if (!backendToken) {
+                if (backendError?.status === 429) {
+                    setError('الخادم عليه ضغط حالياً (Too Many Requests). جرب بعد دقيقة.');
+                } else if (backendError?.status === 403) {
+                    setError(backendError.message || 'غير مصرح. تأكد من تفعيل البريد أولاً.');
+                } else if (backendError?.status === 401) {
+                    setError('البريد الإلكتروني أو كلمة المرور غير صحيحة');
+                } else {
+                    setError('تعذر تسجيل الدخول في الخادم. تأكد من أن الباك‑إند شغال ثم جرّب مرة أخرى.');
+                }
+                setIsSubmitting(false);
+                return;
             }
 
             // Normalize user object - prefer backend user data
