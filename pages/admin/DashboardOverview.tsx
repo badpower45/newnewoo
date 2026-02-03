@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { DollarSign, ShoppingBag, Package, AlertTriangle, Users, TrendingUp, BarChart3 } from 'lucide-react';
+import { DollarSign, ShoppingBag, Package, AlertTriangle, Users, TrendingUp } from 'lucide-react';
 import { api } from '../../services/api';
+import PerformanceMonitor from '../../components/PerformanceMonitor';
 
 // Order Status Labels
 const ORDER_STATUS_LABELS: Record<string, string> = {
@@ -83,42 +84,20 @@ const DashboardOverview = () => {
         { 
             label: 'إجمالي المستخدمين', 
             value: (stats.users.total || 0).toString(), 
-            icon:div>
-                    <h1 className="admin-page-title">لوحة التحكم الرئيسية 🎯</h1>
-                    <p className="admin-page-subtitle">نظرة عامة على الأداء والإحصائيات - تحديث فوري</p>
-                </div>
-                
-                {/* Time Range Selector */}
-                <div className="flex gap-2 mt-4">
-                    {(['7days', '30days', '90days', 'year'] as const).map((range) => (
-                        <button
-                            key={range}
-                            onClick={() => setTimeRange(range)}
-                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                                timeRange === range 
-                                    ? 'bg-green-600 text-white' 
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
-                        >
-                            {range === '7days' ? '7 أيام' : range === '30days' ? '30 يوم' : range === '90days' ? '90 يوم' : 'سنة'}
-                        </button>
-                    ))}
-                </div>
-            </div>
+            icon: <Users size={24} />,
+            color: 'bg-indigo-100 text-indigo-600',
+            subtext: `مستخدمين نشطين: ${stats.users.active || 0}`
+        },
+        { 
+            label: 'معدل التحويل', 
+            value: `${(stats.conversionRate || 0).toFixed(1)}%`, 
+            icon: <TrendingUp size={24} />, 
+            color: 'bg-pink-100 text-pink-600',
+            subtext: 'من الزوار للمشترين'
+        }
+    ] : [];
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                {statsCards.map((stat, idx) => (
-                    <div key={idx} className="admin-stat-card">
-                        <div className="flex items-start gap-3 sm:gap-4">
-                            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${stat.color}`}>
-                                {stat.icon}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="admin-stat-label">{stat.label}</p>
-                                <h3 className="admin-stat-value truncate">{stat.value}</h3>
-                                {stat.subtext && (
-                                    <p className="text-xs text-gray-500 mt-1">{stat.subtext}</p>
-                                )}
+    const getOrderStatusColor = (status: string) => {
         switch (status) {
             case 'pending': return 'bg-yellow-100 text-yellow-700';
             case 'confirmed': return 'bg-blue-100 text-blue-700';
@@ -143,39 +122,88 @@ const DashboardOverview = () => {
     return (
         <div className="admin-page-container">
             <div className="admin-page-header">
-                <h1 className="admin-page-title">لوحة التحكم الرئيسية</h1>
-                <p className="admin-page-subtitle">نظرة عامة على الأداء والإحصائيات</p>
+                <div>
+                    <h1 className="admin-page-title">لوحة التحكم الرئيسية 🎯</h1>
+                    <p className="admin-page-subtitle">نظرة عامة على الأداء والإحصائيات - تحديث فوري</p>
+                </div>
+                
+                {/* Time Range Selector */}
+                <div className="flex gap-2 mt-4">
+                    {(['7days', '30days', '90days', 'year'] as const).map((range) => (
+                        <button
+                            key={range}
+                            onClick={() => setTimeRange(range)}
+                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                                timeRange === range 
+                                    ? 'bg-green-600 text-white' 
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            }`}
+                        >
+                            {range === '7days' ? '7 أيام' : range === '30days' ? '30 يوم' : range === '90days' ? '90 يوم' : 'سنة'}
+                        </button>
+                    ))}
+                </div>
             </div>
 
-            <div className="admin-grid-4 mb-6">
-                {stats.map((stat, idx) => (
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                {statsCards.map((stat, idx) => (
                     <div key={idx} className="admin-stat-card">
-                        <div className="flex items-center gap-3 sm:gap-4">
-                            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center ${stat.color}`}>
+                        <div className="flex items-start gap-3 sm:gap-4">
+                            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${stat.color}`}>
                                 {stat.icon}
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className="admin-stat-label">{stat.label}</p>
                                 <h3 className="admin-stat-value truncate">{stat.value}</h3>
+                                {stat.subtext && (
+                                    <p className="text-xs text-gray-500 mt-1">{stat.subtext}</p>
+                                )}
                             </div>
                         </div>
                     </div>
                 ))}
             </div>
 
+            {/* Recent Orders & Top Products */}
             <div className="admin-grid-2">
                 {/* Recent Orders */}
                 <div className="admin-card">
                     <h2 className="admin-card-title mb-4">آخر الطلبات</h2>
                     <div className="space-y-3">
-                        {recentOrders.length === 0 ? (أكثر المنتجات مبيعاً 🔥</h2>
+                        {recentOrders.length === 0 ? (
+                            <div className="admin-empty-state py-6">
+                                <p className="admin-empty-text">لا توجد طلبات حتى الآن</p>
+                            </div>
+                        ) : (
+                            recentOrders.map((order: any) => (
+                                <div key={order.id} className="flex items-center justify-between gap-3 p-3 sm:p-4 bg-gray-50 rounded-lg sm:rounded-xl">
+                                    <div className="flex-1 min-w-0">
+                                        <p className="font-bold text-gray-900 text-sm sm:text-base">طلب #{order.id}</p>
+                                        <p className="text-xs text-gray-500 truncate">{order.user_name} • {order.items_count} منتج</p>
+                                    </div>
+                                    <div className="text-left">
+                                        <p className="font-bold text-gray-900 text-sm sm:text-base whitespace-nowrap">{(Number(order.total) || 0).toFixed(2)} ج.م</p>
+                                        <span className={`inline-block px-2 py-0.5 rounded-full text-xs whitespace-nowrap ${getOrderStatusColor(order.status)}`}>
+                                            {ORDER_STATUS_LABELS[order.status] || order.status}
+                                        </span>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+
+                {/* Top Products */}
+                <div className="admin-card">
+                    <h2 className="admin-card-title mb-4">أكثر المنتجات مبيعاً 🔥</h2>
                     <div className="space-y-3">
                         {topProducts.length === 0 ? (
                             <div className="admin-empty-state py-6">
                                 <p className="admin-empty-text">لا توجد بيانات مبيعات حتى الآن</p>
                             </div>
                         ) : (
-                            topProducts.map((product) => (
+                            topProducts.map((product: any) => (
                                 <div key={product.id} className="flex items-center justify-between gap-3 p-3 sm:p-4 bg-gray-50 rounded-lg sm:rounded-xl">
                                     <div className="flex items-center gap-3 flex-1 min-w-0">
                                         <img 
@@ -198,31 +226,10 @@ const DashboardOverview = () => {
                                     </div>
                                 </div>
                             ))
-                        sName="admin-card">
-                    <h2 className="admin-card-title mb-4">نظرة على المنتجات</h2>
-                    <div className="space-y-3">
-                        {products.slice(0, 5).map((product) => (
-                            <div key={product.id} className="flex items-center justify-between gap-3 p-3 sm:p-4 bg-gray-50 rounded-lg sm:rounded-xl">
-                                <div className="flex items-center gap-3 flex-1 min-w-0">
-                                    <img 
-                                        src={product.image || 'https://placehold.co/400x400?text=Product'} 
-                                        alt={product.name}
-                                        className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover bg-gray-200 flex-shrink-0"
-                                        onError={(e) => {
-                                            const target = e.target as HTMLImageElement;
-                                            target.src = 'https://placehold.co/400x400?text=Product';
-                                        }}
-                                    />
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-bold text-gray-900 text-sm sm:text-base truncate">{product.name}</p>
-                                        <p className="text-xs text-gray-500 truncate">{product.category}</p>
-                                    </div>
-                                </div>
-                                <span className="font-bold text-gray-900 text-sm sm:text-base whitespace-nowrap">{(Number(product.price) || 0).toFixed(2)} ج.م</span>
-                            </div>
-                        ))}
+                        )}
                     </div>
-                </div>            </div>
+                </div>
+            </div>
 
             {/* Additional Stats - Low Stock & Users */}
             <div className="admin-grid-2 mt-6">
@@ -273,29 +280,10 @@ const DashboardOverview = () => {
                 )}
             </div>
 
-            {/* Performance Info */}
-            {dashboardData && (
-                <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border border-green-200">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                            <BarChart3 size={20} className="text-green-600" />
-                        </div>
-                        <div className="flex-1">
-                            <p className="font-bold text-gray-900">تم التحميل بنجاح ⚡</p>
-                            <p className="text-sm text-gray-600">
-                                استخدام الـ Unified API - طلب واحد فقط بدل {statsCards.length + 4} طلبات • 
-                                توفير 70-80% من البيانات
-                            </p>
-                        </div>
-                        <button
-                            onClick={loadDashboard}
-                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium"
-                        >
-                            تحديث
-                        </button>
-                    </div>
-                </div>
-            )}            </div>
+            {/* Performance Monitor - عرض الأداء الفعلي */}
+            <div className="mt-6">
+                <PerformanceMonitor endpoint="admin" showDetails={true} />
+            </div>
         </div>
     );
 };
