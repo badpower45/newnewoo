@@ -1485,9 +1485,10 @@ export const api = {
 
     // ===================== FAVORITES =====================
     favorites: {
-        // Get user's favorites
-        get: async (userId: string) => {
-            const res = await fetch(`${API_URL}/favorites/${userId}`, {
+        // Get user's favorites (uses token authentication)
+        get: async (_userId?: string) => {
+            // Use authenticated endpoint - userId extracted from token
+            const res = await fetch(`${API_URL}/favorites`, {
                 headers: getHeaders()
             });
             return res.json();
