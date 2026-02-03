@@ -1940,8 +1940,7 @@ export const api = {
             const res = await fetch(`${API_URL}/products/bulk-import`, {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'apikey': SUPABASE_ANON_KEY
+                    'Authorization': `Bearer ${token}`
                 },
                 body: formData
             });
@@ -1953,8 +1952,7 @@ export const api = {
             const token = localStorage.getItem('token');
             const res = await fetch(`${API_URL}/products/bulk-import/template`, {
                 headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'apikey': SUPABASE_ANON_KEY
+                    'Authorization': `Bearer ${token}`
                 }
             });
 
