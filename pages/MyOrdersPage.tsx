@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { 
-    Package, Clock, CheckCircle, Truck, XCircle, 
+import {
+    Package, Clock, CheckCircle, Truck, XCircle,
     ChevronLeft, ShoppingBag, MapPin, Calendar,
     RefreshCw, Eye, Phone, Star, X, MessageSquare, Ban
 } from 'lucide-react';
@@ -11,53 +11,53 @@ import { useAuth } from '../context/AuthContext';
 
 // حالات الطلب مع الألوان والأيقونات
 const ORDER_STATUS: { [key: string]: { label: string; color: string; bgColor: string; icon: any } } = {
-    pending: { 
-        label: 'في الانتظار', 
-        color: 'text-yellow-600', 
+    pending: {
+        label: 'في الانتظار',
+        color: 'text-yellow-600',
         bgColor: 'bg-yellow-100',
-        icon: Clock 
+        icon: Clock
     },
-    confirmed: { 
-        label: 'تم التأكيد', 
-        color: 'text-blue-600', 
+    confirmed: {
+        label: 'تم التأكيد',
+        color: 'text-blue-600',
         bgColor: 'bg-blue-100',
-        icon: CheckCircle 
+        icon: CheckCircle
     },
-    preparing: { 
-        label: 'جاري التحضير', 
-        color: 'text-orange-600', 
+    preparing: {
+        label: 'جاري التحضير',
+        color: 'text-orange-600',
         bgColor: 'bg-orange-100',
-        icon: Package 
+        icon: Package
     },
-    ready: { 
-        label: 'جاهز للتوصيل', 
-        color: 'text-purple-600', 
+    ready: {
+        label: 'جاهز للتوصيل',
+        color: 'text-purple-600',
         bgColor: 'bg-purple-100',
-        icon: Package 
+        icon: Package
     },
-    out_for_delivery: { 
-        label: 'في الطريق', 
-        color: 'text-indigo-600', 
+    out_for_delivery: {
+        label: 'في الطريق',
+        color: 'text-indigo-600',
         bgColor: 'bg-indigo-100',
-        icon: Truck 
+        icon: Truck
     },
-    arriving: { 
-        label: 'وصل الديليفري', 
-        color: 'text-cyan-600', 
+    arriving: {
+        label: 'وصل الديليفري',
+        color: 'text-cyan-600',
         bgColor: 'bg-cyan-100',
-        icon: MapPin 
+        icon: MapPin
     },
-    delivered: { 
-        label: 'تم التوصيل', 
-        color: 'text-green-600', 
+    delivered: {
+        label: 'تم التوصيل',
+        color: 'text-green-600',
         bgColor: 'bg-green-100',
-        icon: CheckCircle 
+        icon: CheckCircle
     },
-    cancelled: { 
-        label: 'ملغي', 
-        color: 'text-red-600', 
+    cancelled: {
+        label: 'ملغي',
+        color: 'text-red-600',
         bgColor: 'bg-red-100',
-        icon: XCircle 
+        icon: XCircle
     }
 };
 
@@ -72,7 +72,7 @@ const MyOrdersPage = () => {
     const [showCancelModal, setShowCancelModal] = useState(false);
     const [orderToCancel, setOrderToCancel] = useState<any>(null);
     const [cancellationReason, setCancellationReason] = useState('');
-    
+
     // Rating modal state
     const [showRatingModal, setShowRatingModal] = useState(false);
     const [ratingOrder, setRatingOrder] = useState<any>(null);
@@ -81,7 +81,7 @@ const MyOrdersPage = () => {
     const [speedRating, setSpeedRating] = useState(5);
     const [ratingComment, setRatingComment] = useState('');
     const [submittingRating, setSubmittingRating] = useState(false);
-    
+
     // Pending ratings popup
     const [pendingRatingOrder, setPendingRatingOrder] = useState<any>(null);
 
@@ -89,20 +89,20 @@ const MyOrdersPage = () => {
         if (user && !user.isGuest) {
             loadOrders();
             checkPendingRatings();
-            
+
             // Auto-refresh every 60 seconds
             const refreshInterval = setInterval(() => {
                 console.log('🔄 Auto-refreshing orders...');
                 loadOrders();
                 checkPendingRatings();
             }, 60000); // 60 seconds
-            
+
             return () => clearInterval(refreshInterval);
         } else {
             setLoading(false);
         }
     }, [user]);
-    
+
     // Check for pending ratings (15 minutes after delivery)
     const checkPendingRatings = async () => {
         try {
@@ -120,7 +120,7 @@ const MyOrdersPage = () => {
         setLoading(true);
         try {
             // Use /orders/my endpoint which is specifically for logged-in users
-            const res = await api.get('/orders/my');
+            const res = await api.orders.getMyOrders();
             const ordersList = res.data || [];
             // Sort by date descending
             ordersList.sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -134,26 +134,26 @@ const MyOrdersPage = () => {
     // Cancel order function
     const handleCancelOrder = async () => {
         if (!orderToCancel) return;
-        
+
         setCancellingOrder(orderToCancel.id);
         try {
             const result = await api.orders.cancel(orderToCancel.id, cancellationReason);
-            
+
             if (result.warning) {
                 alert(`⚠️ تم الإلغاء مع تحذير:\n${result.warning}`);
             } else {
                 alert('✅ ' + result.message);
             }
-            
+
             // Close modal first
             setShowCancelModal(false);
             setOrderToCancel(null);
             setCancellationReason('');
             setCancellingOrder(null);
-            
+
             // Reload orders after modal close
             await loadOrders();
-            
+
         } catch (err: any) {
             console.error('Failed to cancel order:', err);
             alert('❌ ' + (err.message || 'فشل في إلغاء الطلب'));
@@ -166,7 +166,7 @@ const MyOrdersPage = () => {
         const allowedStatuses = ['pending', 'confirmed', 'payment_pending'];
         return allowedStatuses.includes(status);
     };
-    
+
     // Open rating modal
     const openRatingModal = (order: any) => {
         setRatingOrder(order);
@@ -176,11 +176,11 @@ const MyOrdersPage = () => {
         setRatingComment('');
         setShowRatingModal(true);
     };
-    
+
     // Submit rating
     const submitRating = async () => {
         if (!ratingOrder) return;
-        
+
         setSubmittingRating(true);
         try {
             await api.distribution.rateDelivery(ratingOrder.id, {
@@ -189,14 +189,14 @@ const MyOrdersPage = () => {
                 speedRating,
                 comment: ratingComment
             });
-            
+
             setShowRatingModal(false);
             setPendingRatingOrder(null);
             setRatingOrder(null);
-            
+
             // Reload orders to update rating status
             await loadOrders();
-            
+
             alert('شكراً لك! تم إرسال التقييم بنجاح 🎉');
         } catch (err) {
             console.error('Failed to submit rating:', err);
@@ -204,7 +204,7 @@ const MyOrdersPage = () => {
         }
         setSubmittingRating(false);
     };
-    
+
     // Star rating component
     const StarRating = ({ value, onChange, label }: { value: number; onChange: (v: number) => void; label: string }) => (
         <div className="mb-4">
@@ -217,8 +217,8 @@ const MyOrdersPage = () => {
                         onClick={() => onChange(star)}
                         className="p-1 transition-transform hover:scale-110"
                     >
-                        <Star 
-                            size={32} 
+                        <Star
+                            size={32}
                             className={star <= value ? 'text-yellow-400 fill-current' : 'text-gray-300'}
                         />
                     </button>
@@ -268,15 +268,15 @@ const MyOrdersPage = () => {
                 <div className="max-w-4xl mx-auto px-4 py-4">
                     <div className="flex items-center justify-between mb-4" dir="ltr">
                         <div className="flex items-center gap-3">
-                            <button 
-                                onClick={() => navigate('/more')} 
+                            <button
+                                onClick={() => navigate('/more')}
                                 className="p-2 -ml-2 hover:bg-gray-100 rounded-full"
                             >
                                 <ChevronLeft size={24} />
                             </button>
                             <h1 className="text-xl font-bold text-gray-900">طلباتي</h1>
                         </div>
-                        <button 
+                        <button
                             onClick={loadOrders}
                             className="p-2 hover:bg-gray-100 rounded-full"
                         >
@@ -288,31 +288,28 @@ const MyOrdersPage = () => {
                     <div className="flex gap-2">
                         <button
                             onClick={() => setActiveFilter('all')}
-                            className={`px-4 py-2 rounded-full text-sm font-medium transition ${
-                                activeFilter === 'all'
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition ${activeFilter === 'all'
                                     ? 'bg-primary text-white'
                                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                            }`}
+                                }`}
                         >
                             الكل ({orders.length})
                         </button>
                         <button
                             onClick={() => setActiveFilter('active')}
-                            className={`px-4 py-2 rounded-full text-sm font-medium transition ${
-                                activeFilter === 'active'
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition ${activeFilter === 'active'
                                     ? 'bg-orange-500 text-white'
                                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                            }`}
+                                }`}
                         >
                             نشطة ({orders.filter(o => !['delivered', 'cancelled'].includes(o.status)).length})
                         </button>
                         <button
                             onClick={() => setActiveFilter('completed')}
-                            className={`px-4 py-2 rounded-full text-sm font-medium transition ${
-                                activeFilter === 'completed'
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition ${activeFilter === 'completed'
                                     ? 'bg-green-500 text-white'
                                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                            }`}
+                                }`}
                         >
                             مكتملة ({orders.filter(o => ['delivered', 'cancelled'].includes(o.status)).length})
                         </button>
@@ -330,7 +327,7 @@ const MyOrdersPage = () => {
                         <p className="text-gray-500 mb-4">
                             لمتابعة طلباتك وتتبعها، يرجى تسجيل الدخول أولاً
                         </p>
-                        <Link 
+                        <Link
                             to="/login"
                             className="inline-flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-full font-medium hover:bg-primary-dark transition"
                         >
@@ -355,11 +352,11 @@ const MyOrdersPage = () => {
                         <ShoppingBag size={64} className="mx-auto text-gray-300 mb-4" />
                         <h3 className="text-lg font-medium text-gray-800 mb-2">لا توجد طلبات</h3>
                         <p className="text-gray-500 mb-4">
-                            {activeFilter === 'active' ? 'لا توجد طلبات نشطة حالياً' : 
-                             activeFilter === 'completed' ? 'لا توجد طلبات مكتملة' : 
-                             'ابدأ التسوق الآن!'}
+                            {activeFilter === 'active' ? 'لا توجد طلبات نشطة حالياً' :
+                                activeFilter === 'completed' ? 'لا توجد طلبات مكتملة' :
+                                    'ابدأ التسوق الآن!'}
                         </p>
-                        <Link 
+                        <Link
                             to="/products"
                             className="inline-flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-full font-medium hover:bg-primary-dark transition"
                         >
@@ -373,9 +370,9 @@ const MyOrdersPage = () => {
                             const statusInfo = getStatusInfo(order.status);
                             const StatusIcon = statusInfo.icon;
                             const items = getOrderItems(order);
-                            
+
                             return (
-                                <div 
+                                <div
                                     key={order.id}
                                     className="bg-white rounded-2xl shadow-sm border overflow-hidden"
                                 >
@@ -408,16 +405,14 @@ const MyOrdersPage = () => {
                                                         const currentIdx = stepStatuses.indexOf(order.status);
                                                         const isActive = idx <= currentIdx;
                                                         const isCurrent = stepStatuses[idx] === order.status;
-                                                        
+
                                                         return (
                                                             <div key={step} className="flex-1 flex items-center">
-                                                                <div className={`w-3 h-3 rounded-full ${
-                                                                    isActive ? 'bg-green-500' : 'bg-gray-200'
-                                                                } ${isCurrent ? 'ring-4 ring-green-100' : ''}`} />
+                                                                <div className={`w-3 h-3 rounded-full ${isActive ? 'bg-green-500' : 'bg-gray-200'
+                                                                    } ${isCurrent ? 'ring-4 ring-green-100' : ''}`} />
                                                                 {idx < 4 && (
-                                                                    <div className={`flex-1 h-1 ${
-                                                                        isActive && idx < currentIdx ? 'bg-green-500' : 'bg-gray-200'
-                                                                    }`} />
+                                                                    <div className={`flex-1 h-1 ${isActive && idx < currentIdx ? 'bg-green-500' : 'bg-gray-200'
+                                                                        }`} />
                                                                 )}
                                                             </div>
                                                         );
@@ -439,11 +434,11 @@ const MyOrdersPage = () => {
                                         <div className="flex items-center gap-3 mb-3">
                                             <div className="flex -space-x-2">
                                                 {items.slice(0, 4).map((item: any, idx: number) => (
-                                                    <div 
+                                                    <div
                                                         key={idx}
                                                         className="w-10 h-10 rounded-lg bg-gray-100 border-2 border-white overflow-hidden"
                                                     >
-                                                        <img 
+                                                        <img
                                                             src={item.image || 'https://placehold.co/40x40?text=🛒'}
                                                             alt={item.name}
                                                             className="w-full h-full object-cover"
@@ -472,17 +467,17 @@ const MyOrdersPage = () => {
 
                                     {/* Actions */}
                                     <div className="px-4 pb-4 flex gap-2">
-                                        <Link 
+                                        <Link
                                             to={`/orders/${order.id}`}
                                             className="flex-1 py-2.5 bg-primary text-white rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-primary-dark transition"
                                         >
                                             <Eye size={18} />
                                             تفاصيل الطلب
                                         </Link>
-                                        
+
                                         {/* Cancel Order Button */}
                                         {canCancelOrder(order.status) && (
-                                            <button 
+                                            <button
                                                 onClick={() => {
                                                     setOrderToCancel(order);
                                                     setShowCancelModal(true);
@@ -494,9 +489,9 @@ const MyOrdersPage = () => {
                                                 {cancellingOrder === order.id ? 'جاري الإلغاء...' : 'إلغاء'}
                                             </button>
                                         )}
-                                        
+
                                         {order.status === 'delivered' && !order.rated && (
-                                            <button 
+                                            <button
                                                 onClick={() => openRatingModal(order)}
                                                 className="px-4 py-2.5 bg-yellow-100 text-yellow-700 rounded-xl font-medium flex items-center justify-center gap-2 hover:bg-yellow-200 transition"
                                             >
@@ -517,43 +512,43 @@ const MyOrdersPage = () => {
                     </div>
                 )}
             </div>
-            
+
             {/* Rating Modal */}
             {showRatingModal && ratingOrder && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
                         <div className="sticky top-0 bg-white border-b px-4 py-4 flex justify-between items-center">
                             <h2 className="text-lg font-bold">قيّم طلبك #{ratingOrder.id}</h2>
-                            <button 
+                            <button
                                 onClick={() => setShowRatingModal(false)}
                                 className="p-2 hover:bg-gray-100 rounded-full"
                             >
                                 <X size={20} />
                             </button>
                         </div>
-                        
+
                         <div className="p-4 space-y-4">
                             {/* Order Rating */}
-                            <StarRating 
+                            <StarRating
                                 value={orderRating}
                                 onChange={setOrderRating}
                                 label="📦 تقييم الطلب (جودة المنتجات)"
                             />
-                            
+
                             {/* Delivery Rating */}
-                            <StarRating 
+                            <StarRating
                                 value={deliveryRating}
                                 onChange={setDeliveryRating}
                                 label="🚚 تقييم خدمة التوصيل"
                             />
-                            
+
                             {/* Speed Rating */}
-                            <StarRating 
+                            <StarRating
                                 value={speedRating}
                                 onChange={setSpeedRating}
                                 label="⚡ تقييم سرعة التوصيل"
                             />
-                            
+
                             {/* Comment */}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -567,7 +562,7 @@ const MyOrdersPage = () => {
                                     className="w-full px-4 py-3 border rounded-xl resize-none h-24"
                                 />
                             </div>
-                            
+
                             {/* Submit */}
                             <button
                                 onClick={submitRating}
@@ -585,7 +580,7 @@ const MyOrdersPage = () => {
                     </div>
                 </div>
             )}
-            
+
             {/* Pending Rating Popup (15 min after delivery) */}
             {pendingRatingOrder && !showRatingModal && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center">
@@ -601,7 +596,7 @@ const MyOrdersPage = () => {
                                 شاركنا رأيك لتحسين خدماتنا
                             </p>
                         </div>
-                        
+
                         <div className="flex gap-3">
                             <button
                                 onClick={() => {
@@ -622,7 +617,7 @@ const MyOrdersPage = () => {
                     </div>
                 </div>
             )}
-            
+
             {/* Cancel Order Modal */}
             {showCancelModal && orderToCancel && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -636,7 +631,7 @@ const MyOrdersPage = () => {
                                 هل أنت متأكد من إلغاء الطلب #{orderToCancel.id}؟
                             </p>
                         </div>
-                        
+
                         <div className="mb-6">
                             <label className="block text-sm font-medium text-gray-700 mb-2">
                                 سبب الإلغاء (اختياري)
@@ -648,7 +643,7 @@ const MyOrdersPage = () => {
                                 className="w-full px-4 py-3 border border-gray-300 rounded-xl resize-none h-24 focus:ring-2 focus:ring-primary focus:border-primary"
                             />
                         </div>
-                        
+
                         <div className="flex gap-3">
                             <button
                                 onClick={handleCancelOrder}
@@ -679,7 +674,7 @@ const MyOrdersPage = () => {
                                 رجوع
                             </button>
                         </div>
-                        
+
                         <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-xl">
                             <p className="text-xs text-yellow-800 text-center">
                                 💡 تنبيه: الإلغاء المتكرر للطلبات قد يؤدي إلى حظر الحساب
@@ -688,7 +683,7 @@ const MyOrdersPage = () => {
                     </div>
                 </div>
             )}
-            
+
             <style>{`
                 @keyframes slide-up {
                     from { transform: translateY(100%); }

@@ -372,15 +372,15 @@ export const api = {
             const pageValue = typeof offset === 'number' && Number.isFinite(offset) && offset >= 0
                 ? Math.floor(offset / limitValue) + 1
                 : 1;
-            
+
             // Use the dedicated category endpoint
             let url = `${API_URL}/products/category/${encodeURIComponent(category)}`;
             if (branchId) {
                 url += `?branchId=${branchId}`;
             }
-            
+
             console.log('🔍 Fetching category products:', url);
-            
+
             const res = await fetch(url, { headers: getPublicHeaders() });
             if (!res.ok) {
                 console.error('❌ Category fetch failed:', res.status, res.statusText);
@@ -388,7 +388,7 @@ export const api = {
             }
             const json = await res.json();
             console.log('✅ Category response:', json);
-            
+
             const normalize = (p: any) => ({ ...mapProduct(p), price: Number(mapProduct(p)?.price) || 0 });
             // Backend returns array directly
             const data = Array.isArray(json) ? json : (json.data || []);
@@ -397,7 +397,7 @@ export const api = {
                 if (json.total !== undefined) (list as any).total = Number(json.total);
                 if (json.page !== undefined) (list as any).page = Number(json.page);
             }
-            
+
             // Add pagination info for compatibility
             return {
                 data: list,
@@ -648,6 +648,15 @@ export const api = {
             if (status) url += `status=${status}&`;
             if (branchId) url += `branchId=${branchId}`;
             const res = await fetch(url, { headers: getHeaders() });
+            return res.json();
+        },
+        // Get current user's orders
+        getMyOrders: async () => {
+            const res = await fetch(`${API_URL}/orders/my`, { headers: getHeaders() });
+            if (!res.ok) {
+                const error = await res.json();
+                throw new Error(error.error || 'Failed to fetch orders');
+            }
             return res.json();
         },
         getOne: async (id: string) => {
@@ -2056,7 +2065,7 @@ export const api = {
             return res.json();
         },
         getTransactions: async (userId?: number) => {
-            const url = userId 
+            const url = userId
                 ? `${API_URL}/loyalty/transactions?userId=${userId}`
                 : `${API_URL}/loyalty/transactions`;
             const res = await fetch(url, {
@@ -2505,7 +2514,7 @@ export const api = {
         }
     },
 
-    
+
 };
 
 export default api;

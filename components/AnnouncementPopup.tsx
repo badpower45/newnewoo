@@ -22,6 +22,8 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
     const [popup, setPopup] = useState<PopupData | null>(null);
     const [isVisible, setIsVisible] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
+    const [imageLoaded, setImageLoaded] = useState(false);
+    const [imageError, setImageError] = useState(false);
     const dismissedKey = 'dismissed_popups'; // localStorage - دائم
     const shownKey = 'popup_shown_this_session'; // sessionStorage - للجلسة فقط
 
@@ -69,20 +71,39 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
 
     const fetchPopup = async () => {
         try {
-            if (hasShownThisSession()) return;
+            console.log('🎉 Fetching popup for page:', page);
+
+            // Check session - but allow retry if popup wasn't shown properly
+            if (hasShownThisSession()) {
+                console.log('⏭️ Popup already shown this session');
+                return;
+            }
 
             const res = await api.popups.getActive(page);
+            console.log('📦 Popup API response:', res);
+
             const payload = res?.data ?? res?.popup ?? res;
             const popupData = Array.isArray(payload) ? payload[0] : payload;
 
-            if (!popupData?.id) return;
+            if (!popupData?.id) {
+                console.log('❌ No popup data found');
+                return;
+            }
+
+            console.log('✅ Popup data:', popupData);
 
             const dismissed = getDismissedPopups();
-            if (dismissed.includes(popupData.id)) return;
+            if (dismissed.includes(popupData.id)) {
+                console.log('⏭️ Popup already dismissed:', popupData.id);
+                return;
+            }
 
             setPopup(popupData);
             setIsVisible(true);
+            setImageLoaded(false);
+            setImageError(false);
             markShownThisSession();
+            console.log('🎉 Popup displayed!');
         } catch (error) {
             console.error('❌ Error fetching popup:', error);
         }
@@ -147,11 +168,30 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
                         className={`relative ${popup.link_url && !popup.button_text_ar ? 'cursor-pointer active:scale-[0.98]' : ''} transition-transform`}
                         onClick={popup.link_url && !popup.button_text_ar ? handleClickPopup : undefined}
                     >
+                        {!imageLoaded && !imageError && (
+                            <div className="w-full h-64 bg-gray-200 rounded-xl animate-pulse flex items-center justify-center">
+                                <span className="text-gray-500">جاري التحميل...</span>
+                            </div>
+                        )}
+                        {imageError && (
+                            <div className="w-full h-64 bg-gray-100 rounded-xl flex flex-col items-center justify-center p-4">
+                                <span className="text-gray-600 text-lg font-bold mb-2">{popup.title_ar || popup.title}</span>
+                                <span className="text-gray-500 text-sm text-center">{popup.description_ar || popup.description}</span>
+                            </div>
+                        )}
                         <img
                             src={popup.image_url}
                             alt={popup.title_ar || popup.title}
-                            className="w-full h-auto object-contain rounded-xl sm:rounded-2xl shadow-2xl max-h-[85vh] sm:max-h-[75vh] min-h-[200px]"
+                            className={`w-full h-auto object-contain rounded-xl sm:rounded-2xl shadow-2xl max-h-[85vh] sm:max-h-[75vh] min-h-[200px] ${!imageLoaded ? 'hidden' : ''}`}
                             loading="eager"
+                            onLoad={() => {
+                                console.log('✅ Popup image loaded');
+                                setImageLoaded(true);
+                            }}
+                            onError={() => {
+                                console.error('❌ Popup image failed to load:', popup.image_url);
+                                setImageError(true);
+                            }}
                         />
                     </div>
 
