@@ -10,7 +10,6 @@ import StoriesSection from '../components/StoriesSection';
 import FacebookReelsGrid from '../components/FacebookReelsGrid';
 import HeroCarousel from '../components/HeroCarousel';
 import AnnouncementPopup from '../components/AnnouncementPopup';
-import PerformanceMonitor from '../components/PerformanceMonitor';
 import { ChevronRight, Flame, BookOpen } from 'lucide-react';
 import { api } from '../services/api';
 import { Product } from '../types';
@@ -578,13 +577,6 @@ const HomePage = () => {
 
                     {/* Facebook Reels Section */}
                     <FacebookReelsGrid pageUsername="Alloshchocolates" pageName="Allosh Chocolates" />
-                    
-                    {/* Performance Monitor - للأدمن فقط */}
-                    {isAuthenticated && (
-                        <div className="mt-6">
-                            <PerformanceMonitor endpoint="home" showDetails={true} />
-                        </div>
-                    )}
                 </div>
             </div>
         </>

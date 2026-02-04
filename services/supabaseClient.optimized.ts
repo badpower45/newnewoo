@@ -1,11 +1,17 @@
+/**
+ * ⚡ OPTIMIZED Supabase Client - Reduce Egress Usage
+ * 
+ * المشاكل المحلولة:
+ * 1. إضافة caching layer
+ * 2. تقليل عدد الـ queries
+ * 3. استخدام pagination
+ * 4. تحديد columns محددة بدل select(*)
+ * 5. debouncing للـ real-time subscriptions
+ */
+
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../src/config';
 
-/**
- * ⚡ OPTIMIZED Supabase Client - Reduce Egress Usage
- */
-
-// Centralized Supabase client used by OTP/reset and attendance utilities
 const url = SUPABASE_URL;
 const anonKey = SUPABASE_ANON_KEY;
 const hasSupabase = Boolean(url && anonKey);
@@ -14,11 +20,10 @@ if (!hasSupabase) {
   console.warn('Supabase URL or anon key is missing. Supabase features will be disabled.');
 }
 
-// Avoid runtime crash when env vars are missing by using a safe placeholder.
 const safeUrl = hasSupabase ? url : 'http://localhost:54321';
 const safeAnonKey = hasSupabase ? anonKey : 'anon-key-missing';
 
-// ⚡ Cache للبيانات المتكررة
+// ⚡ OPTIMIZED: استخدام cache للبيانات المتكررة
 const queryCache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 دقائق
 
@@ -26,11 +31,11 @@ export const supabase: SupabaseClient = createClient(safeUrl, safeAnonKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    // ⚡ تقليل عدد refresh tokens
+    // ⚡ OPTIMIZED: تقليل عدد refresh tokens
     detectSessionInUrl: false,
     flowType: 'pkce'
   },
-  // ⚡ تحديد realtime options
+  // ⚡ OPTIMIZED: تحديد realtime options
   realtime: {
     params: {
       eventsPerSecond: 2 // تقليل عدد events في الثانية
@@ -38,7 +43,7 @@ export const supabase: SupabaseClient = createClient(safeUrl, safeAnonKey, {
   },
   global: {
     headers: {
-      // ⚡ تفعيل compression
+      // ⚡ OPTIMIZED: تفعيل compression
       'Accept-Encoding': 'gzip, deflate, br'
     }
   }
@@ -104,3 +109,41 @@ export const debouncedSubscription = (
   };
 };
 
+/**
+ * ⚡ Helper: Batch queries
+ */
+export const batchQuery = async <T>(
+  queries: Array<() => Promise<T>>
+): Promise<T[]> => {
+  // تنفيذ الـ queries بالتوازي
+  return Promise.all(queries.map(q => q()));
+};
+
+/**
+ * ⚡ Helper: Paginated query
+ */
+export const paginatedQuery = async (
+  table: string,
+  page: number = 1,
+  pageSize: number = 20,
+  orderBy: string = 'created_at',
+  ascending: boolean = false
+) => {
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  return supabase
+    .from(table)
+    .select('*', { count: 'exact' })
+    .order(orderBy, { ascending })
+    .range(from, to);
+};
+
+/**
+ * ⚡ Optimized select - حدد الأعمدة المطلوبة فقط
+ */
+export const optimizedSelect = (table: string, columns: string[]) => {
+  return supabase
+    .from(table)
+    .select(columns.join(','));
+};

@@ -1,8 +1,9 @@
-import { supabase } from './supabaseClient';
+import { supabase, cachedQuery } from './supabaseClient';
 
 /**
- * Supabase Blocking Service
+ * ⚡ OPTIMIZED Supabase Blocking Service
  * Integrates with Supabase functions and RLS policies
+ * With caching to reduce egress
  */
 
 export interface BlockStatus {
@@ -25,13 +26,24 @@ export interface BlockedAttempt {
 
 export const supabaseBlockingService = {
   /**
-   * Check if user is blocked by email
+   * ⚡ Check if user is blocked by email (with caching)
    */
   checkIfBlocked: async (email: string): Promise<BlockStatus> => {
     try {
-      const { data, error } = await supabase.rpc('is_user_blocked', {
-        p_user_email: email
-      });
+      // ⚡ OPTIMIZED: Cache for 2 minutes
+      const cacheKey = `block_status:${email}`;
+      const result = await cachedQuery(
+        cacheKey,
+        async () => {
+          const { data, error } = await supabase.rpc('is_user_blocked', {
+            p_user_email: email
+          });
+          return { data, error };
+        },
+        2 * 60 * 1000 // 2 دقائق
+      );
+
+      const { data, error } = result;
 
       if (error) {
         console.error('❌ Error checking block status:', error);
@@ -178,14 +190,16 @@ export const supabaseBlockingService = {
   },
 
   /**
-   * Get blocked users report
+   * ⚡ Get blocked users report (optimized)
    */
-  getBlockedUsersReport: async (): Promise<any[]> => {
+  getBlockedUsersReport: async (limit: number = 100): Promise<any[]> => {
     try {
+      // ⚡ OPTIMIZED: حدد columns و limit
       const { data, error } = await supabase
         .from('blocked_users_report')
-        .select('*')
-        .order('blocked_at', { ascending: false });
+        .select('id, email, block_reason, blocked_at, banned_until, ban_type')
+        .order('blocked_at', { ascending: false })
+        .limit(limit);
 
       if (error) {
         console.error('❌ Error fetching blocked users report:', error);
@@ -200,13 +214,14 @@ export const supabaseBlockingService = {
   },
 
   /**
-   * Get blocked attempts history
+   * ⚡ Get blocked attempts history (optimized)
    */
   getBlockedAttempts: async (email?: string, limit: number = 50): Promise<any[]> => {
     try {
+      // ⚡ OPTIMIZED: حدد columns فقط المطلوبة
       let query = supabase
         .from('blocked_attempts')
-        .select('*')
+        .select('id, user_email, ip_address, attempt_type, block_reason, attempted_at')
         .order('attempted_at', { ascending: false })
         .limit(limit);
 

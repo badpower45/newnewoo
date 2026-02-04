@@ -22,8 +22,8 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
 
     // Load favorites from database when user changes
     const loadFavorites = async () => {
+        // For guest users or no user, use localStorage only
         if (!user || user.isGuest) {
-            // For guest users, use localStorage
             const savedFavorites = localStorage.getItem('favorites');
             if (savedFavorites) {
                 try {
@@ -44,8 +44,11 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
                 // Also update localStorage as backup
                 localStorage.setItem('favorites', JSON.stringify(response.data));
             }
-        } catch (error) {
-            console.error('Failed to load favorites from database:', error);
+        } catch (error: any) {
+            // Silent fail for 401/403 errors - don't spam console
+            if (error?.response?.status !== 401 && error?.response?.status !== 403) {
+                console.error('Failed to load favorites from database:', error);
+            }
             // Fallback to localStorage
             const savedFavorites = localStorage.getItem('favorites');
             if (savedFavorites) {
@@ -80,8 +83,11 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
         if (user && !user.isGuest) {
             try {
                 await api.favorites.add(user.id, String(product.id));
-            } catch (error) {
-                console.error('Failed to add favorite to database:', error);
+            } catch (error: any) {
+                // Silent fail for 401/403 errors
+                if (error?.response?.status !== 401 && error?.response?.status !== 403) {
+                    console.error('Failed to add favorite to database:', error);
+                }
                 // Don't revert - localStorage will keep it
             }
         }
@@ -95,8 +101,11 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
         if (user && !user.isGuest) {
             try {
                 await api.favorites.remove(user.id, String(productId));
-            } catch (error) {
-                console.error('Failed to remove favorite from database:', error);
+            } catch (error: any) {
+                // Silent fail for 401/403 errors
+                if (error?.response?.status !== 401 && error?.response?.status !== 403) {
+                    console.error('Failed to remove favorite from database:', error);
+                }
             }
         }
     };

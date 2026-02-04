@@ -104,9 +104,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
         ];
         setItems(merged);
       }
-    } catch (err) {
-      // Silent fallback: backend unavailable, use local state
-      console.error('Failed to sync cart:', err);
+    } catch (err: any) {
+      // Silent fail for 401/403 errors
+      if (err?.response?.status !== 401 && err?.response?.status !== 403) {
+        console.error('Failed to sync cart:', err);
+      }
     }
   };
 
@@ -172,8 +174,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
           // Debounced sync - only sync after 300ms of no activity
           if (window.cartSyncTimeout) clearTimeout(window.cartSyncTimeout);
           window.cartSyncTimeout = setTimeout(() => syncCart(), 300);
-        }).catch(err => {
-          console.error("Failed to add to cart", err);
+        }).catch((err: any) => {
+          // Silent fail for 401/403 errors
+          if (err?.response?.status !== 401 && err?.response?.status !== 403) {
+            console.error("Failed to add to cart", err);
+          }
           syncCart(); // Revert on error
         });
       }
@@ -203,8 +208,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (!isSynthetic) {
         try {
           await api.cart.remove(user.id, String(productId));
-        } catch (err) {
-          console.error("Failed to remove from cart", err);
+        } catch (err: any) {
+          // Silent fail for 401/403 errors
+          if (err?.response?.status !== 401 && err?.response?.status !== 403) {
+            console.error("Failed to remove from cart", err);
+          }
         }
       }
     } else {
@@ -260,8 +268,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
             quantity,
             ...(substitutionPreference && { substitutionPreference })
           });
-        } catch (err) {
-          console.error("Failed to update quantity", err);
+        } catch (err: any) {
+          // Silent fail for 401/403 errors
+          if (err?.response?.status !== 401 && err?.response?.status !== 403) {
+            console.error("Failed to update quantity", err);
+          }
           syncCart(); // Revert on error
         }
       }, 150); // Super fast - only 150ms wait!
@@ -273,8 +284,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setItems([]);
       try {
         await api.cart.clear(user.id);
-      } catch (err) {
-        console.error("Failed to clear cart", err);
+      } catch (err: any) {
+        // Silent fail for 401/403 errors
+        if (err?.response?.status !== 401 && err?.response?.status !== 403) {
+          console.error("Failed to clear cart", err);
+        }
       }
     } else {
       setItems([]);

@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient';
+import { supabase, cachedQuery, debouncedSubscription, clearCache } from './supabaseClient';
 
 export interface ChatMessage {
     id: number;
@@ -28,16 +28,26 @@ class SupabaseChatService {
     // إنشاء محادثة جديدة أو الحصول على محادثة موجودة
     async getOrCreateConversation(customerId: number | null, customerName: string): Promise<ChatConversation | null> {
         try {
-            // البحث عن محادثة نشطة موجودة لهذا العميل
+    // ⚡ البحث عن محادثة نشطة موجودة لهذا العميل (with caching)
             if (customerId) {
-                const { data: existingConv, error: findError } = await supabase
-                    .from('conversations')
-                    .select('*')
-                    .eq('customer_id', customerId)
-                    .eq('status', 'active')
-                    .order('created_at', { ascending: false })
-                    .limit(1)
-                    .single();
+                const cacheKey = `conversation:${customerId}`;
+                const result = await cachedQuery(
+                    cacheKey,
+                    async () => {
+                        const { data: existingConv, error: findError } = await supabase
+                            .from('conversations')
+                            .select('id, customer_id, customer_name, agent_id, status, created_at, last_message_at')
+                            .eq('customer_id', customerId)
+                            .eq('status', 'active')
+                            .order('created_at', { ascending: false })
+                            .limit(1)
+                            .single();
+                        return { data: existingConv, error: findError };
+                    },
+                    2 * 60 * 1000 // 2 دقائق
+                );
+
+                const { data: existingConv, error: findError } = result;
 
                 if (existingConv && !findError) {
                     this.conversationId = existingConv.id;
@@ -63,6 +73,11 @@ class SupabaseChatService {
             }
 
             this.conversationId = newConv.id;
+
+            // ⚡ Clear cache للمحادثة الجديدة
+            if (customerId) {
+                clearCache(`conversation:${customerId}`);
+            }
 
             // إضافة رسالة ترحيب تلقائية
             await this.sendMessage(newConv.id, null, 'bot', 
@@ -133,14 +148,16 @@ class SupabaseChatService {
         }
     }
 
-    // الحصول على رسائل المحادثة
-    async getMessages(conversationId: number): Promise<ChatMessage[]> {
+    // ⚡ الحصول على رسائل المحادثة (optimized with pagination)
+    async getMessages(conversationId: number, limit: number = 50): Promise<ChatMessage[]> {
         try {
+            // ⚡ OPTIMIZED: حدد columns و limit
             const { data, error } = await supabase
                 .from('messages')
-                .select('*')
+                .select('id, conversation_id, sender_id, sender_type, message, timestamp, is_read')
                 .eq('conversation_id', conversationId)
-                .order('timestamp', { ascending: true });
+                .order('timestamp', { ascending: true })
+                .limit(limit);
 
             if (error) {
                 console.error('Error fetching messages:', error);
@@ -154,7 +171,7 @@ class SupabaseChatService {
         }
     }
 
-    // الاشتراك في الرسائل الجديدة باستخدام Supabase Realtime
+    // ⚡ الاشتراك في الرسائل الجديدة باستخدام Supabase Realtime (with debouncing)
     subscribeToMessages(conversationId: number, userId: number | string | null, callback: (message: ChatMessage) => void) {
         // إلغاء الاشتراك السابق إن وجد
         this.unsubscribeFromMessages();
@@ -162,6 +179,13 @@ class SupabaseChatService {
         const filter = userId !== null && userId !== ''
             ? `receiver_id=eq.${userId}`
             : `conversation_id=eq.${conversationId}`;
+
+        // ⚡ OPTIMIZED: Debounced callback لتقليل عدد الـ updates
+        const debouncedCallback = debouncedSubscription(
+            `messages:${conversationId}`,
+            callback,
+            300 // 300ms debounce
+        );
 
         this.messageSubscription = supabase
             .channel(`messages:${conversationId}`)
@@ -173,7 +197,7 @@ class SupabaseChatService {
                     filter
                 }, 
                 (payload) => {
-                    callback(payload.new as ChatMessage);
+                    debouncedCallback(payload.new as ChatMessage);
                 }
             )
             .subscribe();
