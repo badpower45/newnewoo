@@ -1,4 +1,5 @@
 import { API_URL } from '../src/config';
+import { logApiError, logError } from '../src/utils/frontendLogger';
 
 // 🔥 Product field mapper - converts short keys to full keys (Amazon strategy)
 // This saves ~68% bandwidth by using short keys in API responses
@@ -77,14 +78,19 @@ const writeCache = (key: string, value: any, ttlMs: number) => {
 };
 
 const fetchJsonWithRetry = async (url: string, options?: RequestInit, retries = 2) => {
-    const res = await fetch(url, options);
-    if (res.status === 429 && retries > 0) {
-        const retryAfter = res.headers.get('retry-after');
-        const waitMs = retryAfter ? Number(retryAfter) * 1000 : 1000;
-        await sleep(Number.isFinite(waitMs) ? waitMs : 1000);
-        return fetchJsonWithRetry(url, options, retries - 1);
+    try {
+        const res = await fetch(url, options);
+        if (res.status === 429 && retries > 0) {
+            const retryAfter = res.headers.get('retry-after');
+            const waitMs = retryAfter ? Number(retryAfter) * 1000 : 1000;
+            await sleep(Number.isFinite(waitMs) ? waitMs : 1000);
+            return fetchJsonWithRetry(url, options, retries - 1);
+        }
+        return res;
+    } catch (error) {
+        logApiError(url, error, options?.method || 'GET');
+        throw error;
     }
-    return res;
 };
 
 const fetchCachedJson = async (url: string, options?: RequestInit, ttlMs = 30000) => {
@@ -96,16 +102,22 @@ const fetchCachedJson = async (url: string, options?: RequestInit, ttlMs = 30000
     }
 
     const pending = (async () => {
-        const res = await fetchJsonWithRetry(url, options);
-        const json = await res.json().catch(() => ({}));
-        if (!res.ok) {
-            const err = new Error(json?.error || json?.message || `Request failed: ${res.status}`);
-            (err as any).status = res.status;
-            (err as any).data = json;
-            throw err;
+        try {
+            const res = await fetchJsonWithRetry(url, options);
+            const json = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                const err = new Error(json?.error || json?.message || `Request failed: ${res.status}`);
+                (err as any).status = res.status;
+                (err as any).data = json;
+                logApiError(url, err, options?.method || 'GET');
+                throw err;
+            }
+            writeCache(key, json, ttlMs);
+            return json;
+        } catch (error) {
+            logApiError(url, error, options?.method || 'GET');
+            throw error;
         }
-        writeCache(key, json, ttlMs);
-        return json;
     })();
 
     inflightRequests.set(key, pending);
