@@ -56,8 +56,8 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
     });
 
     return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-3 sm:p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col">
                 {/* Header + Image */}
                 <div className="relative h-48 bg-gray-50">
                     <button
@@ -88,8 +88,8 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
                     </div>
                 </div>
 
-                {/* Body */}
-                <div className="p-4 space-y-4">
+                {/* Body - Scrollable */}
+                <div className="p-3 sm:p-4 space-y-3 sm:space-y-4 overflow-y-auto flex-grow pb-safe">
                     <div className="space-y-1">
                         <h2 className="text-xl font-bold text-gray-900">{product.name}</h2>
                         {(product.category || product.subcategory) && (
@@ -118,9 +118,8 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose }) => {
                             )}
                         </div>
                         <div
-                            className={`border rounded-xl p-3 text-sm font-semibold ${
-                                stockQty > 10 ? 'text-green-700 bg-green-50' : stockQty > 0 ? 'text-yellow-700 bg-yellow-50' : 'text-red-700 bg-red-50'
-                            }`}
+                            className={`border rounded-xl p-3 text-sm font-semibold ${stockQty > 10 ? 'text-green-700 bg-green-50' : stockQty > 0 ? 'text-yellow-700 bg-yellow-50' : 'text-red-700 bg-red-50'
+                                }`}
                         >
                             {stockQty > 10 ? 'متوفر' : stockQty > 0 ? `متبقي ${stockQty}` : 'غير متوفر'}
                         </div>

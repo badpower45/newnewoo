@@ -556,6 +556,11 @@ export default function ProductsPage() {
         setCurrentPage(1);
     }, [selectedCategory, selectedBrand, sortBy]);
 
+    useEffect(() => {
+        setSearchResults(null);
+        setCurrentPage(1);
+    }, [selectedBranch?.id]);
+
     // Filter and sort products
     const filteredAndSortedProducts = useMemo(() => {
         let filtered = [...allProducts];

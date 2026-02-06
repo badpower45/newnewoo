@@ -16,13 +16,13 @@ const sizeClasses = {
   full: 'max-w-7xl'
 };
 
-const Modal: React.FC<ModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  title, 
-  children, 
+const Modal: React.FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  title,
+  children,
   size = 'medium',
-  showCloseButton = true 
+  showCloseButton = true
 }) => {
   useEffect(() => {
     if (isOpen) {
@@ -50,27 +50,27 @@ const Modal: React.FC<ModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div className="fixed inset-0 z-[9999] overflow-y-auto">
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
-      
+
       {/* Modal */}
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div 
-          className={`relative w-full ${sizeClasses[size]} bg-white rounded-xl shadow-2xl transform transition-all`}
+      <div className="flex min-h-full items-center justify-center p-3 sm:p-4">
+        <div
+          className={`relative w-full ${sizeClasses[size]} bg-white rounded-xl shadow-2xl transform transition-all max-h-[90vh] flex flex-col`}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
           {(title || showCloseButton) && (
-            <div className="flex items-center justify-between px-6 py-4 border-b">
-              {title && <h2 className="text-xl font-bold text-gray-900">{title}</h2>}
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b flex-shrink-0">
+              {title && <h2 className="text-lg sm:text-xl font-bold text-gray-900">{title}</h2>}
               {showCloseButton && (
                 <button
                   onClick={onClose}
-                  className="text-gray-400 hover:text-gray-600 transition"
+                  className="text-gray-400 hover:text-gray-600 transition p-1"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -79,9 +79,9 @@ const Modal: React.FC<ModalProps> = ({
               )}
             </div>
           )}
-          
-          {/* Content */}
-          <div className="px-6 py-4">
+
+          {/* Content - Scrollable */}
+          <div className="px-4 sm:px-6 py-3 sm:py-4 overflow-y-auto flex-grow pb-safe">
             {children}
           </div>
         </div>

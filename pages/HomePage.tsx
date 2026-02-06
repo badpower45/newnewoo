@@ -135,11 +135,11 @@ const HomePage = () => {
         setSectionsLoading(true);
         setSectionsLoaded(false);
         setNeedsFallbackProducts(true);
-        
+
         try {
             const branchId = selectedBranch?.id || DEFAULT_BRANCH_ID;
             console.log('🚀 Fetching unified home data for branch:', branchId);
-            
+
             // Single API call that gets: brands + home sections + hero sections
             const response = await api.homeData.getAll(branchId, {
                 sectionsLimit: 3,
@@ -162,22 +162,22 @@ const HomePage = () => {
                         if (section.products && Array.isArray(section.products)) {
                             const validProducts = section.products.filter((p: any) => {
                                 const name = p.name || p.na || '';
-                                const isCorrupted = name.startsWith('data:image') || 
-                                                   name.startsWith('iVBORw') || 
-                                                   name.length > 200;
-                                
+                                const isCorrupted = name.startsWith('data:image') ||
+                                    name.startsWith('iVBORw') ||
+                                    name.length > 200;
+
                                 if (isCorrupted) {
                                     console.warn('⚠️ Skipping corrupted product:', {
                                         id: p.id,
                                         namePreview: name.substring(0, 50)
                                     });
                                 }
-                                
+
                                 return !isCorrupted;
                             });
-                            
+
                             console.log(`📦 Section "${section.title}" - Original: ${section.products.length}, Valid: ${validProducts.length}`);
-                            
+
                             return {
                                 ...section,
                                 products: validProducts
@@ -185,7 +185,7 @@ const HomePage = () => {
                         }
                         return section;
                     });
-                    
+
                     setHomeSections(cleanedSections);
                     console.log('✅ Loaded', cleanedSections.length, 'sections');
                 }
@@ -307,6 +307,13 @@ const HomePage = () => {
         // 🚀 Use unified API instead of multiple calls
         fetchUnifiedHomeData();
     }, [selectedBranch, fetchUnifiedHomeData]);
+
+    useEffect(() => {
+        setFallbackRequested(false);
+        setNeedsFallbackProducts(true);
+        setProducts([]);
+        setError(null);
+    }, [selectedBranch?.id]);
 
     useEffect(() => {
         if (!sectionsLoaded) return;

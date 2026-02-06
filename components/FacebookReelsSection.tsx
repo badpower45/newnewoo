@@ -185,10 +185,10 @@ const FacebookReelsSection: React.FC<FacebookReelsSectionProps> = ({
                                         className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                                         loading="lazy"
                                     />
-                                    
+
                                     {/* Gradient Overlay */}
                                     <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/70" />
-                                    
+
                                     {/* Play Button */}
                                     <div className="absolute inset-0 flex items-center justify-center">
                                         <div className="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center transform group-hover:scale-110 transition-transform shadow-lg">
@@ -229,11 +229,11 @@ const FacebookReelsSection: React.FC<FacebookReelsSectionProps> = ({
 
             {/* Video Modal */}
             {selectedReel && (
-                <div 
-                    className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
+                <div
+                    className="fixed inset-0 z-[9999] bg-black/95 flex items-center justify-center p-3 sm:p-4"
                     onClick={closeReel}
                 >
-                    <div 
+                    <div
                         className="relative w-full max-w-sm aspect-[9/16] bg-gray-900 rounded-2xl overflow-hidden"
                         onClick={(e) => e.stopPropagation()}
                     >

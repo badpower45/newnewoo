@@ -135,7 +135,7 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
 
     const navigateVideo = (direction: 'prev' | 'next') => {
         if (activeVideo === null) return;
-        
+
         if (direction === 'prev' && activeVideo > 0) {
             setActiveVideo(activeVideo - 1);
         } else if (direction === 'next' && activeVideo < reelsData.length - 1) {
@@ -201,7 +201,7 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
                 )}
 
                 {/* Scrollable Container */}
-                <div 
+                <div
                     ref={scrollRef}
                     className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide scroll-smooth px-2"
                 >
@@ -234,15 +234,15 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
                                         }}
                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                                     />
-                                    
+
                                     {/* Fallback Icon */}
                                     <div className="absolute inset-0 flex items-center justify-center">
                                         <Facebook className="w-16 h-16 text-white/30" />
                                     </div>
-                                    
+
                                     {/* Gradient Overlay */}
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                                    
+
                                     {/* Play Button */}
                                     <div className="absolute inset-0 flex items-center justify-center">
                                         <div className="w-14 h-14 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center group-hover:scale-110 group-hover:bg-white/50 transition-all">
@@ -300,11 +300,11 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
 
             {/* Video Modal */}
             {activeVideo !== null && (
-                <div 
-                    className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4"
+                <div
+                    className="fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-3 sm:p-4"
                     onClick={closeVideoModal}
                 >
-                    <div 
+                    <div
                         className="relative w-full max-w-sm aspect-[9/16] bg-black rounded-2xl overflow-hidden"
                         onClick={(e) => e.stopPropagation()}
                     >
@@ -395,7 +395,7 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
 
                         {/* Play/Pause Overlay */}
                         {reelsData[activeVideo]?.video_url && !/youtube\\.com|youtu\\.be|vimeo\\.com/.test(reelsData[activeVideo].video_url || '') && !isPlaying && (
-                            <div 
+                            <div
                                 className="absolute inset-0 flex items-center justify-center bg-black/30 cursor-pointer"
                                 onClick={togglePlay}
                             >

@@ -18,7 +18,7 @@ export const DebugPanel: React.FC = () => {
   const copyAll = async () => {
     try {
       await navigator.clipboard.writeText(JSON.stringify(entries, null, 2));
-    } catch {}
+    } catch { }
   };
 
   return (
@@ -32,24 +32,24 @@ export const DebugPanel: React.FC = () => {
         <Bug size={18} />
         <span className="hidden md:inline">Logs</span>
         {entries.length > 0 && (
-          <span className="ml-2 text-xs bg-red-500 text-white rounded-full px-2 py-0.5">{entries.filter(e=>e.level==='error').length}</span>
+          <span className="ml-2 text-xs bg-red-500 text-white rounded-full px-2 py-0.5">{entries.filter(e => e.level === 'error').length}</span>
         )}
       </button>
 
       {/* Overlay */}
       {open && (
-        <div className="fixed inset-0 z-50 bg-black/40">
+        <div className="fixed inset-0 z-[9999] bg-black/40">
           <div className="absolute right-0 top-0 h-full w-full md:w-[640px] bg-white shadow-2xl flex flex-col">
             <div className="flex items-center justify-between px-4 py-3 border-b">
-              <div className="flex items-center gap-2 font-bold"><Bug size={18}/> Debug Console</div>
+              <div className="flex items-center gap-2 font-bold"><Bug size={18} /> Debug Console</div>
               <div className="flex items-center gap-2">
-                <button onClick={copyAll} className="p-2 rounded hover:bg-gray-100" title="Copy JSON"><Copy size={18}/></button>
-                <button onClick={clear} className="p-2 rounded hover:bg-gray-100" title="Clear"><Trash2 size={18}/></button>
-                <button onClick={() => setOpen(false)} className="p-2 rounded hover:bg-gray-100" title="Close"><X size={18}/></button>
+                <button onClick={copyAll} className="p-2 rounded hover:bg-gray-100" title="Copy JSON"><Copy size={18} /></button>
+                <button onClick={clear} className="p-2 rounded hover:bg-gray-100" title="Clear"><Trash2 size={18} /></button>
+                <button onClick={() => setOpen(false)} className="p-2 rounded hover:bg-gray-100" title="Close"><X size={18} /></button>
               </div>
             </div>
             <div className="px-4 py-3 text-sm text-gray-600 border-b">
-              Errors: <span className="font-bold text-red-600">{entries.filter(e=>e.level==='error').length}</span> · Warnings: <span className="font-bold text-yellow-600">{entries.filter(e=>e.level==='warn').length}</span> · Logs: <span className="font-bold">{entries.length}</span>
+              Errors: <span className="font-bold text-red-600">{entries.filter(e => e.level === 'error').length}</span> · Warnings: <span className="font-bold text-yellow-600">{entries.filter(e => e.level === 'warn').length}</span> · Logs: <span className="font-bold">{entries.length}</span>
             </div>
             <div className="flex-1 overflow-auto p-3 space-y-3">
               {entries.length === 0 ? (

@@ -34,14 +34,14 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
             setError('');
             setSuccess(false);
             setScannedCode('');
-            
+
             // Lazy load html5-qrcode only when scanner is opened
             if (!Html5Qrcode) {
                 const module = await import('html5-qrcode');
                 Html5Qrcode = module.Html5Qrcode;
                 Html5QrcodeSupportedFormats = module.Html5QrcodeSupportedFormats;
             }
-            
+
             const html5QrCode = new Html5Qrcode(readerIdRef.current);
             scannerRef.current = html5QrCode;
 
@@ -145,7 +145,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 bg-black/85 z-50 flex items-center justify-center px-3">
+        <div className="fixed inset-0 bg-black/85 z-[9999] flex items-center justify-center px-3">
             <div className="relative w-full max-w-lg h-auto md:h-auto max-h-[85vh] rounded-[32px] overflow-hidden">
                 {/* Header Bar */}
                 <div className="absolute top-4 left-4 right-4 z-30">

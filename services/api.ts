@@ -615,7 +615,7 @@ export const api = {
         getAll: async (options?: { all?: boolean }) => {
             const qs = options?.all ? '?all=true' : '';
             const headers = options?.all ? getHeaders() : getPublicHeaders();
-            const url = `${API_URL}/home-sections${qs}`;
+            const url = `${API_URL}/hero-sections${qs}`;
             if (options?.all) {
                 const res = await fetchJsonWithRetry(url, { headers });
                 const json = await res.json().catch(() => ({}));
@@ -2402,18 +2402,18 @@ export const api = {
             if (options?.productsPerSection) params.append('productsPerSection', String(options.productsPerSection));
             if (options?.brandsLimit) params.append('brandsLimit', String(options.brandsLimit));
             if (options?.heroLimit) params.append('heroLimit', String(options.heroLimit));
-            
+
             const query = params.toString();
             const url = `${API_URL}/home-data${query ? `?${query}` : ''}`;
-            
+
             const res = await fetch(url, {
                 headers: getPublicHeaders()
             });
-            
+
             if (!res.ok) {
                 throw new Error('Failed to fetch home data');
             }
-            
+
             const json = await res.json();
 
             // Map products in each section
@@ -2660,18 +2660,18 @@ export const api = {
             if (options?.branchId) params.append('branchId', String(options.branchId));
             if (options?.timeRange) params.append('timeRange', options.timeRange);
             if (options?.limit) params.append('limit', String(options.limit));
-            
+
             const query = params.toString();
             const url = `${API_URL}/admin/dashboard/stats${query ? `?${query}` : ''}`;
-            
+
             const res = await fetch(url, {
                 headers: getHeaders()
             });
-            
+
             if (!res.ok) {
                 throw new Error('Failed to fetch admin dashboard stats');
             }
-            
+
             return res.json();
         }
     },

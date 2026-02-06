@@ -9,14 +9,21 @@
 
 /* Enable hardware acceleration for smoother animations */
 * {
-  -webkit-transform: translateZ(0);
-  -moz-transform: translateZ(0);
-  -ms-transform: translateZ(0);
-  transform: translateZ(0);
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
   -webkit-perspective: 1000;
   perspective: 1000;
+}
+
+/* GPU acceleration only where needed (avoid breaking position: fixed) */
+.gpu-accelerate,
+.will-change-transform,
+.transform,
+[class*="animate-"] {
+  -webkit-transform: translateZ(0);
+  -moz-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  transform: translateZ(0);
 }
 
 /* Optimize image rendering */
