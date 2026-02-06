@@ -17,7 +17,32 @@ interface ProductCardProps {
 }
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical', available = true }) => {
-  const { id, name: title, weight, price, image, discount_price, originalPrice } = product;
+  // Handle both full and shortened field names from API
+  const { 
+    id, 
+    name: fullName, 
+    na: shortName,
+    weight, 
+    price: fullPrice,
+    p: shortPrice,
+    image: fullImage,
+    i: shortImage,
+    discount_price: fullDiscountPrice,
+    dp: shortDiscountPrice,
+    originalPrice 
+  } = product as any;
+  
+  // Use shortened names if full names are corrupted or empty
+  const title = (fullName && !fullName.startsWith('data:image') && !fullName.startsWith('iVBORw')) 
+    ? fullName 
+    : (shortName && !shortName.startsWith('data:image') && !shortName.startsWith('iVBORw')) 
+      ? shortName 
+      : 'منتج';
+  
+  const productPrice = fullPrice || shortPrice || 0;
+  const productImage = fullImage || shortImage;
+  const productDiscountPrice = fullDiscountPrice || shortDiscountPrice;
+  
   const navigate = useNavigate();
   const { addToCart, items, updateQuantity, removeFromCart } = useCart();
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -30,15 +55,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
   const quantityInCart = cartItem?.quantity || 0;
 
   // السعر الأصلي (قبل الخصم) - يُخزن في discount_price أو originalPrice
-  const priceBeforeDiscount = Number(discount_price) || Number(originalPrice) || 0;
+  const priceBeforeDiscount = Number(productDiscountPrice) || Number(originalPrice) || 0;
   // السعر الحالي (بعد الخصم)
-  const currentPrice = Number(price) || 0;
+  const currentPrice = Number(productPrice) || 0;
   // هل يوجد خصم؟
   const hasDiscount = priceBeforeDiscount > 0 && priceBeforeDiscount > currentPrice;
   // نسبة الخصم
   const discountPercent = hasDiscount ? Math.round(((priceBeforeDiscount - currentPrice) / priceBeforeDiscount) * 100) : 0;
   const frameOverlayUrl = (product as any).fo || (product as any).frame_overlay_url; // API returns 'fo' (shortened)
-  const frameEnabledValue = (product as any).frame_enabled;
+  const frameEnabledValue = (product as any).frame_enabled || (product as any).fe;
   const isFrameEnabled = Boolean(frameOverlayUrl) && (
     frameEnabledValue === true ||
     frameEnabledValue === 'true' ||
@@ -94,7 +119,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
             </span>
           )}
           <img
-            src={optimizeProductCardImage(image) || PRODUCT_PLACEHOLDER_BASE64}
+            src={optimizeProductCardImage(productImage) || PRODUCT_PLACEHOLDER_BASE64}
             alt={title}
             loading="lazy"
             decoding="async"
@@ -164,7 +189,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
         {/* Product Image - Lazy Loaded */}
         <div className="relative w-full h-full p-2 flex items-center justify-center">
           <img
-            src={optimizeProductCardImage(image) || PRODUCT_PLACEHOLDER_BASE64}
+            src={optimizeProductCardImage(productImage) || PRODUCT_PLACEHOLDER_BASE64}
             alt={title}
             loading="lazy"
             decoding="async"

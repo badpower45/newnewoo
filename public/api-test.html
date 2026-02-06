@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>فحص اتصال API - Allosh Mart</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 10px;
+        }
+
+        .test-title {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .result {
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            overflow-x: auto;
+        }
+
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #764ba2;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            color: #667eea;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 فحص اتصال API</h1>
+
+        <div class="test-section">
+            <div class="test-title">1️⃣ معلومات الموقع:</div>
+            <div class="result info" id="siteInfo"></div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">2️⃣ LocalStorage:</div>
+            <div class="result info" id="storageInfo"></div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">3️⃣ API URL:</div>
+            <div class="result info" id="apiInfo"></div>
+        </div>
+
+        <div class="test-section">
+            <div class="test-title">4️⃣ اختبار الاتصال:</div>
+            <div id="testResults"></div>
+        </div>
+
+        <button onclick="runTests()" id="testBtn">🚀 تشغيل الاختبارات</button>
+    </div>
+
+    <script>
+        // عرض معلومات الموقع
+        document.getElementById('siteInfo').innerHTML = `
+            <div>URL: ${window.location.href}</div>
+            <div>Origin: ${window.location.origin}</div>
+        `;
+
+        // عرض LocalStorage
+        const token = localStorage.getItem('token') || localStorage.getItem('backend_token');
+        const user = localStorage.getItem('user');
+        document.getElementById('storageInfo').innerHTML = `
+            <div>Token: ${token ? '✅ موجود (' + token.substring(0, 20) + '...)' : '❌ غير موجود'}</div>
+            <div>User: ${user ? '✅ موجود' : '❌ غير موجود'}</div>
+        `;
+
+        // تحديد API URL
+        const API_URL = 'https://bodeelezaby-backend-test.hf.space/api';
+        document.getElementById('apiInfo').innerHTML = `<div>${API_URL}</div>`;
+
+        async function runTests() {
+            const btn = document.getElementById('testBtn');
+            const results = document.getElementById('testResults');
+            btn.disabled = true;
+            results.innerHTML = '<div class="loading">⏳ جاري الاختبار...</div>';
+
+            const tests = [];
+
+            // Test 1: Health Check
+            try {
+                const res1 = await fetch(`${API_URL}/health`);
+                const data1 = await res1.json();
+                tests.push({
+                    name: 'Health Check',
+                    success: res1.ok,
+                    data: JSON.stringify(data1, null, 2)
+                });
+            } catch (err) {
+                tests.push({
+                    name: 'Health Check',
+                    success: false,
+                    data: err.message
+                });
+            }
+
+            // Test 2: Get Products (no auth)
+            try {
+                const res2 = await fetch(`${API_URL}/products?page=1&limit=5`);
+                const data2 = await res2.json();
+                tests.push({
+                    name: 'Get Products',
+                    success: res2.ok,
+                    data: `Status: ${res2.status}, Products: ${data2.products?.length || 0}`
+                });
+            } catch (err) {
+                tests.push({
+                    name: 'Get Products',
+                    success: false,
+                    data: err.message
+                });
+            }
+
+            // Test 3: Get Profile (with auth)
+            if (token) {
+                try {
+                    const res3 = await fetch(`${API_URL}/users/profile`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    const data3 = await res3.json();
+                    tests.push({
+                        name: 'Get Profile',
+                        success: res3.ok,
+                        data: JSON.stringify(data3, null, 2)
+                    });
+                } catch (err) {
+                    tests.push({
+                        name: 'Get Profile',
+                        success: false,
+                        data: err.message
+                    });
+                }
+            } else {
+                tests.push({
+                    name: 'Get Profile',
+                    success: false,
+                    data: 'No token found - Please login first'
+                });
+            }
+
+            // Test 4: Logs Stats
+            try {
+                const res4 = await fetch(`${API_URL}/logs/stats`);
+                const data4 = await res4.json();
+                tests.push({
+                    name: 'Logs Stats',
+                    success: res4.ok,
+                    data: JSON.stringify(data4, null, 2)
+                });
+            } catch (err) {
+                tests.push({
+                    name: 'Logs Stats',
+                    success: false,
+                    data: err.message
+                });
+            }
+
+            // عرض النتائج
+            results.innerHTML = tests.map((test, i) => `
+                <div class="result ${test.success ? 'success' : 'error'}">
+                    <div style="font-weight: bold; margin-bottom: 5px;">
+                        ${test.success ? '✅' : '❌'} ${test.name}
+                    </div>
+                    <pre style="margin: 0; white-space: pre-wrap;">${test.data}</pre>
+                </div>
+            `).join('');
+
+            btn.disabled = false;
+        }
+
+        // تشغيل تلقائي
+        window.onload = () => {
+            setTimeout(runTests, 1000);
+        };
+    </script>
+</body>
+</html>

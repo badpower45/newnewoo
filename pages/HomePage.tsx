@@ -157,8 +157,37 @@ const HomePage = () => {
 
                 // Set home sections
                 if (response.data.homeSections) {
-                    setHomeSections(response.data.homeSections);
-                    console.log('✅ Loaded', response.data.homeSections.length, 'sections with', response.meta.totalProducts, 'products');
+                    // Filter out products with corrupted names (base64/PNG data)
+                    const cleanedSections = response.data.homeSections.map((section: any) => {
+                        if (section.products && Array.isArray(section.products)) {
+                            const validProducts = section.products.filter((p: any) => {
+                                const name = p.name || p.na || '';
+                                const isCorrupted = name.startsWith('data:image') || 
+                                                   name.startsWith('iVBORw') || 
+                                                   name.length > 200;
+                                
+                                if (isCorrupted) {
+                                    console.warn('⚠️ Skipping corrupted product:', {
+                                        id: p.id,
+                                        namePreview: name.substring(0, 50)
+                                    });
+                                }
+                                
+                                return !isCorrupted;
+                            });
+                            
+                            console.log(`📦 Section "${section.title}" - Original: ${section.products.length}, Valid: ${validProducts.length}`);
+                            
+                            return {
+                                ...section,
+                                products: validProducts
+                            };
+                        }
+                        return section;
+                    });
+                    
+                    setHomeSections(cleanedSections);
+                    console.log('✅ Loaded', cleanedSections.length, 'sections');
                 }
 
                 // Hero sections would go here if needed
@@ -528,8 +557,8 @@ const HomePage = () => {
                                             <div className="flex md:grid md:grid-cols-4 gap-3 overflow-x-auto pb-2 scrollbar-hide md:overflow-visible mt-1">
                                                 {/* عرض المنتجات من الـ API أولاً، ثم fallback للمنتجات المحلية */}
                                                 {section.products && section.products.length > 0 ? (
-                                                    section.products.slice(0, section.max_products || 8).map(product => (
-                                                        <div key={product.id} className="flex-shrink-0 w-40 md:w-auto">
+                                                    section.products.slice(0, section.max_products || 8).map((product, idx) => (
+                                                        <div key={product.id || `product-${idx}`} className="flex-shrink-0 w-40 md:w-auto">
                                                             <ProductCard product={product} />
                                                         </div>
                                                     ))
@@ -550,9 +579,12 @@ const HomePage = () => {
                                                             </div>
                                                         ))
                                                     ) : (
-                                                        <div className="col-span-full text-center py-8">
-                                                            <p className="text-gray-500 text-sm">
-                                                                لا توجد منتجات متاحة في فئة "{categoryLabel}" حالياً
+                                                        <div className="col-span-full text-center py-8 bg-yellow-50 rounded-lg border border-yellow-200">
+                                                            <p className="text-yellow-700 text-sm font-medium mb-1">
+                                                                ⚠️ لا توجد منتجات صالحة في "{categoryLabel}"
+                                                            </p>
+                                                            <p className="text-yellow-600 text-xs">
+                                                                قد تحتاج البيانات إلى إعادة استيراد
                                                             </p>
                                                         </div>
                                                     )
