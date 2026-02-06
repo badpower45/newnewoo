@@ -27,13 +27,13 @@ const DashboardOverview = () => {
         setLoading(true);
         try {
             console.log('🎯 Loading unified admin dashboard data...');
-            
+
             // 🚀 Single API call for ALL dashboard data
             const response = await api.adminDashboard.getStats({
                 timeRange: timeRange,
                 limit: 10
             });
-            
+
             if (response.success && response.data) {
                 console.log('✅ Dashboard data loaded:', response.meta);
                 setDashboardData(response.data);
@@ -53,45 +53,45 @@ const DashboardOverview = () => {
     const topProducts = dashboardData?.topProducts || [];
 
     const statsCards = stats ? [
-        { 
-            label: 'إجمالي الإيرادات', 
-            value: `${(stats.revenue.total || 0).toLocaleString('ar-EG')} ج.م`, 
-            icon: <DollarSign size={24} />, 
+        {
+            label: 'إجمالي الإيرادات',
+            value: `${(stats.revenue.total || 0).toLocaleString('ar-EG')} ج.م`,
+            icon: <DollarSign size={24} />,
             color: 'bg-green-100 text-green-600',
             subtext: `متوسط: ${(stats.revenue.average || 0).toFixed(0)} ج.م`
         },
-        { 
-            label: 'إجمالي الطلبات', 
-            value: (stats.orders.total || 0).toString(), 
-            icon: <ShoppingBag size={24} />, 
+        {
+            label: 'إجمالي الطلبات',
+            value: (stats.orders.total || 0).toString(),
+            icon: <ShoppingBag size={24} />,
             color: 'bg-blue-100 text-blue-600',
             subtext: `تم التوصيل: ${stats.orders.delivered || 0}`
         },
-        { 
-            label: 'المنتجات النشطة', 
-            value: (stats.products.active || 0).toString(), 
-            icon: <Package size={24} />, 
+        {
+            label: 'المنتجات النشطة',
+            value: (stats.products.active || 0).toString(),
+            icon: <Package size={24} />,
             color: 'bg-purple-100 text-purple-600',
             subtext: `مخزون منخفض: ${stats.products.lowStock || 0}`
         },
-        { 
-            label: 'طلبات معلقة', 
-            value: (stats.orders.pending || 0).toString(), 
-            icon: <AlertTriangle size={24} />, 
+        {
+            label: 'طلبات معلقة',
+            value: (stats.orders.pending || 0).toString(),
+            icon: <AlertTriangle size={24} />,
             color: 'bg-yellow-100 text-yellow-600',
             subtext: `ملغي: ${stats.orders.cancelled || 0}`
         },
-        { 
-            label: 'إجمالي المستخدمين', 
-            value: (stats.users.total || 0).toString(), 
+        {
+            label: 'إجمالي المستخدمين',
+            value: (stats.users.total || 0).toString(),
             icon: <Users size={24} />,
             color: 'bg-indigo-100 text-indigo-600',
             subtext: `مستخدمين نشطين: ${stats.users.active || 0}`
         },
-        { 
-            label: 'معدل التحويل', 
-            value: `${(stats.conversionRate || 0).toFixed(1)}%`, 
-            icon: <TrendingUp size={24} />, 
+        {
+            label: 'معدل التحويل',
+            value: `${(stats.conversionRate || 0).toFixed(1)}%`,
+            icon: <TrendingUp size={24} />,
             color: 'bg-pink-100 text-pink-600',
             subtext: 'من الزوار للمشترين'
         }
@@ -126,18 +126,17 @@ const DashboardOverview = () => {
                     <h1 className="admin-page-title">لوحة التحكم الرئيسية 🎯</h1>
                     <p className="admin-page-subtitle">نظرة عامة على الأداء والإحصائيات - تحديث فوري</p>
                 </div>
-                
+
                 {/* Time Range Selector */}
                 <div className="flex gap-2 mt-4">
                     {(['7days', '30days', '90days', 'year'] as const).map((range) => (
                         <button
                             key={range}
                             onClick={() => setTimeRange(range)}
-                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                                timeRange === range 
-                                    ? 'bg-green-600 text-white' 
+                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${timeRange === range
+                                    ? 'bg-green-600 text-white'
                                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
+                                }`}
                         >
                             {range === '7days' ? '7 أيام' : range === '30days' ? '30 يوم' : range === '90days' ? '90 يوم' : 'سنة'}
                         </button>
@@ -180,7 +179,7 @@ const DashboardOverview = () => {
                                 <div key={order.id} className="flex items-center justify-between gap-3 p-3 sm:p-4 bg-gray-50 rounded-lg sm:rounded-xl">
                                     <div className="flex-1 min-w-0">
                                         <p className="font-bold text-gray-900 text-sm sm:text-base">طلب #{order.id}</p>
-                                        <p className="text-xs text-gray-500 truncate">{order.user_name} • {order.items_count} منتج</p>
+                                        <p className="text-xs text-gray-500 truncate">{order.customer_name} • {order.items_count || '-'} منتج</p>
                                     </div>
                                     <div className="text-left">
                                         <p className="font-bold text-gray-900 text-sm sm:text-base whitespace-nowrap">{(Number(order.total) || 0).toFixed(2)} ج.م</p>
@@ -206,8 +205,8 @@ const DashboardOverview = () => {
                             topProducts.map((product: any) => (
                                 <div key={product.id} className="flex items-center justify-between gap-3 p-3 sm:p-4 bg-gray-50 rounded-lg sm:rounded-xl">
                                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                                        <img 
-                                            src={product.image_url || 'https://placehold.co/400x400?text=Product'} 
+                                        <img
+                                            src={product.image_url || 'https://placehold.co/400x400?text=Product'}
                                             alt={product.name}
                                             className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-cover bg-gray-200 flex-shrink-0"
                                             onError={(e) => {
