@@ -171,7 +171,7 @@ function AppContent() {
       <Seo url={canonicalUrl} />
       <BlockedUserGuard>
         <div className="min-h-screen bg-gray-50 font-sans text-slate-900 relative flex flex-col">
-          <main className={`flex-grow ${!hideBottomNav ? 'pb-16 md:pb-0' : ''}`}>
+          <main className={`flex-grow ${!hideBottomNav ? 'pb-20 md:pb-0' : ''}`}>
           <div className={!isAdminRoute ? "max-w-7xl mx-auto w-full" : "w-full"}>
             <PhoneNumberGuard>
               <Suspense fallback={<RouteLoader />}>

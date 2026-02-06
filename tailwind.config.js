@@ -38,6 +38,11 @@ export default {
             boxShadow: {
                 'card': '0 2px 8px rgba(0, 0, 0, 0.05)',
                 'float': '0 4px 12px rgba(0, 0, 0, 0.1)',
+            },
+            spacing: {
+                'safe': 'env(safe-area-inset-bottom)',
+                'safe-top': 'env(safe-area-inset-top)',
+                'safe-bottom': 'env(safe-area-inset-bottom)',
             }
         },
     },

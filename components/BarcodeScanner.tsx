@@ -48,8 +48,8 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
             // Enhanced configuration for better barcode scanning
             const config = {
                 fps: 30, // Increased FPS for smoother scanning
-                qrbox: { width: 300, height: 200 }, // Larger scanning area for barcodes
-                aspectRatio: 1.5, // Better aspect ratio for barcodes
+                qrbox: { width: 340, height: 260 }, // Much larger scanning area for better visibility
+                aspectRatio: 1.3, // Better aspect ratio for barcodes
                 formatsToSupport: [
                     Html5QrcodeSupportedFormats.EAN_13,
                     Html5QrcodeSupportedFormats.EAN_8,
@@ -185,11 +185,11 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
                             </button>
                         </form>
                     ) : (
-                        <div className="relative w-full max-w-md rounded-3xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.45)] bg-black/80" style={{ height: '280px' }}>
+                        <div className="relative w-full max-w-md rounded-3xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.45)] bg-black/80" style={{ height: '420px' }}>
                             <div
                                 id={readerIdRef.current}
                                 className="absolute inset-0 w-full h-full"
-                                style={{ minHeight: '280px' }}
+                                style={{ minHeight: '420px' }}
                             />
 
                             {/* Single mask with clear center rectangle */}
@@ -197,17 +197,17 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
                                 <div
                                     className="relative"
                                     style={{
-                                        width: '85%',
-                                        maxWidth: 340,
-                                        height: 200,
+                                        width: '90%',
+                                        maxWidth: 380,
+                                        height: 280,
                                         boxShadow: '0 0 0 9999px rgba(0,0,0,0.65)',
-                                        borderRadius: 18
+                                        borderRadius: 20
                                     }}
                                 >
-                                    <span className="absolute -top-1.5 -left-1.5 w-12 h-12 border-t-3 border-l-3 border-white rounded-lg"></span>
-                                    <span className="absolute -top-1.5 -right-1.5 w-12 h-12 border-t-3 border-r-3 border-white rounded-lg"></span>
-                                    <span className="absolute -bottom-1.5 -left-1.5 w-12 h-12 border-b-3 border-l-3 border-white rounded-lg"></span>
-                                    <span className="absolute -bottom-1.5 -right-1.5 w-12 h-12 border-b-3 border-r-3 border-white rounded-lg"></span>
+                                    <span className="absolute -top-2 -left-2 w-16 h-16 border-t-4 border-l-4 border-white rounded-xl"></span>
+                                    <span className="absolute -top-2 -right-2 w-16 h-16 border-t-4 border-r-4 border-white rounded-xl"></span>
+                                    <span className="absolute -bottom-2 -left-2 w-16 h-16 border-b-4 border-l-4 border-white rounded-xl"></span>
+                                    <span className="absolute -bottom-2 -right-2 w-16 h-16 border-b-4 border-r-4 border-white rounded-xl"></span>
                                 </div>
                             </div>
 
