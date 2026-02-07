@@ -128,90 +128,8 @@ const HomePage = () => {
         return translations[name] || name;
     };
 
-    const SECTION_PAGE_SIZE = 2;
-
-    // 🚀 Unified Home Data Fetch - ONE API call instead of 3+
-    const fetchUnifiedHomeData = useCallback(async () => {
-        setSectionsLoading(true);
-        setSectionsLoaded(false);
-        setNeedsFallbackProducts(true);
-
-        try {
-            const branchId = selectedBranch?.id || DEFAULT_BRANCH_ID;
-            console.log('🚀 Fetching unified home data for branch:', branchId);
-
-            // Single API call that gets: brands + home sections + hero sections
-            const response = await api.homeData.getAll(branchId, {
-                sectionsLimit: 3,
-                productsPerSection: 6,
-                brandsLimit: 10,
-                heroLimit: 5
-            });
-
-            if (response.success && response.data) {
-                // Set brands
-                if (response.data.brands) {
-                    setBrands(response.data.brands);
-                    console.log('✅ Loaded', response.data.brands.length, 'brands');
-                }
-
-                // Set home sections
-                if (response.data.homeSections) {
-                    // Filter out products with corrupted names (base64/PNG data)
-                    const cleanedSections = response.data.homeSections.map((section: any) => {
-                        if (section.products && Array.isArray(section.products)) {
-                            const validProducts = section.products.filter((p: any) => {
-                                const name = p.name || p.na || '';
-                                const isCorrupted = name.startsWith('data:image') ||
-                                    name.startsWith('iVBORw') ||
-                                    name.length > 200;
-
-                                if (isCorrupted) {
-                                    console.warn('⚠️ Skipping corrupted product:', {
-                                        id: p.id,
-                                        namePreview: name.substring(0, 50)
-                                    });
-                                }
-
-                                return !isCorrupted;
-                            });
-
-                            console.log(`📦 Section "${section.title}" - Original: ${section.products.length}, Valid: ${validProducts.length}`);
-
-                            return {
-                                ...section,
-                                products: validProducts
-                            };
-                        }
-                        return section;
-                    });
-
-                    setHomeSections(cleanedSections);
-                    console.log('✅ Loaded', cleanedSections.length, 'sections');
-                }
-
-                // Hero sections would go here if needed
-                // setHeroSections(response.data.heroSections);
-
-                const hasSectionProducts = response.data.homeSections?.some(
-                    (section: any) => Array.isArray(section.products) && section.products.length > 0
-                );
-
-                setNeedsFallbackProducts(!hasSectionProducts);
-            }
-        } catch (err) {
-            console.error('❌ Error fetching unified home data:', err);
-            setHomeSections([]);
-            setBrands([]);
-            setNeedsFallbackProducts(true);
-        } finally {
-            setSectionsLoading(false);
-            setSectionsLoaded(true);
-        }
-    }, [selectedBranch]);
-
-    // Fetch home sections from API (paged) - DEPRECATED: Use fetchUnifiedHomeData instead
-    const fetchHomeSections = useCallback(async (page = 1, append = false) => {
+    // 🚀 NEW: Fetch home sections from CockroachDB with lazy loading
+    const fetchHomeSectionsFromAPI = useCallback(async (page = 1, append = false) => {
         if (append) {
             setSectionsLoadingMore(true);
         } else {
@@ -219,32 +137,59 @@ const HomePage = () => {
             setSectionsLoaded(false);
             setNeedsFallbackProducts(true);
         }
+
         try {
             const branchId = selectedBranch?.id || DEFAULT_BRANCH_ID;
-            const response = await api.homeSections.get(branchId, { page, limit: SECTION_PAGE_SIZE, productLimit: 6 });
-            const sectionsData = response?.data || response || [];
-            const nextSections = Array.isArray(sectionsData) ? sectionsData : [];
-            setHomeSections(prev => {
-                const merged = append ? [...prev, ...nextSections] : nextSections;
-                const seen = new Set<number>();
-                return merged.filter(section => {
-                    if (!section?.id) return false;
-                    if (seen.has(section.id)) return false;
-                    seen.add(section.id);
-                    return true;
-                });
+            console.log('🚀 Fetching home sections (page', page, ') from CockroachDB API');
+
+            // Call new API: GET /api/home-sections?page=1&limit=3
+            const response = await api.homeSections.get(branchId, {
+                page,
+                limit: 3, // 3 sections per page for lazy loading
+                productLimit: 6 // 6 products per section
             });
-            const hasMore = typeof response?.hasMore === 'boolean'
-                ? response.hasMore
-                : nextSections.length === SECTION_PAGE_SIZE;
+
+            console.log('📥 API Response:', response);
+
+            // Handle response format
+            const sectionsData = response?.data || response || [];
+            const hasMore = response?.hasMore ?? false;
+            const total = response?.total ?? 0;
+
+            console.log(`✅ Loaded ${sectionsData.length} sections, hasMore: ${hasMore}, total: ${total}`);
+
+            // Update sections
+            if (append) {
+                setHomeSections(prev => {
+                    const merged = [...prev, ...sectionsData];
+                    const seen = new Set<number>();
+                    return merged.filter(section => {
+                        if (!section?.id) return false;
+                        if (seen.has(section.id)) return false;
+                        seen.add(section.id);
+                        return true;
+                    });
+                });
+            } else {
+                setHomeSections(sectionsData);
+            }
+
             setSectionsHasMore(hasMore);
             setSectionsPage(page);
+
+            // Check if we have products
+            const hasSectionProducts = sectionsData.some(
+                (section: any) => Array.isArray(section.products) && section.products.length > 0
+            );
+            setNeedsFallbackProducts(!hasSectionProducts);
+
         } catch (err) {
-            console.error('Error fetching sections:', err);
+            console.error('❌ Error fetching home sections:', err);
             if (!append) {
                 setHomeSections([]);
             }
             setSectionsHasMore(false);
+            setNeedsFallbackProducts(true);
         } finally {
             if (append) {
                 setSectionsLoadingMore(false);
@@ -254,6 +199,22 @@ const HomePage = () => {
             }
         }
     }, [selectedBranch]);
+
+    // Fetch brands from unified API
+    const fetchBrands = async () => {
+        try {
+            const response = await api.homeData.getAll(selectedBranch?.id || DEFAULT_BRANCH_ID, {
+                brandsLimit: 10
+            });
+            if (response.success && response.data?.brands) {
+                setBrands(response.data.brands);
+                console.log('✅ Loaded', response.data.brands.length, 'brands');
+            }
+        } catch (err) {
+            console.error('❌ Error fetching brands:', err);
+            setBrands([]);
+        }
+    };
 
     const fetchProducts = async () => {
         setLoading(true);
@@ -304,9 +265,11 @@ const HomePage = () => {
 
     useEffect(() => {
         fetchCategories();
-        // 🚀 Use unified API instead of multiple calls
-        fetchUnifiedHomeData();
-    }, [selectedBranch, fetchUnifiedHomeData]);
+        // 🚀 Fetch brands from unified API
+        fetchBrands();
+        // 🚀 Fetch home sections with lazy loading from CockroachDB
+        fetchHomeSectionsFromAPI(1, false);
+    }, [selectedBranch, fetchHomeSectionsFromAPI]);
 
     useEffect(() => {
         setFallbackRequested(false);
@@ -353,14 +316,14 @@ const HomePage = () => {
         const observer = new IntersectionObserver(
             (entries) => {
                 if (entries[0]?.isIntersecting) {
-                    fetchHomeSections(sectionsPage + 1, true);
+                    fetchHomeSectionsFromAPI(sectionsPage + 1, true);
                 }
             },
             { rootMargin: '300px' }
         );
         observer.observe(loadMoreRef.current);
         return () => observer.disconnect();
-    }, [sectionsHasMore, sectionsLoadingMore, sectionsLoading, sectionsPage, fetchHomeSections]);
+    }, [sectionsHasMore, sectionsLoadingMore, sectionsLoading, sectionsPage, fetchHomeSectionsFromAPI]);
 
     useEffect(() => {
         // Skip branch-products API (404 on current backend)
