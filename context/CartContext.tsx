@@ -126,6 +126,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [items, user]);
 
   const addToCart = async (product: Product, quantity = 1, substitutionPreference = 'none') => {
+    // Guard: reject products with missing or invalid IDs
+    if (product.id === undefined || product.id === null || String(product.id).trim() === '' || String(product.id) === 'undefined') {
+      console.error('addToCart called with invalid product id:', product.id, product);
+      showToast('حدث خطأ - المنتج غير صالح', 'error');
+      return;
+    }
+
     // Ensure price is a number
     const normalizedProduct = {
       ...product,
