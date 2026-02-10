@@ -199,9 +199,10 @@ const ProductDetailsPage = () => {
     );
 
     const displayPrice = Number(branchPrice) || Number(product.price) || 0;
-    const oldPrice = Number(product.discount_price) || Number(product.originalPrice) || (displayPrice * 1.15); // 15% higher as old price if not set
-    const discountPercentage = oldPrice > displayPrice ? Math.round(((oldPrice - displayPrice) / oldPrice) * 100) : 0;
-    const savings = oldPrice - displayPrice;
+    const realOldPrice = Number(product.discount_price) || Number(product.originalPrice) || 0;
+    const oldPrice = realOldPrice > displayPrice ? realOldPrice : 0;
+    const discountPercentage = oldPrice > 0 ? Math.round(((oldPrice - displayPrice) / oldPrice) * 100) : 0;
+    const savings = oldPrice > 0 ? oldPrice - displayPrice : 0;
     const frameOverlayUrl = (product as any).fo || (product as any).frame_overlay_url; // API returns 'fo' (shortened)
     const frameEnabledValue = (product as any).frame_enabled;
     const isFrameEnabled = Boolean(frameOverlayUrl) && (

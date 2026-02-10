@@ -771,10 +771,15 @@ export const api = {
     },
     returns: {
         create: async (payload: { order_id: number; items: any[]; return_reason: string; return_notes?: string }) => {
-            const res = await fetch(`${API_URL}/returns/create`, {
+            const res = await fetch(`${API_URL}/admin-enhanced/returns/create-full`, {
                 method: 'POST',
                 headers: getHeaders(),
-                body: JSON.stringify(payload)
+                body: JSON.stringify({
+                    order_id: payload.order_id,
+                    items: payload.items,
+                    reason: payload.return_reason,
+                    notes: payload.return_notes
+                })
             });
             const json = await res.json();
             if (!res.ok) {
@@ -783,7 +788,7 @@ export const api = {
             return json;
         },
         check: async (code: string) => {
-            const res = await fetch(`${API_URL}/returns/check/${code}`, {
+            const res = await fetch(`${API_URL}/admin-enhanced/returns?return_code=${code}`, {
                 headers: getHeaders()
             });
             const json = await res.json();
@@ -2208,18 +2213,17 @@ export const api = {
     },
 
     reviews: {
-        getByProduct: async (productId: string, page = 1, limit = 10, sort = 'recent') => {
+        getByProduct: async (productId: string, _page = 1, _limit = 10, _sort = 'recent') => {
             const res = await fetch(
-                `${API_URL}/reviews/product/${productId}?page=${page}&limit=${limit}&sort=${sort}`,
+                `${API_URL}/reviews?productId=${productId}`,
                 { headers: getHeaders() }
             );
             if (!res.ok) throw new Error('Failed to fetch reviews');
             const data = await res.json();
-            // Return reviews array from response
-            return { data: data.reviews || [], stats: data.stats, distribution: data.distribution };
+            return { data: data.data || data.reviews || [], stats: data.stats || null, distribution: data.distribution || null };
         },
         create: async (data: { product_id: string; rating: number; comment?: string; images?: string[] }) => {
-            const res = await fetch(`${API_URL}/reviews/add`, {
+            const res = await fetch(`${API_URL}/reviews`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify(data)
@@ -2427,98 +2431,6 @@ export const api = {
             }
 
             return json;
-        }
-    },
-
-    // Enhanced Loyalty System
-    loyaltyEnhanced: {
-        getBalance: async () => {
-            const res = await fetch(`${API_URL}/loyalty-enhanced/balance`, {
-                headers: getHeaders()
-            });
-            if (!res.ok) throw new Error('Failed to fetch loyalty balance');
-            return res.json();
-        },
-        getTransactions: async (limit = 50, offset = 0) => {
-            const res = await fetch(`${API_URL}/loyalty-enhanced/transactions?limit=${limit}&offset=${offset}`, {
-                headers: getHeaders()
-            });
-            if (!res.ok) throw new Error('Failed to fetch transactions');
-            return res.json();
-        },
-        convert: async (points: number) => {
-            const res = await fetch(`${API_URL}/loyalty-enhanced/convert`, {
-                method: 'POST',
-                headers: getHeaders(),
-                body: JSON.stringify({ points })
-            });
-            if (!res.ok) throw new Error('Failed to convert points');
-            return res.json();
-        },
-        calculateOrder: async (subtotal: number, usePoints = 0, address?: any) => {
-            const res = await fetch(`${API_URL}/loyalty-enhanced/calculate-order`, {
-                method: 'POST',
-                headers: getHeaders(),
-                body: JSON.stringify({ subtotal, usePoints, address })
-            });
-            if (!res.ok) throw new Error('Failed to calculate order');
-            return res.json();
-        },
-        getConfig: async () => {
-            const res = await fetch(`${API_URL}/loyalty-enhanced/config`, {
-                headers: getHeaders()
-            });
-            if (!res.ok) throw new Error('Failed to fetch config');
-            return res.json();
-        }
-    },
-
-    // Enhanced Returns System
-    returnsEnhanced: {
-        create: async (data: any) => {
-            const res = await fetch(`${API_URL}/returns-enhanced/create`, {
-                method: 'POST',
-                headers: getHeaders(),
-                body: JSON.stringify(data)
-            });
-            if (!res.ok) throw new Error('Failed to create return');
-            return res.json();
-        },
-        // Admin: get all returns
-        getAll: async () => {
-            const res = await fetch(`${API_URL}/returns-enhanced`, {
-                headers: getHeaders()
-            });
-            return res.json();
-        },
-        getMyReturns: async (status?: string, limit = 20, offset = 0) => {
-            const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
-            if (status) params.append('status', status);
-            const res = await fetch(`${API_URL}/returns-enhanced/my-returns?${params.toString()}`, {
-                headers: getHeaders()
-            });
-            if (!res.ok) throw new Error('Failed to fetch returns');
-            return res.json();
-        },
-        getByCode: async (returnCode: string) => {
-            const res = await fetch(`${API_URL}/returns-enhanced/${returnCode}`, {
-                headers: getHeaders()
-            });
-            if (!res.ok) throw new Error('Failed to fetch return');
-            return res.json();
-        },
-        getStats: async () => {
-            const res = await fetch(`${API_URL}/returns-enhanced/stats/overview`, {
-                headers: getHeaders()
-            });
-            if (!res.ok) throw new Error('Failed to fetch stats');
-            return res.json();
-        },
-        getStatsDetailed: async () => {
-            const res = await fetch(`${API_URL}/returns-enhanced/stats`, {
-                headers: getHeaders()
-            });
-            return res.json();
         }
     },
 

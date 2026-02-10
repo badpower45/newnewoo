@@ -110,7 +110,7 @@ const ReturnsManager = () => {
             
             if (!refundAmount) return;
 
-            await axios.put(
+            await axios.post(
                 `${API_BASE_URL}/api/admin-enhanced/returns/${id}/approve`,
                 { 
                     refund_amount: parseFloat(refundAmount),
@@ -135,7 +135,7 @@ const ReturnsManager = () => {
             
             if (!reason) return;
 
-            await axios.put(
+            await axios.post(
                 `${API_BASE_URL}/api/admin-enhanced/returns/${id}/reject`,
                 { rejection_reason: reason },
                 { headers: { Authorization: `Bearer ${token}` } }

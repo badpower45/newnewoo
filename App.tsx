@@ -58,7 +58,7 @@ const EmployeesManager = lazy(() => import('./pages/admin/EmployeesManager'));
 const LiveChatDashboard = lazy(() => import('./pages/admin/LiveChatDashboard'));
 const BranchesManager = lazy(() => import('./pages/admin/BranchesManager'));
 const InventoryDashboard = lazy(() => import('./pages/admin/InventoryDashboard'));
-const AdminInventoryDashboard = lazy(() => import('./src/pages/AdminInventoryDashboard'));
+const AdminInventoryDashboard = lazy(() => import('./pages/admin/InventoryDashboard'));
 const OrderDistributorPage = lazy(() => import('./pages/admin/OrderDistributorPage'));
 const DeliveryStaffManager = lazy(() => import('./pages/admin/DeliveryStaffManager'));
 const CouponsManager = lazy(() => import('./pages/admin/CouponsManager'));
