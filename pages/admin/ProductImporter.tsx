@@ -25,13 +25,13 @@ interface DraftProduct {
     name: string;
     barcode: string;
     brand_name: string;
-    price_before: number;
-    price_after: number;
+    old_price: number;
+    price: number;
     category: string;
     subcategory: string;
-    branch_name: string;
-    quantity: number;
-    image_url: string;
+    branch_id: number;
+    stock_quantity: number;
+    image: string;
     expiry_date: string;
 }
 
@@ -236,12 +236,12 @@ const ProductImporter: React.FC = () => {
                 body: JSON.stringify({
                     name: editedProduct.name,
                     barcode: editedProduct.barcode,
-                    price: editedProduct.price_after,
-                    old_price: editedProduct.price_before,
+                    price: editedProduct.price,
+                    old_price: editedProduct.old_price,
                     category: editedProduct.category,
                     subcategory: editedProduct.subcategory,
-                    stock_quantity: editedProduct.quantity,
-                    image: editedProduct.image_url
+                    stock_quantity: editedProduct.stock_quantity,
+                    image: editedProduct.image
                 })
             });
 
@@ -659,14 +659,14 @@ const ProductImporter: React.FC = () => {
                                                     {isEditing ? (
                                                         <input
                                                             type="text"
-                                                            value={editedProduct.image_url || ''}
-                                                            onChange={(e) => setEditedProduct(prev => ({ ...prev, image_url: e.target.value }))}
+                                                            value={editedProduct.image || ''}
+                                                            onChange={(e) => setEditedProduct(prev => ({ ...prev, image: e.target.value }))}
                                                             placeholder="رابط الصورة"
                                                             className="w-32 px-2 py-1 text-xs border border-gray-300 rounded"
                                                         />
                                                     ) : (
                                                         <img 
-                                                            src={product.image_url || '/placeholder.png'} 
+                                                            src={product.image || '/placeholder.png'} 
                                                             alt={product.name}
                                                             className="w-12 h-12 object-cover rounded"
                                                             onError={(e) => {
@@ -717,12 +717,12 @@ const ProductImporter: React.FC = () => {
                                                         <input
                                                             type="number"
                                                             step="0.01"
-                                                            value={editedProduct.price_before || ''}
-                                                            onChange={(e) => setEditedProduct(prev => ({ ...prev, price_before: parseFloat(e.target.value) }))}
+                                                            value={editedProduct.old_price || ''}
+                                                            onChange={(e) => setEditedProduct(prev => ({ ...prev, old_price: parseFloat(e.target.value) }))}
                                                             className="w-24 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
                                                         />
                                                     ) : (
-                                                        <span className="text-sm text-gray-600">{product.price_before} ج.م</span>
+                                                        <span className="text-sm text-gray-600">{product.old_price} ج.م</span>
                                                     )}
                                                 </td>
                                                 <td className="px-4 py-4">
@@ -730,12 +730,12 @@ const ProductImporter: React.FC = () => {
                                                         <input
                                                             type="number"
                                                             step="0.01"
-                                                            value={editedProduct.price_after || ''}
-                                                            onChange={(e) => setEditedProduct(prev => ({ ...prev, price_after: parseFloat(e.target.value) }))}
+                                                            value={editedProduct.price || ''}
+                                                            onChange={(e) => setEditedProduct(prev => ({ ...prev, price: parseFloat(e.target.value) }))}
                                                             className="w-24 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
                                                         />
                                                     ) : (
-                                                        <span className="text-green-600 font-bold text-sm">{product.price_after} ج.م</span>
+                                                        <span className="text-green-600 font-bold text-sm">{product.price} ج.م</span>
                                                     )}
                                                 </td>
                                                 <td className="px-4 py-4">
@@ -769,13 +769,13 @@ const ProductImporter: React.FC = () => {
                                                     {isEditing ? (
                                                         <input
                                                             type="number"
-                                                            value={editedProduct.quantity || ''}
-                                                            onChange={(e) => setEditedProduct(prev => ({ ...prev, quantity: parseInt(e.target.value) }))}
+                                                            value={editedProduct.stock_quantity || ''}
+                                                            onChange={(e) => setEditedProduct(prev => ({ ...prev, stock_quantity: parseInt(e.target.value) }))}
                                                             className="w-20 px-2 py-1 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
                                                         />
                                                     ) : (
                                                         <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
-                                                            {product.quantity}
+                                                            {product.stock_quantity}
                                                         </span>
                                                     )}
                                                 </td>
@@ -842,11 +842,11 @@ const ProductImporter: React.FC = () => {
                 <div className="space-y-3 text-gray-700">
                     <p className="flex items-start gap-2">
                         <span className="text-orange-600 font-bold">1.</span>
-                        <span>حمّل قالب Excel من الأعلى للحصول على الصيغة الصحيحة (10 أعمدة)</span>
+                        <span>حمّل قالب Excel من الأعلى للحصول على الصيغة الصحيحة (48 عمود)</span>
                     </p>
                     <p className="flex items-start gap-2">
                         <span className="text-orange-600 font-bold">2.</span>
-                        <span>املأ جميع الأعمدة العشرة: اسم المنتج، الباركود، السعر قبل، السعر بعد، التصنيف الاساسي، التصنيف الثانوي، الفرع، الكميه، الصورة، تاريخ الصلاحيه</span>
+                        <span>الأعمدة الأساسية: Barcode, Name, Price, Original Price, Category, Subcategory, Brand Name, Total Stock, Main Image, Expiry Date - باقي الأعمدة اختيارية</span>
                     </p>
                     <p className="flex items-start gap-2">
                         <span className="text-orange-600 font-bold">3.</span>
