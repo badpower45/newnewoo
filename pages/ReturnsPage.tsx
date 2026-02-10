@@ -36,13 +36,13 @@ const ReturnsPage = () => {
         setOrderData(null);
 
         try {
-            const response = await api.get(`/returns/admin/search-order/${searchTerm.trim()}`);
+            const response = await api.get(`/admin-enhanced/orders/${searchTerm.trim()}`);
             
             if (response.data) {
                 setOrderData(response.data);
             }
-        } catch (err) {
-            setError(err.response?.data?.error || 'فشل البحث عن الطلب');
+        } catch (err: any) {
+            setError(err?.message || err?.response?.data?.error || 'فشل البحث عن الطلب');
         } finally {
             setIsSearching(false);
         }
@@ -57,31 +57,31 @@ const ReturnsPage = () => {
             setError('');
 
             try {
-                // Create return request
-                const returnResponse = await api.post('/returns/create', {
-                    order_id: orderData.id,
-                    items: orderData.items,
+                // Create full return via admin-enhanced endpoint (creates + approves in one step)
+                const returnResponse = await api.post('/admin-enhanced/returns/create-full', {
+                    order_code: orderData.order_code || String(orderData.id),
+                    items: (Array.isArray(orderData.items) ? orderData.items : JSON.parse(orderData.items || '[]')).map((item: any) => ({
+                        product_id: item.product_id || item.productId || item.id,
+                        name: item.name,
+                        price: item.price,
+                        quantity: item.quantity
+                    })),
                     return_reason: 'customer_request',
-                    return_notes: 'Processed by returns staff'
+                    return_notes: `Processed by ${user?.name || 'staff'}`,
+                    refund_amount: orderData.total,
+                    update_inventory: true,
+                    update_loyalty: true
                 });
 
-                if (returnResponse.data) {
-                    const returnId = returnResponse.data.id;
-
-                    // Approve return immediately (staff workflow)
-                    await api.post(`/returns/admin/approve/${returnId}`, {
-                        refund_method: 'cash',
-                        notes: `Processed by ${user?.name || 'staff'}`
-                    });
-
-                    alert(`✅ تم معالجة الإرجاع بنجاح!\n\n📦 تم إرجاع المنتجات للمخزن\n💰 تم خصم ${orderData.points_earned_from_order} نقطة\n💵 يرجى رد مبلغ ${orderData.total} جنيه للعميل`);
+                if (returnResponse.success || returnResponse.data) {
+                    alert(`✅ تم معالجة الإرجاع بنجاح!\n\n📦 تم إرجاع المنتجات للمخزن\n💰 تم خصم النقاط\n💵 يرجى رد مبلغ ${orderData.total} جنيه للعميل`);
 
                     // Reset
                     setSearchTerm('');
                     setOrderData(null);
                 }
-            } catch (err) {
-                setError(err.response?.data?.error || 'فشلت معالجة الإرجاع');
+            } catch (err: any) {
+                setError(err?.message || err?.response?.data?.error || 'فشلت معالجة الإرجاع');
             } finally {
                 setIsProcessing(false);
             }

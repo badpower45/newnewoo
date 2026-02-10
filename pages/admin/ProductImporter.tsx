@@ -352,6 +352,32 @@ const ProductImporter: React.FC = () => {
         }
     };
 
+    const exportProducts = async () => {
+        try {
+            const response = await fetch(`${API_URL}/products/bulk-import/export`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+
+            if (!response.ok) throw new Error('Failed to export products');
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const today = new Date().toISOString().split('T')[0];
+            a.download = `products_export_${today}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } catch (err) {
+            console.error('Export error:', err);
+            alert('فشل تصدير المنتجات');
+        }
+    };
+
     return (
         <div className="p-6 max-w-6xl mx-auto">
             {/* Header */}
@@ -362,6 +388,13 @@ const ProductImporter: React.FC = () => {
                         <p className="text-gray-600">قم برفع ملف Excel يحتوي على بيانات المنتجات لإضافتها دفعة واحدة</p>
                     </div>
                     <div className="flex gap-2">
+                        <button
+                            onClick={exportProducts}
+                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2"
+                        >
+                            <Download className="w-4 h-4" />
+                            تصدير المنتجات
+                        </button>
                         <button
                             onClick={() => navigate('/admin/drafts')}
                             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"

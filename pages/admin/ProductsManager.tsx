@@ -804,7 +804,7 @@ const ProductsManager = () => {
                         </button>
                         
                         <button
-                            onClick={() => navigate('/admin/upload')}
+                            onClick={() => navigate('/admin/import')}
                             className="admin-btn-secondary flex-1 sm:flex-initial"
                         >
                             <Upload size={16} />

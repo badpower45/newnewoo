@@ -44,6 +44,9 @@ export default function CheckoutPage() {
     const [couponError, setCouponError] = useState('');
     const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
 
+    // 🔒 Prevent duplicate order submission
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     // State for Loyalty Barcode
     const [barcodeInput, setBarcodeInput] = useState('');
     const [appliedBarcode, setAppliedBarcode] = useState<any>(null);
@@ -316,6 +319,12 @@ export default function CheckoutPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        // 🔒 Prevent duplicate submissions
+        if (isSubmitting) {
+            console.log('⚠️ Order already being submitted, ignoring duplicate click');
+            return;
+        }
+
         // Check minimum order amount
         if (totalPrice < MINIMUM_ORDER_AMOUNT) {
             showToast(`الحد الأدنى للطلب هو ${MINIMUM_ORDER_AMOUNT} جنيه`, 'error');
@@ -448,6 +457,7 @@ export default function CheckoutPage() {
             };
 
             console.log('📦 Creating order with data:', orderData);
+            setIsSubmitting(true); // 🔒 Lock to prevent duplicate submissions
 
             // إذا كان الدفع بالبطاقة عبر Paymob - معطل مؤقتًا
             /* if (paymentMethod === 'paymob_card') {
@@ -529,6 +539,8 @@ export default function CheckoutPage() {
             console.error("Error details:", err.response?.data);
             const errorMessage = err.response?.data?.error || err.message || 'فشل إنشاء الطلب. يرجى المحاولة مرة أخرى.';
             showToast(errorMessage, 'error');
+        } finally {
+            setIsSubmitting(false); // 🔓 Release lock even on error
         }
     };
 
@@ -948,13 +960,18 @@ export default function CheckoutPage() {
 
                         <button
                             onClick={handleSubmit}
-                            disabled={(!isPickup && !canDeliver) || !meetsMinimumOrder}
-                            className={`w-full font-bold py-4 rounded-xl transition-colors shadow-lg ${(!isPickup && !canDeliver) || !meetsMinimumOrder
+                            disabled={(!isPickup && !canDeliver) || !meetsMinimumOrder || isSubmitting}
+                            className={`w-full font-bold py-4 rounded-xl transition-colors shadow-lg ${(!isPickup && !canDeliver) || !meetsMinimumOrder || isSubmitting
                                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                                     : 'bg-green-600 text-white hover:bg-green-700'
                                 }`}
                         >
-                            {(!isPickup && !canDeliver) ? 'لا يمكن إتمام الطلب'
+                            {isSubmitting ? (
+                                <span className="flex items-center justify-center gap-2">
+                                    <Loader size={18} className="animate-spin" />
+                                    جاري إنشاء الطلب...
+                                </span>
+                            ) : (!isPickup && !canDeliver) ? 'لا يمكن إتمام الطلب'
                                 : !meetsMinimumOrder
                                     ? 'الحد الأدنى 200 جنيه'
                                     : `تأكيد الطلب (${finalTotal.toFixed(2)} جنيه)`}

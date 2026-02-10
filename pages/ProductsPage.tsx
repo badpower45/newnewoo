@@ -857,7 +857,6 @@ export default function ProductsPage() {
                                             : 'border-gray-200 text-gray-700 hover:border-brand-orange/50 hover:bg-orange-50'
                                         }`}
                                 >
-                                    <span>{cat.icon}</span>
                                     <span className="font-medium">{cat.name}</span>
                                     {cat.product_count > 0 && (
                                         <span className={`text-xs px-1.5 py-0.5 rounded-full ${isSelected ? 'bg-white/20' : 'bg-gray-100 text-gray-600'

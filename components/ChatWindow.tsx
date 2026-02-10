@@ -205,7 +205,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ onClose, onNewMessage }) => {
     };
 
     return (
-        <div className="fixed bottom-6 right-6 z-50 w-96 h-[600px] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+        <div className="fixed inset-0 sm:inset-auto sm:bottom-6 sm:right-6 z-50 w-full sm:w-96 h-[100dvh] sm:h-[600px] bg-white sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
             {/* Header */}
             <div className="bg-gradient-to-r from-brand-orange to-orange-600 p-4 text-white flex items-center justify-between">
                 <div className="flex items-center space-x-3 rtl:space-x-reverse">
@@ -277,7 +277,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ onClose, onNewMessage }) => {
             </div>
 
             {/* Input */}
-            <div className="p-4 bg-white border-t border-gray-200">
+            <div className="p-4 bg-white border-t border-gray-200" style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom, 1rem))' }}>
                 <div className="flex space-x-2 rtl:space-x-reverse">
                     <input
                         type="text"

@@ -25,7 +25,7 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
     const [imageLoaded, setImageLoaded] = useState(false);
     const [imageError, setImageError] = useState(false);
     const dismissedKey = 'dismissed_popups'; // localStorage - دائم
-    const shownKey = 'popup_shown_this_session'; // sessionStorage - للجلسة فقط
+    const shownKey = 'popup_shown_this_session'; // localStorage - دائم (مرة واحدة فقط)
 
     const getDismissedPopups = () => {
         try {
@@ -42,24 +42,26 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
             const dismissed = new Set<number>(getDismissedPopups());
             dismissed.add(popupId);
             localStorage.setItem(dismissedKey, JSON.stringify(Array.from(dismissed)));
+            // Also mark shown so it never appears again even without explicit dismiss
+            localStorage.setItem(shownKey, 'true');
         } catch {
             // Ignore storage issues
         }
     };
 
-    // 🔥 تحقق إذا الـ popup ظهر في هذه الجلسة
-    const hasShownThisSession = () => {
+    // تحقق إذا الـ popup ظهر من قبل (أو تم إغلاقه)
+    const hasShownBefore = () => {
         try {
-            return sessionStorage.getItem(shownKey) === 'true';
+            return localStorage.getItem(shownKey) === 'true';
         } catch {
             return false;
         }
     };
 
-    // 🔥 تسجيل أن الـ popup ظهر في هذه الجلسة
-    const markShownThisSession = () => {
+    // تسجيل أن الـ popup ظهر
+    const markShown = () => {
         try {
-            sessionStorage.setItem(shownKey, 'true');
+            localStorage.setItem(shownKey, 'true');
         } catch {
             // Ignore storage issues
         }
@@ -73,9 +75,9 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
         try {
             console.log('🎉 Fetching popup for page:', page);
 
-            // Check session - but allow retry if popup wasn't shown properly
-            if (hasShownThisSession()) {
-                console.log('⏭️ Popup already shown this session');
+            // Check if popup was already shown or dismissed - permanent check
+            if (hasShownBefore()) {
+                console.log('⏭️ Popup already shown/dismissed permanently');
                 return;
             }
 
@@ -95,6 +97,7 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
             const dismissed = getDismissedPopups();
             if (dismissed.includes(popupData.id)) {
                 console.log('⏭️ Popup already dismissed:', popupData.id);
+                markShown(); // ensure shown flag is set
                 return;
             }
 
@@ -102,7 +105,7 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
             setIsVisible(true);
             setImageLoaded(false);
             setImageError(false);
-            markShownThisSession();
+            markShown();
             console.log('🎉 Popup displayed!');
         } catch (error) {
             console.error('❌ Error fetching popup:', error);

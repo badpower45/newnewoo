@@ -285,7 +285,7 @@ const CustomerServiceDashboard = () => {
     const totalUnread = conversations.reduce((sum, conv) => sum + (conv.unreadCount || 0), 0);
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex flex-col">
+        <div className="h-[100dvh] bg-gradient-to-br from-gray-50 to-blue-50 flex flex-col overflow-hidden">
             {/* Simplified Header */}
             <div className="bg-white shadow-md sticky top-0 z-10 border-b-2 border-primary/10">
                 <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -324,7 +324,7 @@ const CustomerServiceDashboard = () => {
 
             <div className="flex-1 flex overflow-hidden max-w-7xl mx-auto w-full">
                 {/* Simplified Conversations List */}
-                <div className="w-full md:w-80 bg-white border-l border-gray-200 flex flex-col shadow-lg">
+                <div className={`w-full md:w-80 bg-white border-l border-gray-200 flex flex-col shadow-lg ${selectedConversation ? 'hidden md:flex' : 'flex'}`}>
                     {/* Simpler Search */}
                     <div className="p-4 bg-gray-50 border-b border-gray-200">
                         <div className="relative">
@@ -402,7 +402,13 @@ const CustomerServiceDashboard = () => {
                             {/* Cleaner Chat Header */}
                             <div className="bg-white border-b border-gray-200 p-4 shadow-sm">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 bg-gradient-to-br from-primary to-orange-500 rounded-xl flex items-center justify-center text-white font-bold shadow-md">
+                                    <button
+                                        onClick={() => setSelectedConversation(null)}
+                                        className="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors flex-shrink-0"
+                                    >
+                                        <ChevronLeft size={20} className="text-gray-600" />
+                                    </button>
+                                    <div className="w-12 h-12 bg-gradient-to-br from-primary to-orange-500 rounded-xl flex items-center justify-center text-white font-bold shadow-md flex-shrink-0">
                                         {selectedConversation.customerName.charAt(0).toUpperCase()}
                                     </div>
                                     <div>
@@ -420,7 +426,7 @@ const CustomerServiceDashboard = () => {
                             </div>
 
                             {/* Simplified Messages */}
-                            <div className="flex-1 overflow-y-auto p-6 space-y-3 pb-28">
+                            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3">
                                 {messages.length === 0 ? (
                                     <div className="flex items-center justify-center h-full">
                                         <div className="text-center">
@@ -482,7 +488,7 @@ const CustomerServiceDashboard = () => {
                             </div>
 
                             {/* Simplified Input Area */}
-                            <div className="bg-white border-t border-gray-200 p-5 shadow-lg sticky bottom-0">
+                            <div className="bg-white border-t border-gray-200 p-3 sm:p-5 shadow-lg flex-shrink-0" style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom, 0.75rem))' }}>
                                 <div className="flex items-center gap-3" dir="rtl">
                                     <textarea
                                         value={message}
