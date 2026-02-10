@@ -152,8 +152,10 @@ const ReturnsManager = () => {
 
     const viewReturnInvoice = async (returnCode: string) => {
         try {
+            const token = localStorage.getItem('token');
             const response = await axios.get(
-                `${API_BASE_URL}/api/returns/invoice/${returnCode}`
+                `${API_BASE_URL}/api/admin-enhanced/returns/invoice/${returnCode}`,
+                { headers: { Authorization: `Bearer ${token}` } }
             );
             
             const invoice = response.data.data;

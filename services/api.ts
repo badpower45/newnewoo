@@ -770,15 +770,17 @@ export const api = {
         }
     },
     returns: {
-        create: async (payload: { order_id: number; items: any[]; return_reason: string; return_notes?: string }) => {
+        create: async (payload: { order_code?: string; order_id?: number; items: any[]; return_reason: string; return_notes?: string; refund_amount?: number }) => {
             const res = await fetch(`${API_URL}/admin-enhanced/returns/create-full`, {
                 method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify({
+                    order_code: payload.order_code,
                     order_id: payload.order_id,
+                    return_reason: payload.return_reason,
+                    return_notes: payload.return_notes,
                     items: payload.items,
-                    reason: payload.return_reason,
-                    notes: payload.return_notes
+                    refund_amount: payload.refund_amount
                 })
             });
             const json = await res.json();
