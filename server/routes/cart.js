@@ -13,34 +13,68 @@ router.get('/', [verifyToken], async (req, res) => {
     if (!userId) return res.status(400).json({ error: "User ID required" });
 
     try {
-        const sql = `
-            SELECT c.id as cart_id, c.quantity, c.substitution_preference,
-                   p.id, p.name, p.image, p.category, p.description, p.weight, p.barcode,
-                   COALESCE(bp.price, 0) as price,
-                   bp.discount_price as discount_price,
-                   bp.stock_quantity
-            FROM cart c
-            JOIN products p ON c.product_id::text = p.id::text 
-            LEFT JOIN branch_products bp ON p.id::text = bp.product_id::text AND bp.branch_id = $2
-            WHERE c.user_id = $1
-        `;
-        const { rows } = await query(sql, [userId, branchId]);
+        // Step 1: Get all cart items for this user
+        const { rows: cartRows } = await query(
+            'SELECT id, product_id, quantity, substitution_preference FROM cart WHERE user_id = $1',
+            [userId]
+        );
 
-        const items = rows.map(row => ({
-            id: row.id,
-            cartId: row.cart_id,
-            name: row.name,
-            image: row.image,
-            price: Number(row.price) || 0,
-            discountPrice: row.discount_price ? Number(row.discount_price) : null,
-            quantity: row.quantity,
-            substitutionPreference: row.substitution_preference || 'none',
-            category: row.category,
-            description: row.description,
-            weight: row.weight,
-            barcode: row.barcode,
-            stockQuantity: row.stock_quantity
-        }));
+        if (cartRows.length === 0) {
+            return res.json({ message: "success", data: [] });
+        }
+
+        // Step 2: For each cart item, find product details
+        const items = [];
+        for (const cartItem of cartRows) {
+            const pid = String(cartItem.product_id);
+            let product = null;
+
+            // Try products_unified first (match by id or product_id)
+            try {
+                const { rows: puRows } = await query(
+                    `SELECT id, name, image, category, description, weight, barcode, price, discount_price, stock_quantity
+                     FROM products_unified
+                     WHERE (id::text = $1 OR product_id::text = $1) AND branch_id = $2
+                     LIMIT 1`,
+                    [pid, branchId]
+                );
+                if (puRows.length > 0) product = puRows[0];
+            } catch (e) { /* products_unified may not exist */ }
+
+            // Fallback to old products + branch_products
+            if (!product) {
+                try {
+                    const { rows: pRows } = await query(
+                        `SELECT p.id, p.name, p.image, p.category, p.description, p.weight, p.barcode,
+                                COALESCE(bp.price, 0) as price, bp.discount_price, bp.stock_quantity
+                         FROM products p
+                         LEFT JOIN branch_products bp ON p.id::text = bp.product_id::text AND bp.branch_id = $2
+                         WHERE p.id::text = $1
+                         LIMIT 1`,
+                        [pid, branchId]
+                    );
+                    if (pRows.length > 0) product = pRows[0];
+                } catch (e) { /* ignore */ }
+            }
+
+            if (product) {
+                items.push({
+                    id: pid,
+                    cartId: String(cartItem.id),
+                    name: product.name,
+                    image: product.image,
+                    price: Number(product.price) || 0,
+                    discountPrice: product.discount_price ? Number(product.discount_price) : null,
+                    quantity: Number(cartItem.quantity) || 1,
+                    substitutionPreference: cartItem.substitution_preference || 'none',
+                    category: product.category,
+                    description: product.description,
+                    weight: product.weight,
+                    barcode: product.barcode,
+                    stockQuantity: product.stock_quantity
+                });
+            }
+        }
 
         res.json({
             "message": "success",
