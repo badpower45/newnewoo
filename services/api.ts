@@ -666,6 +666,11 @@ export const api = {
         get: async (userId: string, branchId?: number) => {
             const branch = branchId || 1;
             const res = await fetch(`${API_URL}/cart?branchId=${branch}`, { headers: getHeaders() });
+            if (!res.ok) {
+                const err: any = new Error(`Cart GET failed: ${res.status}`);
+                err.response = { status: res.status };
+                throw err;
+            }
             return res.json();
         },
         add: async (data: { userId: string, productId: string, quantity: number, substitutionPreference?: string }) => {
@@ -674,6 +679,11 @@ export const api = {
                 headers: getHeaders(),
                 body: JSON.stringify(data)
             });
+            if (!res.ok) {
+                const err: any = new Error(`Cart ADD failed: ${res.status}`);
+                err.response = { status: res.status };
+                throw err;
+            }
             return res.json();
         },
         remove: async (userId: string, productId: string) => {
