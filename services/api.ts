@@ -441,11 +441,19 @@ export const api = {
                 ? `${API_URL}/products/${id}?branchId=${branchId}`
                 : `${API_URL}/products/${id}`;
             const res = await fetch(url, { headers: getPublicHeaders() });
+            if (!res.ok) {
+                console.error(`❌ Product fetch failed: ${res.status} for id=${id}`);
+                return null;
+            }
             const json = await res.json();
-            // Backend returns product directly, not wrapped
+            // Backend may return {message, data} or product directly
             const product = json.data || json;
-            if (product && typeof product === 'object') {
+            if (product && typeof product === 'object' && product.name) {
                 return { ...product, price: Number(product.price) || 0 };
+            }
+            // Product not found case (message: "not found", data: null)
+            if (json.message === 'not found' || !product || !product.name) {
+                return null;
             }
             return json;
         },
@@ -1385,7 +1393,9 @@ export const api = {
                 headers: getHeaders(),
                 body: JSON.stringify({ code, subtotal })
             });
-            return res.json();
+            const json = await res.json();
+            // validate always returns {valid: true/false} - no need to throw
+            return json;
         },
 
         // الحصول على جميع الكوبونات (Admin only)
@@ -1393,6 +1403,10 @@ export const api = {
             const res = await fetch(`${API_URL}/coupons`, {
                 headers: getHeaders()
             });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({ error: 'فشل تحميل الكوبونات' }));
+                throw new Error(err.error || `HTTP ${res.status}`);
+            }
             return res.json();
         },
 
@@ -1403,7 +1417,9 @@ export const api = {
                 headers: getHeaders(),
                 body: JSON.stringify(data)
             });
-            return res.json();
+            const json = await res.json();
+            if (!res.ok) throw new Error(json.error || 'فشل إنشاء الكوبون');
+            return json;
         },
 
         // تحديث كوبون (Admin only)
@@ -1413,7 +1429,9 @@ export const api = {
                 headers: getHeaders(),
                 body: JSON.stringify(data)
             });
-            return res.json();
+            const json = await res.json();
+            if (!res.ok) throw new Error(json.error || 'فشل تحديث الكوبون');
+            return json;
         },
 
         // حذف كوبون (Admin only)
@@ -1422,7 +1440,9 @@ export const api = {
                 method: 'DELETE',
                 headers: getHeaders()
             });
-            return res.json();
+            const json = await res.json();
+            if (!res.ok) throw new Error(json.error || 'فشل حذف الكوبون');
+            return json;
         },
 
         // الحصول على إحصائيات استخدام كوبون (Admin only)

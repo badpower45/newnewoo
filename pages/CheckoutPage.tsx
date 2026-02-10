@@ -242,7 +242,8 @@ export default function CheckoutPage() {
                 setCouponDiscount(0);
             }
         } catch (err: any) {
-            setCouponError(err.response?.data?.error || 'فشل التحقق من الكوبون');
+            const errorMessage = err?.message || 'فشل التحقق من الكوبون، حاول مرة أخرى';
+            setCouponError(errorMessage);
             setAppliedCoupon(null);
             setCouponDiscount(0);
         } finally {

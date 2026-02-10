@@ -115,7 +115,7 @@ const CouponsManager = () => {
             setForm(emptyCoupon);
         } catch (err: any) {
             console.error('Failed to save coupon:', err);
-            alert(err.response?.data?.error || 'فشل حفظ الكوبون');
+            alert(err?.message || 'فشل حفظ الكوبون');
         } finally {
             setLoading(false);
         }
