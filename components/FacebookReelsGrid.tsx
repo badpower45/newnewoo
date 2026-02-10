@@ -201,13 +201,13 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
 
             {/* Reels Carousel */}
             <div className="relative">
-                {!loading && reelsData.length === 0 && (
+                {!loading && reels.length === 0 && (
                     <div className="text-center text-sm text-gray-500 py-6">
                         لا توجد فيديوهات حالياً
                     </div>
                 )}
                 {/* Navigation Buttons */}
-                {reelsData.length > 0 && (
+                {reels.length > 0 && (
                     <>
                         <button
                             onClick={() => scroll('right')}
