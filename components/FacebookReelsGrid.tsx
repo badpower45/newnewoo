@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback, memo } from 'react';
 import { Play, ExternalLink, Facebook, ChevronLeft, ChevronRight, X, Volume2, VolumeX } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -19,42 +19,79 @@ interface FacebookReelsGridProps {
     pageName?: string;
 }
 
+// ─── Video URL utilities (lightweight – no SDK needed) ────────────
+type EmbedSource = 'youtube' | 'facebook' | 'vimeo' | 'direct' | 'none';
+
+const detectEmbed = (url?: string): EmbedSource => {
+    if (!url) return 'none';
+    if (/youtube\.com|youtu\.be/i.test(url)) return 'youtube';
+    if (/facebook\.com|fb\.watch/i.test(url)) return 'facebook';
+    if (/vimeo\.com/i.test(url)) return 'vimeo';
+    if (/\.(mp4|webm|ogg|mov)(\?|$)/i.test(url)) return 'direct';
+    return 'none';
+};
+
+const normalizeVideoUrl = (url?: string): string => {
+    if (!url) return '';
+    // Extract src from iframe tags
+    const srcMatch = url.match(/src=["']([^"']+)["']/);
+    if (srcMatch?.[1]) url = srcMatch[1];
+    if (url.startsWith('//')) url = 'https:' + url;
+    if (url.startsWith('/embed/')) url = `https://www.youtube.com${url}`;
+    if (!/^https?:\/\//i.test(url) && url.startsWith('www.')) url = `https://${url}`;
+
+    const ytId = url.match(/(?:youtube\.com\/(?:shorts\/|watch\?v=|embed\/)|youtu\.be\/)([\w-]+)/)?.[1];
+    if (ytId) return `https://www.youtube.com/embed/${ytId}?rel=0&autoplay=1&modestbranding=1&mute=1`;
+    const vimeoId = url.match(/vimeo\.com\/(?:video\/)?(\d+)/)?.[1];
+    if (vimeoId) return `https://player.vimeo.com/video/${vimeoId}?autoplay=1&muted=1`;
+    if (/facebook\.com/.test(url) && !/plugins\/video\.php/.test(url)) {
+        return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&autoplay=1&muted=1`;
+    }
+    if (/facebook\.com\/plugins\/video\.php/.test(url)) {
+        return url.startsWith('http') ? url : `https:${url}`;
+    }
+    return url;
+};
+
+// Lazy iframe – loads only when modal is open for that reel
+const LazyIframe = memo(({ src, title }: { src: string; title: string }) => {
+    const [loaded, setLoaded] = useState(false);
+    return (
+        <div className="relative w-full h-full bg-black">
+            {!loaded && (
+                <div className="absolute inset-0 flex items-center justify-center z-10">
+                    <div className="w-10 h-10 border-[3px] border-white/30 border-t-white rounded-full animate-spin" />
+                </div>
+            )}
+            <iframe
+                src={src}
+                className={`w-full h-full border-0 transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title={title}
+                loading="lazy"
+                onLoad={() => setLoaded(true)}
+                style={{ background: '#000' }}
+            />
+        </div>
+    );
+});
+
 const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
     pageUsername = 'Alloshchocolates',
     pageName = 'Allosh Chocolates'
 }) => {
-    const normalizeVideoUrl = (url?: string) => {
-        if (!url) return '';
-        const srcMatch = url.match(/src=["']([^"']+)["']/);
-        if (srcMatch?.[1]) url = srcMatch[1];
-        // Ensure https
-        if (url.startsWith('//')) url = 'https:' + url;
-        if (url.startsWith('/embed/')) url = `https://www.youtube.com${url}`;
-        if (!/^https?:\/\//i.test(url) && url.startsWith('www.')) url = `https://${url}`;
-
-        const ytId = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]+)/)?.[1];
-        if (ytId) return `https://www.youtube.com/embed/${ytId}?rel=0&autoplay=1&modestbranding=1`;
-        const vimeoMatch = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
-        if (vimeoMatch?.[1]) return `https://player.vimeo.com/video/${vimeoMatch[1]}?autoplay=1`;
-        if (/facebook\.com/.test(url) && !/plugins\/video\.php/.test(url)) {
-            return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&autoplay=1`;
-        }
-        if (/facebook\.com\/plugins\/video\.php/.test(url)) {
-            return url.startsWith('http') ? url : `https:${url}`;
-        }
-        return url;
-    };
-
     const [reels, setReels] = useState<Reel[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeVideo, setActiveVideo] = useState<number | null>(null);
-    const [isMuted, setIsMuted] = useState(false);
+    const [isMuted, setIsMuted] = useState(true);
     const [isPlaying, setIsPlaying] = useState(true);
     const scrollRef = useRef<HTMLDivElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
 
     const facebookPageUrl = `https://www.facebook.com/${pageUsername}`;
     const facebookReelsUrl = `https://www.facebook.com/${pageUsername}/reels`;
+
     // Fetch reels from API
     useEffect(() => {
         const fetchReels = async () => {
@@ -62,16 +99,15 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
                 const response = await api.facebookReels.getAll();
                 const data = response?.data || response || [];
                 if (Array.isArray(data) && data.length > 0) {
-                    const transformedReels = data.map((reel: any) => ({
+                    setReels(data.map((reel: any) => ({
                         id: reel.id,
                         title: reel.title,
                         thumbnail: reel.thumbnail_url,
-                        video_url: normalizeVideoUrl(reel.video_url || reel.facebook_url),
+                        video_url: reel.video_url || reel.facebook_url,
                         facebook_url: reel.facebook_url,
                         views: reel.views_count || '0',
                         duration: reel.duration
-                    }));
-                    setReels(transformedReels);
+                    })));
                 } else {
                     setReels([]);
                 }
@@ -95,56 +131,44 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
         }
     };
 
-    const openVideoModal = (index: number) => {
-        const reel = reelsData[index];
-        const playable = normalizeVideoUrl(reel?.video_url || reel?.facebook_url);
-        if (playable) {
-            // cache normalized url
-            reelsData[index].video_url = playable;
+    const openVideoModal = useCallback((index: number) => {
+        const reel = reels[index];
+        const rawUrl = reel?.video_url || reel?.facebook_url;
+        if (rawUrl) {
             setActiveVideo(index);
             setIsPlaying(true);
+            setIsMuted(true);
         } else if (reel?.facebook_url) {
             window.open(reel.facebook_url, '_blank', 'noopener,noreferrer');
         }
-    };
+    }, [reels]);
 
-    const closeVideoModal = () => {
+    const closeVideoModal = useCallback(() => {
         setActiveVideo(null);
-        if (videoRef.current) {
-            videoRef.current.pause();
-        }
-    };
+        setIsPlaying(true);
+        if (videoRef.current) videoRef.current.pause();
+    }, []);
 
-    const togglePlay = () => {
+    const togglePlay = useCallback(() => {
         if (videoRef.current) {
-            if (isPlaying) {
-                videoRef.current.pause();
-            } else {
-                videoRef.current.play();
-            }
+            if (isPlaying) videoRef.current.pause();
+            else videoRef.current.play();
             setIsPlaying(!isPlaying);
         }
-    };
+    }, [isPlaying]);
 
-    const toggleMute = () => {
-        if (videoRef.current) {
-            videoRef.current.muted = !isMuted;
-        }
+    const toggleMute = useCallback(() => {
+        if (videoRef.current) videoRef.current.muted = !isMuted;
         setIsMuted(!isMuted);
-    };
+    }, [isMuted]);
 
-    const navigateVideo = (direction: 'prev' | 'next') => {
+    const navigateVideo = useCallback((direction: 'prev' | 'next') => {
         if (activeVideo === null) return;
-
-        if (direction === 'prev' && activeVideo > 0) {
-            setActiveVideo(activeVideo - 1);
-        } else if (direction === 'next' && activeVideo < reelsData.length - 1) {
-            setActiveVideo(activeVideo + 1);
-        }
+        if (direction === 'prev' && activeVideo > 0) setActiveVideo(activeVideo - 1);
+        else if (direction === 'next' && activeVideo < reels.length - 1) setActiveVideo(activeVideo + 1);
         setIsPlaying(true);
-    };
-
-    const reelsData = reels;
+        setIsMuted(true);
+    }, [activeVideo, reels.length]);
 
     return (
         <section className="py-4">
@@ -213,7 +237,7 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
                             </div>
                         ))
                     ) : (
-                        reelsData.map((video, index) => (
+                        reels.map((video, index) => (
                             <div
                                 key={video.id}
                                 className="flex-shrink-0 w-36 md:w-44 cursor-pointer group"
@@ -298,145 +322,137 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
                 </div>
             </div>
 
-            {/* Video Modal */}
-            {activeVideo !== null && (
-                <div
-                    className="fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-3 sm:p-4"
-                    onClick={closeVideoModal}
-                >
+            {/* Video Modal – Lightweight: lazy iframe, no SDK */}
+            {activeVideo !== null && (() => {
+                const current = reels[activeVideo];
+                const rawUrl = current?.video_url || current?.facebook_url;
+                const playableUrl = normalizeVideoUrl(rawUrl);
+                const source = detectEmbed(rawUrl);
+                const isEmbed = source === 'youtube' || source === 'facebook' || source === 'vimeo';
+                const isDirect = source === 'direct';
+
+                return (
                     <div
-                        className="relative w-full max-w-sm aspect-[9/16] bg-black rounded-2xl overflow-hidden"
-                        onClick={(e) => e.stopPropagation()}
+                        className="fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-3 sm:p-4"
+                        onClick={closeVideoModal}
                     >
-                        {/* Close Button */}
-                        <button
-                            onClick={closeVideoModal}
-                            className="absolute top-4 right-4 z-20 w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+                        <div
+                            className="relative w-full max-w-sm aspect-[9/16] bg-black rounded-2xl overflow-hidden"
+                            onClick={(e) => e.stopPropagation()}
                         >
-                            <X className="w-5 h-5" />
-                        </button>
-
-                        {(() => {
-                            const current = reelsData[activeVideo];
-                            const playableUrl = normalizeVideoUrl(current?.video_url || current?.facebook_url);
-                            const isEmbedSource = playableUrl
-                                ? /youtube\.com|youtu\.be|vimeo\.com|facebook\.com\/plugins\/video\.php/.test(playableUrl)
-                                : false;
-                            const hasVideoFile = playableUrl && !isEmbedSource;
-
-                            return (
-                                <>
-                                    {/* Mute Button - only for direct video */}
-                                    {hasVideoFile && (
-                                        <button
-                                            onClick={toggleMute}
-                                            className="absolute top-4 left-4 z-20 w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
-                                        >
-                                            {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-                                        </button>
-                                    )}
-
-                                    {/* Video Content */}
-                                    {playableUrl ? (
-                                        isEmbedSource ? (
-                                            <iframe
-                                                src={playableUrl}
-                                                className="w-full h-full"
-                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                allowFullScreen
-                                                title={current.title}
-                                            />
-                                        ) : (
-                                            <video
-                                                ref={videoRef}
-                                                src={playableUrl}
-                                                className="w-full h-full object-cover"
-                                                autoPlay
-                                                loop
-                                                muted={isMuted}
-                                                poster={current?.thumbnail}
-                                                playsInline
-                                                onClick={togglePlay}
-                                                onPlay={() => setIsPlaying(true)}
-                                                onPause={() => setIsPlaying(false)}
-                                            />
-                                        )
-                                    ) : (
-                                        // Fallback: Show thumbnail with link to Facebook
-                                        <div className="relative w-full h-full">
-                                            <img
-                                                src={current?.thumbnail}
-                                                alt={current?.title}
-                                                loading="lazy"
-                                                decoding="async"
-                                                className="w-full h-full object-cover"
-                                            />
-                                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50">
-                                                <p className="text-white text-center text-sm mb-4 px-4">
-                                                    الفيديو غير متاح حالياً
-                                                </p>
-                                                {current?.facebook_url && (
-                                                    <a
-                                                        href={current.facebook_url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition-colors"
-                                                    >
-                                                        <Facebook className="w-5 h-5" />
-                                                        شاهد على فيسبوك
-                                                    </a>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
-                                </>
-                            );
-                        })()}
-
-                        {/* Play/Pause Overlay */}
-                        {reelsData[activeVideo]?.video_url && !/youtube\\.com|youtu\\.be|vimeo\\.com/.test(reelsData[activeVideo].video_url || '') && !isPlaying && (
-                            <div
-                                className="absolute inset-0 flex items-center justify-center bg-black/30 cursor-pointer"
-                                onClick={togglePlay}
+                            {/* Close Button */}
+                            <button
+                                onClick={closeVideoModal}
+                                className="absolute top-4 right-4 z-20 w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
                             >
-                                <div className="w-20 h-20 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center">
-                                    <Play className="w-10 h-10 text-white fill-white ml-1" />
-                                </div>
-                            </div>
-                        )}
+                                <X className="w-5 h-5" />
+                            </button>
 
-                        {/* Video Info */}
-                        <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent pointer-events-none">
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                                    <Facebook className="w-4 h-4 text-white" />
+                            {/* Mute Button – only for direct video */}
+                            {isDirect && (
+                                <button
+                                    onClick={toggleMute}
+                                    className="absolute top-4 left-4 z-20 w-10 h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+                                >
+                                    {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                                </button>
+                            )}
+
+                            {/* Video Content */}
+                            {playableUrl ? (
+                                isEmbed ? (
+                                    <LazyIframe
+                                        key={`reel-${activeVideo}`}
+                                        src={playableUrl}
+                                        title={current.title}
+                                    />
+                                ) : (
+                                    <video
+                                        ref={videoRef}
+                                        key={`vid-${activeVideo}`}
+                                        src={playableUrl}
+                                        className="w-full h-full object-cover"
+                                        autoPlay
+                                        loop
+                                        muted={isMuted}
+                                        poster={current?.thumbnail}
+                                        playsInline
+                                        preload="metadata"
+                                        onClick={togglePlay}
+                                        onPlay={() => setIsPlaying(true)}
+                                        onPause={() => setIsPlaying(false)}
+                                    />
+                                )
+                            ) : (
+                                <div className="relative w-full h-full">
+                                    <img
+                                        src={current?.thumbnail}
+                                        alt={current?.title}
+                                        loading="lazy"
+                                        className="w-full h-full object-cover"
+                                    />
+                                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50">
+                                        <p className="text-white text-center text-sm mb-4 px-4">الفيديو غير متاح حالياً</p>
+                                        {current?.facebook_url && (
+                                            <a
+                                                href={current.facebook_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition-colors"
+                                            >
+                                                <Facebook className="w-5 h-5" />
+                                                شاهد على فيسبوك
+                                            </a>
+                                        )}
+                                    </div>
                                 </div>
-                                <span className="text-white font-bold">{pageName}</span>
+                            )}
+
+                            {/* Play/Pause Overlay – direct video only */}
+                            {isDirect && !isPlaying && (
+                                <div
+                                    className="absolute inset-0 flex items-center justify-center bg-black/30 cursor-pointer"
+                                    onClick={togglePlay}
+                                >
+                                    <div className="w-20 h-20 bg-white/30 backdrop-blur-sm rounded-full flex items-center justify-center">
+                                        <Play className="w-10 h-10 text-white fill-white ml-1" />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Video Info */}
+                            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent pointer-events-none">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                                        <Facebook className="w-4 h-4 text-white" />
+                                    </div>
+                                    <span className="text-white font-bold">{pageName}</span>
+                                </div>
+                                <p className="text-white text-sm">{current?.title}</p>
+                                <p className="text-white/70 text-xs">{current?.views} مشاهدة</p>
                             </div>
-                            <p className="text-white text-sm">{reelsData[activeVideo]?.title}</p>
-                            <p className="text-white/70 text-xs">{reelsData[activeVideo]?.views} مشاهدة</p>
                         </div>
-                    </div>
 
-                    {/* Navigation Arrows */}
-                    {activeVideo > 0 && (
-                        <button
-                            onClick={(e) => { e.stopPropagation(); navigateVideo('prev'); }}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors"
-                        >
-                            <ChevronRight className="w-6 h-6" />
-                        </button>
-                    )}
-                    {activeVideo < reelsData.length - 1 && (
-                        <button
-                            onClick={(e) => { e.stopPropagation(); navigateVideo('next'); }}
-                            className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors"
-                        >
-                            <ChevronLeft className="w-6 h-6" />
-                        </button>
-                    )}
-                </div>
-            )}
+                        {/* Navigation Arrows */}
+                        {activeVideo > 0 && (
+                            <button
+                                onClick={(e) => { e.stopPropagation(); navigateVideo('prev'); }}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+                            >
+                                <ChevronRight className="w-6 h-6" />
+                            </button>
+                        )}
+                        {activeVideo < reels.length - 1 && (
+                            <button
+                                onClick={(e) => { e.stopPropagation(); navigateVideo('next'); }}
+                                className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors"
+                            >
+                                <ChevronLeft className="w-6 h-6" />
+                            </button>
+                        )}
+                    </div>
+                );
+            })()}
 
             {/* Follow CTA Banner */}
             <div className="mt-4 bg-gradient-to-r from-blue-600 via-blue-500 to-purple-600 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">

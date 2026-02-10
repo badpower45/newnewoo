@@ -13,7 +13,7 @@ const CartPage = () => {
     const { user } = useAuth();
     const { items, removeFromCart, updateQuantity, clearCart, totalPrice, serviceFee, finalTotal, loyaltyPointsEarned, meetsMinimumOrder, redeemPointsForCoupon, syncCart } = useCart();
     const { selectedBranch } = useBranch();
-    const [deliveryFee, setDeliveryFee] = useState(25);
+    const [deliveryFee, setDeliveryFee] = useState(20);
     const [freeDelivery, setFreeDelivery] = useState(false);
     const [isRedeeming, setIsRedeeming] = useState(false);
 
@@ -26,26 +26,12 @@ const CartPage = () => {
         syncCart();
     }, []);
 
-    // Calculate delivery fee
+    // Calculate delivery fee (consistent with CheckoutPage: 20 EGP, free above 600)
     useEffect(() => {
-        const calculateDeliveryFee = async () => {
-            if (!selectedBranch) return;
-
-            try {
-                // قاعدة: فوق 600 شحن مجاني، غير كده 25 جنيه
-                const baseFee = totalPrice >= FREE_SHIPPING_THRESHOLD ? 0 : 25;
-                setDeliveryFee(baseFee);
-                setFreeDelivery(baseFee === 0);
-            } catch (err) {
-                console.error('Failed to calculate delivery fee:', err);
-                const fallback = totalPrice >= FREE_SHIPPING_THRESHOLD ? 0 : 25;
-                setDeliveryFee(fallback);
-                setFreeDelivery(fallback === 0);
-            }
-        };
-
-        calculateDeliveryFee();
-    }, [selectedBranch, totalPrice]);
+        const baseFee = totalPrice >= FREE_SHIPPING_THRESHOLD ? 0 : 20;
+        setDeliveryFee(baseFee);
+        setFreeDelivery(baseFee === 0);
+    }, [totalPrice]);
 
     // Handle rewards redemption
     const handleRedeemRewards = async () => {

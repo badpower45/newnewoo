@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { X, ChevronLeft, ChevronRight, Volume2, VolumeX, Pause, Play } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
+import { X, ChevronLeft, ChevronRight, Volume2, VolumeX, Pause, Play, ExternalLink, Eye } from 'lucide-react';
 import { api } from '../services/api';
 
 interface Story {
@@ -9,7 +9,7 @@ interface Story {
     title: string;
     media_url: string;
     media_type: 'image' | 'video';
-    duration: number; // seconds
+    duration: number;
     link_url?: string;
     link_text?: string;
     views_count: number;
@@ -18,6 +18,7 @@ interface Story {
     created_at: string;
     user_name?: string;
     user_avatar?: string;
+    circle_image_url?: string;
 }
 
 interface StoryGroup {
@@ -30,6 +31,70 @@ interface StoryGroup {
     hasUnviewed: boolean;
 }
 
+// ─── Video URL detection & embedding (supports YouTube, Facebook, Vimeo, direct) ───
+type VideoSource = 'youtube' | 'facebook' | 'vimeo' | 'direct' | 'external';
+
+const detectSource = (url: string): VideoSource => {
+    if (!url) return 'external';
+    if (/youtube\.com|youtu\.be/i.test(url)) return 'youtube';
+    if (/facebook\.com|fb\.watch|fb\.com/i.test(url)) return 'facebook';
+    if (/vimeo\.com/i.test(url)) return 'vimeo';
+    if (/\.(mp4|webm|ogg|mov)(\?|$)/i.test(url)) return 'direct';
+    return 'external';
+};
+
+const extractYoutubeId = (url: string): string => {
+    if (!url) return '';
+    const srcMatch = url.match(/src=["']([^"']+)["']/);
+    if (srcMatch?.[1]) url = srcMatch[1];
+    const m = url.match(/(?:youtube\.com\/(?:shorts\/|watch\?v=|embed\/)|youtu\.be\/)([\w-]+)/);
+    return m?.[1] || '';
+};
+
+const getYtThumb = (id: string) => id ? `https://img.youtube.com/vi/${id}/mqdefault.jpg` : '';
+
+const buildEmbedUrl = (url: string): string => {
+    if (!url) return '';
+    const src = detectSource(url);
+    if (src === 'youtube') {
+        const id = extractYoutubeId(url);
+        return id ? `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1&playsinline=1&autoplay=1&mute=1` : url;
+    }
+    if (src === 'facebook') {
+        if (/plugins\/video\.php/.test(url)) return url.startsWith('http') ? url : `https:${url}`;
+        return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&autoplay=true&muted=true&width=350`;
+    }
+    if (src === 'vimeo') {
+        const vId = url.match(/vimeo\.com\/(?:video\/)?(\d+)/)?.[1];
+        return vId ? `https://player.vimeo.com/video/${vId}?autoplay=1&muted=1&background=1` : url;
+    }
+    return url;
+};
+
+// Lazy iframe – only renders when the story is active, shows spinner until loaded
+const LazyIframe = memo(({ src, title }: { src: string; title: string }) => {
+    const [loaded, setLoaded] = useState(false);
+    return (
+        <div className="relative w-full h-full bg-black">
+            {!loaded && (
+                <div className="absolute inset-0 flex items-center justify-center z-10">
+                    <div className="w-10 h-10 border-[3px] border-white/30 border-t-white rounded-full animate-spin" />
+                </div>
+            )}
+            <iframe
+                src={src}
+                className={`w-full h-full border-0 transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                title={title}
+                loading="lazy"
+                onLoad={() => setLoaded(true)}
+                style={{ background: '#000' }}
+            />
+        </div>
+    );
+});
+
 const StoriesSection: React.FC = () => {
     const [storyGroups, setStoryGroups] = useState<StoryGroup[]>([]);
     const [activeGroupIndex, setActiveGroupIndex] = useState<number | null>(null);
@@ -38,90 +103,49 @@ const StoriesSection: React.FC = () => {
     const [isPaused, setIsPaused] = useState(false);
     const [isMuted, setIsMuted] = useState(true);
     const [loading, setLoading] = useState(true);
+    const [videoLoading, setVideoLoading] = useState(false);
     const isRTL = typeof document !== 'undefined' ? document.documentElement.dir === 'rtl' : false;
-    const progressInterval = useRef<NodeJS.Timeout | null>(null);
+    const progressInterval = useRef<ReturnType<typeof setInterval> | null>(null);
     const videoRef = useRef<HTMLVideoElement | null>(null);
     const touchStartX = useRef<number>(0);
+    const touchStartY = useRef<number>(0);
+    const viewTrackedRef = useRef<Set<number>>(new Set());
 
-    const toYoutubeEmbed = (url: string) => {
-        const srcMatch = url.match(/src=["']([^"']+)["']/);
-        if (srcMatch?.[1]) url = srcMatch[1];
-        const shorts = url.match(/youtube\.com\/shorts\/([\w-]+)/);
-        const watch = url.match(/youtube\.com\/(?:watch\?v=|embed\/)([\w-]+)/);
-        const short = url.match(/youtu\.be\/([\w-]+)/);
-        const id = shorts?.[1] || watch?.[1] || short?.[1];
-        return id ? `https://www.youtube.com/embed/${id}?rel=0&modestbranding=1&playsinline=1&autoplay=1` : url;
-    };
-
-    const extractYoutubeId = (url: string) => {
-        if (!url) return '';
-        const srcMatch = url.match(/src=["']([^"']+)["']/);
-        if (srcMatch?.[1]) url = srcMatch[1];
-        const shorts = url.match(/youtube\.com\/shorts\/([\w-]+)/);
-        const watch = url.match(/youtube\.com\/(?:watch\?v=|embed\/)([\w-]+)/);
-        const short = url.match(/youtu\.be\/([\w-]+)/);
-        return shorts?.[1] || watch?.[1] || short?.[1] || '';
-    };
-
-    const youtubeThumbnail = (id: string) => id ? `https://img.youtube.com/vi/${id}/hqdefault.jpg` : '';
-
-    const normalizeMediaUrl = (url: string, type: 'image' | 'video') => {
-        if (!url) return '';
-        if (type !== 'video') return url;
-        if (/youtube\.com|youtu\.be/.test(url)) return toYoutubeEmbed(url);
-        return url;
-    };
-
-    // Fetch stories from API
+    // ── Fetch stories ─────────────────────────────────────────────
     useEffect(() => {
         const fetchStories = async () => {
             try {
                 const response = await api.stories.getAll();
                 const stories: Story[] = Array.isArray(response) ? response : response?.data || [];
                 
-                // Group stories by user_id/name
                 const groupsMap = new Map<string | number, StoryGroup>();
                 stories.forEach((story) => {
                     const circleName = story.circle_name?.trim();
                     const key = circleName || (story.user_id ?? story.user_name ?? 'store');
                     const name = circleName || story.user_name || 'Allosh Market';
-                    const ytId = extractYoutubeId(story.link_url || story.media_url);
-                    const derivedThumb = youtubeThumbnail(ytId);
+                    const ytThumb = getYtThumb(extractYoutubeId(story.link_url || story.media_url));
                     const avatar =
+                        story.circle_image_url ||
                         story.user_avatar ||
-                        story.media_url ||
-                        derivedThumb ||
-                        'https://ui-avatars.com/api/?name=' +
-                            encodeURIComponent(name) +
-                            '&background=F97316&color=fff&size=128';
+                        (story.media_type === 'image' ? story.media_url : '') ||
+                        ytThumb ||
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=F97316&color=fff&size=96`;
 
                     if (!groupsMap.has(key)) {
-                        groupsMap.set(key, {
-                            id: key,
-                            name,
-                            avatar,
-                            stories: [],
-                            hasUnviewed: true
-                        });
+                        groupsMap.set(key, { id: key, name, avatar, stories: [], hasUnviewed: true });
                     }
                     groupsMap.get(key)!.stories.push(story);
                 });
 
                 const groups: StoryGroup[] = Array.from(groupsMap.values()).map((group) => {
                     if (!group.stories.length) return group;
-                    // اختر آخر ستوري (الأحدث) لتكون الغلاف الظاهر خارجياً
                     const sorted = [...group.stories].sort(
                         (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
                     );
                     const cover = sorted[sorted.length - 1];
-                    const ytId = extractYoutubeId(cover?.link_url || cover?.media_url || '');
-                    const coverAvatar = cover?.media_url || youtubeThumbnail(ytId) || group.avatar;
-                    return {
-                        ...group,
-                        avatar: coverAvatar,
-                        coverTitle: cover?.title,
-                        coverLink: cover?.link_url
-                    };
+                    const ytThumb = getYtThumb(extractYoutubeId(cover?.link_url || cover?.media_url || ''));
+                    const coverAvatar = cover?.circle_image_url || (cover?.media_type === 'image' ? cover.media_url : '') || ytThumb || group.avatar;
+                    return { ...group, avatar: coverAvatar, coverTitle: cover?.title, coverLink: cover?.link_url };
                 });
 
                 setStoryGroups(groups);
@@ -132,16 +156,37 @@ const StoriesSection: React.FC = () => {
                 setLoading(false);
             }
         };
-
         fetchStories();
     }, []);
 
-    // Progress timer
+    // ── Track view ────────────────────────────────────────────────
+    const trackView = useCallback((story: Story) => {
+        if (!viewTrackedRef.current.has(story.id)) {
+            viewTrackedRef.current.add(story.id);
+            api.stories.recordView?.(story.id)?.catch?.(() => {});
+        }
+    }, []);
+
+    // ── Determine media type for a story ──────────────────────────
+    const getStoryMedia = useCallback((story: Story) => {
+        const videoUrl = story.link_url || story.media_url;
+        const source = detectSource(videoUrl);
+        const isVideoStory = story.media_type === 'video' || source !== 'external';
+
+        if (!isVideoStory || source === 'external') {
+            // Pure image story, or unsupported video platform → show image + external link
+            if (story.link_url && source === 'external') return { type: 'external' as const, url: story.link_url };
+            return { type: 'image' as const, url: story.media_url };
+        }
+        if (source === 'direct') return { type: 'video' as const, url: videoUrl };
+        // YouTube / Facebook / Vimeo → efficient embed
+        return { type: 'embed' as const, url: buildEmbedUrl(videoUrl), source };
+    }, []);
+
+    // ── Progress timer (adapts duration for embeds) ───────────────
     useEffect(() => {
-        if (activeGroupIndex === null || isPaused) {
-            if (progressInterval.current) {
-                clearInterval(progressInterval.current);
-            }
+        if (activeGroupIndex === null || isPaused || videoLoading) {
+            if (progressInterval.current) clearInterval(progressInterval.current);
             return;
         }
 
@@ -149,8 +194,14 @@ const StoriesSection: React.FC = () => {
         const currentStory = currentGroup?.stories[activeStoryIndex];
         if (!currentStory) return;
 
-        const duration = currentStory.duration * 1000; // Convert to ms
-        const step = 100 / (duration / 50); // Update every 50ms
+        trackView(currentStory);
+
+        const media = getStoryMedia(currentStory);
+        const isEmbed = media.type === 'embed';
+        // Give embeds at least 15s, direct video uses its duration, images use configured duration
+        const durationSec = isEmbed ? Math.max(currentStory.duration, 15) : currentStory.duration;
+        const durationMs = durationSec * 1000;
+        const step = 100 / (durationMs / 50);
 
         progressInterval.current = setInterval(() => {
             setProgress(prev => {
@@ -162,12 +213,8 @@ const StoriesSection: React.FC = () => {
             });
         }, 50);
 
-        return () => {
-            if (progressInterval.current) {
-                clearInterval(progressInterval.current);
-            }
-        };
-    }, [activeGroupIndex, activeStoryIndex, isPaused, storyGroups]);
+        return () => { if (progressInterval.current) clearInterval(progressInterval.current); };
+    }, [activeGroupIndex, activeStoryIndex, isPaused, videoLoading, storyGroups]);
 
     const handleNextStory = useCallback(() => {
         if (activeGroupIndex === null) return;
@@ -204,6 +251,7 @@ const StoriesSection: React.FC = () => {
         setActiveStoryIndex(0);
         setProgress(0);
         setIsPaused(false);
+        setVideoLoading(false);
         document.body.style.overflow = 'hidden';
     };
 
@@ -212,25 +260,23 @@ const StoriesSection: React.FC = () => {
         setActiveStoryIndex(0);
         setProgress(0);
         setIsPaused(false);
+        setVideoLoading(false);
         document.body.style.overflow = '';
     };
 
-    // Touch handlers for swipe
+    // Touch handlers for swipe (horizontal only)
     const handleTouchStart = (e: React.TouchEvent) => {
         touchStartX.current = e.touches[0].clientX;
+        touchStartY.current = e.touches[0].clientY;
     };
 
     const handleTouchEnd = (e: React.TouchEvent) => {
-        const touchEndX = e.changedTouches[0].clientX;
-        const diff = touchStartX.current - touchEndX;
-
-        if (Math.abs(diff) > 50) {
-            const goNext = diff > 0;
-            if ((goNext && !isRTL) || (!goNext && isRTL)) {
-                handleNextStory();
-            } else {
-                handlePrevStory();
-            }
+        const dx = touchStartX.current - e.changedTouches[0].clientX;
+        const dy = Math.abs(touchStartY.current - e.changedTouches[0].clientY);
+        if (Math.abs(dx) > 50 && dy < 100) {
+            const goNext = dx > 0;
+            if ((goNext && !isRTL) || (!goNext && isRTL)) handleNextStory();
+            else handlePrevStory();
         }
     };
 
@@ -284,9 +330,9 @@ const StoriesSection: React.FC = () => {
     if (loading) {
         return (
             <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
-                {[...Array(5)].map((_, i) => (
+                {[...Array(6)].map((_, i) => (
                     <div key={i} className="flex flex-col items-center gap-1.5 animate-pulse">
-                        <div className="w-16 h-16 rounded-full bg-gray-200" />
+                        <div className="w-[68px] h-[68px] rounded-full bg-gray-200" />
                         <div className="w-12 h-3 rounded bg-gray-200" />
                     </div>
                 ))}
@@ -307,7 +353,6 @@ const StoriesSection: React.FC = () => {
                 scrollbarWidth: 'none',
                 msOverflowStyle: 'none'
             }}>
-                {/* Story Groups */}
                 {storyGroups.map((group, index) => (
                     <div 
                         key={group.id}
@@ -315,7 +360,6 @@ const StoriesSection: React.FC = () => {
                         onClick={() => openStoryViewer(index)}
                     >
                         <div className="relative">
-                            {/* Gradient Ring */}
                             <div className={`w-[68px] h-[68px] rounded-full p-[3px] ${
                                 group.hasUnviewed 
                                     ? 'bg-gradient-to-tr from-[#F97316] via-[#EC4899] to-[#8B5CF6]' 
@@ -327,10 +371,12 @@ const StoriesSection: React.FC = () => {
                                         alt={group.name}
                                         className="w-full h-full rounded-full object-cover"
                                         loading="lazy"
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(group.name)}&background=F97316&color=fff&size=96`;
+                                        }}
                                     />
                                 </div>
                             </div>
-                            {/* Story count badge */}
                             {group.stories.length > 1 && (
                                 <div className="absolute -bottom-0.5 -right-0.5 bg-[#F97316] text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white">
                                     {group.stories.length}
@@ -340,163 +386,194 @@ const StoriesSection: React.FC = () => {
                         <span className="text-xs text-[#1F2937] font-medium truncate max-w-[64px]">
                             {group.name}
                         </span>
-                        {group.coverLink && (
-                            <span className="text-[10px] text-blue-600 font-semibold truncate max-w-[64px]">
-                                رابط متاح
-                            </span>
-                        )}
                     </div>
                 ))}
             </div>
 
             {/* Story Viewer Modal */}
-            {activeGroupIndex !== null && currentStory && currentGroup && (
-                <div 
-                    className="fixed inset-0 z-[9999] bg-black flex items-center justify-center"
-                    onTouchStart={handleTouchStart}
-                    onTouchEnd={handleTouchEnd}
-                >
-                    {/* Removed background blur to fix black overlay issue */}
+            {activeGroupIndex !== null && currentStory && currentGroup && (() => {
+                const media = getStoryMedia(currentStory);
 
-                    {/* Story Container */}
+                return (
                     <div 
-                        className="relative w-full h-full max-w-md mx-auto flex flex-col"
-                        onClick={handleStoryClick}
+                        className="fixed inset-0 z-[9999] bg-black flex items-center justify-center"
+                        onTouchStart={handleTouchStart}
+                        onTouchEnd={handleTouchEnd}
                     >
-                        {/* Progress Bars */}
-                        <div className="absolute top-0 left-0 right-0 z-20 flex gap-1 p-2 pt-3">
-                            {currentGroup.stories.map((_, idx) => (
-                                <div 
-                                    key={idx} 
-                                    className="flex-1 h-[3px] rounded-full bg-white/30 overflow-hidden"
-                                >
+                        <div 
+                            className="relative w-full h-full max-w-md mx-auto flex flex-col"
+                            onClick={handleStoryClick}
+                        >
+                            {/* Progress Bars */}
+                            <div className="absolute top-0 left-0 right-0 z-30 flex gap-1 p-2 pt-3">
+                                {currentGroup.stories.map((_, idx) => (
                                     <div 
-                                        className="h-full bg-white rounded-full transition-all duration-75"
-                                        style={{ 
-                                            width: idx < activeStoryIndex ? '100%' : 
-                                                   idx === activeStoryIndex ? `${progress}%` : '0%'
+                                        key={idx} 
+                                        className="flex-1 h-[3px] rounded-full bg-white/30 overflow-hidden"
+                                    >
+                                        <div 
+                                            className="h-full bg-white rounded-full transition-all duration-75"
+                                            style={{ 
+                                                width: idx < activeStoryIndex ? '100%' : 
+                                                       idx === activeStoryIndex ? `${progress}%` : '0%'
+                                            }}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Header */}
+                            <div className="absolute top-0 left-0 right-0 z-30 p-3 pt-8 flex items-center justify-between bg-gradient-to-b from-black/60 to-transparent">
+                                <div className="flex items-center gap-3">
+                                    <img 
+                                        src={currentGroup.avatar} 
+                                        alt={currentGroup.name}
+                                        className="w-10 h-10 rounded-full border-2 border-white object-cover"
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentGroup.name)}&background=F97316&color=fff&size=96`;
                                         }}
                                     />
+                                    <div>
+                                        <h4 className="text-white font-semibold text-sm">{currentGroup.name}</h4>
+                                        <p className="text-white/70 text-xs">
+                                            {new Date(currentStory.created_at).toLocaleDateString('ar-EG', { 
+                                                hour: '2-digit', 
+                                                minute: '2-digit' 
+                                            })}
+                                        </p>
+                                    </div>
                                 </div>
-                            ))}
-                        </div>
-
-                        {/* Header */}
-                        <div className="absolute top-0 left-0 right-0 z-20 p-3 pt-8 flex items-center justify-between bg-gradient-to-b from-black/50 to-transparent">
-                            <div className="flex items-center gap-3">
-                                <img 
-                                    src={currentGroup.avatar} 
-                                    alt={currentGroup.name}
-                                    className="w-10 h-10 rounded-full border-2 border-white object-cover"
-                                />
-                                <div>
-                                    <h4 className="text-white font-semibold text-sm">{currentGroup.name}</h4>
-                                    <p className="text-white/70 text-xs">
-                                        {new Date(currentStory.created_at).toLocaleDateString('ar-EG', { 
-                                            hour: '2-digit', 
-                                            minute: '2-digit' 
-                                        })}
-                                    </p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <button 
-                                    onClick={(e) => { e.stopPropagation(); setIsPaused(prev => !prev); }}
-                                    className="p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors"
-                                >
-                                    {isPaused ? <Play className="w-5 h-5" /> : <Pause className="w-5 h-5" />}
-                                </button>
-                                {currentStory.media_type === 'video' && (
+                                <div className="flex items-center gap-1.5">
                                     <button 
-                                        onClick={(e) => { e.stopPropagation(); setIsMuted(prev => !prev); }}
+                                        onClick={(e) => { e.stopPropagation(); setIsPaused(prev => !prev); }}
                                         className="p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors"
                                     >
-                                        {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                                        {isPaused ? <Play className="w-5 h-5" /> : <Pause className="w-5 h-5" />}
                                     </button>
-                                )}
-                                <button 
-                                    onClick={(e) => { e.stopPropagation(); closeStoryViewer(); }}
-                                    className="p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
+                                    {media.type === 'video' && (
+                                        <button 
+                                            onClick={(e) => { e.stopPropagation(); setIsMuted(prev => !prev); }}
+                                            className="p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors"
+                                        >
+                                            {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                                        </button>
+                                    )}
+                                    <button 
+                                        onClick={(e) => { e.stopPropagation(); closeStoryViewer(); }}
+                                        className="p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Story Content */}
-                        <div className="flex-1 flex items-center justify-center px-2">
-                            {currentStory.media_type === 'video' ? (() => {
-                                const playableUrl = normalizeMediaUrl(currentStory.media_url, 'video');
-                                if (/youtube\.com|youtu\.be/.test(playableUrl)) {
-                                    return (
-                                        <iframe
-                                            src={playableUrl}
-                                            className="max-w-full max-h-full w-full h-full"
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                            allowFullScreen
-                                            title={currentStory.title}
-                                        />
-                                    );
-                                }
-                                return (
+                            {/* Story Content */}
+                            <div className="flex-1 flex items-center justify-center">
+                                {/* Loading spinner overlay */}
+                                {videoLoading && (
+                                    <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50">
+                                        <div className="w-12 h-12 border-[3px] border-white/30 border-t-white rounded-full animate-spin" />
+                                    </div>
+                                )}
+
+                                {media.type === 'image' && (
+                                    <img 
+                                        src={media.url}
+                                        alt={currentStory.title}
+                                        className="max-w-full max-h-full object-contain"
+                                        loading="eager"
+                                    />
+                                )}
+
+                                {media.type === 'video' && (
                                     <video
                                         ref={videoRef}
-                                        src={playableUrl}
+                                        key={`vid-${activeGroupIndex}-${activeStoryIndex}`}
+                                        src={media.url}
                                         className="max-w-full max-h-full object-contain"
                                         autoPlay
                                         muted={isMuted}
                                         playsInline
-                                        loop={false}
-                                        onLoadStart={() => setIsPaused(true)}
-                                        onCanPlay={() => setIsPaused(false)}
+                                        preload="metadata"
+                                        onLoadStart={() => setVideoLoading(true)}
+                                        onCanPlay={() => { setVideoLoading(false); setIsPaused(false); }}
+                                        onError={() => setVideoLoading(false)}
                                     />
-                                );
-                            })() : (
-                                <img 
-                                    src={currentStory.media_url}
-                                    alt={currentStory.title}
-                                    className="max-w-full max-h-full object-contain"
-                                    loading="eager"
-                                />
-                            )}
-                        </div>
+                                )}
 
-                        {/* Story Title & Link */}
-                        <div className="absolute bottom-0 left-0 right-0 z-20 p-4 bg-gradient-to-t from-black/70 to-transparent">
-                            <h3 className="text-white text-lg font-bold mb-2 text-center">
-                                {currentStory.title}
-                            </h3>
-                            {currentStory.link_url && (
-                                <a 
-                                    href={currentStory.link_url}
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="block w-full py-2.5 bg-white text-[#1F2937] font-semibold rounded-full text-center hover:bg-gray-100 transition-colors"
-                                >
-                                    {currentStory.link_text || 'عرض المزيد'}
-                                </a>
-                            )}
-                            {/* Views count */}
-                            <p className="text-white/60 text-xs text-center mt-2">
-                                👁 {currentStory.views_count.toLocaleString('ar-EG')} مشاهدة
-                            </p>
-                        </div>
+                                {media.type === 'embed' && (
+                                    <LazyIframe
+                                        key={`embed-${activeGroupIndex}-${activeStoryIndex}`}
+                                        src={media.url}
+                                        title={currentStory.title}
+                                    />
+                                )}
 
-                        {/* Navigation Arrows (Desktop) */}
-                        <button 
-                            onClick={(e) => { e.stopPropagation(); handlePrevStory(); }}
-                            className="hidden md:flex absolute left-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-black/30 rounded-full items-center justify-center text-white hover:bg-black/50 transition-colors"
-                        >
-                            <ChevronRight className="w-6 h-6" />
-                        </button>
-                        <button 
-                            onClick={(e) => { e.stopPropagation(); handleNextStory(); }}
-                            className="hidden md:flex absolute right-2 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-black/30 rounded-full items-center justify-center text-white hover:bg-black/50 transition-colors"
-                        >
-                            <ChevronLeft className="w-6 h-6" />
-                        </button>
+                                {media.type === 'external' && (
+                                    <div className="flex flex-col items-center justify-center gap-6 p-8">
+                                        {currentStory.media_url && currentStory.media_type === 'image' && (
+                                            <img
+                                                src={currentStory.media_url}
+                                                alt={currentStory.title}
+                                                className="max-w-full max-h-[60vh] object-contain rounded-xl"
+                                            />
+                                        )}
+                                        <a
+                                            href={media.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="flex items-center gap-2 px-6 py-3 bg-white text-gray-900 font-semibold rounded-full shadow-lg hover:bg-gray-100 transition-colors"
+                                        >
+                                            <ExternalLink className="w-5 h-5" />
+                                            شاهد الفيديو
+                                        </a>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Title, Link & Views */}
+                            <div className="absolute bottom-0 left-0 right-0 z-30 p-4 bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+                                <h3 className="text-white text-lg font-bold mb-2 text-center drop-shadow-lg">
+                                    {currentStory.title}
+                                </h3>
+                                {currentStory.link_url && media.type !== 'embed' && (
+                                    <a 
+                                        href={currentStory.link_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="flex items-center justify-center gap-2 w-full py-2.5 bg-white text-[#1F2937] font-semibold rounded-full text-center hover:bg-gray-100 transition-colors shadow-lg"
+                                    >
+                                        <ExternalLink className="w-4 h-4" />
+                                        {currentStory.link_text || 'عرض المزيد'}
+                                    </a>
+                                )}
+                                <div className="flex items-center justify-center gap-1.5 mt-2">
+                                    <Eye className="w-3.5 h-3.5 text-white/60" />
+                                    <span className="text-white/60 text-xs">
+                                        {(currentStory.views_count || 0).toLocaleString('ar-EG')} مشاهدة
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Navigation Arrows (Desktop) */}
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); handlePrevStory(); }}
+                                className="hidden md:flex absolute left-2 top-1/2 -translate-y-1/2 z-30 w-10 h-10 bg-black/30 rounded-full items-center justify-center text-white hover:bg-black/50 transition-colors"
+                            >
+                                <ChevronRight className="w-6 h-6" />
+                            </button>
+                            <button 
+                                onClick={(e) => { e.stopPropagation(); handleNextStory(); }}
+                                className="hidden md:flex absolute right-2 top-1/2 -translate-y-1/2 z-30 w-10 h-10 bg-black/30 rounded-full items-center justify-center text-white hover:bg-black/50 transition-colors"
+                            >
+                                <ChevronLeft className="w-6 h-6" />
+                            </button>
+                        </div>
                     </div>
-                </div>
-            )}
+                );
+            })()}
 
             <style>{`
                 .scrollbar-hide::-webkit-scrollbar {
