@@ -278,7 +278,7 @@ const ProductImporter: React.FC = () => {
             let totalPublished = 0;
             let remaining = draftProducts.length;
             let attempts = 0;
-            const batchLimit = 50; // Reduced from 100000 to 50 to avoid timeout
+            const batchLimit = 700; // Publish all at once
 
             while (remaining > 0 && attempts < 20) {
                 const response = await fetch(
