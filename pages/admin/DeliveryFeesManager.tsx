@@ -66,7 +66,8 @@ const DeliveryFeesManager: React.FC = () => {
                 body: JSON.stringify({
                     delivery_fee: fee.delivery_fee,
                     min_order: fee.min_order,
-                    free_delivery_threshold: fee.free_delivery_threshold
+                    free_delivery_threshold: fee.free_delivery_threshold,
+                    is_active: fee.is_active
                 })
             });
             if (!res.ok) {
@@ -199,6 +200,7 @@ const DeliveryFeesManager: React.FC = () => {
                                             <thead className="bg-gray-50 text-sm text-gray-600">
                                                 <tr>
                                                     <th className="px-4 py-3 font-medium">المحافظة</th>
+                                                    <th className="px-4 py-3 font-medium">ظاهرة</th>
                                                     <th className="px-4 py-3 font-medium">رسوم التوصيل</th>
                                                     <th className="px-4 py-3 font-medium">الحد الأدنى</th>
                                                     <th className="px-4 py-3 font-medium">التوصيل المجاني من</th>
@@ -207,8 +209,27 @@ const DeliveryFeesManager: React.FC = () => {
                                             </thead>
                                             <tbody className="divide-y divide-gray-100">
                                                 {list.map((fee) => (
-                                                    <tr key={fee.id} className="hover:bg-orange-50/30 transition-colors">
+                                                    <tr key={fee.id} className={`hover:bg-orange-50/30 transition-colors ${!fee.is_active ? 'opacity-50' : ''}`}>
                                                         <td className="px-4 py-3 font-semibold text-gray-800">{fee.governorate}</td>
+                                                        <td className="px-4 py-3">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() =>
+                                                                    setFees((prev) =>
+                                                                        prev.map((f) =>
+                                                                            f.id === fee.id ? { ...f, is_active: !f.is_active } : f
+                                                                        )
+                                                                    )
+                                                                }
+                                                                className={`w-12 h-7 rounded-full transition-colors relative ${
+                                                                    fee.is_active ? 'bg-green-500' : 'bg-gray-300'
+                                                                }`}
+                                                            >
+                                                                <span className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${
+                                                                    fee.is_active ? 'right-0.5' : 'left-0.5'
+                                                                }`} />
+                                                            </button>
+                                                        </td>
                                                         <td className="px-4 py-3">
                                                             <div className="flex items-center gap-1">
                                                                 <input

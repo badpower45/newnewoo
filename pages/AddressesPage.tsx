@@ -3,6 +3,7 @@ import { MapPin, ChevronLeft, Plus, Edit2, Trash2, Home, Building2, Briefcase } 
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../services/api';
+import { API_URL } from '../src/config';
 
 interface Address {
     id: number;
@@ -36,12 +37,21 @@ const AddressesPage = () => {
         is_default: false
     });
 
+    const [governorateOptions, setGovernorateOptions] = useState<string[]>([]);
+
     useEffect(() => {
         if (!isAuthenticated) {
             navigate('/login');
             return;
         }
         fetchAddresses();
+        // Fetch active governorates
+        fetch(`${API_URL}/delivery-fees/governorates/active`)
+            .then(r => r.json())
+            .then(json => {
+                if (json.success && Array.isArray(json.data)) setGovernorateOptions(json.data);
+            })
+            .catch(() => {});
     }, [isAuthenticated]);
 
     const fetchAddresses = async () => {
@@ -239,13 +249,17 @@ const AddressesPage = () => {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium mb-2">المحافظة</label>
-                                    <input
-                                        type="text"
+                                    <select
                                         required
                                         value={formData.governorate}
                                         onChange={(e) => setFormData({...formData, governorate: e.target.value})}
-                                        className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none"
-                                    />
+                                        className="w-full p-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white"
+                                    >
+                                        <option value="">اختر المحافظة</option>
+                                        {governorateOptions.map((gov) => (
+                                            <option key={gov} value={gov}>{gov}</option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
 

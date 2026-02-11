@@ -88,22 +88,24 @@ export default function CheckoutPage() {
         }
     }, [user]);
 
-    // Governorate options dynamic per branch
-    const cairoGovernorates = ['القاهرة', 'الجيزة'];
-    const portSaidGovernorates = ['بورسعيد', 'بور فؤاد'];
-    const defaultGovernorates = [
-        'بورسعيد', 'بور فؤاد', 'القاهرة', 'الجيزة', 'الإسكندرية', 'الدقهلية', 'المنصورة',
-        'الشرقية', 'الغربية', 'البحيرة', 'كفر الشيخ', 'دمياط', 'السويس', 'الإسماعيلية'
-    ];
-
-    const getGovernorateOptions = () => {
-        const branchName = selectedBranch?.name || '';
-        if (/بور\s?سعيد|port\s?said/i.test(branchName)) return portSaidGovernorates;
-        if (/القاهرة|cairo/i.test(branchName)) return cairoGovernorates;
-        return defaultGovernorates;
-    };
-
-    const governorateOptions = getGovernorateOptions();
+    // Fetch active governorates from API
+    const [governorateOptions, setGovernorateOptions] = useState<string[]>([]);
+    useEffect(() => {
+        const fetchGovernorates = async () => {
+            try {
+                const res = await fetch(`${API_URL}/delivery-fees/governorates/active`);
+                const json = await res.json();
+                if (json.success && Array.isArray(json.data)) {
+                    setGovernorateOptions(json.data);
+                }
+            } catch (err) {
+                console.error('Failed to fetch governorates:', err);
+                // Fallback list
+                setGovernorateOptions(['بورسعيد', 'بور فؤاد', 'القاهرة', 'الجيزة', 'الإسكندرية']);
+            }
+        };
+        fetchGovernorates();
+    }, []);
 
     // Calculate delivery fee when branch, total, or governorate changes (skip for branch pickup)
     useEffect(() => {
@@ -615,11 +617,10 @@ export default function CheckoutPage() {
                                             setFormData(prev => ({
                                                 ...prev,
                                                 phone: address.phone || prev.phone,
-                                                // نستخدم السطر الأول كسطر أساسي (يلزم الحقل)
                                                 building: address.address_line1 || prev.building,
-                                                // السطر الثاني اختياري للشارع/المعلم
                                                 street: address.address_line2 || prev.street,
                                                 address: fullAddressLine || address.address_line1 || prev.address,
+                                                governorate: address.governorate || prev.governorate,
                                                 notes: address.address_line2 ? `${address.address_line2}${address.postal_code ? ` - ${address.postal_code}` : ''}` : prev.notes
                                             }));
                                         }}
