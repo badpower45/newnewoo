@@ -254,7 +254,7 @@ export default function ProductsPage() {
                                 product_count: cat.products_count || 0
                             };
                         })
-                        .filter((cat: any) => cat.id);
+                        .filter((cat: any) => cat.id && cat.product_count > 0);
 
                     const uniqueCategories = Array.from(
                         categoriesFromDB.reduce((acc, current) => {
@@ -588,7 +588,7 @@ export default function ProductsPage() {
             ? `نتائج البحث عن "${searchQuery}"`
             : 'كل المنتجات';
     const pageDescription = filtersLabel
-        ? `${filtersLabel} - تصفح ${filteredAndSortedProducts.length} منتج متاح للتوصيل السريع من علوش ماركت.`
+        ? `${filtersLabel} - تصفح ${totalCount} منتج متاح للتوصيل السريع من علوش ماركت.`
         : 'تسوق كل منتجات علوش ماركت مع عروض يومية، فلترة ذكية، وتوصيل سريع.';
     const keywordList = [
         'علوش ماركت',
@@ -601,7 +601,7 @@ export default function ProductsPage() {
     const itemListSchema = {
         '@context': 'https://schema.org',
         '@type': 'ItemList',
-        numberOfItems: filteredAndSortedProducts.length,
+        numberOfItems: totalCount,
         itemListElement: paginatedProducts.slice(0, 10).map((product, index) => ({
             '@type': 'ListItem',
             position: index + 1,
@@ -766,7 +766,7 @@ export default function ProductsPage() {
 
                         <div className="hidden sm:flex items-center gap-2 text-gray-500 text-sm mt-2">
                             <Sparkles size={16} className="text-amber-500" />
-                            <span>{filteredAndSortedProducts.length} منتج</span>
+                            <span>{totalCount} منتج</span>
                         </div>
                     </div>
                     <div className="max-w-7xl mx-auto px-4 pb-3 overflow-x-auto scrollbar-hide flex gap-2">
