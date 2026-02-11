@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import CategoryCard from '../components/CategoryCard';
 import { api } from '../services/api';
 import { useLanguage } from '../context/LanguageContext';
+import { useBranch } from '../context/BranchContext';
 import Seo, { getSiteUrl } from '../components/Seo';
 import { staticData } from '../utils/staticDataClient';
 
@@ -20,6 +21,8 @@ interface Category {
 const CategoriesPage = () => {
     const navigate = useNavigate();
     const { language } = useLanguage();
+    const { selectedBranch } = useBranch();
+    const branchId = selectedBranch?.id || 1;
     const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -44,7 +47,7 @@ const CategoriesPage = () => {
 
     useEffect(() => {
         loadCategories();
-    }, []);
+    }, [branchId]);
 
     const normalize = (text: string = '') =>
         text
@@ -57,21 +60,17 @@ const CategoriesPage = () => {
     const loadCategories = async () => {
         setLoading(true);
         try {
-            // Try loading from static data first (instant!)
-            const data = await staticData.load();
-            const list = data.categories || [];
-            
-            if (Array.isArray(list) && list.length > 0) {
-                console.log('[Categories] ✅ Loaded from static data:', list.length);
-                setCategories(list);
+            // Fetch from API with branchId for accurate product counts
+            const res = await api.categories.getAll(branchId);
+            const apiList = res.data || res || [];
+            if (Array.isArray(apiList) && apiList.length > 0) {
+                console.log('[Categories] ✅ Loaded from API:', apiList.length);
+                setCategories(apiList);
             } else {
-                // Fallback to API if static data is empty
-                console.log('[Categories] ⚠️ Static data empty, falling back to API');
-                const res = await api.categories.getAll();
-                const apiList = res.data || res || [];
-                if (Array.isArray(apiList)) {
-                    setCategories(apiList);
-                }
+                // Fallback to static data
+                const data = await staticData.load();
+                const list = data.categories || [];
+                if (Array.isArray(list)) setCategories(list);
             }
         } catch (err) {
             console.error('Failed to load categories:', err);

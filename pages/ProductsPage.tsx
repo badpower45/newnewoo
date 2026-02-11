@@ -226,18 +226,18 @@ export default function ProductsPage() {
         : Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
     const listLoading = loading || productsQuery.isLoading || productsQuery.isFetching;
 
-    // Load categories from database API
+    // Load categories from API with branch-specific product counts
     useEffect(() => {
         const loadCategories = async () => {
             try {
-                console.log('📦 Loading categories...');
+                console.log('📦 Loading categories for branch:', branchId);
                 
-                // Try loading from static data first (instant!)
-                const data = await staticData.load();
-                const apiCategories = data.categories || [];
+                // Always fetch from API with branchId for accurate product counts
+                const response = await api.categories.getAll(branchId);
+                const apiCategories = response?.data || response || [];
 
                 if (Array.isArray(apiCategories) && apiCategories.length > 0) {
-                    console.log('✅ Loaded from static data:', apiCategories.length, 'categories');
+                    console.log('✅ Loaded categories from API:', apiCategories.length);
                     
                     // Transform database categories to match ProductsPage format
                     const categoriesFromDB = apiCategories
@@ -285,74 +285,17 @@ export default function ProductsPage() {
                             .values()
                     );
 
-                    console.log('✅ Processed', categoriesFromDB.length, 'categories from static data');
+                    console.log('✅ Processed', categoriesFromDB.length, 'categories from API');
 
                     setCategories([
                         { id: '', name: 'الكل', icon: '🛒', color: 'from-brand-brown to-brand-brown/80' },
                         ...uniqueCategories
                     ]);
                 } else {
-                    // Fallback to API if static data is empty
-                    console.warn('⚠️ Static data empty, falling back to API...');
-                    const response = await api.categories.getAll();
-                    const fallbackCategories = response?.data || response || [];
-                    
-                    if (Array.isArray(fallbackCategories) && fallbackCategories.length > 0) {
-                        const categoriesFromDB = fallbackCategories
-                            .filter((cat: any) => cat.is_active !== false && !cat.parent_id)
-                            .sort((a: any, b: any) => (a.display_order || 0) - (b.display_order || 0))
-                            .map((cat: any) => {
-                                const rawName = cat.name_ar || cat.name || '';
-                                const displayName = mapCategoryLabel(rawName);
-                                return {
-                                    id: rawName,
-                                    name: displayName,
-                                    icon: cat.icon || '📦',
-                                    color: cat.bg_color || 'from-brand-orange to-amber-500',
-                                    product_count: cat.products_count || 0
-                                };
-                            })
-                            .filter((cat: any) => cat.id);
-                        
-                        const uniqueCategories = Array.from(
-                            categoriesFromDB.reduce((acc, current) => {
-                                const key = normalizeCategoryValue(current.name || current.id);
-                                if (!key) return acc;
-                                const existing = acc.get(key);
-                                if (!existing) {
-                                    acc.set(key, current);
-                                    return acc;
-                                }
-                                const existingCount = existing.product_count || 0;
-                                const currentCount = current.product_count || 0;
-                                const existingIsArabic = hasArabicChars(existing.id || existing.name);
-                                const currentIsArabic = hasArabicChars(current.id || current.name);
-                                if (currentCount > existingCount) {
-                                    acc.set(key, current);
-                                    return acc;
-                                }
-                                if (currentCount === existingCount && currentIsArabic && !existingIsArabic) {
-                                    acc.set(key, current);
-                                    return acc;
-                                }
-                                if (!existing.icon && current.icon) {
-                                    acc.set(key, { ...existing, icon: current.icon });
-                                }
-                                return acc;
-                            }, new Map())
-                                .values()
-                        );
-                        
-                        setCategories([
-                            { id: '', name: 'الكل', icon: '🛒', color: 'from-brand-brown to-brand-brown/80' },
-                            ...uniqueCategories
-                        ]);
-                    } else {
-                        console.warn('⚠️ No categories from API, falling back to "All"');
-                        setCategories([
-                            { id: '', name: 'الكل', icon: '🛒', color: 'from-brand-brown to-brand-brown/80' }
-                        ]);
-                    }
+                    console.warn('⚠️ No categories from API');
+                    setCategories([
+                        { id: '', name: 'الكل', icon: '🛒', color: 'from-brand-brown to-brand-brown/80' }
+                    ]);
                 }
             } catch (error) {
                 console.error('❌ Error loading categories:', error);
@@ -363,7 +306,7 @@ export default function ProductsPage() {
         };
 
         loadCategories();
-    }, []); // Load once on mount
+    }, [branchId]); // Reload when branch changes
 
     // Load brands
     useEffect(() => {

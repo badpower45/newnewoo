@@ -1648,8 +1648,10 @@ export const api = {
     // ===================== CATEGORIES =====================
     categories: {
         // Get all active categories
-        getAll: async () => {
-            const url = `${API_URL}/categories`;
+        getAll: async (branchId?: number) => {
+            const url = branchId
+                ? `${API_URL}/categories?branchId=${branchId}`
+                : `${API_URL}/categories`;
             return fetchCachedJson(url, { headers: getPublicHeaders() }, 60000);
         },
 
