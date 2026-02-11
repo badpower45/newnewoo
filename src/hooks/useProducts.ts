@@ -28,13 +28,13 @@ export function useProducts(options: UseProductsOptions = {}) {
     return useQuery<ProductsResult>({
         queryKey: ['products', { branchId, category, page, limit }],
         queryFn: async () => {
-            let response;
-            if (category) {
-                const offset = (page - 1) * limit;
-                response = await api.products.getByCategory(category, branchId, limit, offset);
-            } else {
-                response = await api.products.getProducts({ page, limit, branchId });
-            }
+            // Always use main getProducts endpoint - handles category filtering properly
+            const response = await api.products.getProducts({ 
+                page, 
+                limit, 
+                branchId, 
+                category: category || undefined 
+            });
 
             const data = Array.isArray((response as any)?.data)
                 ? (response as any).data

@@ -310,26 +310,28 @@ export const api = {
             const data = Array.isArray(json) ? json : (json.data || []);
             return data.map(normalize);
         },
-        // ✅ getProducts with { page, limit } object
-        getProducts: async (options: { page?: number; limit?: number; branchId?: number } = {}) => {
+        // ✅ getProducts with { page, limit, category } object
+        getProducts: async (options: { page?: number; limit?: number; branchId?: number; category?: string } = {}) => {
             const pageCandidate = options.page;
             const limitCandidate = options.limit;
             const pageValue = typeof pageCandidate === 'number' && Number.isFinite(pageCandidate) && pageCandidate > 0 ? pageCandidate : 1;
             const limitValue = typeof limitCandidate === 'number' && Number.isFinite(limitCandidate) && limitCandidate > 0 ? limitCandidate : 20;
-            let url = `${API_URL}/products?page=${pageValue}&limit=${limitValue}`;
+            const offsetValue = (pageValue - 1) * limitValue;
+            let url = `${API_URL}/products?limit=${limitValue}&offset=${offsetValue}`;
             if (options.branchId) url += `&branchId=${options.branchId}`;
+            if (options.category) url += `&category=${encodeURIComponent(options.category)}`;
 
             const res = await fetch(url, { headers: getHeaders() });
             const json = await res.json();
             const normalize = (p: any) => ({ ...mapProduct(p), price: Number(mapProduct(p)?.price) || 0 });
             const data = Array.isArray(json) ? json : (json.data || []);
             const list = data.map(normalize);
-            const total = (json && typeof json === 'object' && !Array.isArray(json) && json.total !== undefined)
-                ? Number(json.total)
-                : list.length;
-            const pageResult = (json && typeof json === 'object' && !Array.isArray(json) && json.page !== undefined)
-                ? Number(json.page)
-                : pageValue;
+            const total = (json?.pagination?.total !== undefined)
+                ? Number(json.pagination.total)
+                : (json?.total !== undefined ? Number(json.total) : list.length);
+            const pageResult = (json?.pagination?.page !== undefined)
+                ? Number(json.pagination.page)
+                : (json?.page !== undefined ? Number(json.page) : pageValue);
 
             return {
                 data: list,
