@@ -576,26 +576,21 @@ const ProductsManager = () => {
         try {
             console.log('📄 Starting Excel export...');
             
-            // Use products from state first, fallback to API
-            let allProducts = products;
-            
-            // If filtered or no products loaded, fetch all
-            if (selectedBranchFilter !== 'all' || allProducts.length === 0) {
-                console.log('📡 Fetching all products from API...');
-                const res = await fetch(`${API_URL}/products`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!res.ok) {
-                    throw new Error(`فشل تحميل المنتجات: ${res.status}`);
+            // Always fetch ALL products from API with full details (brand_name, discount_price, etc.)
+            console.log('📡 Fetching all products from API for export...');
+            const res = await fetch(`${API_URL}/products?includeAllBranches=true&limit=100000`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
                 }
-                
-                const data = await res.json();
-                allProducts = Array.isArray(data) ? data : (data.data || []);
+            });
+            
+            if (!res.ok) {
+                throw new Error(`فشل تحميل المنتجات: ${res.status}`);
             }
+            
+            const data = await res.json();
+            let allProducts = Array.isArray(data) ? data : (data.data || []);
             
             console.log(`✅ Found ${allProducts.length} products to export`);
             
@@ -646,7 +641,7 @@ const ProductsManager = () => {
                             
                             // Pricing
                             'Price': product.price || 0,
-                            'Original Price': product.original_price || product.price || 0,
+                            'Original Price': product.discount_price || product.original_price || 0,
                             'Cost Price': product.cost_price || 0,
                             'Discount %': product.discount_percentage || 0,
                             

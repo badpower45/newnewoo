@@ -226,11 +226,17 @@ router.get('/special-offers', async (req, res) => {
                    bp.price, bp.discount_price, bp.stock_quantity, bp.is_available, bp.branch_id
             FROM products p
             INNER JOIN branch_products bp ON p.id = bp.product_id
+            LEFT JOIN magazine_offers mo ON mo.product_id = p.id 
+                AND mo.is_active = TRUE 
+                AND (mo.start_date IS NULL OR mo.start_date <= NOW())
+                AND (mo.end_date IS NULL OR mo.end_date >= NOW())
             WHERE bp.branch_id = $1
               AND bp.discount_price IS NOT NULL
               AND bp.discount_price > 0
               AND bp.discount_price < bp.price
               AND bp.is_available = TRUE
+              AND mo.id IS NULL
+              AND (p.is_offer_only = FALSE OR p.is_offer_only IS NULL)
             ORDER BY (bp.price - bp.discount_price) DESC
             LIMIT 100
         `, [branch]);
@@ -441,6 +447,7 @@ router.get('/', async (req, res) => {
         // إخفاء منتجات المجلة من القوائم العادية إلا إذا طلب صراحة
         if (includeMagazine !== 'true') {
             sql += ` AND mo.id IS NULL`;
+            sql += ` AND (p.is_offer_only = FALSE OR p.is_offer_only IS NULL)`;
         }
 
         // Add ORDER BY for consistent results
@@ -501,6 +508,7 @@ router.get('/', async (req, res) => {
         
         if (includeMagazine !== 'true') {
             countSql += ` AND mo.id IS NULL`;
+            countSql += ` AND (p.is_offer_only = FALSE OR p.is_offer_only IS NULL)`;
         }
         
         const countResult = await query(countSql, countParams);
@@ -917,9 +925,15 @@ router.get('/search', async (req, res) => {
             SELECT p.*, bp.price, bp.discount_price, bp.stock_quantity, bp.is_available
             FROM products p
             JOIN branch_products bp ON p.id = bp.product_id
+            LEFT JOIN magazine_offers mo ON mo.product_id = p.id 
+                AND mo.is_active = TRUE 
+                AND (mo.start_date IS NULL OR mo.start_date <= NOW())
+                AND (mo.end_date IS NULL OR mo.end_date >= NOW())
             WHERE bp.branch_id = $1 
             AND (p.name ILIKE $2 OR p.description ILIKE $2 OR p.barcode ILIKE $2)
             AND bp.is_available = TRUE
+            AND mo.id IS NULL
+            AND (p.is_offer_only = FALSE OR p.is_offer_only IS NULL)
         `;
         const { rows } = await query(sql, [branchId, `%${q}%`]);
         
