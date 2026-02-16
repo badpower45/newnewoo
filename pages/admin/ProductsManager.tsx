@@ -116,13 +116,16 @@ const ProductsManager = () => {
                 name: item.name,
                 category: item.category_id || item.category || '',
                 price: Number(item.price) || 0,
+                discount_price: item.discount_price != null ? Number(item.discount_price) : null,
                 stock_quantity: Number(item.stock_quantity || item.stock) || 0,
                 barcode: item.barcode || '',
                 subcategory: item.subcategory || '',
                 image: '', // intentionally empty to avoid loading Base64 in list view
                 weight: item.weight || '',
                 rating: Number(item.rating) || 0,
-                reviews: Number(item.reviews) || 0
+                reviews: Number(item.reviews) || 0,
+                brand_id: item.brand_id || null,
+                brand_name: item.brand_name || '',
             }));
 
             setProducts(normalized);
