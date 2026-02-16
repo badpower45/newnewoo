@@ -372,28 +372,7 @@ export default function CheckoutPage() {
 
         try {
             // Verify availability for each cart item at selected branch
-            try {
-                const res = await api.branchProducts.getByBranch(branchId);
-                const list = res.data || res || [];
-                for (const item of items) {
-                    const bp = list.find((x: any) => String(x.product_id ?? x.productId ?? x.id) === String(item.id));
-                    if (bp) {
-                        const stock = bp.available_quantity ?? bp.stock_quantity ?? bp.stockQuantity;
-                        const reserved = bp.reserved_quantity ?? bp.reservedQuantity ?? 0;
-                        if (typeof stock === 'number') {
-                            const availableCount = Math.max(0, stock - reserved);
-                            if (item.quantity > availableCount) {
-                                showToast(`الكمية غير متاحة للمنتج ${item.name || (item as any).title || '#' + item.id}`, 'error');
-                                return;
-                            }
-                        }
-                    }
-                }
-            } catch (e) {
-                console.error('Failed availability check', e);
-            }
-
-            // Prepare unavailable items list
+            // Stock validation + unavailable items list (single API call)
             const unavailableItems: any[] = [];
             try {
                 const res = await api.branchProducts.getByBranch(branchId);
@@ -405,12 +384,22 @@ export default function CheckoutPage() {
                             productId: item.id,
                             productName: item.name || (item as any).title || `المنتج #${item.id}`,
                             reason: 'غير متاح في المخزون',
-                            substitutionPreference: item.substitutionPreference || 'call_me' // إضافة الأوبشن اللي العميل اختاره
+                            substitutionPreference: item.substitutionPreference || 'call_me'
                         });
+                        continue;
+                    }
+                    const stock = bp.available_quantity ?? bp.stock_quantity ?? bp.stockQuantity;
+                    const reserved = bp.reserved_quantity ?? bp.reservedQuantity ?? 0;
+                    if (typeof stock === 'number') {
+                        const availableCount = Math.max(0, stock - reserved);
+                        if (item.quantity > availableCount) {
+                            showToast(`الكمية غير متاحة للمنتج ${item.name || (item as any).title || '#' + item.id}`, 'error');
+                            return;
+                        }
                     }
                 }
             } catch (e) {
-                console.error('Failed to check product availability', e);
+                console.error('Failed availability check', e);
             }
 
             const orderData = {
