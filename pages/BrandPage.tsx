@@ -375,38 +375,10 @@ const BrandPage = () => {
                 }
             }
             
-            // 🔄 Fallback: fetch all products and filter client-side (for static brands or if endpoint fails)
+            // No fallback to loading all products — at 18K+ products this would be too heavy
+            // If the brand endpoint returns 0, just show empty state
             if (brandProducts.length === 0) {
-                const res = await api.products.getAllByBranch(branchId, { includeMagazine: true });
-                const allProducts = res.data || res || [];
-                
-                const keywords = (brandInfo.keywords || [
-                    brandInfo.name_en,
-                    brandInfo.name_ar,
-                    brandInfo.nameEn,
-                    brandInfo.name,
-                    brandInfo.slogan_ar,
-                    brandInfo.slogan_en,
-                    brandInfo.tagline
-                ]).filter(Boolean).map((k: string) => normalize(k));
-                
-                brandProducts = allProducts.filter((p: any) => {
-                    const productBrandId = p.brand_id ?? p.brandId;
-                    const matchesId = brandId && productBrandId && String(productBrandId) === String(brandId);
-                    const productBrandName = normalize(p.brand_name || p.brand);
-                    const productName = normalize(p.name);
-                    const productDesc = normalize(p.description);
-                    const productCategory = normalize(p.category);
-                    
-                    const matchesKeyword = keywords.some((keyword: string) => 
-                        productName.includes(keyword) ||
-                        productDesc.includes(keyword) ||
-                        productCategory.includes(keyword) ||
-                        productBrandName.includes(keyword)
-                    );
-                    
-                    return matchesId || matchesKeyword;
-                });
+                console.log('ℹ️ No products found for brand', brandId);
             }
             
             setProducts(brandProducts);

@@ -35,6 +35,7 @@ const sampleProducts: Product[] = [
 const ProductsManager = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearch, setDebouncedSearch] = useState('');
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
@@ -83,7 +84,18 @@ const ProductsManager = () => {
     useEffect(() => {
         setCurrentPage(1);
         loadProducts(1);
-    }, [selectedBranchFilter]);
+    }, [selectedBranchFilter, debouncedSearch]);
+
+    // Debounce search input → server-side search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (searchTerm !== debouncedSearch) {
+                setDebouncedSearch(searchTerm);
+                setCurrentPage(1);
+            }
+        }, 400);
+        return () => clearTimeout(timer);
+    }, [searchTerm]);
 
     useEffect(() => {
         loadProducts(currentPage);
@@ -96,6 +108,9 @@ const ProductsManager = () => {
             let url = `${API_URL}/products?includeAllBranches=true&limit=${ITEMS_PER_PAGE}&offset=${(page - 1) * ITEMS_PER_PAGE}`;
             if (selectedBranchFilter !== 'all') {
                 url += `&branchId=${selectedBranchFilter}`;
+            }
+            if (debouncedSearch) {
+                url += `&search=${encodeURIComponent(debouncedSearch)}`;
             }
 
             const response = await fetch(url, {
@@ -488,10 +503,8 @@ const ProductsManager = () => {
         }
     };
 
-    const filteredProducts = products.filter(p =>
-        (p.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (p.category || '').toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Search is now server-side via debouncedSearch param
+    const filteredProducts = products;
     const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
 
     const seedBranches = async () => {
@@ -579,206 +592,33 @@ const ProductsManager = () => {
         }
     };
 
-    // 🔥 Export all products to Excel with ALL details
+    // 🔥 Export all products to Excel — uses server-side export for 18K+ scale
     const exportAllToExcel = async () => {
         try {
-            console.log('📄 Starting Excel export...');
+            console.log('📄 Starting server-side Excel export...');
             
-            // Always fetch ALL products from API with full details (brand_name, discount_price, etc.)
-            console.log('📡 Fetching all products from API for export...');
-            const res = await fetch(`${API_URL}/products?includeAllBranches=true&limit=100000`, {
+            const res = await fetch(`${API_URL}/products/bulk-import/export`, {
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                    'Content-Type': 'application/json'
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             });
             
             if (!res.ok) {
-                throw new Error(`فشل تحميل المنتجات: ${res.status}`);
+                throw new Error(`فشل التصدير: ${res.status}`);
             }
             
-            const data = await res.json();
-            let allProducts = Array.isArray(data) ? data : (data.data || []);
-            
-            console.log(`✅ Found ${allProducts.length} products to export`);
-            
-            if (allProducts.length === 0) {
-                alert('⚠️ لا توجد منتجات للتصدير!');
-                return;
-            }
-
-            console.log('🔄 Fetching branch details (single batch call)...');
-            
-            // Fetch ALL branch-products in ONE call instead of N individual calls
-            let branchProductsMap: Record<string, any[]> = {};
-            try {
-                const bpRes = await fetch(`${API_URL}/branch-products/all-branches`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                if (bpRes.ok) {
-                    const bpData = await bpRes.json();
-                    const bpList = Array.isArray(bpData) ? bpData : (bpData.data || []);
-                    for (const item of bpList) {
-                        branchProductsMap[String(item.product_id)] = item.branches || [];
-                    }
-                }
-            } catch (e) {
-                console.warn('⚠️ Could not fetch branch products:', e);
-            }
-            
-            const productsWithFullDetails = allProducts.map((product: any, index: number) => {
-                    try {
-                        const branches = branchProductsMap[String(product.id)] || [];
-
-                        return {
-                            // Basic Info
-                            'ID': product.id,
-                            'Barcode': product.barcode || '',
-                            'Name': product.name || '',
-                            'Name (EN)': product.name_en || '',
-                            'Description': product.description || '',
-                            'Description (EN)': product.description_en || '',
-                            
-                            // Category & Brand
-                            'Category': product.category || '',
-                            'Category (EN)': product.category_en || '',
-                            'Subcategory': product.subcategory || '',
-                            'Subcategory (EN)': product.subcategory_en || '',
-                            'Brand ID': product.brand_id || '',
-                            'Brand Name': product.brand_name || '',
-                            
-                            // Pricing
-                            'Price': product.price || 0,
-                            'Original Price': product.discount_price || product.original_price || 0,
-                            'Cost Price': product.cost_price || 0,
-                            'Discount %': product.discount_percentage || 0,
-                            
-                            // Stock & Availability
-                            'Total Stock': product.stock_quantity || 0,
-                            'Min Stock Level': product.min_stock_level || 0,
-                            'Max Stock Level': product.max_stock_level || 0,
-                            'Is Available': product.is_available ? 'Yes' : 'No',
-                            'Is Featured': product.is_featured ? 'Yes' : 'No',
-                            'Is Hot Deal': product.is_hot_deal ? 'Yes' : 'No',
-                            'Is Offer Only': product.is_offer_only ? 'Yes' : 'No',
-                            
-                            // Product Details
-                            'Weight': product.weight || '',
-                            'Unit': product.unit || '',
-                            'Size': product.size || '',
-                            'Color': product.color || '',
-                            'Flavor': product.flavor || '',
-                            'Package Type': product.package_type || '',
-                            
-                            // Ratings & Reviews
-                            'Rating': product.rating || 0,
-                            'Reviews Count': product.reviews || 0,
-                            'Total Sales': product.total_sales || 0,
-                            
-                            // Images
-                            'Main Image': product.image || '',
-                            'Gallery Images': product.images ? product.images.join(', ') : '',
-                            
-                            // Dates
-                            'Expiry Date': product.expiry_date || '',
-                            'Manufacturing Date': product.manufacturing_date || '',
-                            'Created At': product.created_at || '',
-                            'Updated At': product.updated_at || '',
-                            
-                            // Location
-                            'Shelf Location': product.shelf_location || '',
-                            'Aisle': product.aisle || '',
-                            
-                            // Additional Info
-                            'SKU': product.sku || '',
-                            'Tags': product.tags ? product.tags.join(', ') : '',
-                            'Keywords': product.keywords || '',
-                            'Meta Title': product.meta_title || '',
-                            'Meta Description': product.meta_description || '',
-                            
-                            // Loyalty & Points
-                            'Loyalty Points': product.loyalty_points || 0,
-                            'Min Purchase Quantity': product.min_purchase_quantity || 1,
-                            'Max Purchase Quantity': product.max_purchase_quantity || '',
-                            
-                            // Branch-specific data (first 5 branches)
-                            ...branches.slice(0, 5).reduce((acc: any, branch: any, idx: number) => {
-                                acc[`Branch ${idx + 1} Name`] = branch.branch_name || '';
-                                acc[`Branch ${idx + 1} Price`] = branch.price || 0;
-                                acc[`Branch ${idx + 1} Stock`] = branch.stock_quantity || 0;
-                                acc[`Branch ${idx + 1} Available`] = branch.is_available ? 'Yes' : 'No';
-                                return acc;
-                            }, {}),
-                            
-                            // Total Branches
-                            'Total Branches': branches.length
-                        };
-                    } catch (err) {
-                        console.error(`❌ Error processing product ${product.id}:`, err);
-                        return {
-                            'ID': product.id,
-                            'Barcode': product.barcode || '',
-                            'Name': product.name || '',
-                            'Price': product.price || 0,
-                            'Stock': product.stock_quantity || 0,
-                            'Category': product.category || '',
-                            'Error': `Failed to process: ${err instanceof Error ? err.message : 'Unknown'}`
-                        };
-                    }
-                });
-
-            console.log('📊 Creating Excel workbook...');
-            console.log(`✅ Processed ${productsWithFullDetails.length} products with full details`);
-            
-            if (productsWithFullDetails.length === 0) {
-                alert('⚠️ لم يتم معالجة أي منتجات!');
-                return;
-            }
-
-            // Lazy load XLSX library only when exporting
-            const XLSX = await import('xlsx');
-
-            // Create worksheet
-            const ws = XLSX.utils.json_to_sheet(productsWithFullDetails);
-            console.log('✅ Worksheet created');
-            
-            // Auto-size columns
-            const colWidths = Object.keys(productsWithFullDetails[0] || {}).map(key => ({
-                wch: Math.max(key.length, 15)
-            }));
-            ws['!cols'] = colWidths;
-
-            // Create workbook
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'All Products');
-            console.log('✅ Workbook created with products sheet');
-
-            // Add summary sheet
-            const summary = [{
-                'Total Products': allProducts.length,
-                'Total Branches': branches.length,
-                'Total Categories': [...new Set(allProducts.map((p: any) => p.category))].length,
-                'Export Date': new Date().toLocaleString('ar-EG'),
-                'Exported By': 'Admin'
-            }];
-            const wsSummary = XLSX.utils.json_to_sheet(summary);
-            XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
-            console.log('✅ Summary sheet added');
-
-            // Generate filename with timestamp
+            const blob = await res.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
-            const filename = `All_Products_${timestamp}.xlsx`;
-
-            console.log('💾 Downloading file:', filename);
+            a.download = `All_Products_${timestamp}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
             
-            // Download using writeFileXLSX (better browser support)
-            XLSX.writeFileXLSX(wb, filename, { compression: true });
-            
-            console.log('✅ Excel file downloaded successfully!');
-            alert(`✅ تم تصدير ${allProducts.length} منتج بنجاح!\nاسم الملف: ${filename}`);
+            alert(`✅ تم تصدير المنتجات بنجاح!`);
         } catch (err) {
             console.error('❌ Excel export failed:', err);
             console.error('Error details:', {
