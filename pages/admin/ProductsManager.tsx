@@ -607,28 +607,31 @@ const ProductsManager = () => {
                 return;
             }
 
-            console.log('🔄 Fetching branch details for each product...');
+            console.log('🔄 Fetching branch details (single batch call)...');
             
-            // Fetch branch-products data for each product
-            const productsWithFullDetails = await Promise.all(
-                allProducts.map(async (product: any, index: number) => {
+            // Fetch ALL branch-products in ONE call instead of N individual calls
+            let branchProductsMap: Record<string, any[]> = {};
+            try {
+                const bpRes = await fetch(`${API_URL}/branch-products/all-branches`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if (bpRes.ok) {
+                    const bpData = await bpRes.json();
+                    const bpList = Array.isArray(bpData) ? bpData : (bpData.data || []);
+                    for (const item of bpList) {
+                        branchProductsMap[String(item.product_id)] = item.branches || [];
+                    }
+                }
+            } catch (e) {
+                console.warn('⚠️ Could not fetch branch products:', e);
+            }
+            
+            const productsWithFullDetails = allProducts.map((product: any, index: number) => {
                     try {
-                        const branchRes = await fetch(`${API_URL}/branch-products/product/${product.id}`, {
-                            headers: {
-                                'Authorization': `Bearer ${localStorage.getItem('token')}`
-                            }
-                        });
-                        
-                        let branches: any[] = [];
-                        
-                        if (branchRes.ok) {
-                            const branchData = await branchRes.json();
-                            branches = Array.isArray(branchData) ? branchData : (branchData.data || []);
-                        }
-                        
-                        if (index % 10 === 0) {
-                            console.log(`📍 Progress: ${index + 1}/${allProducts.length} products`);
-                        }
+                        const branches = branchProductsMap[String(product.id)] || [];
 
                         return {
                             // Basic Info
@@ -714,7 +717,7 @@ const ProductsManager = () => {
                             'Total Branches': branches.length
                         };
                     } catch (err) {
-                        console.error(`❌ Error fetching branch data for product ${product.id}:`, err);
+                        console.error(`❌ Error processing product ${product.id}:`, err);
                         return {
                             'ID': product.id,
                             'Barcode': product.barcode || '',
@@ -722,11 +725,10 @@ const ProductsManager = () => {
                             'Price': product.price || 0,
                             'Stock': product.stock_quantity || 0,
                             'Category': product.category || '',
-                            'Error': `Failed to load branch details: ${err instanceof Error ? err.message : 'Unknown'}`
+                            'Error': `Failed to process: ${err instanceof Error ? err.message : 'Unknown'}`
                         };
                     }
-                })
-            );
+                });
 
             console.log('📊 Creating Excel workbook...');
             console.log(`✅ Processed ${productsWithFullDetails.length} products with full details`);

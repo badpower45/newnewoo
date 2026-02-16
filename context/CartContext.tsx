@@ -125,6 +125,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   }, [items, user]);
 
+  // Track in-flight addToCart requests to prevent duplicates (React StrictMode)
+  const addToCartInFlight = React.useRef<Set<string>>(new Set());
+
   const addToCart = async (product: Product, quantity = 1, substitutionPreference = 'none') => {
     // Guard: reject products with missing or invalid IDs
     if (product.id === undefined || product.id === null || String(product.id).trim() === '' || String(product.id) === 'undefined') {
@@ -170,8 +173,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       // Show success toast
       showToast(`تمت إضافة ${normalizedProduct.name || normalizedProduct.title} إلى السلة`, 'success');
 
-      // Add to cart in background without blocking UI
-      if (!isSynthetic) {
+      // Add to cart in background without blocking UI (with dedup guard)
+      const dedupeKey = `${productIdStr}-${quantity}`;
+      if (!isSynthetic && !addToCartInFlight.current.has(dedupeKey)) {
+        addToCartInFlight.current.add(dedupeKey);
         api.cart.add({ 
           userId: user.id, 
           productId: productIdStr, 
@@ -187,6 +192,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
             console.error("Failed to add to cart", err);
           }
           syncCart(); // Revert on error
+        }).finally(() => {
+          addToCartInFlight.current.delete(dedupeKey);
         });
       }
     } else {
