@@ -415,6 +415,10 @@ const ProductsManager = () => {
             // Keep brandId as-is to support UUID/text IDs (don't coerce to number)
             const normalizedBrandId = form.brandId ? String(form.brandId) : null;
             
+            // �️ Get brand name from selected brand
+            const selectedBrand = normalizedBrandId ? brands.find(b => String(b.id) === String(normalizedBrandId)) : null;
+            const brandNameToSend = selectedBrand ? (selectedBrand.name_ar || selectedBrand.name_en || null) : null;
+            
             // 🆕 Prepare branch-specific data
             const branchesData = form.branchIds.map(branchId => ({
                 branchId,
@@ -439,6 +443,7 @@ const ProductsManager = () => {
                 weight: form.weight,
                 shelfLocation: form.shelfLocation,
                 brandId: normalizedBrandId,  // 🏷️ إرسال brand_id كما هو (يدعم UUID)
+                brandName: brandNameToSend,  // 🏷️ إرسال اسم البراند للحفظ في brand_name
                 frame_overlay_url: frameEnabled && selectedFrame ? selectedFrame : null, // 🖼️ رابط الإطار
                 frame_enabled: frameEnabled // 🖼️ تفعيل/إيقاف الإطار
             };

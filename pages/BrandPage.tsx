@@ -356,39 +356,58 @@ const BrandPage = () => {
         if (!brandInfo) return;
 
         try {
-            // ✅ دائماً استخدم branch filter (توفير البيانات)
-            const branchId = selectedBranch?.id || 1; // Default branch
-            const res = await api.products.getAllByBranch(branchId, { includeMagazine: true });
-            
-            const allProducts = res.data || res || [];
+            const branchId = selectedBranch?.id || 1;
             const brandId = brandInfo.id;
-            const keywords = brandInfo.keywords || [
-                brandInfo.name_en,
-                brandInfo.name_ar,
-                brandInfo.nameEn,
-                brandInfo.name,
-                brandInfo.slogan_ar,
-                brandInfo.slogan_en,
-                brandInfo.tagline
-            ].filter(Boolean).map((k: string) => normalize(k));
             
-            const brandProducts = allProducts.filter((p: any) => {
-                const productBrandId = p.brand_id ?? p.brandId;
-                const matchesId = brandId && productBrandId && String(productBrandId) === String(brandId);
-                const productBrandName = normalize(p.brand_name || p.brand);
-                const productName = normalize(p.name);
-                const productDesc = normalize(p.description);
-                const productCategory = normalize(p.category);
+            let brandProducts: any[] = [];
+            
+            // ✅ Try dedicated brand products endpoint first (server-side filtering)
+            if (brandId && !isNaN(Number(brandId))) {
+                try {
+                    const res = await api.brands.getProducts(brandId, branchId);
+                    const data = res?.data || res || [];
+                    if (Array.isArray(data) && data.length > 0) {
+                        brandProducts = data;
+                        console.log(`✅ Loaded ${brandProducts.length} products for brand ${brandId} from dedicated endpoint`);
+                    }
+                } catch (err) {
+                    console.warn('⚠️ Brand products endpoint failed, falling back to client-side filter:', err);
+                }
+            }
+            
+            // 🔄 Fallback: fetch all products and filter client-side (for static brands or if endpoint fails)
+            if (brandProducts.length === 0) {
+                const res = await api.products.getAllByBranch(branchId, { includeMagazine: true });
+                const allProducts = res.data || res || [];
                 
-                const matchesKeyword = keywords.some((keyword: string) => 
-                    productName.includes(keyword) ||
-                    productDesc.includes(keyword) ||
-                    productCategory.includes(keyword) ||
-                    productBrandName.includes(keyword)
-                );
+                const keywords = (brandInfo.keywords || [
+                    brandInfo.name_en,
+                    brandInfo.name_ar,
+                    brandInfo.nameEn,
+                    brandInfo.name,
+                    brandInfo.slogan_ar,
+                    brandInfo.slogan_en,
+                    brandInfo.tagline
+                ]).filter(Boolean).map((k: string) => normalize(k));
                 
-                return matchesId || matchesKeyword;
-            });
+                brandProducts = allProducts.filter((p: any) => {
+                    const productBrandId = p.brand_id ?? p.brandId;
+                    const matchesId = brandId && productBrandId && String(productBrandId) === String(brandId);
+                    const productBrandName = normalize(p.brand_name || p.brand);
+                    const productName = normalize(p.name);
+                    const productDesc = normalize(p.description);
+                    const productCategory = normalize(p.category);
+                    
+                    const matchesKeyword = keywords.some((keyword: string) => 
+                        productName.includes(keyword) ||
+                        productDesc.includes(keyword) ||
+                        productCategory.includes(keyword) ||
+                        productBrandName.includes(keyword)
+                    );
+                    
+                    return matchesId || matchesKeyword;
+                });
+            }
             
             setProducts(brandProducts);
             await loadBrandMagazineOffers(brandInfo);
@@ -814,6 +833,17 @@ const BrandPage = () => {
                                 </div>
                             )}
                         </div>
+                    </div>
+                )}
+
+                {/* Products with discounts section title when on offers tab */}
+                {activeTab === 'offers' && filteredProducts.length > 0 && !loading && (
+                    <div className="flex items-center gap-2 mb-4">
+                        <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                            <Percent size={18} className="text-green-500" />
+                            منتجات بخصومات
+                        </h3>
+                        <span className="text-sm text-gray-500">({filteredProducts.length} منتج)</span>
                     </div>
                 )}
 

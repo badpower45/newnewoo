@@ -2245,6 +2245,12 @@ export const api = {
             });
             if (!res.ok) throw new Error('Failed to delete brand');
             return res.json();
+        },
+        getProducts: async (brandId: string | number, branchId?: number) => {
+            const params = new URLSearchParams();
+            if (branchId) params.set('branchId', String(branchId));
+            const url = `${API_URL}/brands/${brandId}/products${params.toString() ? '?' + params.toString() : ''}`;
+            return fetchCachedJson(url, { headers: getPublicHeaders() }, 30000);
         }
     },
 
