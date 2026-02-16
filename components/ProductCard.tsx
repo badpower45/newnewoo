@@ -276,7 +276,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
           <div className="flex items-center gap-1 mb-1.5">
             <div className="flex items-center">
               <Star size={12} className="text-yellow-400 fill-yellow-400" />
-              <span className="text-xs font-medium text-gray-700 ml-0.5">{product.rating.toFixed(1)}</span>
+              <span className="text-xs font-medium text-gray-700 ml-0.5">{Number(product.rating).toFixed(1)}</span>
             </div>
             {product.reviews > 0 && (
               <span className="text-[10px] text-gray-500">({product.reviews})</span>

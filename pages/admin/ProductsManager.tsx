@@ -908,10 +908,12 @@ const ProductsManager = () => {
                                     <td className="px-4 py-4 text-gray-600">
                                         {(product as any).brand_name || (product as any).brand_name_ar || (product as any).brand_name_en || '-'}
                                     </td>
-                                    <td className="px-4 py-4 text-gray-500 line-through">
-                                        {product.discount_price || product.originalPrice ? `${(Number(product.discount_price) || Number(product.originalPrice) || 0).toFixed(2)} EGP` : '-'}
+                                    <td className="px-4 py-4 text-gray-500">
+                                        {(Number(product.price) || 0).toFixed(2)} EGP
                                     </td>
-                                    <td className="px-4 py-4 font-bold text-green-600">{(Number(product.price) || 0).toFixed(2)} EGP</td>
+                                    <td className="px-4 py-4 font-bold text-green-600">
+                                        {product.discount_price ? `${Number(product.discount_price).toFixed(2)} EGP` : '-'}
+                                    </td>
                                     <td className="px-4 py-4">
                                         <span className={`px-2 py-1 text-xs font-bold rounded-full ${(product.stock_quantity || 0) > 10 ? 'bg-green-100 text-green-700' : (product.stock_quantity || 0) > 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
                                             {product.stock_quantity || 0} قطعة
