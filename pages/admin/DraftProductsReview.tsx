@@ -19,6 +19,7 @@ interface DraftProduct {
     branch_id: number;
     stock_quantity: number;
     expiry_date: string | null;
+    brand_name: string | null;
     status: string;
     validation_errors: {
         errors: string[];
@@ -332,6 +333,19 @@ const DraftProductsReview: React.FC = () => {
 
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 mb-1">
+                                                البراند
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={editForm.brand_name || ''}
+                                                onChange={(e) => setEditForm({...editForm, brand_name: e.target.value})}
+                                                placeholder="اسم البراند"
+                                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-1">
                                                 السعر *
                                             </label>
                                             <input
@@ -440,11 +454,17 @@ const DraftProductsReview: React.FC = () => {
                                             {draft.name || <span className="text-red-500">بدون اسم</span>}
                                         </h3>
                                         
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                                        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
                                             <div>
                                                 <span className="text-gray-500">التصنيف:</span>
                                                 <span className="font-medium text-gray-900 mr-1">
                                                     {draft.category || <span className="text-gray-400">-</span>}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span className="text-gray-500">البراند:</span>
+                                                <span className="font-medium text-blue-600 mr-1">
+                                                    {draft.brand_name || <span className="text-gray-400">-</span>}
                                                 </span>
                                             </div>
                                             <div>
