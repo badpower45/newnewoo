@@ -362,7 +362,7 @@ const BrandPage = () => {
             let brandProducts: any[] = [];
             
             // ✅ Try dedicated brand products endpoint first (server-side filtering)
-            if (brandId && !isNaN(Number(brandId))) {
+            if (brandId) {
                 try {
                     const res = await api.brands.getProducts(brandId, branchId);
                     const data = res?.data || res || [];
