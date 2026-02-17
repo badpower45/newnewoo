@@ -140,7 +140,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
           <div className="flex justify-between items-center">
             <div className="flex flex-col">
               {hasDiscount && (
-                <span className="text-xs text-gray-400 line-through">{priceBeforeDiscount.toFixed(2)} EGP</span>
+                <span className="text-xs text-orange-500 line-through font-medium">{priceBeforeDiscount.toFixed(2)} EGP</span>
               )}
               <span className="font-bold text-gray-900">{currentPrice.toFixed(2)} EGP</span>
             </div>
@@ -298,7 +298,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
             <span className="text-xs text-gray-500">{t('common.currency')}</span>
             <span className="text-[10px] text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">{t('product.vatIncluded')}</span>
             {hasDiscount && (
-              <span className="text-xs text-gray-400 line-through">{priceBeforeDiscount.toFixed(2)}</span>
+              <span className="text-xs text-orange-500 line-through font-medium">{priceBeforeDiscount.toFixed(2)}</span>
             )}
           </div>
         </div>
