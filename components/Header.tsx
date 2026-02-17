@@ -71,12 +71,9 @@ export default function Header() {
         <div className="flex items-center justify-between gap-8">
           {/* Logo - Aloush Style */}
           <Link to="/" className="flex items-center flex-shrink-0 group cursor-pointer">
-            <div className={`w-11 h-11 bg-brand-orange rounded-xl flex items-center justify-center shadow-lg shadow-orange-300 group-hover:scale-105 transition-transform ${isRTL ? 'ml-2' : 'mr-2'}`}>
-              <span className="text-white font-extrabold text-2xl" style={{ fontFamily: 'serif' }}>ع</span>
-            </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col group-hover:scale-105 transition-transform">
               <span className="text-2xl font-extrabold tracking-tight text-brand-brown leading-none">علوش</span>
-              <span className="text-[10px] font-bold text-brand-orange tracking-widest">ALLOSH MARKET</span>
+              <span className="text-[10px] font-bold text-brand-orange tracking-widest">اسم متنساهوش</span>
             </div>
           </Link>
 
