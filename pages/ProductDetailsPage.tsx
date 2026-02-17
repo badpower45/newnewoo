@@ -198,9 +198,12 @@ const ProductDetailsPage = () => {
         </>
     );
 
-    const displayPrice = Number(branchPrice) || Number(product.price) || 0;
-    const realOldPrice = Number(product.discount_price) || Number(product.originalPrice) || 0;
-    const oldPrice = realOldPrice > displayPrice ? realOldPrice : 0;
+    // price = السعر قبل (الأصلي الأكبر), discount_price = السعر بعد (الحالي الأصغر)
+    const rawPrice = Number(branchPrice) || Number(product.price) || 0;
+    const rawDiscountPrice = Number(product.discount_price) || Number(product.originalPrice) || 0;
+    const hasRealDiscount = rawDiscountPrice > 0 && rawPrice > rawDiscountPrice;
+    const displayPrice = hasRealDiscount ? rawDiscountPrice : rawPrice;
+    const oldPrice = hasRealDiscount ? rawPrice : 0;
     const discountPercentage = oldPrice > 0 ? Math.round(((oldPrice - displayPrice) / oldPrice) * 100) : 0;
     const savings = oldPrice > 0 ? oldPrice - displayPrice : 0;
     const frameOverlayUrl = (product as any).fo || (product as any).frame_overlay_url; // API returns 'fo' (shortened)
@@ -813,9 +816,12 @@ const ProductDetailsPage = () => {
                                 </div>
                                 <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide">
                                     {similarProducts.map((item) => {
-                                        const itemPrice = Number(item.price) || 0;
-                                        const itemOldPrice = Number(item.discount_price) || Number(item.originalPrice) || (itemPrice * 1.15);
-                                        const itemDiscount = itemOldPrice > itemPrice ? Math.round(((itemOldPrice - itemPrice) / itemOldPrice) * 100) : 0;
+                                        const itemRawPrice = Number(item.price) || 0;
+                                        const itemRawDiscount = Number(item.discount_price) || Number(item.originalPrice) || 0;
+                                        const itemHasDiscount = itemRawDiscount > 0 && itemRawPrice > itemRawDiscount;
+                                        const itemPrice = itemHasDiscount ? itemRawDiscount : itemRawPrice;
+                                        const itemOldPrice = itemHasDiscount ? itemRawPrice : 0;
+                                        const itemDiscount = itemOldPrice > 0 ? Math.round(((itemOldPrice - itemPrice) / itemOldPrice) * 100) : 0;
 
                                         return (
                                             <Link
@@ -893,9 +899,12 @@ const ProductDetailsPage = () => {
                                 </div>
                                 <div className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-hide">
                                     {recommendedProducts.map((item) => {
-                                        const itemPrice = Number(item.price) || 0;
-                                        const itemOldPrice = Number(item.discount_price) || Number(item.originalPrice) || (itemPrice * 1.15);
-                                        const itemDiscount = itemOldPrice > itemPrice ? Math.round(((itemOldPrice - itemPrice) / itemOldPrice) * 100) : 0;
+                                        const itemRawPrice = Number(item.price) || 0;
+                                        const itemRawDiscount = Number(item.discount_price) || Number(item.originalPrice) || 0;
+                                        const itemHasDiscount = itemRawDiscount > 0 && itemRawPrice > itemRawDiscount;
+                                        const itemPrice = itemHasDiscount ? itemRawDiscount : itemRawPrice;
+                                        const itemOldPrice = itemHasDiscount ? itemRawPrice : 0;
+                                        const itemDiscount = itemOldPrice > 0 ? Math.round(((itemOldPrice - itemPrice) / itemOldPrice) * 100) : 0;
 
                                         return (
                                             <Link

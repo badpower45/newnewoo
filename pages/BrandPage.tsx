@@ -465,7 +465,7 @@ const BrandPage = () => {
     // فلترة المنتجات حسب التاب
     const filteredProducts = products.filter(p => {
         if (activeTab === 'offers') {
-            return p.discount_price && p.discount_price > p.price;
+            return p.discount_price && Number(p.price) > Number(p.discount_price);
         }
         if (activeTab === 'new') {
             return p.is_new;
@@ -636,7 +636,7 @@ const BrandPage = () => {
                         <div className="text-center">
                             <div className="flex items-center justify-center gap-1 text-2xl font-bold text-green-500">
                                 <Percent size={20} />
-                                {products.filter(p => p.discount_price && p.discount_price > p.price).length}
+                                {products.filter(p => p.discount_price && Number(p.price) > Number(p.discount_price)).length}
                             </div>
                             <p className="text-xs text-gray-500">عرض</p>
                         </div>

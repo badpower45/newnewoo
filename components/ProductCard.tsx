@@ -54,12 +54,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
   const cartItem = items?.find(item => item.id === id);
   const quantityInCart = cartItem?.quantity || 0;
 
-  // السعر الأصلي (قبل الخصم) - يُخزن في discount_price أو originalPrice
-  const priceBeforeDiscount = Number(productDiscountPrice) || Number(originalPrice) || 0;
-  // السعر الحالي (بعد الخصم)
-  const currentPrice = Number(productPrice) || 0;
-  // هل يوجد خصم؟
-  const hasDiscount = priceBeforeDiscount > 0 && priceBeforeDiscount > currentPrice;
+  // السعر الأصلي (قبل الخصم) = price (الأكبر)
+  // السعر الحالي (بعد الخصم) = discount_price (الأصغر)
+  const rawPrice = Number(productPrice) || 0;
+  const rawDiscountPrice = Number(productDiscountPrice) || Number(originalPrice) || 0;
+  
+  // لو في discount_price وأقل من price، يبقى في خصم
+  const hasDiscount = rawDiscountPrice > 0 && rawPrice > rawDiscountPrice;
+  const priceBeforeDiscount = hasDiscount ? rawPrice : 0;
+  const currentPrice = hasDiscount ? rawDiscountPrice : rawPrice;
   // نسبة الخصم
   const discountPercent = hasDiscount ? Math.round(((priceBeforeDiscount - currentPrice) / priceBeforeDiscount) * 100) : 0;
   const frameOverlayUrl = (product as any).fo || (product as any).frame_overlay_url; // API returns 'fo' (shortened)

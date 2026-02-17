@@ -539,7 +539,7 @@ export default function ProductsPage() {
 
         // Filter offers only
         if (showOnlyOffers) {
-            filtered = filtered.filter(p => p.discount_price && Number(p.discount_price) > Number(p.price));
+            filtered = filtered.filter(p => p.discount_price && Number(p.price) > Number(p.discount_price));
         }
 
         // Sort
@@ -555,8 +555,8 @@ export default function ProductsPage() {
                 break;
             case 'discount':
                 filtered.sort((a, b) => {
-                    const discA = a.discount_price ? ((Number(a.discount_price) - Number(a.price)) / Number(a.discount_price)) * 100 : 0;
-                    const discB = b.discount_price ? ((Number(b.discount_price) - Number(b.price)) / Number(b.discount_price)) * 100 : 0;
+                    const discA = (a.discount_price && Number(a.price) > Number(a.discount_price)) ? ((Number(a.price) - Number(a.discount_price)) / Number(a.price)) * 100 : 0;
+                    const discB = (b.discount_price && Number(b.price) > Number(b.discount_price)) ? ((Number(b.price) - Number(b.discount_price)) / Number(b.price)) * 100 : 0;
                     return discB - discA;
                 });
                 break;
@@ -623,9 +623,12 @@ export default function ProductsPage() {
     const hasActiveFilters = selectedCategory || selectedBrand || showOnlyOffers || priceRange[0] > 0 || priceRange[1] < 1000;
 
     const FlatProductRow = ({ product, available }: { product: Product; available: boolean }) => {
-        const price = Number(product.price) || 0;
-        const oldPrice = Number(product.discount_price) || Number(product.originalPrice) || 0;
-        const discount = oldPrice > price ? Math.round(((oldPrice - price) / oldPrice) * 100) : 0;
+        const rawPrice = Number(product.price) || 0;
+        const rawDiscount = Number(product.discount_price) || Number(product.originalPrice) || 0;
+        const hasRealDiscount = rawDiscount > 0 && rawPrice > rawDiscount;
+        const price = hasRealDiscount ? rawDiscount : rawPrice;
+        const oldPrice = hasRealDiscount ? rawPrice : 0;
+        const discount = oldPrice > 0 ? Math.round(((oldPrice - price) / oldPrice) * 100) : 0;
         const handleQuickAdd = (e: React.MouseEvent) => {
             e.preventDefault();
             e.stopPropagation();
