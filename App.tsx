@@ -159,15 +159,36 @@ function AppContent() {
   // Re-trigger Google Translate on every route change (SPA navigation)
   useEffect(() => {
     if (language !== 'en') return;
-    // Wait for React to finish rendering the new page DOM
-    const timer = setTimeout(() => {
+
+    const hideBanner = () => {
+      document.querySelectorAll<HTMLElement>(
+        '.goog-te-banner-frame, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame, .goog-te-spinner-pos'
+      ).forEach(el => {
+        el.style.cssText = 'display:none!important;visibility:hidden!important;height:0!important;overflow:hidden!important;';
+      });
+      document.body.style.top = '0px';
+    };
+
+    const retranslate = () => {
       const combo = document.querySelector('.goog-te-combo') as HTMLSelectElement | null;
-      if (combo) {
+      if (!combo) return;
+      // MUST reset to '' first — GT ignores re-dispatch if value is already 'en'
+      combo.value = '';
+      combo.dispatchEvent(new Event('change', { bubbles: true }));
+      setTimeout(() => {
         combo.value = 'en';
         combo.dispatchEvent(new Event('change', { bubbles: true }));
-      }
-    }, 300);
-    return () => clearTimeout(timer);
+        combo.dispatchEvent(new Event('change', { bubbles: true })); // double-fire forces GT to re-scan
+        setTimeout(hideBanner, 600);
+      }, 250);
+    };
+
+    // First attempt after React finishes rendering
+    const t1 = setTimeout(retranslate, 500);
+    // Second attempt as safety net for slow/lazy-loaded pages
+    const t2 = setTimeout(retranslate, 1500);
+
+    return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [location.pathname, language]);
   const path = location.pathname;
   const { user } = useAuth();
