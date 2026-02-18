@@ -186,7 +186,12 @@ const FacebookReelsManager: React.FC = () => {
             return `https://www.youtube.com/embed/${ytId}?rel=0&autoplay=1&modestbranding=1`;
         }
 
-        // Facebook video/reel/share -> convert to plugin embed
+        // ⚠️ Facebook Reels & share/v/ CANNOT be embedded (blocked by Facebook since 2023).
+        // Return '' – the grid will open Facebook directly when clicked.
+        if (/facebook\.com\/(share\/v\/|reel\/)/i.test(url)) return '';
+        if (/fb\.watch\//i.test(url)) return '';
+
+        // Regular Facebook page videos → plugin embed (may work for page videos)
         if (/facebook\.com/.test(url) && !/plugins\/video\.php/.test(url)) {
             return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&autoplay=1`;
         }
@@ -207,8 +212,19 @@ const FacebookReelsManager: React.FC = () => {
     // Auto-fill from Facebook URL (handles all formats: reel, watch, videos, share/v/)
     const handleFacebookUrlChange = (url: string) => {
         setForm(prev => ({ ...prev, facebook_url: url }));
-        
-        // Auto-generate embed for any facebook.com URL
+
+        // ⚠️ Reels & share/v/ links CANNOT be embedded by Facebook's plugin (blocked).
+        // We store the link for the "Watch on Facebook" button only.
+        if (/facebook\.com\/(share\/v\/|reel\/)/i.test(url) || /fb\.watch\//i.test(url)) {
+            setForm(prev => ({
+                ...prev,
+                facebook_url: url,
+                video_url: '' // no embeddable URL – grid will open Facebook directly
+            }));
+            return;
+        }
+
+        // Regular Facebook page videos → auto-generate embed
         if (/facebook\.com|fb\.watch/i.test(url) && !/plugins\/video\.php/.test(url)) {
             const embedUrl = `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&width=500&autoplay=true`;
             setForm(prev => ({
@@ -255,10 +271,12 @@ const FacebookReelsManager: React.FC = () => {
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-2">
                 <h3 className="font-semibold text-blue-800">طرق الإضافة المدعومة:</h3>
                 <ul className="list-disc list-inside text-blue-700 text-sm space-y-1">
-                    <li>رابط شير فيسبوك الجديد: <span className="font-mono text-xs bg-blue-100 px-1 rounded">facebook.com/share/v/XXXX</span> ← الصقه وسيشتغل تلقائياً ✓</li>
-                    <li>رابط ريل: <span className="font-mono text-xs bg-blue-100 px-1 rounded">facebook.com/reel/ID</span> أو فيديو: <span className="font-mono text-xs bg-blue-100 px-1 rounded">facebook.com/watch/?v=ID</span></li>
-                    <li>رابط YouTube أو Vimeo: الصق الرابط المباشر وسيتم تحويله إلى Embed.</li>
-                    <li>ملف MP4 مباشر: ضع الرابط المباشر للفيديو لتشغيله داخل الموقع.</li>
+                    <li>رابط شير فيسبوك الجديد: <span className="font-mono text-xs bg-blue-100 px-1 rounded">facebook.com/share/v/XXXX</span> ← سيفتح فيسبوك مباشرة ✓</li>
+                    <li>رابط ريل: <span className="font-mono text-xs bg-blue-100 px-1 rounded">facebook.com/reel/ID</span> ← سيفتح فيسبوك مباشرة ✓</li>
+                    <li className="text-amber-700 font-medium">⚠️ فيسبوك حجب تضمين الريلز في 2023 – الضغط على الصورة سيفتح فيسبوك تلقائياً.</li>
+                    <li>رابط YouTube أو Vimeo: يشتغل داخل الموقع مباشرة ✅</li>
+                    <li>ملف MP4 مباشر: يشتغل داخل الموقع مباشرة ✅</li>
+                    <li>الصورة المصغرة: ارفعها على Cloudinary والصق الرابط (روابط فيسبوك المباشرة للصور بتنتهي وتعطي 403).</li>
                 </ul>
             </div>
 

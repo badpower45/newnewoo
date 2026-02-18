@@ -44,13 +44,29 @@ const normalizeVideoUrl = (url?: string): string => {
     if (ytId) return `https://www.youtube.com/embed/${ytId}?rel=0&autoplay=1&modestbranding=1&mute=1`;
     const vimeoId = url.match(/vimeo\.com\/(?:video\/)?(\d+)/)?.[1];
     if (vimeoId) return `https://player.vimeo.com/video/${vimeoId}?autoplay=1&muted=1`;
-    // All facebook.com URLs (including share/v/, reel/, watch/, videos/) → embed plugin
-    if (/facebook\.com|fb\.watch/i.test(url) && !/plugins\/video\.php/.test(url)) {
-        return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&autoplay=1&muted=1`;
-    }
-    if (/facebook\.com\/plugins\/video\.php/.test(url)) {
+
+    // ⚠️ Facebook Reels & share/v/ are BLOCKED from embedding by Facebook (since 2023).
+    // Return '' so the grid shows the "Watch on Facebook" button instead of a broken iframe.
+    if (/facebook\.com\/(share\/v\/|reel\/)/i.test(url)) return '';
+    if (/fb\.watch\//i.test(url)) return '';
+
+    // Check if a plugins/video.php URL wraps a blocked reel/share href
+    if (/facebook\.com\/plugins\/video\.php/i.test(url)) {
+        try {
+            const hrefParam = new URL(url).searchParams.get('href') || '';
+            const decoded = decodeURIComponent(hrefParam);
+            if (/facebook\.com\/(share\/v\/|reel\/)/i.test(decoded) || /fb\.watch\//i.test(decoded)) {
+                return ''; // blocked – show "Watch on Facebook" fallback
+            }
+        } catch {}
         return url.startsWith('http') ? url : `https:${url}`;
     }
+
+    // Regular facebook.com page videos → embed plugin (may work for page/watch videos)
+    if (/facebook\.com/i.test(url)) {
+        return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&autoplay=1&muted=1`;
+    }
+
     return url;
 };
 
@@ -135,6 +151,14 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
     const openVideoModal = useCallback((index: number) => {
         const reel = reels[index];
         const rawUrl = reel?.video_url || reel?.facebook_url;
+        const playable = normalizeVideoUrl(rawUrl);
+
+        // If Facebook reel/share (blocked) → open directly on Facebook
+        if (!playable && reel?.facebook_url) {
+            window.open(reel.facebook_url, '_blank', 'noopener,noreferrer');
+            return;
+        }
+
         if (rawUrl) {
             setActiveVideo(index);
             setIsPlaying(true);
