@@ -25,25 +25,12 @@ interface LanguageProviderProps {
 }
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-    const [language, setLanguageState] = useState<Language>(() => {
-        const saved = localStorage.getItem('language') as Language;
-        return (saved === 'ar' || saved === 'en') ? saved : 'ar';
-    });
+    const [language, setLanguageState] = useState<Language>('ar');
 
     useEffect(() => {
         applyLanguage(language);
         
-        // If language is English on load, trigger Google Translate after script loads
-        if (language === 'en') {
-            const tryTranslate = () => {
-                const triggered = (window as any).triggerGoogleTranslate?.('en');
-                if (!triggered) {
-                    setTimeout(tryTranslate, 1000);
-                }
-            };
-            // Wait for Google Translate script to load
-            setTimeout(tryTranslate, 2000);
-        }
+        // Always start in Arabic - no auto-translate on load
     }, []);
 
     const applyLanguage = (lang: Language) => {
@@ -59,7 +46,6 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     const setLanguage = (lang: Language) => {
         if (lang === language) return;
         setLanguageState(lang);
-        localStorage.setItem('language', lang);
         applyLanguage(lang);
         
         // Trigger Google Translate for full page translation
