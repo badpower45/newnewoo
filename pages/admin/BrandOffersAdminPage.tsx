@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-    Plus, Edit, Trash2, Eye, EyeOff, GripVertical, ArrowLeft,
-    Palette, Image, Link2, Tag, Calendar, Save, X, Search,
+    Plus, Edit, Trash2, Eye, EyeOff, ArrowLeft,
+    Palette, Image, Link2, Tag, Save, X, Search,
     ChevronDown, ChevronUp, Sparkles, Gift, Package
 } from 'lucide-react';
 import { api } from '../../services/api';
@@ -203,6 +203,9 @@ export default function BrandOffersAdminPage() {
             const fullOffer = res?.data || res;
             setEditingOffer(fullOffer);
             setShowModal(true);
+            setProductSearch('');
+            setShowProductDropdown(false);
+            setExpandedSection('link');
         } catch (err) {
             console.error('Error fetching offer details:', err);
             alert('تعذر تحميل بيانات العرض كاملة');
@@ -263,11 +266,11 @@ export default function BrandOffersAdminPage() {
         ? brands.find((b: any) => String(b.id) === String(editingOffer.linked_brand_id))
         : null;
 
-    const renderSection = (id: string, title: string, icon: React.ReactNode, children: React.ReactNode) => (
-        <div className="border border-gray-200 rounded-lg overflow-hidden">
+    const renderSection = (id: string, title: string, icon: React.ReactNode, children: React.ReactNode, allowOverflow = false) => (
+        <div className={`border border-gray-200 rounded-lg ${allowOverflow ? '' : 'overflow-hidden'}`}>
             <button
                 onClick={() => setExpandedSection(expandedSection === id ? '' : id)}
-                className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+                className={`w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors ${allowOverflow ? 'rounded-t-lg' : ''}`}
             >
                 <div className="flex items-center gap-3">
                     <span className="text-brand-orange">{icon}</span>
@@ -276,7 +279,7 @@ export default function BrandOffersAdminPage() {
                 {expandedSection === id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
             </button>
             {expandedSection === id && (
-                <div className="p-4 space-y-4 bg-white">
+                <div className={`p-4 space-y-4 bg-white ${allowOverflow ? 'rounded-b-lg' : ''}`}>
                     {children}
                 </div>
             )}
@@ -308,6 +311,9 @@ export default function BrandOffersAdminPage() {
                             onClick={() => {
                                 setEditingOffer({ ...defaultOffer, display_order: offers.length });
                                 setShowModal(true);
+                                setProductSearch('');
+                                setShowProductDropdown(false);
+                                setExpandedSection('link');
                             }}
                             className="flex w-full items-center justify-center gap-2 bg-brand-orange text-white px-4 py-2 rounded-lg hover:bg-brand-orange/90 transition-colors sm:w-auto"
                         >
@@ -333,6 +339,9 @@ export default function BrandOffersAdminPage() {
                             onClick={() => {
                                 setEditingOffer({ ...defaultOffer });
                                 setShowModal(true);
+                                setProductSearch('');
+                                setShowProductDropdown(false);
+                                setExpandedSection('link');
                             }}
                             className="bg-brand-orange text-white px-6 py-2 rounded-lg hover:bg-brand-orange/90"
                         >
@@ -790,20 +799,21 @@ export default function BrandOffersAdminPage() {
                                         </div>
                                         
                                         {showProductDropdown && filteredProducts.length > 0 && (
-                                            <div className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-72 overflow-y-auto">
+                                            <div className="absolute z-50 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-[500px] overflow-y-auto">
                                                 {filteredProducts.map((product) => (
                                                     <button
                                                         key={product.id}
                                                         type="button"
                                                         onMouseDown={(e) => {
                                                             e.preventDefault(); // Prevent blur
-                                                            const productIdRaw = product.id;
-                                                            const isNumericId = /^[0-9]+$/.test(String(productIdRaw));
+                                                            const productIdRaw = String(product.id);
+                                                            const isNumericId = /^[0-9]+$/.test(productIdRaw);
                                                             const productLink = `/product/${productIdRaw}`;
+                                                            // Use string ID to avoid BigInt precision loss with Number()
                                                             setEditingOffer({
                                                                 ...editingOffer,
-                                                                link_type: isNumericId ? 'product' : 'custom',
-                                                                linked_product_id: isNumericId ? Number(productIdRaw) : undefined,
+                                                                link_type: 'product',
+                                                                linked_product_id: isNumericId ? (productIdRaw as any) : undefined,
                                                                 custom_link: productLink
                                                             });
                                                             setProductSearch(getProductName(product));
@@ -861,49 +871,7 @@ export default function BrandOffersAdminPage() {
                                         )}
                                     </div>
                                 </>
-                            ))}
-
-                            {/* Schedule */}
-                            {renderSection('schedule', 'الجدولة', <Calendar size={18} />, (
-                                <>
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <input
-                                            type="checkbox"
-                                            id="is_active"
-                                            checked={editingOffer.is_active !== false}
-                                            onChange={(e) => setEditingOffer({ ...editingOffer, is_active: e.target.checked })}
-                                            className="w-5 h-5 rounded text-brand-orange focus:ring-brand-orange"
-                                        />
-                                        <label htmlFor="is_active" className="font-bold text-gray-700">
-                                            العرض مفعل
-                                        </label>
-                                    </div>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-bold text-gray-700 mb-1">
-                                                تاريخ البداية (اختياري)
-                                            </label>
-                                            <input
-                                                type="datetime-local"
-                                                value={editingOffer.starts_at?.slice(0, 16) || ''}
-                                                onChange={(e) => setEditingOffer({ ...editingOffer, starts_at: e.target.value })}
-                                                className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-orange focus:outline-none"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-bold text-gray-700 mb-1">
-                                                تاريخ الانتهاء (اختياري)
-                                            </label>
-                                            <input
-                                                type="datetime-local"
-                                                value={editingOffer.expires_at?.slice(0, 16) || ''}
-                                                onChange={(e) => setEditingOffer({ ...editingOffer, expires_at: e.target.value })}
-                                                className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-orange focus:outline-none"
-                                            />
-                                        </div>
-                                    </div>
-                                </>
-                            ))}
+                            ), true)}
                         </div>
 
                         {/* Modal Footer */}
