@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MessageCircle, User, Clock, Wifi, WifiOff, RefreshCw, Send } from 'lucide-react';
+import { MessageCircle, User, Clock, Wifi, WifiOff, RefreshCw, Send, ArrowRight, ChevronRight } from 'lucide-react';
 import { api } from '../../services/api';
 import { socketService } from '../../services/socketService';
 import { supabaseChatService, ChatConversation, ChatMessage } from '../../services/supabaseChatService';
@@ -43,6 +43,7 @@ const LiveChatDashboard = () => {
     const [filter, setFilter] = useState<'all' | 'assigned' | 'unassigned'>('all');
     const [useSupabase, setUseSupabase] = useState(false);
     const [isConnected, setIsConnected] = useState(true);
+    const [mobileShowChat, setMobileShowChat] = useState(false);
     const typingTimeoutRef = React.useRef<NodeJS.Timeout>();
 
     const appendMessage = (incoming: Message) => {
@@ -157,6 +158,7 @@ const LiveChatDashboard = () => {
 
     const handleSelectConversation = (convId: number) => {
         setSelectedConv(convId);
+        setMobileShowChat(true);
         loadMessages(convId);
     };
 
@@ -244,13 +246,15 @@ const LiveChatDashboard = () => {
     const selectedConversation = conversations.find(conv => conv.id === selectedConv);
 
     return (
-        <div className="flex h-[calc(100vh-120px)] bg-white rounded-xl shadow-lg overflow-hidden">
-            {/* Conversations List */}
-            <div className="w-1/3 border-r border-gray-200 flex flex-col">
-                <div className="p-4 border-b border-gray-200">
-                    <div className="flex items-center justify-between mb-3">
-                        <h2 className="text-xl font-bold text-gray-800">المحادثات المباشرة</h2>
-                        <div className="flex items-center gap-2">
+        <div className="flex flex-col md:flex-row h-[calc(100vh-64px)] md:h-[calc(100vh-120px)] bg-white rounded-xl shadow-lg overflow-hidden">
+            {/* Conversations List - full width on mobile, 1/3 on desktop */}
+            <div className={`${
+                mobileShowChat ? 'hidden md:flex' : 'flex'
+            } w-full md:w-1/3 lg:w-[320px] border-r-0 md:border-r border-gray-200 flex-col h-full`}>
+                <div className="p-3 md:p-4 border-b border-gray-200">
+                    <div className="flex items-center justify-between mb-2 md:mb-3">
+                        <h2 className="text-lg md:text-xl font-bold text-gray-800">المحادثات</h2>
+                        <div className="flex items-center gap-1.5 md:gap-2">
                             <button
                                 onClick={() => loadConversations()}
                                 className="p-1.5 text-gray-500 hover:text-brand-orange hover:bg-orange-50 rounded-lg transition-colors"
@@ -258,32 +262,32 @@ const LiveChatDashboard = () => {
                             >
                                 <RefreshCw size={16} />
                             </button>
-                            <span className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${isConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                            <span className={`flex items-center gap-1 text-[10px] md:text-xs px-1.5 md:px-2 py-0.5 md:py-1 rounded-full ${isConnected ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                                 {isConnected ? <Wifi size={12} /> : <WifiOff size={12} />}
                                 {useSupabase ? 'Supabase' : 'Socket'}
                             </span>
                         </div>
                     </div>
 
-                    {/* Filter Tabs */}
-                    <div className="flex space-x-2 rtl:space-x-reverse">
+                    {/* Filter Tabs - scrollable on mobile */}
+                    <div className="flex space-x-1.5 md:space-x-2 rtl:space-x-reverse overflow-x-auto scrollbar-hide">
                         <button
                             onClick={() => setFilter('all')}
-                            className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${filter === 'all' ? 'bg-brand-orange text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            className={`px-2.5 md:px-3 py-1 rounded-lg text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${filter === 'all' ? 'bg-brand-orange text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                 }`}
                         >
                             الكل ({conversations.length})
                         </button>
                         <button
                             onClick={() => setFilter('assigned')}
-                            className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${filter === 'assigned' ? 'bg-brand-orange text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            className={`px-2.5 md:px-3 py-1 rounded-lg text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${filter === 'assigned' ? 'bg-brand-orange text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                 }`}
                         >
                             المخصصة لي
                         </button>
                         <button
                             onClick={() => setFilter('unassigned')}
-                            className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${filter === 'unassigned' ? 'bg-brand-orange text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            className={`px-2.5 md:px-3 py-1 rounded-lg text-xs md:text-sm font-medium transition-colors whitespace-nowrap ${filter === 'unassigned' ? 'bg-brand-orange text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                 }`}
                         >
                             غير مخصصة
@@ -294,36 +298,41 @@ const LiveChatDashboard = () => {
                 {/* Conversations */}
                 <div className="flex-1 overflow-y-auto">
                     {filteredConversations.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                            <MessageCircle size={48} className="mb-2" />
-                            <p>لا توجد محادثات</p>
+                        <div className="flex flex-col items-center justify-center h-full text-gray-400 py-12">
+                            <MessageCircle size={40} className="mb-2" />
+                            <p className="text-sm">لا توجد محادثات</p>
                         </div>
                     ) : (
                         filteredConversations.map(conv => (
                             <div
                                 key={conv.id}
                                 onClick={() => handleSelectConversation(conv.id)}
-                                className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${selectedConv === conv.id ? 'bg-orange-50 border-r-4 border-brand-orange' : ''
+                                className={`p-3 md:p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${selectedConv === conv.id ? 'bg-orange-50 border-r-4 border-brand-orange' : ''
                                     }`}
                             >
-                                <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center justify-between mb-1.5 md:mb-2">
                                     <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                                        <User size={16} className="text-gray-600" />
-                                        <span className="font-semibold text-gray-800">{conv.customerName}</span>
+                                        <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-gray-100 flex items-center justify-center">
+                                            <User size={16} className="text-gray-600" />
+                                        </div>
+                                        <span className="font-semibold text-gray-800 text-sm md:text-base truncate max-w-[120px] md:max-w-none">{conv.customerName}</span>
                                     </div>
-                                    {conv.agentId === null && (
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleAssign(conv.id);
-                                            }}
-                                            className="text-xs bg-brand-orange text-white px-2 py-1 rounded hover:bg-orange-600"
-                                        >
-                                            تخصيص لي
-                                        </button>
-                                    )}
+                                    <div className="flex items-center gap-1">
+                                        {conv.agentId === null && (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleAssign(conv.id);
+                                                }}
+                                                className="text-[10px] md:text-xs bg-brand-orange text-white px-1.5 md:px-2 py-0.5 md:py-1 rounded hover:bg-orange-600"
+                                            >
+                                                تخصيص لي
+                                            </button>
+                                        )}
+                                        <ChevronRight size={16} className="text-gray-400 md:hidden" />
+                                    </div>
                                 </div>
-                                <div className="flex items-center text-xs text-gray-500">
+                                <div className="flex items-center text-[10px] md:text-xs text-gray-500 pr-10 md:pr-11">
                                     <Clock size={12} className="ml-1 rtl:mr-1" />
                                     {formatTime(conv.lastMessageAt)}
                                 </div>
@@ -333,27 +342,47 @@ const LiveChatDashboard = () => {
                 </div>
             </div>
 
-            {/* Chat Area */}
-            <div className="flex-1 flex flex-col">
+            {/* Chat Area - full width on mobile, flex-1 on desktop */}
+            <div className={`${
+                mobileShowChat ? 'flex' : 'hidden md:flex'
+            } flex-1 flex-col h-full`}>
                 {selectedConv ? (
                     <>
+                        {/* Chat Header with back button on mobile */}
+                        <div className="flex items-center gap-2 p-3 md:p-4 bg-white border-b border-gray-200">
+                            <button
+                                onClick={() => setMobileShowChat(false)}
+                                className="md:hidden p-1.5 -mr-1 text-gray-600 hover:bg-gray-100 rounded-lg"
+                            >
+                                <ArrowRight size={22} />
+                            </button>
+                            <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center">
+                                <User size={18} className="text-gray-600" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="font-semibold text-gray-800 text-sm md:text-base truncate">
+                                    {selectedConversation?.customerName || 'عميل'}
+                                </p>
+                                <p className="text-[10px] md:text-xs text-green-600">متصل الآن</p>
+                            </div>
+                        </div>
+
                         {/* Messages */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50">
+                        <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-2 md:space-y-3 bg-gray-50">
                             {messages.map(msg => (
                                 <div
                                     key={msg.id}
                                     className={`flex ${msg.senderType === 'agent' ? 'justify-end' : 'justify-start'}`}
                                 >
                                     <div
-                                        className={`max-w-[70%] rounded-2xl px-4 py-2.5 shadow-sm ${
+                                        className={`max-w-[80%] md:max-w-[70%] rounded-2xl px-3 md:px-4 py-2 md:py-2.5 shadow-sm ${
                                             msg.senderType === 'agent'
-                                                ? 'bg-green-500 text-white rounded-br-sm' // رسالة الموظف - أخضر مثل واتساب
+                                                ? 'bg-green-500 text-white rounded-br-sm'
                                                 : msg.senderType === 'customer'
-                                                ? 'bg-white text-gray-800 border border-gray-200 rounded-bl-sm' // رسالة العميل - أبيض
-                                                : 'bg-blue-100 text-blue-800 border border-blue-200' // رسالة البوت - أزرق
+                                                ? 'bg-white text-gray-800 border border-gray-200 rounded-bl-sm'
+                                                : 'bg-blue-100 text-blue-800 border border-blue-200'
                                         }`}
                                     >
-                                        {/* اسم المرسل للتوضيح */}
                                         {msg.senderType !== 'agent' && (
                                             <p className="text-[10px] font-semibold mb-1 opacity-70">
                                                 {msg.senderType === 'customer'
@@ -361,7 +390,7 @@ const LiveChatDashboard = () => {
                                                     : '🤖 بوت'}
                                             </p>
                                         )}
-                                        <p className="text-sm leading-relaxed">{msg.message}</p>
+                                        <p className="text-[13px] md:text-sm leading-relaxed">{msg.message}</p>
                                         <p className={`text-[10px] mt-1 flex items-center gap-1 ${
                                             msg.senderType === 'agent' ? 'text-white/80 justify-end' : 'text-gray-500'
                                         }`}>
@@ -373,23 +402,24 @@ const LiveChatDashboard = () => {
                             ))}
                         </div>
 
-                        {/* Input */}
-                        <div className="p-4 bg-white border-t border-gray-200">
-                            <div className="flex space-x-2 rtl:space-x-reverse">
+                        {/* Input - larger touch targets on mobile */}
+                        <div className="p-2.5 md:p-4 bg-white border-t border-gray-200">
+                            <div className="flex space-x-2 rtl:space-x-reverse items-end">
                                 <input
                                     type="text"
                                     value={inputMessage}
                                     onChange={(e) => handleInputChange(e.target.value)}
                                     onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                                     placeholder="اكتب رسالتك..."
-                                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange"
+                                    className="flex-1 px-3 md:px-4 py-2.5 md:py-2 border border-gray-300 rounded-xl md:rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-orange text-sm"
                                 />
                                 <button
                                     onClick={handleSendMessage}
                                     disabled={!inputMessage.trim()}
-                                    className="bg-brand-orange hover:bg-orange-600 disabled:bg-gray-300 text-white px-6 py-2 rounded-lg transition-colors"
+                                    className="bg-brand-orange hover:bg-orange-600 disabled:bg-gray-300 text-white p-2.5 md:px-6 md:py-2 rounded-xl md:rounded-lg transition-colors flex-shrink-0"
                                 >
-                                    إرسال
+                                    <Send size={20} className="md:hidden" />
+                                    <span className="hidden md:inline">إرسال</span>
                                 </button>
                             </div>
                         </div>

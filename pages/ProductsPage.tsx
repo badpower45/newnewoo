@@ -366,24 +366,28 @@ export default function ProductsPage() {
         fetchCategoryBanner();
     }, [selectedCategory]);
 
-    // Normalize selected category on mount/change (run once after categories load)
+    // Normalize selected category on mount/change — match URL value to an actual category id
     useEffect(() => {
         if (!selectedCategory || categories.length === 0) return;
         
+        // Already matches an existing category id exactly — no action needed
+        if (categories.some(cat => cat.id === selectedCategory)) return;
+
         const normalizedSelected = normalizeCategoryValue(mapCategoryLabel(selectedCategory) || selectedCategory);
         const matched = categories.find((cat) => {
             return (
+                normalizeCategoryValue(cat.id || '') === normalizedSelected ||
+                normalizeCategoryValue(cat.name || '') === normalizedSelected ||
                 normalizeCategoryValue(mapCategoryLabel(cat.id || '')) === normalizedSelected ||
                 normalizeCategoryValue(mapCategoryLabel(cat.name || '')) === normalizedSelected
             );
         });
         
-        // Only update if we found a match AND it's different
         if (matched && matched.id !== selectedCategory) {
             console.log('🔄 Normalizing category:', selectedCategory, '→', matched.id);
             setSelectedCategory(matched.id);
         }
-    }, [categories.length]); // Only run when categories are loaded, not on every selectedCategory change
+    }, [categories.length, selectedCategory]); // Run when categories load OR selectedCategory changes
 
 
     const [scannedProduct, setScannedProduct] = useState<Product | null>(null);
@@ -470,9 +474,10 @@ export default function ProductsPage() {
         const search = searchParams.get('search');
 
         if (category) {
-            const mappedCategory = mapCategoryLabel(category) || category;
-            console.log('🔍 Category from URL:', category, '→ Mapped to:', mappedCategory);
-            setSelectedCategory(mappedCategory);
+            // Use raw category value — normalization effect will match it to a loaded category
+            const decoded = decodeURIComponent(category);
+            console.log('🔍 Category from URL (raw):', decoded);
+            setSelectedCategory(decoded);
         } else {
             console.log('🔍 No category in URL, setting to empty');
             setSelectedCategory('');
