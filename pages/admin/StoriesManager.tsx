@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, Trash2, Edit2, Eye, EyeOff, Clock, Link as LinkIcon, Image, Video, Save, X, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { Plus, Trash2, Edit2, Eye, EyeOff, Clock, Link as LinkIcon, Image, Video, Save, X, RefreshCw, Upload, Search, Package, ExternalLink } from 'lucide-react';
 import { api } from '../../services/api';
 
 interface Story {
@@ -29,6 +29,13 @@ interface StoryItemForm {
     link_text: string;
 }
 
+interface ProductResult {
+    id: string | number;
+    name: string;
+    image_url?: string;
+    price?: number;
+}
+
 const StoriesManager: React.FC = () => {
     const [stories, setStories] = useState<Story[]>([]);
     const [loading, setLoading] = useState(true);
@@ -50,6 +57,14 @@ const StoriesManager: React.FC = () => {
     const [storyItems, setStoryItems] = useState<StoryItemForm[]>([defaultStoryItem()]);
     const [saving, setSaving] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [uploadingItems, setUploadingItems] = useState<Record<number, boolean>>({});
+    const [dragOver, setDragOver] = useState<Record<number, boolean>>({});
+    const [productSearchQuery, setProductSearchQuery] = useState<Record<number, string>>({});
+    const [productResults, setProductResults] = useState<Record<number, ProductResult[]>>({});
+    const [searchingProducts, setSearchingProducts] = useState<Record<number, boolean>>({});
+    const [showProductDropdown, setShowProductDropdown] = useState<Record<number, boolean>>({});
+    const fileInputRefs = useRef<Record<number, HTMLInputElement | null>>({});
+    const searchTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
 
     const toYoutubeEmbed = (url: string) => {
         if (!url) return '';
@@ -83,6 +98,65 @@ const StoriesManager: React.FC = () => {
         }
         return url;
     };
+
+    // ── Image upload helpers ──────────────────────────────────
+    const handleImageUpload = useCallback(async (index: number, file: File) => {
+        if (!file.type.startsWith('image/')) {
+            alert('الملف ده مش صورة! اختار صورة JPG أو PNG أو WebP');
+            return;
+        }
+        setUploadingItems(prev => ({ ...prev, [index]: true }));
+        try {
+            const url = await api.images.upload(file);
+            updateStoryItem(index, { media_url: url, media_type: 'image' });
+        } catch (e) {
+            console.error('Image upload failed', e);
+            alert('فشل رفع الصورة، حاول تاني');
+        } finally {
+            setUploadingItems(prev => ({ ...prev, [index]: false }));
+        }
+    }, []);
+
+    const handleFileDrop = useCallback((index: number, e: React.DragEvent<HTMLDivElement>) => {
+        e.preventDefault();
+        setDragOver(prev => ({ ...prev, [index]: false }));
+        const file = e.dataTransfer.files?.[0];
+        if (file) handleImageUpload(index, file);
+    }, [handleImageUpload]);
+
+    // ── Product search helpers ────────────────────────────────
+    const searchProducts = useCallback((index: number, q: string) => {
+        setProductSearchQuery(prev => ({ ...prev, [index]: q }));
+        if (searchTimers.current[index]) clearTimeout(searchTimers.current[index]);
+        if (!q.trim()) {
+            setProductResults(prev => ({ ...prev, [index]: [] }));
+            setShowProductDropdown(prev => ({ ...prev, [index]: false }));
+            return;
+        }
+        searchTimers.current[index] = setTimeout(async () => {
+            setSearchingProducts(prev => ({ ...prev, [index]: true }));
+            try {
+                const res = await api.products.search(q);
+                const list: ProductResult[] = Array.isArray(res) ? res : (res?.data || res?.products || []);
+                setProductResults(prev => ({ ...prev, [index]: list.slice(0, 8) }));
+                setShowProductDropdown(prev => ({ ...prev, [index]: true }));
+            } catch {
+                setProductResults(prev => ({ ...prev, [index]: [] }));
+            } finally {
+                setSearchingProducts(prev => ({ ...prev, [index]: false }));
+            }
+        }, 400);
+    }, []);
+
+    const selectProduct = useCallback((index: number, product: ProductResult) => {
+        updateStoryItem(index, {
+            link_url: `/product/${product.id}`,
+            link_text: product.name || 'شاهد المنتج'
+        });
+        setProductSearchQuery(prev => ({ ...prev, [index]: '' }));
+        setShowProductDropdown(prev => ({ ...prev, [index]: false }));
+        setProductResults(prev => ({ ...prev, [index]: [] }));
+    }, []);
 
     const fetchStories = async () => {
         setLoading(true);
@@ -561,18 +635,90 @@ const StoriesManager: React.FC = () => {
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">رابط الوسائط *</label>
-                                        <input
-                                            type="url"
-                                            value={item.media_url}
-                                            onChange={(e) => updateStoryItem(index, { media_url: e.target.value })}
-                                            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#F97316] focus:border-transparent"
-                                            placeholder="https://example.com/image.jpg أو https://example.com/video.mp4"
-                                            required
-                                        />
-                                        {item.media_url && (
+                                        {/* ── Media Upload / URL ── */}
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">الصورة / الفيديو *</label>
+
+                                        {/* Upload Zone */}
+                                        {item.media_type === 'image' && (
+                                            <div
+                                                onDrop={(e) => handleFileDrop(index, e)}
+                                                onDragOver={(e) => { e.preventDefault(); setDragOver(prev => ({ ...prev, [index]: true })); }}
+                                                onDragLeave={() => setDragOver(prev => ({ ...prev, [index]: false }))}
+                                                onClick={() => fileInputRefs.current[index]?.click()}
+                                                className={`relative flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors mb-2 ${
+                                                    dragOver[index]
+                                                        ? 'border-[#F97316] bg-orange-50'
+                                                        : 'border-gray-300 hover:border-[#F97316] hover:bg-orange-50/50'
+                                                }`}
+                                            >
+                                                <input
+                                                    ref={(el) => { fileInputRefs.current[index] = el; }}
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={(e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (file) handleImageUpload(index, file);
+                                                        e.target.value = '';
+                                                    }}
+                                                />
+                                                {uploadingItems[index] ? (
+                                                    <div className="flex flex-col items-center gap-2 text-[#F97316]">
+                                                        <RefreshCw className="w-6 h-6 animate-spin" />
+                                                        <span className="text-sm font-medium">جاري الرفع...</span>
+                                                    </div>
+                                                ) : item.media_url ? (
+                                                    <div className="relative w-full h-full">
+                                                        <img
+                                                            src={item.media_url}
+                                                            alt="Preview"
+                                                            className="w-full h-full object-contain rounded-xl"
+                                                        />
+                                                        <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center rounded-xl">
+                                                            <span className="text-white text-sm font-medium flex items-center gap-1"><Upload className="w-4 h-4" /> تغيير الصورة</span>
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex flex-col items-center gap-2 text-gray-400">
+                                                        <Upload className="w-7 h-7" />
+                                                        <span className="text-sm font-medium text-gray-600">اسحب صورة هنا أو اضغط للرفع</span>
+                                                        <span className="text-xs text-gray-400">JPG · PNG · WebP</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+
+                                        {/* OR paste URL for both types */}
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex-1 relative">
+                                                <input
+                                                    type="url"
+                                                    value={item.media_url}
+                                                    onChange={(e) => updateStoryItem(index, { media_url: e.target.value })}
+                                                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#F97316] focus:border-transparent text-sm"
+                                                    placeholder={
+                                                        item.media_type === 'video'
+                                                            ? 'رابط الفيديو أو YouTube...'
+                                                            : 'أو الصق رابط صورة هنا...'
+                                                    }
+                                                />
+                                            </div>
+                                            {item.media_url && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => updateStoryItem(index, { media_url: '' })}
+                                                    className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                                                    title="مسح"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        {/* Video preview */}
+                                        {item.media_url && item.media_type === 'video' && (
                                             <div className="mt-2 aspect-video bg-gray-100 rounded-lg overflow-hidden">
-                                                {item.media_type === 'video' && /youtube\.com|youtu\.be/.test(item.media_url) ? (
+                                                {/youtube\.com|youtu\.be/.test(item.media_url) ? (
                                                     <iframe
                                                         src={normalizeMediaUrl(item.media_url, 'video')}
                                                         className="w-full h-full"
@@ -580,15 +726,8 @@ const StoriesManager: React.FC = () => {
                                                         allowFullScreen
                                                         title={`story-preview-${index}`}
                                                     />
-                                                ) : item.media_type === 'video' ? (
-                                                    <video src={item.media_url} className="w-full h-full object-cover" controls />
                                                 ) : (
-                                                    <img
-                                                        src={item.media_url}
-                                                        alt="Preview"
-                                                        className="w-full h-full object-cover"
-                                                        onError={(e) => (e.target as HTMLImageElement).style.display = 'none'}
-                                                    />
+                                                    <video src={item.media_url} className="w-full h-full object-cover" controls />
                                                 )}
                                             </div>
                                         )}
@@ -655,13 +794,70 @@ const StoriesManager: React.FC = () => {
 
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">رابط الزر (اختياري)</label>
+
+                                        {/* Product Search */}
+                                        <div className="relative mb-2">
+                                            <div className="flex items-center gap-2 p-2 border border-dashed rounded-lg bg-gray-50">
+                                                <Package className="w-4 h-4 text-gray-400 shrink-0" />
+                                                <input
+                                                    type="text"
+                                                    value={productSearchQuery[index] || ''}
+                                                    onChange={(e) => searchProducts(index, e.target.value)}
+                                                    onFocus={() => {
+                                                        if (productResults[index]?.length) {
+                                                            setShowProductDropdown(prev => ({ ...prev, [index]: true }));
+                                                        }
+                                                    }}
+                                                    className="flex-1 bg-transparent text-sm outline-none placeholder-gray-400"
+                                                    placeholder="ابحث عن منتج وربطه بالستوري..."
+                                                />
+                                                {searchingProducts[index] && <RefreshCw className="w-4 h-4 text-gray-400 animate-spin" />}
+                                                {!searchingProducts[index] && <Search className="w-4 h-4 text-gray-400" />}
+                                            </div>
+
+                                            {/* Product Dropdown */}
+                                            {showProductDropdown[index] && productResults[index]?.length > 0 && (
+                                                <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border rounded-xl shadow-lg max-h-52 overflow-y-auto">
+                                                    {productResults[index].map((product) => (
+                                                        <button
+                                                            key={product.id}
+                                                            type="button"
+                                                            onMouseDown={() => selectProduct(index, product)}
+                                                            className="w-full flex items-center gap-3 px-3 py-2 hover:bg-orange-50 transition-colors text-right"
+                                                        >
+                                                            {product.image_url ? (
+                                                                <img src={product.image_url} alt={product.name} className="w-9 h-9 object-cover rounded-lg shrink-0" />
+                                                            ) : (
+                                                                <div className="w-9 h-9 bg-gray-100 rounded-lg flex items-center justify-center shrink-0">
+                                                                    <Package className="w-4 h-4 text-gray-400" />
+                                                                </div>
+                                                            )}
+                                                            <div className="flex-1 min-w-0 text-right">
+                                                                <p className="text-sm font-medium text-gray-800 truncate">{product.name}</p>
+                                                                {product.price && (
+                                                                    <p className="text-xs text-[#F97316]">{product.price} ج.م</p>
+                                                                )}
+                                                            </div>
+                                                            <ExternalLink className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Manual URL */}
                                         <input
                                             type="text"
                                             value={item.link_url}
                                             onChange={(e) => updateStoryItem(index, { link_url: e.target.value })}
-                                            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#F97316] focus:border-transparent"
-                                            placeholder="/deals أو https://..."
+                                            className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-[#F97316] focus:border-transparent text-sm"
+                                            placeholder="/deals أو رابط صفحة..."
                                         />
+                                        {item.link_url && (
+                                            <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                                                <LinkIcon className="w-3 h-3" /> {item.link_url}
+                                            </p>
+                                        )}
                                     </div>
 
                                     {item.link_url && (
