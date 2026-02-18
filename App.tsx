@@ -9,84 +9,104 @@ import { useBranch } from './context/BranchContext';
 import FullPageSkeleton from './components/FullPageSkeleton';
 import { registerImageCacheServiceWorker } from './utils/imageCacheSW';
 
+/**
+ * lazyWithRetry – wraps React.lazy() with automatic page reload when a
+ * chunk fails to load (stale hash after a new deployment).
+ * Prevents "Importing a module script failed" errors in production.
+ */
+const lazyWithRetry = (factory: () => Promise<{ default: React.ComponentType<any> }>) =>
+  lazy(() =>
+    factory().catch((err) => {
+      // Only reload once to avoid infinite loops
+      const reloadKey = 'chunk_reload_' + btoa(String(factory)).slice(0, 16);
+      if (!sessionStorage.getItem(reloadKey)) {
+        sessionStorage.setItem(reloadKey, '1');
+        window.location.reload();
+        // Return a never-resolving promise (reload will happen)
+        return new Promise<{ default: React.ComponentType<any> }>(() => {});
+      }
+      throw err;
+    })
+  );
+
 // Lazy load all pages for better code splitting
-const HomePage = lazy(() => import('./pages/HomePage'));
-const ProductsPage = lazy(() => import('./pages/ProductsPage'));
-const ProductDetailsPage = lazy(() => import('./pages/ProductDetailsPage'));
-const CartPage = lazy(() => import('./pages/CartPage'));
-const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
-const CategoriesPage = lazy(() => import('./pages/CategoriesPage'));
-const DealsPage = lazy(() => import('./pages/DealsPage'));
-const MorePage = lazy(() => import('./pages/MorePage'));
-const LoginPage = lazy(() => import('./pages/LoginPage'));
-const RegisterPage = lazy(() => import('./pages/RegisterPage'));
-const ProfilePage = lazy(() => import('./pages/ProfilePage'));
-const FavoritesPage = lazy(() => import('./pages/FavoritesPage'));
-const OrderConfirmationPage = lazy(() => import('./pages/OrderConfirmationPage'));
-const OrderTrackingPage = lazy(() => import('./pages/OrderTrackingPage'));
-const OrderInvoice = lazy(() => import('./components/OrderInvoice'));
-const CustomerChatPage = lazy(() => import('./pages/CustomerChatPage'));
-const CustomerServiceDashboard = lazy(() => import('./pages/CustomerServiceDashboard'));
-const MagazinePage = lazy(() => import('./pages/MagazinePage'));
-const SpecialOffersPage = lazy(() => import('./pages/SpecialOffersPage'));
-const HotDealsPage = lazy(() => import('./pages/HotDealsPage'));
-const ForgotPasswordPage = lazy(() => import('./pages/ForgotPasswordPage'));
-const ResetPasswordPage = lazy(() => import('./pages/ResetPasswordPage'));
-const TrackOrderPage = lazy(() => import('./pages/TrackOrderPage'));
-const DeliveryPolicyPage = lazy(() => import('./pages/DeliveryPolicyPage'));
-const SmartReturnsPage = lazy(() => import('./pages/SmartReturnsPage'));
-const ReturnPolicyPage = lazy(() => import('./pages/ReturnPolicyPage'));
-const FAQPage = lazy(() => import('./pages/FAQPage'));
-const PrivacyPolicyPage = lazy(() => import('./pages/PrivacyPolicyPage'));
-const GeneralFAQPage = lazy(() => import('./pages/GeneralFAQPage'));
-const AuthCallbackPage = lazy(() => import('./pages/AuthCallbackPage'));
-const PaymentCallbackPage = lazy(() => import('./pages/PaymentCallbackPage'));
-const VerifyEmailPage = lazy(() => import('./pages/VerifyEmailPage'));
-const EmailVerificationPending = lazy(() => import('./pages/EmailVerificationPending'));
-const EmailVerificationSuccess = lazy(() => import('./pages/EmailVerificationSuccess'));
-const CompleteProfilePage = lazy(() => import('./pages/CompleteProfilePage'));
+const HomePage = lazyWithRetry(() => import('./pages/HomePage'));
+const ProductsPage = lazyWithRetry(() => import('./pages/ProductsPage'));
+const ProductDetailsPage = lazyWithRetry(() => import('./pages/ProductDetailsPage'));
+const CartPage = lazyWithRetry(() => import('./pages/CartPage'));
+const CheckoutPage = lazyWithRetry(() => import('./pages/CheckoutPage'));
+const CategoriesPage = lazyWithRetry(() => import('./pages/CategoriesPage'));
+const DealsPage = lazyWithRetry(() => import('./pages/DealsPage'));
+const MorePage = lazyWithRetry(() => import('./pages/MorePage'));
+const LoginPage = lazyWithRetry(() => import('./pages/LoginPage'));
+const RegisterPage = lazyWithRetry(() => import('./pages/RegisterPage'));
+const ProfilePage = lazyWithRetry(() => import('./pages/ProfilePage'));
+const FavoritesPage = lazyWithRetry(() => import('./pages/FavoritesPage'));
+const OrderConfirmationPage = lazyWithRetry(() => import('./pages/OrderConfirmationPage'));
+const OrderTrackingPage = lazyWithRetry(() => import('./pages/OrderTrackingPage'));
+const OrderInvoice = lazyWithRetry(() => import('./components/OrderInvoice'));
+const CustomerChatPage = lazyWithRetry(() => import('./pages/CustomerChatPage'));
+const CustomerServiceDashboard = lazyWithRetry(() => import('./pages/CustomerServiceDashboard'));
+const MagazinePage = lazyWithRetry(() => import('./pages/MagazinePage'));
+const SpecialOffersPage = lazyWithRetry(() => import('./pages/SpecialOffersPage'));
+const HotDealsPage = lazyWithRetry(() => import('./pages/HotDealsPage'));
+const ForgotPasswordPage = lazyWithRetry(() => import('./pages/ForgotPasswordPage'));
+const ResetPasswordPage = lazyWithRetry(() => import('./pages/ResetPasswordPage'));
+const TrackOrderPage = lazyWithRetry(() => import('./pages/TrackOrderPage'));
+const DeliveryPolicyPage = lazyWithRetry(() => import('./pages/DeliveryPolicyPage'));
+const SmartReturnsPage = lazyWithRetry(() => import('./pages/SmartReturnsPage'));
+const ReturnPolicyPage = lazyWithRetry(() => import('./pages/ReturnPolicyPage'));
+const FAQPage = lazyWithRetry(() => import('./pages/FAQPage'));
+const PrivacyPolicyPage = lazyWithRetry(() => import('./pages/PrivacyPolicyPage'));
+const GeneralFAQPage = lazyWithRetry(() => import('./pages/GeneralFAQPage'));
+const AuthCallbackPage = lazyWithRetry(() => import('./pages/AuthCallbackPage'));
+const PaymentCallbackPage = lazyWithRetry(() => import('./pages/PaymentCallbackPage'));
+const VerifyEmailPage = lazyWithRetry(() => import('./pages/VerifyEmailPage'));
+const EmailVerificationPending = lazyWithRetry(() => import('./pages/EmailVerificationPending'));
+const EmailVerificationSuccess = lazyWithRetry(() => import('./pages/EmailVerificationSuccess'));
+const CompleteProfilePage = lazyWithRetry(() => import('./pages/CompleteProfilePage'));
 
 // Admin pages - lazy loaded separately
-const AdminLayout = lazy(() => import('./pages/admin/AdminLayout'));
-const DashboardOverview = lazy(() => import('./pages/admin/DashboardOverview'));
-const ProductsManager = lazy(() => import('./pages/admin/ProductsManager'));
-const ProductUploadPage = lazy(() => import('./pages/admin/ProductUploadPage'));
-const ProductImporter = lazy(() => import('./pages/admin/ProductImporter'));
-const DraftProductsReview = lazy(() => import('./pages/admin/DraftProductsReview'));
-const OrdersManager = lazy(() => import('./pages/admin/OrdersManager'));
-const EmployeesManager = lazy(() => import('./pages/admin/EmployeesManager'));
-const LiveChatDashboard = lazy(() => import('./pages/admin/LiveChatDashboard'));
-const BranchesManager = lazy(() => import('./pages/admin/BranchesManager'));
-const InventoryDashboard = lazy(() => import('./pages/admin/InventoryDashboard'));
-const AdminInventoryDashboard = lazy(() => import('./pages/admin/InventoryDashboard'));
-const OrderDistributorPage = lazy(() => import('./pages/admin/OrderDistributorPage'));
-const DeliveryStaffManager = lazy(() => import('./pages/admin/DeliveryStaffManager'));
-const CouponsManager = lazy(() => import('./pages/admin/CouponsManager'));
-const MagazineManager = lazy(() => import('./pages/admin/MagazineManager'));
-const HotDealsManager = lazy(() => import('./pages/admin/HotDealsManager'));
-const AdminHomeSections = lazy(() => import('./pages/admin/AdminHomeSections'));
-const StoriesManager = lazy(() => import('./pages/admin/StoriesManager'));
-const CategoriesManager = lazy(() => import('./pages/admin/CategoriesManager'));
-const CategoryBannersManager = lazy(() => import('./pages/admin/CategoryBannersManager'));
-const FacebookReelsManager = lazy(() => import('./pages/admin/FacebookReelsManager'));
-const ProductFramesManager = lazy(() => import('./pages/admin/ProductFramesManager'));
-const BrandOffersAdminPage = lazy(() => import('./pages/admin/BrandOffersAdminPage'));
-const BrandsManager = lazy(() => import('./pages/admin/BrandsManager'));
-const HeroSectionsManager = lazy(() => import('./pages/admin/HeroSectionsManager'));
-const ReturnsManager = lazy(() => import('./pages/admin/ReturnsManager'));
-const DeliveryFeesManager = lazy(() => import('./pages/admin/DeliveryFeesManager'));
-const PopupsManager = lazy(() => import('./pages/admin/PopupsManager'));
-const DeliveryTrackingPage = lazy(() => import('./pages/admin/DeliveryTrackingPage'));
-const DeliveryDriverPage = lazy(() => import('./pages/DeliveryDriverPage'));
-const BrandPage = lazy(() => import('./pages/BrandPage'));
-const BrandsPage = lazy(() => import('./pages/BrandsPage'));
-const MyOrdersPage = lazy(() => import('./pages/MyOrdersPage'));
-const LoyaltyPage = lazy(() => import('./pages/LoyaltyPage'));
-const LoyaltyBarcodePage = lazy(() => import('./pages/LoyaltyBarcodePage'));
-const AddressesPage = lazy(() => import('./pages/AddressesPage'));
-const BranchesPage = lazy(() => import('./pages/BranchesPage'));
-const BranchMapPage = lazy(() => import('./pages/BranchMapPage'));
-const AdminDeliveryMapPage = lazy(() => import('./pages/admin/DeliveryMapPage'));
+const AdminLayout = lazyWithRetry(() => import('./pages/admin/AdminLayout'));
+const DashboardOverview = lazyWithRetry(() => import('./pages/admin/DashboardOverview'));
+const ProductsManager = lazyWithRetry(() => import('./pages/admin/ProductsManager'));
+const ProductUploadPage = lazyWithRetry(() => import('./pages/admin/ProductUploadPage'));
+const ProductImporter = lazyWithRetry(() => import('./pages/admin/ProductImporter'));
+const DraftProductsReview = lazyWithRetry(() => import('./pages/admin/DraftProductsReview'));
+const OrdersManager = lazyWithRetry(() => import('./pages/admin/OrdersManager'));
+const EmployeesManager = lazyWithRetry(() => import('./pages/admin/EmployeesManager'));
+const LiveChatDashboard = lazyWithRetry(() => import('./pages/admin/LiveChatDashboard'));
+const BranchesManager = lazyWithRetry(() => import('./pages/admin/BranchesManager'));
+const InventoryDashboard = lazyWithRetry(() => import('./pages/admin/InventoryDashboard'));
+const AdminInventoryDashboard = lazyWithRetry(() => import('./pages/admin/InventoryDashboard'));
+const OrderDistributorPage = lazyWithRetry(() => import('./pages/admin/OrderDistributorPage'));
+const DeliveryStaffManager = lazyWithRetry(() => import('./pages/admin/DeliveryStaffManager'));
+const CouponsManager = lazyWithRetry(() => import('./pages/admin/CouponsManager'));
+const MagazineManager = lazyWithRetry(() => import('./pages/admin/MagazineManager'));
+const HotDealsManager = lazyWithRetry(() => import('./pages/admin/HotDealsManager'));
+const AdminHomeSections = lazyWithRetry(() => import('./pages/admin/AdminHomeSections'));
+const StoriesManager = lazyWithRetry(() => import('./pages/admin/StoriesManager'));
+const CategoriesManager = lazyWithRetry(() => import('./pages/admin/CategoriesManager'));
+const CategoryBannersManager = lazyWithRetry(() => import('./pages/admin/CategoryBannersManager'));
+const FacebookReelsManager = lazyWithRetry(() => import('./pages/admin/FacebookReelsManager'));
+const ProductFramesManager = lazyWithRetry(() => import('./pages/admin/ProductFramesManager'));
+const BrandOffersAdminPage = lazyWithRetry(() => import('./pages/admin/BrandOffersAdminPage'));
+const BrandsManager = lazyWithRetry(() => import('./pages/admin/BrandsManager'));
+const HeroSectionsManager = lazyWithRetry(() => import('./pages/admin/HeroSectionsManager'));
+const ReturnsManager = lazyWithRetry(() => import('./pages/admin/ReturnsManager'));
+const DeliveryFeesManager = lazyWithRetry(() => import('./pages/admin/DeliveryFeesManager'));
+const PopupsManager = lazyWithRetry(() => import('./pages/admin/PopupsManager'));
+const DeliveryTrackingPage = lazyWithRetry(() => import('./pages/admin/DeliveryTrackingPage'));
+const DeliveryDriverPage = lazyWithRetry(() => import('./pages/DeliveryDriverPage'));
+const BrandPage = lazyWithRetry(() => import('./pages/BrandPage'));
+const BrandsPage = lazyWithRetry(() => import('./pages/BrandsPage'));
+const MyOrdersPage = lazyWithRetry(() => import('./pages/MyOrdersPage'));
+const LoyaltyPage = lazyWithRetry(() => import('./pages/LoyaltyPage'));
+const LoyaltyBarcodePage = lazyWithRetry(() => import('./pages/LoyaltyBarcodePage'));
+const AddressesPage = lazyWithRetry(() => import('./pages/AddressesPage'));
+const BranchesPage = lazyWithRetry(() => import('./pages/BranchesPage'));
+const BranchMapPage = lazyWithRetry(() => import('./pages/BranchMapPage'));
+const AdminDeliveryMapPage = lazyWithRetry(() => import('./pages/admin/DeliveryMapPage'));
 
 import { FavoritesProvider } from './context/FavoritesContext';
 import { LanguageProvider } from './context/LanguageContext';

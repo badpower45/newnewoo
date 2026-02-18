@@ -132,11 +132,8 @@ export default defineConfig(({ mode }) => {
           drop_console: true, // Remove console.logs in production
           drop_debugger: true,
           pure_funcs: ['console.log', 'console.info', 'console.debug'],
-          passes: 3, // Multiple passes for better compression
-          unsafe: true,
-          unsafe_comps: true,
-          unsafe_math: true,
-          unsafe_proto: true,
+          passes: 2,
+          // NOTE: unsafe_* options removed – they can corrupt React's internal code
         },
         mangle: {
           safari10: true,
