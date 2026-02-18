@@ -868,25 +868,7 @@ export default function CheckoutPage() {
                                     </div>
                                 </label>
 
-                                {/* Online Card Payment - Paymob */}
-                                <label className={`flex items-center p-4 border-2 rounded-xl transition ${!isPickup ? 'cursor-pointer hover:border-blue-600' : 'opacity-50 cursor-not-allowed'}`}>
-                                    <input
-                                        type="radio"
-                                        name="payment"
-                                        value="paymob_card"
-                                        checked={paymentMethod === 'paymob_card'}
-                                        onChange={(e) => setPaymentMethod(e.target.value)}
-                                        disabled={isPickup}
-                                        className="w-5 h-5 text-blue-600"
-                                    />
-                                    <div className="mr-3">
-                                        <div className="font-medium flex items-center gap-2">
-                                            <span>الدفع بالفيزا/ماستركارد 💳</span>
-                                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">آمن</span>
-                                        </div>
-                                        <div className="text-sm text-slate-500">ادفع الآن ببطاقتك عبر Paymob (آمن ومشفر)</div>
-                                    </div>
-                                </label>
+                                {/* Online Card Payment - Paymob (hidden) */}
 
                                 {/* Fawry - Coming Soon */}
                                 <label className="flex items-center p-4 border-2 rounded-xl cursor-pointer hover:border-green-600 transition opacity-50">
