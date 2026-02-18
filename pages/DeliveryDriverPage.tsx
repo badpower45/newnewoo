@@ -3,7 +3,8 @@ import {
     Package, User, Phone, MapPin, Clock, CheckCircle, 
     Truck, Navigation, Copy, X, AlertCircle, Home,
     Building, FileText, DollarSign, RefreshCw, Timer,
-    Star, TrendingUp, Award, ChevronRight, Bell, MapPinned
+    Star, TrendingUp, Award, ChevronRight, Bell, MapPinned,
+    Sun, SunDim
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -31,10 +32,13 @@ const DeliveryDriverPage = () => {
     const [stats, setStats] = useState<any>(null);
     const [driverStaffId, setDriverStaffId] = useState<number | null>(null);
     const [isTrackingLocation, setIsTrackingLocation] = useState(false);
+    const [wakeLockActive, setWakeLockActive] = useState(false);
     const [newOrderAlert, setNewOrderAlert] = useState<any>(null);
     
     // GPS tracking ref
     const locationWatchId = useRef<number | null>(null);
+    // Wake Lock ref
+    const wakeLockRef = useRef<any>(null);
 
     // Countdown timers for accept deadline
     const [countdowns, setCountdowns] = useState<{ [key: number]: number }>({});
@@ -48,6 +52,10 @@ const DeliveryDriverPage = () => {
             // Cleanup GPS tracking
             if (locationWatchId.current !== null) {
                 navigator.geolocation.clearWatch(locationWatchId.current);
+            }
+            // Release Wake Lock
+            if (wakeLockRef.current) {
+                wakeLockRef.current.release().catch(() => {});
             }
         };
     }, []);
@@ -96,12 +104,42 @@ const DeliveryDriverPage = () => {
         }
     };
     
+    // Request Wake Lock to keep screen on
+    const requestWakeLock = async () => {
+        if (!('wakeLock' in navigator)) return;
+        try {
+            wakeLockRef.current = await (navigator as any).wakeLock.request('screen');
+            setWakeLockActive(true);
+            console.log('📱 Wake Lock نشط - الشاشة ستظل مضيئة');
+            wakeLockRef.current.addEventListener('release', () => {
+                setWakeLockActive(false);
+                console.log('📱 Wake Lock انتهى');
+            });
+        } catch (err: any) {
+            console.warn('Wake Lock غير متاح:', err.message);
+        }
+    };
+
+    // Re-acquire Wake Lock when page becomes visible (after screen unlock)
+    useEffect(() => {
+        const handleVisibilityChange = async () => {
+            if (document.visibilityState === 'visible' && isTrackingLocation && !wakeLockRef.current) {
+                await requestWakeLock();
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }, [isTrackingLocation]);
+
     // Start GPS tracking
-    const startLocationTracking = () => {
+    const startLocationTracking = async () => {
         if (!navigator.geolocation) {
             alert('GPS غير مدعوم في هذا المتصفح');
             return;
         }
+
+        // Request Wake Lock FIRST so screen stays on
+        await requestWakeLock();
         
         setIsTrackingLocation(true);
         
@@ -109,13 +147,13 @@ const DeliveryDriverPage = () => {
             (position) => {
                 const { latitude, longitude } = position.coords;
                 
-                // Send location to server via socket
-                if (driverStaffId && selectedOrder) {
+                // Send location to server via socket - always, not just when there's a selected order
+                if (driverStaffId) {
                     socketService.updateDriverLocation(
                         driverStaffId,
                         latitude,
                         longitude,
-                        selectedOrder.id
+                        selectedOrder?.id // orderId is optional
                     );
                 }
             },
@@ -124,12 +162,17 @@ const DeliveryDriverPage = () => {
                 if (error.code === error.PERMISSION_DENIED) {
                     alert('يرجى السماح بالوصول للموقع');
                     setIsTrackingLocation(false);
+                    // Release wake lock if GPS fails
+                    if (wakeLockRef.current) {
+                        wakeLockRef.current.release().catch(() => {});
+                        wakeLockRef.current = null;
+                    }
                 }
             },
             {
                 enableHighAccuracy: true,
-                maximumAge: 10000,
-                timeout: 5000
+                maximumAge: 5000,
+                timeout: 10000
             }
         );
     };
@@ -141,6 +184,12 @@ const DeliveryDriverPage = () => {
             locationWatchId.current = null;
         }
         setIsTrackingLocation(false);
+        // Release Wake Lock
+        if (wakeLockRef.current) {
+            wakeLockRef.current.release().catch(() => {});
+            wakeLockRef.current = null;
+        }
+        setWakeLockActive(false);
     };
 
     // Update countdowns every second
@@ -531,7 +580,7 @@ const DeliveryDriverPage = () => {
                         <p className="text-indigo-200 text-sm">{user?.name || 'الديليفري'}</p>
                     </div>
                     <div className="flex items-center gap-2">
-                        {/* GPS Toggle Button */}
+                        {/* GPS + Wake Lock Toggle Button */}
                         <button 
                             onClick={isTrackingLocation ? stopLocationTracking : startLocationTracking}
                             className={`p-2 rounded-lg flex items-center gap-1 text-sm ${
@@ -544,6 +593,21 @@ const DeliveryDriverPage = () => {
                             <MapPinned size={18} className={isTrackingLocation ? 'animate-pulse' : ''} />
                             {isTrackingLocation ? 'GPS ✓' : 'GPS'}
                         </button>
+
+                        {/* Wake Lock Indicator */}
+                        {isTrackingLocation && (
+                            <div 
+                                className={`p-2 rounded-lg flex items-center gap-1 text-xs ${
+                                    wakeLockActive 
+                                        ? 'bg-yellow-400 text-yellow-900' 
+                                        : 'bg-indigo-500 text-white opacity-60'
+                                }`}
+                                title={wakeLockActive ? 'الشاشة مضيئة دائماً' : 'لا يوجد Wake Lock'}
+                            >
+                                <Sun size={16} className={wakeLockActive ? 'animate-pulse' : ''} />
+                                {wakeLockActive ? 'شاشة مضيئة' : 'لا توجد'}
+                            </div>
+                        )}
                         
                         <button 
                             onClick={() => { loadMyOrders(); loadStats(); }}

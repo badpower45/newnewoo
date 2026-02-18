@@ -104,6 +104,11 @@ class SocketService {
         this.driverId = driverId;
         this.socket?.emit('driver:join', { driverId, userId });
     }
+
+    // الأدمن يسجل دخوله لغرفة تتبع السائقين
+    joinAsAdmin(adminId: number) {
+        this.socket?.emit('admin:join', { adminId });
+    }
     
     // تحديث موقع السائق
     updateDriverLocation(driverId: number, lat: number, lng: number, orderId?: number) {
