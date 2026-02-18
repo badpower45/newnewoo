@@ -18,13 +18,18 @@ interface AnnouncementPopupProps {
     page?: 'homepage' | 'products';
 }
 
+// Global flag: true only on real page load/refresh, set to false after popup shows.
+// On SPA navigation, this stays false. On actual refresh, the JS re-executes and resets to true.
+if (typeof window !== 'undefined' && (window as any).__popupAllowedOnLoad === undefined) {
+    (window as any).__popupAllowedOnLoad = true;
+}
+
 const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage' }) => {
     const [popup, setPopup] = useState<PopupData | null>(null);
     const [isVisible, setIsVisible] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
     const [imageError, setImageError] = useState(false);
-    const [alreadyShownThisMount, setAlreadyShownThisMount] = useState(false);
 
     useEffect(() => {
         fetchPopup();
@@ -32,8 +37,8 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
 
     const fetchPopup = async () => {
         try {
-            // Don't fetch again if already shown this mount
-            if (alreadyShownThisMount) return;
+            // Only show popup on real page load/refresh, NOT on SPA navigation
+            if (!(window as any).__popupAllowedOnLoad) return;
 
             const res = await api.popups.getActive(page);
             const payload = res?.data ?? res?.popup ?? res;
@@ -45,7 +50,8 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
             setIsVisible(true);
             setImageLoaded(false);
             setImageError(false);
-            setAlreadyShownThisMount(true);
+            // Mark as shown - won't show again until actual page refresh
+            (window as any).__popupAllowedOnLoad = false;
         } catch (error) {
             console.error('❌ Error fetching popup:', error);
         }

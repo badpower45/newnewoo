@@ -288,8 +288,8 @@ const CartPage = () => {
 
             {/* Mobile: Fixed Bottom Summary - Above Taskbar */}
             <div
-                className="lg:hidden fixed bottom-16 left-0 right-0 bg-white border-t-2 border-gray-200 p-4 shadow-2xl z-50 rounded-t-2xl"
-                style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)', touchAction: 'pan-y', overscrollBehaviorX: 'none', overflowX: 'hidden' }}
+                className="lg:hidden fixed bottom-20 left-0 right-0 bg-white border-t-2 border-gray-200 p-4 shadow-2xl z-50 rounded-t-2xl"
+                style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)', touchAction: 'pan-y', overscrollBehaviorX: 'none', overflowX: 'hidden' }}
             >
                 {/* Loyalty Points Banner - Mobile */}
                 {user && !user.isGuest && loyaltyPointsEarned > 0 && (

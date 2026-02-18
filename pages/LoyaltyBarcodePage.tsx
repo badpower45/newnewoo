@@ -310,48 +310,48 @@ const LoyaltyBarcodePage = () => {
                                 step="1000"
                                 className="w-full px-4 py-3 border border-gray-300 rounded-xl text-lg font-bold text-center focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                             />
-                            <div className="flex items-center justify-between mt-2 text-sm">
-                                <span className="text-gray-500">الحد الأدنى: 1000 نقطة</span>
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between mt-2 text-sm gap-1">
+                                <span className="text-gray-500">الحد الأدنى: <span className="notranslate">1000</span> نقطة</span>
                                 <span className="text-orange-600 font-bold">
-                                    القيمة: {(parseInt(pointsToRedeem) / 1000) * 35 || 0} جنيه
+                                    القيمة: <span className="notranslate">{(parseInt(pointsToRedeem) / 1000) * 35 || 0}</span> جنيه
                                 </span>
                             </div>
                         </div>
 
                         {/* Info Box */}
                         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-                            <p className="text-sm text-blue-900 mb-2">
+                            <p className="text-sm text-blue-900 mb-2 leading-relaxed">
                                 <strong>ملاحظة:</strong> الباركود يستخدم مرة واحدة فقط، ويمكن لأي شخص استخدامه. 
-                                صلاحية الباركود 30 يوم من تاريخ الإنشاء.
+                                صلاحية الباركود <span className="notranslate">30</span> يوم من تاريخ الإنشاء.
                             </p>
-                            <p className="text-xs text-blue-700">
-                                💡 كل 1000 نقطة = 35 جنيه | يجب أن يكون العدد من مضاعفات 1000
+                            <p className="text-xs text-blue-700 leading-relaxed">
+                                💡 كل <span className="notranslate">1000</span> نقطة = <span className="notranslate">35</span> جنيه | يجب أن يكون العدد من مضاعفات <span className="notranslate">1000</span>
                             </p>
                         </div>
 
                         {/* Buttons */}
-                        <div className="flex gap-3">
+                        <div className="flex flex-col sm:flex-row gap-3">
                             <button
                                 onClick={handleCreateBarcode}
                                 disabled={creatingBarcode}
-                                className="flex-1 py-3 sm:py-4 bg-orange-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-orange-600 transition disabled:opacity-50 text-sm sm:text-base"
+                                className="w-full sm:flex-1 py-4 bg-orange-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-orange-600 transition disabled:opacity-50 text-base min-h-[52px]"
                             >
                                 {creatingBarcode ? (
                                     <>
-                                        <RefreshCw className="animate-spin flex-shrink-0" size={18} />
-                                        <span>جاري الإنشاء...</span>
+                                        <RefreshCw className="animate-spin flex-shrink-0" size={20} />
+                                        <span className="whitespace-nowrap">جاري الإنشاء...</span>
                                     </>
                                 ) : (
                                     <>
-                                        <Gift size={18} className="flex-shrink-0" />
-                                        <span>إنشاء الباركود</span>
+                                        <Gift size={20} className="flex-shrink-0" />
+                                        <span className="whitespace-nowrap">إنشاء الباركود</span>
                                     </>
                                 )}
                             </button>
                             <button
                                 onClick={() => setShowCreateModal(false)}
                                 disabled={creatingBarcode}
-                                className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition disabled:opacity-50 text-sm sm:text-base"
+                                className="w-full sm:w-auto sm:px-8 py-4 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition disabled:opacity-50 text-base min-h-[52px]"
                             >
                                 إلغاء
                             </button>

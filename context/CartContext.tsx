@@ -295,14 +295,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = async () => {
     if (user && !user.isGuest) {
+      const previousItems = [...items];
       setItems([]);
       try {
-        await api.cart.clear(user.id);
+        const result = await api.cart.clear(user.id);
+        console.log('✅ Cart cleared successfully:', result);
       } catch (err: any) {
-        // Silent fail for 401/403 errors
-        if (err?.response?.status !== 401 && err?.response?.status !== 403) {
-          console.error("Failed to clear cart", err);
-        }
+        console.error("Failed to clear cart:", err);
+        // Revert on error so user knows it failed
+        setItems(previousItems);
+        alert('حدث خطأ أثناء مسح السلة. حاول مرة أخرى.');
       }
     } else {
       setItems([]);

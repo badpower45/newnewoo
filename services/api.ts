@@ -745,10 +745,14 @@ export const api = {
         },
         clear: async (userId: string) => {
             const res = await fetch(`${API_URL}/cart/clear`, {
-                method: 'DELETE',
+                method: 'POST',
                 headers: getHeaders(),
                 body: JSON.stringify({ userId })
             });
+            if (!res.ok) {
+                const errorData = await res.json().catch(() => ({}));
+                throw { response: { status: res.status, data: errorData } };
+            }
             return res.json();
         }
     },
