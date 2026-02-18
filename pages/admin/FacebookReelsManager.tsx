@@ -140,7 +140,8 @@ const FacebookReelsManager: React.FC = () => {
             /facebook\.com\/.*\/videos\/(\d+)/,
             /facebook\.com\/watch\/\?v=(\d+)/,
             /facebook\.com\/reel\/(\d+)/,
-            /fb\.watch\/([a-zA-Z0-9]+)/
+            /fb\.watch\/([a-zA-Z0-9]+)/,
+            /facebook\.com\/share\/v\/([a-zA-Z0-9]+)/  // new share/v/ short links
         ];
         
         for (const pattern of patterns) {
@@ -203,15 +204,13 @@ const FacebookReelsManager: React.FC = () => {
         return url;
     };
 
-    // Auto-fill from Facebook URL
+    // Auto-fill from Facebook URL (handles all formats: reel, watch, videos, share/v/)
     const handleFacebookUrlChange = (url: string) => {
-        setForm({ ...form, facebook_url: url });
+        setForm(prev => ({ ...prev, facebook_url: url }));
         
-        // Try to generate embed URL
-        const videoId = extractFacebookVideoId(url);
-        if (videoId) {
-            // Facebook embed URL
-            const embedUrl = `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&width=300`;
+        // Auto-generate embed for any facebook.com URL
+        if (/facebook\.com|fb\.watch/i.test(url) && !/plugins\/video\.php/.test(url)) {
+            const embedUrl = `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&width=500&autoplay=true`;
             setForm(prev => ({
                 ...prev,
                 facebook_url: url,
@@ -256,7 +255,8 @@ const FacebookReelsManager: React.FC = () => {
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-2">
                 <h3 className="font-semibold text-blue-800">طرق الإضافة المدعومة:</h3>
                 <ul className="list-disc list-inside text-blue-700 text-sm space-y-1">
-                    <li>رابط فيسبوك (ريل/فيديو): الصقه لنصنع رابط التشغيل تلقائياً.</li>
+                    <li>رابط شير فيسبوك الجديد: <span className="font-mono text-xs bg-blue-100 px-1 rounded">facebook.com/share/v/XXXX</span> ← الصقه وسيشتغل تلقائياً ✓</li>
+                    <li>رابط ريل: <span className="font-mono text-xs bg-blue-100 px-1 rounded">facebook.com/reel/ID</span> أو فيديو: <span className="font-mono text-xs bg-blue-100 px-1 rounded">facebook.com/watch/?v=ID</span></li>
                     <li>رابط YouTube أو Vimeo: الصق الرابط المباشر وسيتم تحويله إلى Embed.</li>
                     <li>ملف MP4 مباشر: ضع الرابط المباشر للفيديو لتشغيله داخل الموقع.</li>
                 </ul>
@@ -415,11 +415,11 @@ const FacebookReelsManager: React.FC = () => {
                                         type="url"
                                         value={form.facebook_url}
                                         onChange={(e) => handleFacebookUrlChange(e.target.value)}
-                                        placeholder="https://www.facebook.com/reel/..."
+                                        placeholder="https://www.facebook.com/share/v/... أو https://www.facebook.com/reel/..."
                                         className="w-full pr-10 pl-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
-                                <p className="text-xs text-gray-500 mt-1">الصق رابط الريل من فيسبوك (سنولّد رابط تشغيل تلقائي).</p>
+                                <p className="text-xs text-gray-500 mt-1">الصق أي رابط فيسبوك (share/v / reel / watch / videos) وسنولّد رابط التشغيل تلقائياً ✓</p>
                             </div>
 
                             {/* Video URL */}
@@ -441,13 +441,14 @@ const FacebookReelsManager: React.FC = () => {
                                 <p className="text-xs text-gray-500 mt-1">نحوّل YouTube/Vimeo تلقائياً إلى رابط تشغيل داخل الموقع.</p>
                                 {form.video_url && (
                                     <div className="mt-3 rounded-xl overflow-hidden border">
-                                        {/youtube\\.com|youtu\\.be|vimeo\\.com/.test(form.video_url) ? (
+                                        {/youtube\.com|youtu\.be|vimeo\.com|facebook\.com/.test(form.video_url) ? (
                                             <iframe
                                                 src={form.video_url}
                                                 className="w-full aspect-video"
                                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                 allowFullScreen
                                                 title="preview"
+                                                sandbox="allow-scripts allow-same-origin allow-popups"
                                             />
                                         ) : (
                                             <video

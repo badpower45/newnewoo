@@ -44,7 +44,8 @@ const normalizeVideoUrl = (url?: string): string => {
     if (ytId) return `https://www.youtube.com/embed/${ytId}?rel=0&autoplay=1&modestbranding=1&mute=1`;
     const vimeoId = url.match(/vimeo\.com\/(?:video\/)?(\d+)/)?.[1];
     if (vimeoId) return `https://player.vimeo.com/video/${vimeoId}?autoplay=1&muted=1`;
-    if (/facebook\.com/.test(url) && !/plugins\/video\.php/.test(url)) {
+    // All facebook.com URLs (including share/v/, reel/, watch/, videos/) → embed plugin
+    if (/facebook\.com|fb\.watch/i.test(url) && !/plugins\/video\.php/.test(url)) {
         return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&autoplay=1&muted=1`;
     }
     if (/facebook\.com\/plugins\/video\.php/.test(url)) {
