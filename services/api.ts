@@ -635,6 +635,37 @@ export const api = {
                 return json;
             }
             return fetchCachedJson(url, { headers }, 20000);
+        },
+        create: async (data: any) => {
+            const res = await fetch(`${API_URL}/hero-sections`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+        update: async (id: number, data: any) => {
+            const res = await fetch(`${API_URL}/hero-sections/${id}`, {
+                method: 'PUT',
+                headers: getHeaders(),
+                body: JSON.stringify(data)
+            });
+            return res.json();
+        },
+        delete: async (id: number) => {
+            const res = await fetch(`${API_URL}/hero-sections/${id}`, {
+                method: 'DELETE',
+                headers: getHeaders()
+            });
+            return res.json();
+        },
+        reorder: async (orders: { id: number; display_order: number }[]) => {
+            const res = await fetch(`${API_URL}/hero-sections/reorder`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ orders })
+            });
+            return res.json();
         }
     },
     popups: {
