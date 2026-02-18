@@ -161,10 +161,9 @@ const MyOrdersPage = () => {
         }
     };
 
-    // Check if order can be cancelled
+    // Check if order can be cancelled (only pending orders)
     const canCancelOrder = (status: string) => {
-        const allowedStatuses = ['pending', 'confirmed', 'payment_pending'];
-        return allowedStatuses.includes(status);
+        return status === 'pending';
     };
 
     // Open rating modal
