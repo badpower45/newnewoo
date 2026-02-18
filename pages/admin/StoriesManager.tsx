@@ -57,6 +57,7 @@ const StoriesManager: React.FC = () => {
     const [storyItems, setStoryItems] = useState<StoryItemForm[]>([defaultStoryItem()]);
     const [saving, setSaving] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const [selectedCircle, setSelectedCircle] = useState<string | null>(null);
     const [uploadingItems, setUploadingItems] = useState<Record<number, boolean>>({});
     const [dragOver, setDragOver] = useState<Record<number, boolean>>({});
     const [productSearchQuery, setProductSearchQuery] = useState<Record<number, string>>({});
@@ -391,11 +392,13 @@ const StoriesManager: React.FC = () => {
                             <button
                                 key={circle.name}
                                 type="button"
-                                onClick={() => { resetForm(circle.name); setShowModal(true); }}
+                                onClick={() => setSelectedCircle(circle.name)}
                                 className="flex flex-col items-center gap-2 min-w-[80px] active:scale-95 transition-transform"
-                                title={`إضافة صور لدائرة ${circle.name}`}
+                                title={`إدارة دائرة ${circle.name}`}
                             >
-                                <div className="relative w-16 h-16 rounded-full p-1 border-2 border-[#F97316]">
+                                <div className={`relative w-16 h-16 rounded-full p-1 border-2 transition-colors ${
+                                    selectedCircle === circle.name ? 'border-[#F97316] ring-2 ring-[#F97316]/30' : 'border-[#F97316]'
+                                }`}>
                                     {circle.coverUrl ? (
                                         <img
                                             src={circle.coverUrl}
@@ -566,6 +569,177 @@ const StoriesManager: React.FC = () => {
                     ))}
                 </div>
             )}
+
+            {/* ── Circle Drawer ── */}
+            {selectedCircle && (() => {
+                const circleStories = stories.filter(s => (s.circle_name?.trim() || 'بدون دائرة') === selectedCircle);
+                return (
+                    <div className="fixed inset-0 z-50 flex">
+                        {/* Backdrop */}
+                        <div className="absolute inset-0 bg-black/50" onClick={() => setSelectedCircle(null)} />
+
+                        {/* Drawer */}
+                        <div className="relative mr-auto w-full max-w-2xl bg-white h-full flex flex-col shadow-2xl animate-in slide-in-from-right">
+                            {/* Drawer Header */}
+                            <div className="flex items-center justify-between px-5 py-4 border-b bg-white sticky top-0 z-10">
+                                <div className="flex items-center gap-3">
+                                    {(() => {
+                                        const circle = storyCircles.find(c => c.name === selectedCircle);
+                                        return circle?.coverUrl ? (
+                                            <img src={circle.coverUrl} alt={selectedCircle} className="w-10 h-10 rounded-full object-cover border-2 border-[#F97316]" />
+                                        ) : (
+                                            <div className="w-10 h-10 rounded-full bg-orange-100 border-2 border-[#F97316] flex items-center justify-center">
+                                                <Image className="w-5 h-5 text-[#F97316]" />
+                                            </div>
+                                        );
+                                    })()}
+                                    <div>
+                                        <h2 className="text-lg font-bold text-gray-900">{selectedCircle}</h2>
+                                        <p className="text-xs text-gray-500">{circleStories.length} استوري في الدائرة دي</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => { resetForm(selectedCircle); setShowModal(true); }}
+                                        className="flex items-center gap-1.5 px-3 py-2 bg-[#F97316] text-white rounded-lg text-sm hover:bg-[#EA580C] transition-colors font-medium"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        إضافة للدائرة
+                                    </button>
+                                    <button onClick={() => setSelectedCircle(null)} className="p-2 hover:bg-gray-100 rounded-lg">
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Stories inside circle */}
+                            <div className="flex-1 overflow-y-auto p-4">
+                                {circleStories.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center h-64 text-center">
+                                        <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mb-3">
+                                            <Image className="w-7 h-7 text-gray-400" />
+                                        </div>
+                                        <p className="text-gray-600 font-medium mb-1">الدائرة فاضية</p>
+                                        <p className="text-gray-400 text-sm mb-4">اضغط "إضافة للدائرة" عشان تضيف استوري</p>
+                                        <button
+                                            onClick={() => { resetForm(selectedCircle); setShowModal(true); }}
+                                            className="flex items-center gap-2 px-4 py-2 bg-[#F97316] text-white rounded-lg text-sm hover:bg-[#EA580C] transition-colors"
+                                        >
+                                            <Plus className="w-4 h-4" /> إضافة استوري
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {circleStories.map((story) => (
+                                            <div
+                                                key={story.id}
+                                                className={`bg-white rounded-xl overflow-hidden border transition-shadow hover:shadow-md ${
+                                                    !story.is_active || isExpired(story.expires_at) ? 'opacity-60' : ''
+                                                }`}
+                                            >
+                                                {/* Thumbnail */}
+                                                <div className="relative aspect-[9/16] bg-gray-100">
+                                                    {story.media_url ? (
+                                                        story.media_type === 'video' ? (
+                                                            <video src={story.media_url} className="w-full h-full object-cover" muted />
+                                                        ) : (
+                                                            <img src={story.media_url} alt={story.title} className="w-full h-full object-cover" />
+                                                        )
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                                            <Image className="w-8 h-8" />
+                                                        </div>
+                                                    )}
+
+                                                    {/* Badges */}
+                                                    <div className="absolute top-2 right-2 flex flex-col gap-1">
+                                                        {!story.is_active && (
+                                                            <span className="px-1.5 py-0.5 bg-red-500 text-white text-[10px] rounded-full">معطل</span>
+                                                        )}
+                                                        {isExpired(story.expires_at) && (
+                                                            <span className="px-1.5 py-0.5 bg-gray-600 text-white text-[10px] rounded-full">منتهي</span>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Type icon */}
+                                                    <div className="absolute top-2 left-2">
+                                                        <span className="p-1 bg-black/50 text-white rounded-full block">
+                                                            {story.media_type === 'video' ? <Video className="w-3 h-3" /> : <Image className="w-3 h-3" />}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Link badge */}
+                                                    {story.link_url && (
+                                                        <div className="absolute bottom-2 left-2">
+                                                            <span className="p-1 bg-blue-500/80 text-white rounded-full block" title={story.link_url}>
+                                                                <LinkIcon className="w-3 h-3" />
+                                                            </span>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Title overlay */}
+                                                    <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
+                                                        <p className="text-white text-xs font-medium line-clamp-2">{story.title}</p>
+                                                    </div>
+                                                </div>
+
+                                                {/* Meta + Actions */}
+                                                <div className="p-2 space-y-2">
+                                                    <div className="flex items-center justify-between text-[10px] text-gray-400">
+                                                        <span className="flex items-center gap-0.5"><Eye className="w-3 h-3" />{story.views_count}</span>
+                                                        <span className="flex items-center gap-0.5"><Clock className="w-3 h-3" />{story.duration}ث</span>
+                                                        <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-medium ${
+                                                            isExpired(story.expires_at) ? 'bg-gray-100 text-gray-500' :
+                                                            story.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'
+                                                        }`}>
+                                                            {isExpired(story.expires_at) ? 'منتهي' : story.is_active ? 'نشط' : 'معطل'}
+                                                        </span>
+                                                    </div>
+
+                                                    {story.link_url && (
+                                                        <p className="text-[10px] text-blue-500 truncate flex items-center gap-1">
+                                                            <LinkIcon className="w-2.5 h-2.5 shrink-0" />{story.link_url}
+                                                        </p>
+                                                    )}
+
+                                                    <div className="flex gap-1">
+                                                        <button
+                                                            onClick={() => handleToggleActive(story)}
+                                                            className={`flex-1 py-1.5 rounded-lg text-[11px] font-medium transition-colors ${
+                                                                story.is_active
+                                                                    ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                                                                    : 'bg-green-50 text-green-700 hover:bg-green-100'
+                                                            }`}
+                                                        >
+                                                            {story.is_active ? <EyeOff className="w-3.5 h-3.5 mx-auto" /> : <Eye className="w-3.5 h-3.5 mx-auto" />}
+                                                        </button>
+                                                        <button
+                                                            onClick={() => openEditModal(story)}
+                                                            className="flex-1 py-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                                                        >
+                                                            <Edit2 className="w-3.5 h-3.5 mx-auto" />
+                                                        </button>
+                                                        <button
+                                                            onClick={async () => {
+                                                                if (!confirm('مسح الاستوري ده؟')) return;
+                                                                await handleDelete(story.id);
+                                                                // keep drawer open but update list
+                                                            }}
+                                                            className="flex-1 py-1.5 bg-gray-50 text-gray-600 rounded-lg hover:bg-red-50 hover:text-red-600 transition-colors"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5 mx-auto" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
+            })()}
 
             {/* Add/Edit Modal */}
             {showModal && (
