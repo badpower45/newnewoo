@@ -240,9 +240,6 @@ const CategoriesManager: React.FC = () => {
 
             setForm({ ...form, image: imageUrl });
             alert('✅ تم رفع الصورة بنجاح!');
-            } else {
-                throw new Error(result.error || 'فشل رفع الصورة');
-            }
         } catch (error: any) {
             console.error('Upload error:', error);
             alert('❌ فشل رفع الصورة: ' + error.message);
