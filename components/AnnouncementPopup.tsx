@@ -24,39 +24,7 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
     const [isClosing, setIsClosing] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
     const [imageError, setImageError] = useState(false);
-    const shownKey = 'popup_shown_this_view'; // sessionStorage - يظهر كل ريفرش
-
-    const getDismissedPopups = (): number[] => {
-        // No permanent dismissal - popup shows every refresh
-        return [];
-    };
-
-    const markPopupDismissed = (_popupId: number) => {
-        // Mark shown in sessionStorage so it doesn't show twice in same page view
-        try {
-            sessionStorage.setItem(shownKey, 'true');
-        } catch {
-            // Ignore storage issues
-        }
-    };
-
-    // تحقق إذا الـ popup ظهر في هذه الجلسة الحالية فقط
-    const hasShownBefore = () => {
-        try {
-            return sessionStorage.getItem(shownKey) === 'true';
-        } catch {
-            return false;
-        }
-    };
-
-    // تسجيل أن الـ popup ظهر في هذه الجلسة
-    const markShown = () => {
-        try {
-            sessionStorage.setItem(shownKey, 'true');
-        } catch {
-            // Ignore storage issues
-        }
-    };
+    const [alreadyShownThisMount, setAlreadyShownThisMount] = useState(false);
 
     useEffect(() => {
         fetchPopup();
@@ -64,51 +32,27 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
 
     const fetchPopup = async () => {
         try {
-            console.log('🎉 Fetching popup for page:', page);
-
-            // Check if popup was already shown or dismissed - permanent check
-            if (hasShownBefore()) {
-                console.log('⏭️ Popup already shown/dismissed permanently');
-                return;
-            }
+            // Don't fetch again if already shown this mount
+            if (alreadyShownThisMount) return;
 
             const res = await api.popups.getActive(page);
-            console.log('📦 Popup API response:', res);
-
             const payload = res?.data ?? res?.popup ?? res;
             const popupData = Array.isArray(payload) ? payload[0] : payload;
 
-            if (!popupData?.id) {
-                console.log('❌ No popup data found');
-                return;
-            }
-
-            console.log('✅ Popup data:', popupData);
-
-            const dismissed = getDismissedPopups();
-            if (dismissed.includes(popupData.id)) {
-                console.log('⏭️ Popup already dismissed:', popupData.id);
-                markShown(); // ensure shown flag is set
-                return;
-            }
+            if (!popupData?.id) return;
 
             setPopup(popupData);
             setIsVisible(true);
             setImageLoaded(false);
             setImageError(false);
-            markShown();
-            console.log('🎉 Popup displayed!');
+            setAlreadyShownThisMount(true);
         } catch (error) {
             console.error('❌ Error fetching popup:', error);
         }
     };
 
     const handleClose = () => {
-        if (popup?.id) {
-            markPopupDismissed(popup.id);
-        }
         setIsClosing(true);
-
         setTimeout(() => {
             setIsVisible(false);
             setPopup(null);
@@ -118,9 +62,6 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
 
     const handleClickPopup = () => {
         if (popup?.link_url) {
-            if (popup?.id) {
-                markPopupDismissed(popup.id);
-            }
             window.location.href = popup.link_url;
             handleClose();
         }

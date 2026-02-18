@@ -52,7 +52,7 @@ const CartPage = () => {
 
     if (items.length === 0) {
         return (
-            <div className="min-h-screen bg-[#F6F7FB] flex items-center justify-center px-4 py-10">
+            <div className="min-h-screen bg-[#F6F7FB] flex items-center justify-center px-4 py-10 overflow-hidden" style={{ position: 'fixed', inset: 0, overscrollBehavior: 'none', touchAction: 'none' }}>
                 <div className="relative w-full max-w-3xl">
                     <div className="absolute -top-10 -right-8 w-40 h-40 bg-orange-200/40 rounded-full blur-3xl"></div>
                     <div className="absolute -bottom-12 -left-8 w-44 h-44 bg-amber-200/40 rounded-full blur-3xl"></div>
