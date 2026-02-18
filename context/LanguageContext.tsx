@@ -25,129 +25,118 @@ interface LanguageProviderProps {
     children: ReactNode;
 }
 
+// ─── helpers ────────────────────────────────────────────────────────────────
+
+const COOKIE_EXPIRE = 'expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
+
+const clearGoogTransCookies = () => {
+    document.cookie = `googtrans=; ${COOKIE_EXPIRE};`;
+    document.cookie = `googtrans=; ${COOKIE_EXPIRE}; domain=${window.location.hostname};`;
+    document.cookie = `googtrans=; ${COOKIE_EXPIRE}; domain=.${window.location.hostname};`;
+};
+
+const setGoogTransCookies = () => {
+    document.cookie = 'googtrans=/ar/en; path=/';
+    document.cookie = `googtrans=/ar/en; path=/; domain=${window.location.hostname}`;
+};
+
+const suppressBanner = () => {
+    document.querySelectorAll(
+        '.goog-te-banner-frame, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame, .goog-te-spinner-pos'
+    ).forEach((el: any) => {
+        el.style.cssText = 'display:none!important;visibility:hidden!important;height:0!important;overflow:hidden!important;';
+    });
+    document.body.style.top = '0px';
+};
+
+// Poll until .goog-te-combo is available, then call cb(combo)
+const withCombo = (cb: (combo: HTMLSelectElement) => void, maxMs = 15000) => {
+    const start = Date.now();
+    const poll = () => {
+        const combo = document.querySelector('.goog-te-combo') as HTMLSelectElement | null;
+        if (combo) { cb(combo); return; }
+        if (Date.now() - start < maxMs) setTimeout(poll, 400);
+    };
+    poll();
+};
+
+// ─── provider ───────────────────────────────────────────────────────────────
+
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
     const [language, setLanguageState] = useState<Language>(() => {
-        // Check both localStorage and googtrans cookie
         try {
             const saved = localStorage.getItem('app_language');
             if (saved === 'en') return 'en';
-            // Also check if googtrans cookie indicates English
             if (document.cookie.includes('googtrans=/ar/en')) return 'en';
         } catch (_) {}
         return 'ar';
     });
 
+    // On mount: apply body classes and activate translate if needed
     useEffect(() => {
-        applyLanguage(language);
-        
-        // If language is English, we need Google Translate active
-        if (language === 'en') {
-            let attempts = 0;
-            const maxAttempts = 30; // Try for up to 30 seconds
-            const tryTranslate = () => {
-                attempts++;
-                const combo = document.querySelector('.goog-te-combo') as HTMLSelectElement | null;
-                if (combo) {
-                    // Set the cookie first
-                    document.cookie = 'googtrans=/ar/en; path=/';
-                    document.cookie = 'googtrans=/ar/en; path=/; domain=' + window.location.hostname;
-                    combo.value = 'en';
-                    combo.dispatchEvent(new Event('change', { bubbles: true }));
-                    // Hide banner
-                    setTimeout(() => {
-                        hideGoogleTranslateBanner();
-                    }, 300);
-                } else if (attempts < maxAttempts) {
-                    setTimeout(tryTranslate, 1000);
-                }
-            };
-            // Give page time to load Google Translate SDK
-            setTimeout(tryTranslate, 500);
-        }
-    }, []);
-
-    const hideGoogleTranslateBanner = () => {
-        document.querySelectorAll('.goog-te-banner-frame, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame').forEach((el: any) => {
-            el.style.cssText = 'display:none!important;visibility:hidden!important;height:0!important;';
-        });
-        document.body.style.top = '0px';
-    };
-
-    const applyLanguage = (lang: Language) => {
-        // Always keep RTL direction – the entire layout is RTL-based.
-        // Changing dir to LTR breaks Tailwind RTL classes (padding, flex, positioning).
-        // Google Translate handles the text direction for English content internally.
         document.documentElement.dir = 'rtl';
-        document.documentElement.lang = lang;
-
-        // Add language class to body for CSS targeting
+        document.documentElement.lang = language;
         document.body.classList.remove('lang-ar', 'lang-en');
-        document.body.classList.add(`lang-${lang}`);
-    };
+        document.body.classList.add(`lang-${language}`);
+
+        if (language === 'en') {
+            setGoogTransCookies();
+            withCombo((combo) => {
+                combo.value = 'en';
+                combo.dispatchEvent(new Event('change', { bubbles: true }));
+                setTimeout(suppressBanner, 300);
+                setTimeout(suppressBanner, 1200);
+            });
+        } else {
+            // Make sure cookies are cleared on mount if Arabic
+            clearGoogTransCookies();
+        }
+    }, []); // run once on mount
 
     const setLanguage = (lang: Language) => {
         if (lang === language) return;
 
-        if (lang === 'ar') {
-            // Switching to Arabic: clear cookies, reset combo, then reload
-            try { localStorage.setItem('app_language', 'ar'); } catch (_) {}
-            
-            // Clear googtrans cookies on all domain variants
-            const exp = 'expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
-            document.cookie = 'googtrans=; ' + exp + ';';
-            document.cookie = 'googtrans=; ' + exp + '; domain=' + window.location.hostname + ';';
-            document.cookie = 'googtrans=; ' + exp + '; domain=.' + window.location.hostname + ';';
-            
-            // Try to reset Google Translate combo
-            try {
-                const combo = document.querySelector('.goog-te-combo') as HTMLSelectElement | null;
-                if (combo) {
-                    combo.value = '';
-                    combo.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-            } catch (_) {}
+        // Update state + body classes immediately (no flicker)
+        setLanguageState(lang);
+        document.documentElement.lang = lang;
+        document.body.classList.remove('lang-ar', 'lang-en');
+        document.body.classList.add(`lang-${lang}`);
 
-            // Must reload to fully restore original Arabic text
-            setTimeout(() => {
-                window.location.href = window.location.pathname + window.location.search;
-            }, 150);
-            return;
-        }
+        try { localStorage.setItem('app_language', lang); } catch (_) {}
 
-        // Switching to English
-        try { localStorage.setItem('app_language', 'en'); } catch (_) {}
-        
-        // Set googtrans cookies
-        document.cookie = 'googtrans=/ar/en; path=/';
-        document.cookie = 'googtrans=/ar/en; path=/; domain=' + window.location.hostname;
-        
-        // Try to trigger Google Translate directly without reload first
-        const combo = document.querySelector('.goog-te-combo') as HTMLSelectElement | null;
-        if (combo) {
-            combo.value = 'en';
-            combo.dispatchEvent(new Event('change', { bubbles: true }));
-            setTimeout(() => hideGoogleTranslateBanner(), 300);
-            setLanguageState('en');
-            applyLanguage('en');
+        if (lang === 'en') {
+            // ── Activate Google Translate ──────────────────────────────────
+            setGoogTransCookies();
+            withCombo((combo) => {
+                combo.value = 'en';
+                combo.dispatchEvent(new Event('change', { bubbles: true }));
+                setTimeout(suppressBanner, 300);
+                setTimeout(suppressBanner, 1200);
+            });
         } else {
-            // Combo not available yet, must reload
-            setTimeout(() => {
-                window.location.href = window.location.pathname + window.location.search;
-            }, 150);
+            // ── Restore Arabic (no reload) ─────────────────────────────────
+            clearGoogTransCookies();
+            withCombo((combo) => {
+                combo.value = '';
+                combo.dispatchEvent(new Event('change', { bubbles: true }));
+                combo.dispatchEvent(new Event('input',  { bubbles: true }));
+                setTimeout(suppressBanner, 300);
+            }, 5000);
         }
     };
 
     const resolveNestedTranslation = (lang: Language, key: string) => {
-        return key.split('.').reduce<any>((acc, part) => (acc && typeof acc === 'object' ? acc[part] : undefined), nestedTranslations[lang]);
+        return key.split('.').reduce<any>(
+            (acc, part) => (acc && typeof acc === 'object' ? acc[part] : undefined),
+            nestedTranslations[lang]
+        );
     };
 
     const t = (key: string): string => {
         const flatValue = flatTranslations[language]?.[key];
         if (typeof flatValue === 'string') return flatValue;
-
         const nestedValue = resolveNestedTranslation(language, key);
         if (typeof nestedValue === 'string') return nestedValue;
-
         return key;
     };
 
@@ -155,8 +144,8 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
         language,
         setLanguage,
         t,
-        dir: language === 'ar' ? 'rtl' : 'ltr',
-        isRTL: language === 'ar'
+        dir: 'rtl',   // always RTL – layout is Arabic-first
+        isRTL: true,
     };
 
     return (

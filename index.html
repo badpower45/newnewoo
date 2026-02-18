@@ -86,59 +86,40 @@
           autoDisplay: false,
           multilanguagePage: false
         }, 'google_translate_element');
+
+        // Continuously suppress the toolbar/banner every 500ms
+        setInterval(function() {
+          document.querySelectorAll(
+            '.goog-te-banner-frame, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame, .goog-te-spinner-pos'
+          ).forEach(function(el) {
+            el.style.cssText = 'display:none!important;visibility:hidden!important;height:0!important;overflow:hidden!important;';
+          });
+          document.body.style.top = '0px';
+        }, 500);
       }
       
-      // Trigger translation programmatically
+      // (legacy helpers - logic now handled in LanguageContext)
       window.triggerGoogleTranslate = function(targetLang) {
         var gtCombo = document.querySelector('.goog-te-combo');
         if (gtCombo) {
           gtCombo.value = targetLang === 'ar' ? '' : targetLang;
           gtCombo.dispatchEvent(new Event('change', { bubbles: true }));
-          // Ensure banner stays hidden
-          setTimeout(function() {
-            var frames = document.querySelectorAll('.goog-te-banner-frame, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame');
-            frames.forEach(function(f) { f.style.cssText = 'display:none!important;visibility:hidden!important;height:0!important;'; });
-            document.body.style.top = '0px';
-          }, 300);
-          setTimeout(function() {
-            var frames = document.querySelectorAll('.goog-te-banner-frame, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame');
-            frames.forEach(function(f) { f.style.cssText = 'display:none!important;visibility:hidden!important;height:0!important;'; });
-            document.body.style.top = '0px';
-          }, 1000);
           return true;
         }
         return false;
       };
-      
-      // Restore original language (Arabic)
+
       window.restoreGoogleTranslate = function() {
-        // Step 1: Always clear cookies FIRST
         var exp = 'expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
         document.cookie = 'googtrans=; ' + exp + ';';
         document.cookie = 'googtrans=; ' + exp + '; domain=' + window.location.hostname + ';';
         document.cookie = 'googtrans=; ' + exp + '; domain=.' + window.location.hostname + ';';
-
-        // Step 2: Reset combo select with retry
-        var attempts = 0;
-        var tryReset = function() {
-          var select = document.querySelector('.goog-te-combo');
-          if (select) {
-            select.value = '';
-            select.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
-            select.dispatchEvent(new Event('input', { bubbles: true }));
-            // Hide any banners
-            setTimeout(function() {
-              document.querySelectorAll('.goog-te-banner-frame, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame').forEach(function(el) {
-                el.style.cssText = 'display:none!important;visibility:hidden!important;height:0!important;';
-              });
-              document.body.style.top = '0px';
-            }, 200);
-          } else if (attempts < 6) {
-            attempts++;
-            setTimeout(tryReset, 300);
-          }
-        };
-        tryReset();
+        var select = document.querySelector('.goog-te-combo');
+        if (select) {
+          select.value = '';
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+          select.dispatchEvent(new Event('input', { bubbles: true }));
+        }
       };
     </script>
     <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
