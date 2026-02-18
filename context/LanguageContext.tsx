@@ -49,12 +49,20 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
         if (lang === language) return;
 
         if (lang === 'ar') {
-            // Most reliable way to restore Arabic on an SPA:
-            // Google Translate watches the DOM and immediately re-translates
-            // any fresh Arabic content injected by React re-renders.
-            // A clean page reload resets the Translate state entirely.
-            // The app always starts in Arabic (no localStorage persistence),
-            // so the page will open in Arabic automatically.
+            // Clear the googtrans cookie FIRST so that after reload
+            // Google Translate does NOT auto-translate the page again.
+            const exp = 'expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
+            document.cookie = 'googtrans=; ' + exp + ';';
+            document.cookie = 'googtrans=; ' + exp + '; domain=' + window.location.hostname + ';';
+            document.cookie = 'googtrans=; ' + exp + '; domain=.' + window.location.hostname + ';';
+            // Also reset the combo select if available (belt + suspenders)
+            try {
+                const combo = document.querySelector('.goog-te-combo') as HTMLSelectElement | null;
+                if (combo) {
+                    combo.value = '';
+                    combo.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            } catch (_) {}
             window.location.reload();
             return;
         }
