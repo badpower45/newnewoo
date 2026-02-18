@@ -74,6 +74,26 @@
 <link rel="stylesheet" href="/index.css">
 </head>
   <body>
+    <!-- Fix: Patch insertBefore/removeChild to prevent Google Translate + React DOM crash -->
+    <script>
+      (function() {
+        if (typeof Node === 'undefined') return;
+        var origInsertBefore = Node.prototype.insertBefore;
+        Node.prototype.insertBefore = function(newNode, refNode) {
+          if (refNode && refNode.parentNode !== this) {
+            return newNode; // silently skip — Google Translate moved the node
+          }
+          return origInsertBefore.call(this, newNode, refNode);
+        };
+        var origRemoveChild = Node.prototype.removeChild;
+        Node.prototype.removeChild = function(child) {
+          if (child.parentNode !== this) {
+            return child; // silently skip
+          }
+          return origRemoveChild.call(this, child);
+        };
+      })();
+    </script>
     <div id="root"></div>
     <!-- Hidden Google Translate element -->
     <div id="google_translate_element" style="display:none;visibility:hidden;height:0;overflow:hidden;"></div>

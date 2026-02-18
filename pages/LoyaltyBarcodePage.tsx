@@ -293,7 +293,7 @@ const LoyaltyBarcodePage = () => {
             {/* Create Modal */}
             {showCreateModal && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center">
-                    <div className="bg-white rounded-t-3xl w-full max-w-lg p-6 animate-slide-up">
+                    <div className="bg-white rounded-t-3xl w-full max-w-lg p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom,16px))] animate-slide-up">
                         <h2 className="text-xl font-bold mb-4 text-center">إنشاء باركود جديد</h2>
 
                         {/* Points Input */}
