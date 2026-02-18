@@ -159,6 +159,7 @@ export default function ProductsPage() {
     const [brands, setBrands] = useState<{ id: string, name: string }[]>([]);
     const [loading, setLoading] = useState(false);
     const [showScanner, setShowScanner] = useState(false);
+    const [barcodeToast, setBarcodeToast] = useState<{ type: 'error' | 'notfound', msg: string } | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState<string>('');
     const [selectedBrand, setSelectedBrand] = useState<string>('');
@@ -393,6 +394,11 @@ export default function ProductsPage() {
     const [scannedProduct, setScannedProduct] = useState<Product | null>(null);
     const [showProductModal, setShowProductModal] = useState(false);
 
+    const showBarcodeToast = (type: 'error' | 'notfound', msg: string) => {
+        setBarcodeToast({ type, msg });
+        setTimeout(() => setBarcodeToast(null), 3500);
+    };
+
     const handleBarcodeScanned = useCallback(async (barcode: string) => {
         // Close scanner immediately
         setShowScanner(false);
@@ -410,30 +416,34 @@ export default function ProductsPage() {
         `;
         document.body.appendChild(loadingDiv);
 
+        // Timeout guard - remove overlay after 10s even if stuck
+        const timeoutId = setTimeout(() => {
+            const ol = document.getElementById('barcode-loading-overlay');
+            if (ol && ol.parentNode) ol.parentNode.removeChild(ol);
+            showBarcodeToast('error', 'انتهت مهلة البحث - تحقق من الاتصال وحاول مرة أخرى');
+        }, 10000);
+
         try {
             const branchId = selectedBranch?.id || 1;
             const response = await api.products.getByBarcode(barcode, branchId);
+            clearTimeout(timeoutId);
 
             // Remove loading overlay safely
             const overlay = document.getElementById('barcode-loading-overlay');
-            if (overlay) {
-                document.body.removeChild(overlay);
-            }
+            if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
 
             if (response.data && response.message === 'success') {
                 setScannedProduct(response.data);
                 setShowProductModal(true);
             } else {
-                alert('❌ المنتج غير موجود في قاعدة البيانات\nالباركود: ' + barcode);
+                showBarcodeToast('notfound', `المنتج غير موجود · ${barcode}`);
             }
         } catch (error) {
-            // Remove loading overlay safely on error
+            clearTimeout(timeoutId);
             const overlay = document.getElementById('barcode-loading-overlay');
-            if (overlay && overlay.parentNode) {
-                document.body.removeChild(overlay);
-            }
+            if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
             console.error('Error fetching product:', error);
-            alert('❌ حدث خطأ في البحث عن المنتج');
+            showBarcodeToast('error', 'حدث خطأ في البحث عن المنتج');
         }
     }, [selectedBranch]);
 
@@ -1085,6 +1095,16 @@ export default function ProductsPage() {
                         </>
                     )}
                 </div>
+
+                {/* Barcode Toast Notification */}
+                {barcodeToast && (
+                    <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[9999] animate-fade-in">
+                        <div className={`flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl text-white font-medium text-sm max-w-xs text-center ${barcodeToast.type === 'notfound' ? 'bg-orange-500' : 'bg-red-500'}`}>
+                            <span>{barcodeToast.type === 'notfound' ? '🔍' : '⚠️'}</span>
+                            <span>{barcodeToast.msg}</span>
+                        </div>
+                    </div>
+                )}
 
                 {/* Barcode Scanner Modal */}
                 {showScanner && (

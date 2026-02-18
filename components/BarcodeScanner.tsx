@@ -17,8 +17,9 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
     const [scannedCode, setScannedCode] = useState<string>('');
     const [manualInput, setManualInput] = useState('');
     const [useManualMode, setUseManualMode] = useState(false);
-    const scannerRef = useRef<Html5Qrcode | null>(null);
-    const readerIdRef = useRef('barcode-reader');
+    const scannerRef = useRef<any>(null);
+    const isScanningRef = useRef(false); // ref to avoid stale closure issues
+    const readerIdRef = useRef('barcode-reader-' + Math.random().toString(36).slice(2, 7));
 
     useEffect(() => {
         if (!useManualMode) {
@@ -44,6 +45,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
 
             const html5QrCode = new Html5Qrcode(readerIdRef.current);
             scannerRef.current = html5QrCode;
+            isScanningRef.current = true;
 
             // Enhanced configuration for better barcode scanning
             const config = {
@@ -60,7 +62,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
                     Html5QrcodeSupportedFormats.QR_CODE,
                 ],
                 experimentalFeatures: {
-                    useBarCodeDetectorIfSupported: true // Use native barcode detector if available
+                    useBarCodeDetectorIfSupported: true
                 }
             };
 
@@ -68,18 +70,17 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
                 { facingMode: 'environment' }, // Use back camera
                 config,
                 (decodedText) => {
-                    // Success callback - barcode detected
+                    if (!isScanningRef.current) return; // guard double-fire
                     console.log('✅ Barcode scanned:', decodedText);
                     setScannedCode(decodedText);
                     setSuccess(true);
                     stopScanner();
-                    // Quick feedback then callback
                     setTimeout(() => {
                         onScan(decodedText);
-                    }, 500);
+                    }, 400);
                 },
-                (errorMessage) => {
-                    // Error during scanning (ignore - normal)
+                (_errorMessage) => {
+                    // ignore scan-frame errors (normal)
                 }
             );
             setScanning(true);
@@ -102,16 +103,15 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScan, onClose }) => {
     };
 
     const stopScanner = async () => {
-        if (scannerRef.current && scanning) {
+        if (scannerRef.current && isScanningRef.current) {
+            isScanningRef.current = false;
+            const sc = scannerRef.current;
+            scannerRef.current = null;
+            setScanning(false);
             try {
-                await scannerRef.current.stop();
-                console.log('✅ Scanner stopped successfully');
+                await sc.stop();
             } catch (err) {
-                // Ignore errors if scanner is already stopped
-                console.log('🔴 Scanner stop ignored:', err);
-            } finally {
-                scannerRef.current = null;
-                setScanning(false);
+                // ignore - already stopped or never started
             }
         }
     };

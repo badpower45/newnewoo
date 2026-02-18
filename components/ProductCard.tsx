@@ -149,7 +149,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
             </div>
             <button
               onClick={handleAddToCart}
-              className={`w-9 h-9 rounded-full border-2 flex items-center justify-center transition-all ${available ? 'border-brand-orange text-brand-orange hover:bg-brand-orange hover:text-white active:scale-90 shadow-sm hover:shadow-md' : 'border-gray-200 text-gray-300 cursor-not-allowed'}`}
+              className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${available ? 'bg-brand-orange text-white hover:bg-orange-600 active:scale-90 shadow-sm hover:shadow-md' : 'bg-gray-200 text-gray-300 cursor-not-allowed'}`}
               disabled={!available}
             >
               <Plus size={16} strokeWidth={2.5} />
@@ -222,7 +222,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, variant = 'vertical'
             onClick={handleAddToCart}
             className={`absolute bottom-1.5 right-1.5 w-8 h-8 rounded-full flex items-center justify-center transition-all z-10 ${isAdding
               ? 'bg-green-500 text-white scale-110 shadow-md'
-              : 'border-2 border-brand-orange text-brand-orange bg-white hover:bg-brand-orange hover:text-white shadow-sm hover:shadow-md active:scale-90'
+              : 'bg-brand-orange text-white hover:bg-orange-600 shadow-sm hover:shadow-md active:scale-90'
               }`}
           >
             {isAdding ? <Check size={14} /> : <Plus size={16} strokeWidth={2.5} />}
