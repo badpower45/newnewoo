@@ -6,6 +6,7 @@ import { AuthProvider } from './context/AuthContext';
 import { BranchProvider } from './context/BranchContext';
 import { useAuth } from './context/AuthContext';
 import { useBranch } from './context/BranchContext';
+import { useLanguage } from './context/LanguageContext';
 import FullPageSkeleton from './components/FullPageSkeleton';
 import { registerImageCacheServiceWorker } from './utils/imageCacheSW';
 
@@ -148,11 +149,26 @@ function AppContent() {
   const [showSplash, setShowSplash] = React.useState(true);
   const [appReady, setAppReady] = React.useState(false);
   const location = useLocation();
+  const { language } = useLanguage();
 
   // 🔥 Register Image Cache Service Worker
   useEffect(() => {
     registerImageCacheServiceWorker();
   }, []);
+
+  // Re-trigger Google Translate on every route change (SPA navigation)
+  useEffect(() => {
+    if (language !== 'en') return;
+    // Wait for React to finish rendering the new page DOM
+    const timer = setTimeout(() => {
+      const combo = document.querySelector('.goog-te-combo') as HTMLSelectElement | null;
+      if (combo) {
+        combo.value = 'en';
+        combo.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [location.pathname, language]);
   const path = location.pathname;
   const { user } = useAuth();
   const isAdminRoute = path.startsWith('/admin');
