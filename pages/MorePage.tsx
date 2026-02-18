@@ -82,10 +82,10 @@ const MorePage = () => {
         {
             icon: Globe,
             label: t('switch_language'),
-            iconBg: 'bg-cyan-100',
-            iconColor: 'text-cyan-600',
-            action: handleLanguageSwitch,
-            rightText: language === 'ar' ? 'English' : 'العربية'
+            iconBg: 'bg-gray-100',
+            iconColor: 'text-gray-400',
+            disabled: true,
+            rightText: 'قريباً'
         },
         {
             icon: MessageSquare,
@@ -98,6 +98,7 @@ const MorePage = () => {
     ];
 
     const handleItemClick = (item: any) => {
+        if (item.disabled) return;
         if (item.requireAuth && !isAuthenticated) {
             navigate('/login');
             return;
@@ -213,7 +214,12 @@ const MorePage = () => {
                     <button
                         key={index}
                         onClick={() => handleItemClick(item)}
-                        className="w-full flex items-center justify-between px-4 py-4 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                        disabled={item.disabled}
+                        className={`w-full flex items-center justify-between px-4 py-4 transition-colors ${
+                            item.disabled
+                                ? 'opacity-50 cursor-not-allowed'
+                                : 'hover:bg-gray-50 active:bg-gray-100'
+                        }`}
                     >
                         <div className="flex items-center gap-4">
                             <div className={`${item.iconBg} ${item.iconColor} p-2.5 rounded-xl`}>
@@ -227,7 +233,11 @@ const MorePage = () => {
                                     {item.badge}
                                 </span>
                             )}
-                            {item.rightText ? (
+                            {item.disabled ? (
+                                <span className="bg-orange-100 text-orange-500 text-xs font-bold px-2.5 py-1 rounded-full">
+                                    قريباً
+                                </span>
+                            ) : item.rightText ? (
                                 <span className="text-gray-500 text-sm">{item.rightText}</span>
                             ) : (
                                 <ChevronRight className="w-5 h-5 text-gray-400" />
