@@ -34,10 +34,12 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     }, []);
 
     const applyLanguage = (lang: Language) => {
-        // Set document direction and language
-        document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+        // Always keep RTL direction – the entire layout is RTL-based.
+        // Changing dir to LTR breaks Tailwind RTL classes (padding, flex, positioning).
+        // Google Translate handles the text direction for English content internally.
+        document.documentElement.dir = 'rtl';
         document.documentElement.lang = lang;
-        
+
         // Add language class to body for CSS targeting
         document.body.classList.remove('lang-ar', 'lang-en');
         document.body.classList.add(`lang-${lang}`);
@@ -46,31 +48,31 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     const setLanguage = (lang: Language) => {
         if (lang === language) return;
 
-        // For Arabic: stop Google Translate BEFORE React re-renders
-        // so it doesn't immediately re-translate the fresh Arabic content
         if (lang === 'ar') {
-            try {
-                (window as any).restoreGoogleTranslate?.();
-            } catch (e) {
-                console.warn('Google Translate restore failed:', e);
-            }
+            // Most reliable way to restore Arabic on an SPA:
+            // Google Translate watches the DOM and immediately re-translates
+            // any fresh Arabic content injected by React re-renders.
+            // A clean page reload resets the Translate state entirely.
+            // The app always starts in Arabic (no localStorage persistence),
+            // so the page will open in Arabic automatically.
+            window.location.reload();
+            return;
         }
 
+        // Switching to English
         setLanguageState(lang);
         applyLanguage(lang);
 
-        // For English: trigger Google Translate after React re-renders
-        if (lang === 'en') {
-            try {
-                const triggered = (window as any).triggerGoogleTranslate?.('en');
-                if (!triggered) {
-                    setTimeout(() => {
-                        (window as any).triggerGoogleTranslate?.('en');
-                    }, 1500);
-                }
-            } catch (e) {
-                console.warn('Google Translate not available:', e);
+        // Trigger Google Translate after React re-renders
+        try {
+            const triggered = (window as any).triggerGoogleTranslate?.('en');
+            if (!triggered) {
+                setTimeout(() => {
+                    (window as any).triggerGoogleTranslate?.('en');
+                }, 1500);
             }
+        } catch (e) {
+            console.warn('Google Translate not available:', e);
         }
     };
 
