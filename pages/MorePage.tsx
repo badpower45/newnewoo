@@ -17,11 +17,11 @@ interface Branch {
 const MorePage = () => {
     const navigate = useNavigate();
     const { user, isAuthenticated, logout } = useAuth();
-    const { language, setLanguage } = useLanguage();
+    const { language, setLanguage, t } = useLanguage();
     const { favorites } = useFavorites();
 
     const handleLogout = () => {
-        if (confirm('هل تريد تسجيل الخروج؟')) {
+        if (confirm(t('confirm_logout'))) {
             logout();
             navigate('/');
         }
@@ -35,7 +35,7 @@ const MorePage = () => {
     const menuItems = [
         {
             icon: Package,
-            label: 'طلباتي',
+            label: t('my_orders'),
             iconBg: 'bg-orange-100',
             iconColor: 'text-orange-600',
             route: '/my-orders',
@@ -43,7 +43,7 @@ const MorePage = () => {
         },
         {
             icon: Heart,
-            label: 'قائمة الرغبات',
+            label: t('favorites'),
             iconBg: 'bg-pink-100',
             iconColor: 'text-pink-600',
             route: '/favorites',
@@ -52,7 +52,7 @@ const MorePage = () => {
         },
         {
             icon: Gift,
-            label: 'نقاطي',
+            label: t('loyalty_points'),
             iconBg: 'bg-amber-100',
             iconColor: 'text-amber-600',
             route: '/loyalty',
@@ -60,28 +60,28 @@ const MorePage = () => {
         },
         {
             icon: MapPinned,
-            label: 'فروعنا',
+            label: t('branches'),
             iconBg: 'bg-teal-100',
             iconColor: 'text-teal-600',
             route: '/branches'
         },
         {
             icon: HelpCircle,
-            label: 'الأسئلة الشائعة',
+            label: t('faq'),
             iconBg: 'bg-yellow-100',
             iconColor: 'text-yellow-600',
             route: '/general-faq'
         },
         {
             icon: Shield,
-            label: 'سياسة الخصوصية',
+            label: t('privacy_policy'),
             iconBg: 'bg-purple-100',
             iconColor: 'text-purple-600',
             route: '/privacy-policy'
         },
         {
             icon: Globe,
-            label: 'تغيير اللغة',
+            label: t('switch_language'),
             iconBg: 'bg-cyan-100',
             iconColor: 'text-cyan-600',
             action: handleLanguageSwitch,
@@ -89,7 +89,7 @@ const MorePage = () => {
         },
         {
             icon: MessageSquare,
-            label: 'إرسال مقترحات',
+            label: t('contact_us'),
             iconBg: 'bg-indigo-100',
             iconColor: 'text-indigo-600',
             route: '/chat',
@@ -126,7 +126,7 @@ const MorePage = () => {
 
                         {/* Center Content */}
                         <div className="flex-1 flex items-center justify-center">
-                            <h1 className="text-2xl font-bold text-gray-900">المزيد</h1>
+                            <h1 className="text-2xl font-bold text-gray-900">{t('more')}</h1>
                         </div>
 
                         {/* Left Actions */}
@@ -178,30 +178,31 @@ const MorePage = () => {
                                 </div>
                             )}
                             <div>
-                                <p className="text-xs text-gray-500">حسابي</p>
-                                <p className="text-base font-bold text-gray-900">{user?.name || 'العميل'}</p>
-                                <p className="text-xs text-gray-500">{user?.phone || user?.email || 'لا توجد بيانات تواصل'}</p>
+                                <p className="text-xs text-gray-500">{t('my_profile')}</p>
+                                <p className="text-base font-bold text-gray-900">{user?.name || t('profile')}</p>
+                                <p className="text-xs text-gray-500">{user?.phone || user?.email || ''}</p>
                             </div>
                         </div>
                         <button
                             onClick={() => navigate('/profile')}
                             className="px-4 py-2 rounded-xl bg-gray-50 text-gray-800 text-sm font-semibold hover:bg-gray-100 transition-colors"
                         >
-                            البروفايل
+                            {t('edit_profile')}
+                        </button>
                         </button>
                     </div>
                 ) : (
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-bold text-gray-900">سجل دخولك</p>
-                            <p className="text-xs text-gray-500">عشان تتابع طلباتك وتستخدم نقاطك</p>
+                            <p className="text-sm font-bold text-gray-900">{t('login')}</p>
+                            <p className="text-xs text-gray-500">{language === 'ar' ? 'عشان تتابع طلباتك وتستخدم نقاطك' : 'Track your orders and use your points'}</p>
                         </div>
                         <button
                             onClick={() => navigate('/login')}
                             className="px-4 py-2 rounded-xl bg-brand-orange text-white text-sm font-semibold hover:bg-orange-600 transition-colors flex items-center gap-2"
                         >
                             <LogIn size={16} />
-                            دخول
+                            {t('login')}
                         </button>
                     </div>
                 )}
@@ -246,7 +247,7 @@ const MorePage = () => {
                             <div className="bg-red-100 text-red-600 p-3 rounded-xl">
                                 <LogOut className="w-6 h-6" />
                             </div>
-                            <span className="text-red-600 font-bold text-lg">تسجيل خروج</span>
+                            <span className="text-red-600 font-bold text-lg">{t('logout')}</span>
                         </div>
                         <ChevronRight className="w-5 h-5 text-red-400" />
                     </button>

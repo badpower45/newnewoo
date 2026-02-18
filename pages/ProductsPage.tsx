@@ -682,9 +682,9 @@ export default function ProductsPage() {
                 <button
                     onClick={handleQuickAdd}
                     disabled={!available}
-                    className={`self-center w-12 h-12 rounded-xl border transition-all ${available
-                            ? 'border-brand-orange text-brand-orange hover:bg-orange-50 active:scale-95'
-                            : 'border-gray-200 text-gray-400 cursor-not-allowed'
+                    className={`self-center w-11 h-11 rounded-full border-2 flex items-center justify-center text-2xl font-light transition-all ${available
+                            ? 'border-brand-orange text-brand-orange hover:bg-brand-orange hover:text-white active:scale-90 shadow-sm hover:shadow-md'
+                            : 'border-gray-200 text-gray-300 cursor-not-allowed'
                         }`}
                     title={available ? 'إضافة سريعة للسلة' : 'غير متوفر'}
                 >

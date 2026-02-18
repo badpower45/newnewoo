@@ -2354,16 +2354,35 @@ export const api = {
             const formData = new FormData();
             formData.append('image', file);
 
-            const res = await fetch(`${API_URL}/upload/single`, {
+            // Try backend first
+            try {
+                const res = await fetch(`${API_URL}/upload/image`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: formData
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    return data.data?.url || data.url;
+                }
+            } catch (e) {
+                console.warn('Backend upload failed, trying Cloudinary direct:', e);
+            }
+
+            // Fallback: Direct Cloudinary upload
+            const cloudinaryForm = new FormData();
+            cloudinaryForm.append('file', file);
+            cloudinaryForm.append('upload_preset', 'ml_default');
+            cloudinaryForm.append('folder', 'products');
+            const cloudRes = await fetch('https://api.cloudinary.com/v1_1/dwnaacuih/image/upload', {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: formData
+                body: cloudinaryForm
             });
-            if (!res.ok) throw new Error('Failed to upload image');
-            const data = await res.json();
-            return data.data.url;
+            if (!cloudRes.ok) throw new Error('Failed to upload image');
+            const cloudData = await cloudRes.json();
+            return cloudData.secure_url;
         },
         uploadBrandImage: async (file: File, type: 'logo' | 'banner', brandId?: string) => {
             const formData = new FormData();
@@ -2372,19 +2391,38 @@ export const api = {
             if (brandId) formData.append('brandId', brandId);
             else formData.append('brandId', `temp_${Date.now()}`);
 
-            const res = await fetch(`${API_URL}/upload/brand`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: formData
-            });
-            if (!res.ok) {
-                const error = await res.json();
-                throw new Error(error.error || 'Failed to upload brand image');
+            // Try backend first
+            try {
+                const res = await fetch(`${API_URL}/upload/image`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: formData
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    return data.data?.url || data.url;
+                }
+            } catch (e) {
+                console.warn('Backend brand upload failed, trying Cloudinary direct:', e);
             }
-            const data = await res.json();
-            return data.data.url;
+
+            // Fallback: Direct Cloudinary upload
+            const cloudinaryForm = new FormData();
+            cloudinaryForm.append('file', file);
+            cloudinaryForm.append('upload_preset', 'ml_default');
+            cloudinaryForm.append('folder', `brands/${type}`);
+            const cloudRes = await fetch('https://api.cloudinary.com/v1_1/dwnaacuih/image/upload', {
+                method: 'POST',
+                body: cloudinaryForm
+            });
+            if (!cloudRes.ok) {
+                const error = await cloudRes.json();
+                throw new Error(error.error?.message || 'Failed to upload brand image');
+            }
+            const cloudData = await cloudRes.json();
+            return cloudData.secure_url;
         }
     },
 

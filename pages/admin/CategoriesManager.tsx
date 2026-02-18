@@ -200,16 +200,46 @@ const CategoriesManager: React.FC = () => {
             formData.append('image', file);
             formData.append('productId', `category_${editing?.id || Date.now()}`);
 
-            const response = await fetch(`${API_URL}/upload/image`, {
-                method: 'POST',
-                body: formData
-            });
+            let imageUrl = '';
 
-            const result = await response.json();
+            // Try backend first
+            try {
+                const response = await fetch(`${API_URL}/upload/image`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: formData
+                });
 
-            if (result.success && result.data?.url) {
-                setForm({ ...form, image: result.data.url });
-                alert('✅ تم رفع الصورة بنجاح!');
+                const result = await response.json();
+
+                if (result.success && result.data?.url) {
+                    imageUrl = result.data.url;
+                } else {
+                    throw new Error('Backend upload failed');
+                }
+            } catch (backendErr) {
+                console.warn('Backend upload failed, trying Cloudinary direct:', backendErr);
+                // Fallback: Direct Cloudinary upload
+                const cloudinaryForm = new FormData();
+                cloudinaryForm.append('file', file);
+                cloudinaryForm.append('upload_preset', 'ml_default');
+                cloudinaryForm.append('folder', 'categories');
+                const cloudRes = await fetch('https://api.cloudinary.com/v1_1/dwnaacuih/image/upload', {
+                    method: 'POST',
+                    body: cloudinaryForm
+                });
+                const cloudData = await cloudRes.json();
+                if (cloudData.secure_url) {
+                    imageUrl = cloudData.secure_url;
+                } else {
+                    throw new Error(cloudData.error?.message || 'فشل رفع الصورة');
+                }
+            }
+
+            setForm({ ...form, image: imageUrl });
+            alert('✅ تم رفع الصورة بنجاح!');
             } else {
                 throw new Error(result.error || 'فشل رفع الصورة');
             }
