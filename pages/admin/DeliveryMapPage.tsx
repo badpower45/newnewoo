@@ -182,7 +182,7 @@ const AdminDeliveryMapPage = () => {
                     <div className="flex items-center gap-3">
                         <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-100 rounded-lg"><ArrowLeft size={22} /></button>
                         <div>
-                            <h1 className="text-xl font-bold text-gray-900">\u{1F5FA}\uFE0F \u062a\u062a\u0628\u0639 \u0627\u0644\u0633\u0627\u0626\u0642\u064a\u0646 - \u0645\u0628\u0627\u0634\u0631</h1>
+                            <h1 className="text-xl font-bold text-gray-900">🗺️ تتبع السائقين - مباشر</h1>
                             <p className="text-xs text-gray-500">Real-time Live Driver Tracking</p>
                         </div>
                     </div>
