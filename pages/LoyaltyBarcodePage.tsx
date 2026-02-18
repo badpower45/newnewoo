@@ -165,10 +165,10 @@ const LoyaltyBarcodePage = () => {
                         </div>
                         <button
                             onClick={() => setShowCreateModal(true)}
-                            className="bg-white text-orange-600 px-4 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-orange-50 transition"
+                            className="bg-white text-orange-600 px-4 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-orange-50 transition text-sm sm:text-base whitespace-nowrap min-w-fit"
                         >
-                            <Gift size={20} />
-                            استبدل الآن
+                            <Gift size={18} className="flex-shrink-0" />
+                            <span>استبدل الآن</span>
                         </button>
                     </div>
                 </div>
@@ -334,24 +334,24 @@ const LoyaltyBarcodePage = () => {
                             <button
                                 onClick={handleCreateBarcode}
                                 disabled={creatingBarcode}
-                                className="flex-1 py-4 bg-orange-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-orange-600 transition disabled:opacity-50"
+                                className="flex-1 py-3 sm:py-4 bg-orange-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-orange-600 transition disabled:opacity-50 text-sm sm:text-base"
                             >
                                 {creatingBarcode ? (
                                     <>
-                                        <RefreshCw className="animate-spin" size={20} />
-                                        جاري الإنشاء...
+                                        <RefreshCw className="animate-spin flex-shrink-0" size={18} />
+                                        <span>جاري الإنشاء...</span>
                                     </>
                                 ) : (
                                     <>
-                                        <Gift size={20} />
-                                        إنشاء الباركود
+                                        <Gift size={18} className="flex-shrink-0" />
+                                        <span>إنشاء الباركود</span>
                                     </>
                                 )}
                             </button>
                             <button
                                 onClick={() => setShowCreateModal(false)}
                                 disabled={creatingBarcode}
-                                className="px-6 py-4 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition disabled:opacity-50"
+                                className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition disabled:opacity-50 text-sm sm:text-base"
                             >
                                 إلغاء
                             </button>

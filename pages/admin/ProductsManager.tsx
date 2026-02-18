@@ -717,66 +717,66 @@ const ProductsManager = () => {
                 <TableSkeleton rows={8} cols={7} />
             ) : (
             <>
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="admin-table-container">
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left min-w-[800px]">
-                            <thead className="bg-gray-50 border-b border-gray-100">
+                        <table className="admin-table min-w-[700px]">
+                            <thead>
                             <tr>
-                                <th className="px-4 py-4 font-semibold text-gray-600">المنتج</th>
-                                <th className="px-4 py-4 font-semibold text-gray-600">الباركود</th>
-                                <th className="px-4 py-4 font-semibold text-gray-600">التصنيف</th>
-                                <th className="px-4 py-4 font-semibold text-gray-600">البراند</th>
-                                <th className="px-4 py-4 font-semibold text-gray-600">السعر قبل</th>
-                                <th className="px-4 py-4 font-semibold text-gray-600">السعر بعد</th>
-                                <th className="px-4 py-4 font-semibold text-gray-600">الكمية</th>
-                                <th className="px-4 py-4 font-semibold text-gray-600 text-right">الإجراءات</th>
+                                <th className="px-2 sm:px-4 py-3 sm:py-4">المنتج</th>
+                                <th className="px-2 sm:px-4 py-3 sm:py-4 hidden lg:table-cell">الباركود</th>
+                                <th className="px-2 sm:px-4 py-3 sm:py-4 hidden md:table-cell">التصنيف</th>
+                                <th className="px-2 sm:px-4 py-3 sm:py-4 hidden lg:table-cell">البراند</th>
+                                <th className="px-2 sm:px-4 py-3 sm:py-4">السعر قبل</th>
+                                <th className="px-2 sm:px-4 py-3 sm:py-4">السعر بعد</th>
+                                <th className="px-2 sm:px-4 py-3 sm:py-4 hidden sm:table-cell">الكمية</th>
+                                <th className="px-2 sm:px-4 py-3 sm:py-4 text-right">إجراءات</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                             {filteredProducts.map((product) => (
                                 <tr key={product.id} className="hover:bg-gray-50 transition-colors">
-                                    <td className="px-4 py-4">
-                                        <div className="flex items-center space-x-3">
-                                            <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-sm font-semibold text-gray-500">
+                                    <td className="px-2 sm:px-4 py-3 sm:py-4">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gray-100 flex items-center justify-center text-xs sm:text-sm font-semibold text-gray-500 flex-shrink-0">
                                                 {(product.name || '?').charAt(0)}
                                             </div>
-                                            <span className="font-medium text-gray-900">{product.name}</span>
+                                            <span className="font-medium text-gray-900 text-xs sm:text-sm line-clamp-2">{product.name}</span>
                                         </div>
                                     </td>
-                                    <td className="px-4 py-4 text-gray-600 text-sm">{product.barcode || '-'}</td>
-                                    <td className="px-4 py-4 text-gray-600">
+                                    <td className="px-2 sm:px-4 py-3 sm:py-4 text-gray-600 text-xs sm:text-sm hidden lg:table-cell">{product.barcode || '-'}</td>
+                                    <td className="px-2 sm:px-4 py-3 sm:py-4 text-gray-600 hidden md:table-cell">
                                         <div className="flex flex-col">
-                                            <span>{product.category}</span>
+                                            <span className="text-xs sm:text-sm">{product.category}</span>
                                             {product.subcategory && <span className="text-xs text-gray-400">{product.subcategory}</span>}
                                         </div>
                                     </td>
-                                    <td className="px-4 py-4 text-gray-600">
+                                    <td className="px-2 sm:px-4 py-3 sm:py-4 text-gray-600 text-xs sm:text-sm hidden lg:table-cell">
                                         {(product as any).brand_name || (product as any).brand_name_ar || (product as any).brand_name_en || '-'}
                                     </td>
-                                    <td className="px-4 py-4 text-gray-500">
-                                        {(Number(product.price) || 0).toFixed(2)} EGP
+                                    <td className="px-2 sm:px-4 py-3 sm:py-4 text-gray-500 text-xs sm:text-sm">
+                                        {(Number(product.price) || 0).toFixed(0)} ج
                                     </td>
-                                    <td className="px-4 py-4 font-bold text-green-600">
-                                        {product.discount_price ? `${Number(product.discount_price).toFixed(2)} EGP` : '-'}
+                                    <td className="px-2 sm:px-4 py-3 sm:py-4 font-bold text-green-600 text-xs sm:text-sm">
+                                        {product.discount_price ? `${Number(product.discount_price).toFixed(0)} ج` : '-'}
                                     </td>
-                                    <td className="px-4 py-4">
+                                    <td className="px-2 sm:px-4 py-3 sm:py-4 hidden sm:table-cell">
                                         <span className={`px-2 py-1 text-xs font-bold rounded-full ${(product.stock_quantity || 0) > 10 ? 'bg-green-100 text-green-700' : (product.stock_quantity || 0) > 0 ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'}`}>
-                                            {product.stock_quantity || 0} قطعة
+                                            {product.stock_quantity || 0}
                                         </span>
                                     </td>
-                                    <td className="px-4 py-4 text-right">
-                                        <div className="flex items-center justify-end space-x-2">
+                                    <td className="px-2 sm:px-4 py-3 sm:py-4 text-right">
+                                        <div className="flex items-center justify-end gap-1">
                                             <button
                                                 onClick={() => openEdit(product)}
-                                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                className="p-1.5 sm:p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                             >
-                                                <Edit size={18} />
+                                                <Edit size={16} />
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(product.id)}
-                                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                className="p-1.5 sm:p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                             >
-                                                <Trash2 size={18} />
+                                                <Trash2 size={16} />
                                             </button>
                                         </div>
                                     </td>

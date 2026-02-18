@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Edit, Trash2, MapPin, Phone, ToggleLeft, ToggleRight, Navigation, Link2 } from 'lucide-react';
 import { api } from '../../services/api';
+import '../../styles/admin-responsive.css';
 
 interface Branch {
   id: number;
@@ -171,54 +172,93 @@ const BranchesManager: React.FC = () => {
   };
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Branches</h1>
-        <button onClick={openCreate} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
-          <Plus size={18} /> New Branch
-        </button>
+    <div className="admin-page-container">
+      <div className="admin-page-header">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div>
+            <h1 className="admin-page-title">إدارة الفروع</h1>
+            <p className="admin-page-subtitle">عرض وإدارة جميع الفروع</p>
+          </div>
+          <button onClick={openCreate} className="admin-btn-primary">
+            <Plus size={18} /> إضافة فرع
+          </button>
+        </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <table className="w-full text-left">
-          <thead className="bg-gray-50 border-b border-gray-100">
-            <tr>
-              <th className="px-6 py-4 font-semibold text-gray-600">Name</th>
-              <th className="px-6 py-4 font-semibold text-gray-600">Address</th>
-              <th className="px-6 py-4 font-semibold text-gray-600">Phone</th>
-              <th className="px-6 py-4 font-semibold text-gray-600">Active</th>
-              <th className="px-6 py-4 font-semibold text-gray-600 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {branches.map(b => (
-              <tr key={b.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 font-medium text-gray-900">{b.name}</td>
-                <td className="px-6 py-4 text-gray-600 flex items-center gap-2"><MapPin size={16} className="text-gray-400" />{b.address}</td>
-                <td className="px-6 py-4 text-gray-600 flex items-center gap-2"><Phone size={16} className="text-gray-400" />{b.phone}</td>
-                <td className="px-6 py-4">
-                  <button onClick={() => toggleActive(b)} className="flex items-center gap-1 text-sm">
-                    {b.is_active ? <ToggleRight className="text-green-600" /> : <ToggleLeft className="text-gray-400" />}
-                    <span>{b.is_active ? 'Active' : 'Inactive'}</span>
-                  </button>
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <div className="flex justify-end gap-2">
-                    <button onClick={() => openEdit(b)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit size={18} /></button>
-                    <button onClick={() => remove(b.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={18} /></button>
-                  </div>
-                </td>
+      {/* Mobile Cards */}
+      <div className="sm:hidden space-y-3">
+        {branches.map(b => (
+          <div key={b.id} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+            <div className="flex items-center justify-between mb-2">
+              <div className="font-bold text-gray-900">{b.name_ar || b.name}</div>
+              <button onClick={() => toggleActive(b)} className="flex items-center gap-1 text-sm">
+                {b.is_active ? <ToggleRight className="text-green-600" size={20} /> : <ToggleLeft className="text-gray-400" size={20} />}
+              </button>
+            </div>
+            <div className="text-xs text-gray-500 space-y-1 mb-3">
+              <p className="flex items-center gap-1"><MapPin size={12} />{b.address}</p>
+              <p className="flex items-center gap-1"><Phone size={12} />{b.phone}</p>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <button onClick={() => openEdit(b)} className="px-3 py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 rounded-lg">تعديل</button>
+              <button onClick={() => remove(b.id)} className="px-3 py-1.5 text-xs font-semibold text-red-600 bg-red-50 rounded-lg">حذف</button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop Table */}
+      <div className="hidden sm:block admin-table-container">
+        <div className="overflow-x-auto">
+          <table className="admin-table min-w-[600px]">
+            <thead>
+              <tr>
+                <th className="px-3 sm:px-6 py-3 sm:py-4">الاسم</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 hidden md:table-cell">العنوان</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4">الهاتف</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4">الحالة</th>
+                <th className="px-3 sm:px-6 py-3 sm:py-4 text-right">إجراءات</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {branches.map(b => (
+                <tr key={b.id} className="hover:bg-gray-50">
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 font-medium text-gray-900 text-sm">{b.name_ar || b.name}</td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-gray-600 text-sm hidden md:table-cell">
+                    <span className="flex items-center gap-1"><MapPin size={14} className="text-gray-400 flex-shrink-0" />{b.address}</span>
+                  </td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-gray-600 text-sm">
+                    <span className="flex items-center gap-1"><Phone size={14} className="text-gray-400 flex-shrink-0" />{b.phone}</span>
+                  </td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4">
+                    <button onClick={() => toggleActive(b)} className="flex items-center gap-1 text-sm">
+                      {b.is_active ? <ToggleRight className="text-green-600" /> : <ToggleLeft className="text-gray-400" />}
+                      <span className="hidden sm:inline">{b.is_active ? 'نشط' : 'متوقف'}</span>
+                    </button>
+                  </td>
+                  <td className="px-3 sm:px-6 py-3 sm:py-4 text-right">
+                    <div className="flex justify-end gap-1 sm:gap-2">
+                      <button onClick={() => openEdit(b)} className="p-1.5 sm:p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit size={16} /></button>
+                      <button onClick={() => remove(b.id)} className="p-1.5 sm:p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={16} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-2xl w-full max-w-lg">
-            <h2 className="text-xl font-bold mb-4">{editing ? 'Edit Branch' : 'New Branch'}</h2>
-            <form onSubmit={save} className="space-y-4 max-h-[80vh] overflow-y-auto">
+        <div className="admin-modal-overlay">
+          <div className="admin-modal-container max-w-lg">
+            <div className="admin-modal-header">
+              <h2 className="admin-modal-title">{editing ? 'تعديل الفرع' : 'إضافة فرع جديد'}</h2>
+              <button type="button" onClick={()=>setShowModal(false)} className="admin-modal-close p-2 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-100">
+                <span className="text-xl">✕</span>
+              </button>
+            </div>
+            <form onSubmit={save} className="admin-modal-body space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">

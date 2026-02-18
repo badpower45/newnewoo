@@ -25,12 +25,29 @@ interface LanguageProviderProps {
 }
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-    const [language, setLanguageState] = useState<Language>('ar');
+    const [language, setLanguageState] = useState<Language>(() => {
+        // Restore saved language preference
+        try {
+            const saved = localStorage.getItem('app_language');
+            if (saved === 'en') return 'en';
+        } catch (_) {}
+        return 'ar';
+    });
 
     useEffect(() => {
         applyLanguage(language);
         
-        // Always start in Arabic - no auto-translate on load
+        // If saved language is English, trigger Google Translate on load
+        if (language === 'en') {
+            const tryTranslate = () => {
+                const triggered = (window as any).triggerGoogleTranslate?.('en');
+                if (!triggered) {
+                    setTimeout(tryTranslate, 1000);
+                }
+            };
+            // Give Google Translate SDK time to initialize
+            setTimeout(tryTranslate, 1500);
+        }
     }, []);
 
     const applyLanguage = (lang: Language) => {
@@ -48,6 +65,9 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     const setLanguage = (lang: Language) => {
         if (lang === language) return;
 
+        // Persist the choice
+        try { localStorage.setItem('app_language', lang); } catch (_) {}
+
         if (lang === 'ar') {
             // Clear the googtrans cookie FIRST so that after reload
             // Google Translate does NOT auto-translate the page again.
@@ -63,6 +83,8 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
                     combo.dispatchEvent(new Event('change', { bubbles: true }));
                 }
             } catch (_) {}
+            // Remove saved language so reload starts fresh in Arabic
+            try { localStorage.removeItem('app_language'); } catch (_) {}
             window.location.reload();
             return;
         }
@@ -72,16 +94,18 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
         applyLanguage(lang);
 
         // Trigger Google Translate after React re-renders
-        try {
-            const triggered = (window as any).triggerGoogleTranslate?.('en');
-            if (!triggered) {
-                setTimeout(() => {
-                    (window as any).triggerGoogleTranslate?.('en');
-                }, 1500);
+        const tryTranslate = (retries = 0) => {
+            try {
+                const triggered = (window as any).triggerGoogleTranslate?.('en');
+                if (!triggered && retries < 5) {
+                    setTimeout(() => tryTranslate(retries + 1), 800);
+                }
+            } catch (e) {
+                console.warn('Google Translate not available:', e);
+                if (retries < 5) setTimeout(() => tryTranslate(retries + 1), 800);
             }
-        } catch (e) {
-            console.warn('Google Translate not available:', e);
-        }
+        };
+        tryTranslate();
     };
 
     const resolveNestedTranslation = (lang: Language, key: string) => {

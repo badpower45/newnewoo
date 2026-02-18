@@ -24,44 +24,35 @@ const AnnouncementPopup: React.FC<AnnouncementPopupProps> = ({ page = 'homepage'
     const [isClosing, setIsClosing] = useState(false);
     const [imageLoaded, setImageLoaded] = useState(false);
     const [imageError, setImageError] = useState(false);
-    const dismissedKey = 'dismissed_popups'; // localStorage - دائم
-    const shownKey = 'popup_shown_this_session'; // localStorage - دائم (مرة واحدة فقط)
+    const shownKey = 'popup_shown_this_view'; // sessionStorage - يظهر كل ريفرش
 
-    const getDismissedPopups = () => {
-        try {
-            const raw = localStorage.getItem(dismissedKey);
-            const parsed = raw ? JSON.parse(raw) : [];
-            return Array.isArray(parsed) ? parsed : [];
-        } catch {
-            return [];
-        }
+    const getDismissedPopups = (): number[] => {
+        // No permanent dismissal - popup shows every refresh
+        return [];
     };
 
-    const markPopupDismissed = (popupId: number) => {
+    const markPopupDismissed = (_popupId: number) => {
+        // Mark shown in sessionStorage so it doesn't show twice in same page view
         try {
-            const dismissed = new Set<number>(getDismissedPopups());
-            dismissed.add(popupId);
-            localStorage.setItem(dismissedKey, JSON.stringify(Array.from(dismissed)));
-            // Also mark shown so it never appears again even without explicit dismiss
-            localStorage.setItem(shownKey, 'true');
+            sessionStorage.setItem(shownKey, 'true');
         } catch {
             // Ignore storage issues
         }
     };
 
-    // تحقق إذا الـ popup ظهر من قبل (أو تم إغلاقه)
+    // تحقق إذا الـ popup ظهر في هذه الجلسة الحالية فقط
     const hasShownBefore = () => {
         try {
-            return localStorage.getItem(shownKey) === 'true';
+            return sessionStorage.getItem(shownKey) === 'true';
         } catch {
             return false;
         }
     };
 
-    // تسجيل أن الـ popup ظهر
+    // تسجيل أن الـ popup ظهر في هذه الجلسة
     const markShown = () => {
         try {
-            localStorage.setItem(shownKey, 'true');
+            sessionStorage.setItem(shownKey, 'true');
         } catch {
             // Ignore storage issues
         }

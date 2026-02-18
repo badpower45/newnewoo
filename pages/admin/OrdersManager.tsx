@@ -284,8 +284,17 @@ const OrdersManager = () => {
                             <div className="bg-gray-50 p-3 sm:p-4 rounded-lg sm:rounded-xl">
                                 <h3 className="font-bold text-gray-900 mb-2 sm:mb-3 text-sm sm:text-base">تفاصيل العميل</h3>
                                 <div className="space-y-2 text-xs sm:text-sm">
-                                    <p><span className="text-gray-500">رقم العميل:</span> <span className="font-medium">#{selectedOrder.userId}</span></p>
-                                    <p className="break-words"><span className="text-gray-500">العنوان:</span> <span className="font-medium">{selectedOrder.deliveryAddress || selectedOrder.delivery_address || 'غير محدد'}</span></p>
+                                    <p><span className="text-gray-500">رقم العميل:</span> <span className="font-medium">#{selectedOrder.userId || selectedOrder.user_id}</span></p>
+                                    {(selectedOrder.shipping_info?.name || selectedOrder.shippingInfo?.name || selectedOrder.customer_name || selectedOrder.user_name) && (
+                                        <p><span className="text-gray-500">الاسم:</span> <span className="font-medium">{selectedOrder.shipping_info?.name || selectedOrder.shippingInfo?.name || selectedOrder.customer_name || selectedOrder.user_name}</span></p>
+                                    )}
+                                    {(selectedOrder.shipping_info?.phone || selectedOrder.shippingInfo?.phone || selectedOrder.customer_phone) && (
+                                        <p><span className="text-gray-500">الهاتف:</span> <span className="font-medium" dir="ltr">{selectedOrder.shipping_info?.phone || selectedOrder.shippingInfo?.phone || selectedOrder.customer_phone}</span></p>
+                                    )}
+                                    {(selectedOrder.shipping_info?.email || selectedOrder.shippingInfo?.email) && (
+                                        <p><span className="text-gray-500">الإيميل:</span> <span className="font-medium">{selectedOrder.shipping_info?.email || selectedOrder.shippingInfo?.email}</span></p>
+                                    )}
+                                    <p className="break-words"><span className="text-gray-500">العنوان:</span> <span className="font-medium">{selectedOrder.shipping_info?.address || selectedOrder.shippingInfo?.address || selectedOrder.deliveryAddress || selectedOrder.delivery_address || 'غير محدد'}</span></p>
                                 </div>
                             </div>
 
