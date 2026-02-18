@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MessageCircle, User, Clock, Wifi, WifiOff, RefreshCw, Send, ArrowRight, ChevronRight } from 'lucide-react';
 import { api } from '../../services/api';
 import { socketService } from '../../services/socketService';
@@ -45,6 +45,8 @@ const LiveChatDashboard = () => {
     const [isConnected, setIsConnected] = useState(true);
     const [mobileShowChat, setMobileShowChat] = useState(false);
     const typingTimeoutRef = React.useRef<NodeJS.Timeout>();
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const messagesContainerRef = useRef<HTMLDivElement>(null);
 
     const appendMessage = (incoming: Message) => {
         setMessages(prev => {
@@ -233,6 +235,13 @@ const LiveChatDashboard = () => {
         }
     };
 
+    // Auto-scroll to latest message smoothly
+    useEffect(() => {
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [messages]);
+
     const filteredConversations = conversations.filter(conv => {
         if (filter === 'assigned') return agentId !== null && conv.agentId === agentId;
         if (filter === 'unassigned') return conv.agentId === null;
@@ -368,7 +377,11 @@ const LiveChatDashboard = () => {
                         </div>
 
                         {/* Messages */}
-                        <div className="flex-1 overflow-y-auto p-3 md:p-4 space-y-2 md:space-y-3 bg-gray-50">
+                        <div
+                            ref={messagesContainerRef}
+                            className="flex-1 overflow-y-auto p-3 md:p-4 space-y-2 md:space-y-3 bg-gray-50"
+                            style={{ scrollBehavior: 'smooth' }}
+                        >
                             {messages.map(msg => (
                                 <div
                                     key={msg.id}
@@ -400,6 +413,8 @@ const LiveChatDashboard = () => {
                                     </div>
                                 </div>
                             ))}
+                            {/* Scroll anchor */}
+                            <div ref={messagesEndRef} />
                         </div>
 
                         {/* Input - larger touch targets on mobile */}
