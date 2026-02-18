@@ -49,15 +49,23 @@ router.post('/image', upload.single('image'), async (req, res) => {
             });
         }
 
-        // Get optional product ID or generate unique identifier
-        const productId = req.body.productId || `product_${Date.now()}`;
+        // Determine upload folder and ID based on type
+        const uploadType = req.body.type; // 'logo', 'banner', or undefined (product)
+        const brandId = req.body.brandId;
+        let folder = 'products';
+        let publicId = req.body.productId || `product_${Date.now()}`;
+        
+        if (uploadType === 'logo' || uploadType === 'banner') {
+            folder = `brands/${uploadType}`;
+            publicId = brandId ? `brand_${brandId}_${uploadType}` : `brand_${Date.now()}_${uploadType}`;
+        }
         
         // Upload to Cloudinary using buffer
         const uploadResult = await new Promise((resolve, reject) => {
             const uploadStream = cloudinary.uploader.upload_stream(
                 {
-                    folder: 'products',
-                    public_id: productId,
+                    folder: folder,
+                    public_id: publicId,
                     resource_type: 'image',
                     format: 'webp', // Force WebP for all images
                     transformation: [

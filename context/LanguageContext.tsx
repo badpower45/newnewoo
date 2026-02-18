@@ -32,7 +32,19 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
 
     useEffect(() => {
         applyLanguage(language);
-    }, [language]);
+        
+        // If language is English on load, trigger Google Translate after script loads
+        if (language === 'en') {
+            const tryTranslate = () => {
+                const triggered = (window as any).triggerGoogleTranslate?.('en');
+                if (!triggered) {
+                    setTimeout(tryTranslate, 1000);
+                }
+            };
+            // Wait for Google Translate script to load
+            setTimeout(tryTranslate, 2000);
+        }
+    }, []);
 
     const applyLanguage = (lang: Language) => {
         // Set document direction and language
@@ -49,6 +61,25 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
         setLanguageState(lang);
         localStorage.setItem('language', lang);
         applyLanguage(lang);
+        
+        // Trigger Google Translate for full page translation
+        try {
+            if (lang === 'en') {
+                // Translate page to English using Google Translate
+                const triggered = (window as any).triggerGoogleTranslate?.('en');
+                if (!triggered) {
+                    // Retry after a short delay (script might still be loading)
+                    setTimeout(() => {
+                        (window as any).triggerGoogleTranslate?.('en');
+                    }, 1500);
+                }
+            } else {
+                // Restore original Arabic
+                (window as any).restoreGoogleTranslate?.();
+            }
+        } catch (e) {
+            console.warn('Google Translate not available:', e);
+        }
     };
 
     const resolveNestedTranslation = (lang: Language, key: string) => {

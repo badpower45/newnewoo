@@ -189,7 +189,6 @@ const MorePage = () => {
                         >
                             {t('edit_profile')}
                         </button>
-                        </button>
                     </div>
                 ) : (
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-center justify-between">
