@@ -93,21 +93,26 @@
         var gtCombo = document.querySelector('.goog-te-combo');
         if (gtCombo) {
           gtCombo.value = targetLang === 'ar' ? '' : targetLang;
-          gtCombo.dispatchEvent(new Event('change'));
+          gtCombo.dispatchEvent(new Event('change', { bubbles: true }));
           // Ensure banner stays hidden
           setTimeout(function() {
-            var frames = document.querySelectorAll('.goog-te-banner-frame, .skiptranslate');
-            frames.forEach(function(f) { f.style.display = 'none'; });
+            var frames = document.querySelectorAll('.goog-te-banner-frame, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame');
+            frames.forEach(function(f) { f.style.cssText = 'display:none!important;visibility:hidden!important;height:0!important;'; });
             document.body.style.top = '0px';
-          }, 500);
+          }, 300);
+          setTimeout(function() {
+            var frames = document.querySelectorAll('.goog-te-banner-frame, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame');
+            frames.forEach(function(f) { f.style.cssText = 'display:none!important;visibility:hidden!important;height:0!important;'; });
+            document.body.style.top = '0px';
+          }, 1000);
           return true;
         }
         return false;
       };
       
-      // Restore original language
+      // Restore original language (Arabic)
       window.restoreGoogleTranslate = function() {
-        // Step 1: Always clear cookies FIRST (regardless of combo availability)
+        // Step 1: Always clear cookies FIRST
         var exp = 'expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
         document.cookie = 'googtrans=; ' + exp + ';';
         document.cookie = 'googtrans=; ' + exp + '; domain=' + window.location.hostname + ';';
@@ -121,16 +126,16 @@
             select.value = '';
             select.dispatchEvent(new Event('change', { bubbles: true, cancelable: true }));
             select.dispatchEvent(new Event('input', { bubbles: true }));
-            // Hide any banners that may have appeared
+            // Hide any banners
             setTimeout(function() {
-              document.querySelectorAll('.goog-te-banner-frame, .skiptranslate').forEach(function(el) {
+              document.querySelectorAll('.goog-te-banner-frame, .skiptranslate, #goog-gt-tt, .goog-te-balloon-frame').forEach(function(el) {
                 el.style.cssText = 'display:none!important;visibility:hidden!important;height:0!important;';
               });
               document.body.style.top = '0px';
             }, 200);
-          } else if (attempts < 4) {
+          } else if (attempts < 6) {
             attempts++;
-            setTimeout(tryReset, 400);
+            setTimeout(tryReset, 300);
           }
         };
         tryReset();
