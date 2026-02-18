@@ -156,7 +156,7 @@ function AppContent() {
     registerImageCacheServiceWorker();
   }, []);
 
-  // Re-trigger Google Translate on every route change (SPA navigation)
+  // Re-initialize & re-trigger Google Translate on every route change (SPA navigation)
   useEffect(() => {
     if (language !== 'en') return;
 
@@ -169,26 +169,46 @@ function AppContent() {
       document.body.style.top = '0px';
     };
 
-    const retranslate = () => {
-      const combo = document.querySelector('.goog-te-combo') as HTMLSelectElement | null;
-      if (!combo) return;
-      // MUST reset to '' first — GT ignores re-dispatch if value is already 'en'
-      combo.value = '';
-      combo.dispatchEvent(new Event('change', { bubbles: true }));
-      setTimeout(() => {
-        combo.value = 'en';
-        combo.dispatchEvent(new Event('change', { bubbles: true }));
-        combo.dispatchEvent(new Event('change', { bubbles: true })); // double-fire forces GT to re-scan
-        setTimeout(hideBanner, 600);
-      }, 250);
+    let pollInterval: ReturnType<typeof setInterval> | null = null;
+
+    const pollAndTranslate = () => {
+      let attempts = 0;
+      pollInterval = setInterval(() => {
+        const combo = document.querySelector('.goog-te-combo') as HTMLSelectElement | null;
+        if (combo) {
+          clearInterval(pollInterval!);
+          pollInterval = null;
+          // Set cookie to ensure GT knows target language
+          document.cookie = 'googtrans=/ar/en; path=/';
+          document.cookie = `googtrans=/ar/en; path=/; domain=${window.location.hostname}`;
+          combo.value = 'en';
+          combo.dispatchEvent(new Event('change', { bubbles: true }));
+          setTimeout(hideBanner, 800);
+          setTimeout(hideBanner, 2000);
+        }
+        if (++attempts > 25) {
+          clearInterval(pollInterval!);
+          pollInterval = null;
+        }
+      }, 300);
     };
 
-    // First attempt after React finishes rendering
-    const t1 = setTimeout(retranslate, 500);
-    // Second attempt as safety net for slow/lazy-loaded pages
-    const t2 = setTimeout(retranslate, 1500);
+    // Wait for React to finish rendering new page, then re-init GT from scratch
+    const timer = setTimeout(() => {
+      const win = window as any;
+      if (win.reInitGoogleTranslate && win.reInitGoogleTranslate()) {
+        // GT re-initialized — poll for the new combo
+        pollAndTranslate();
+      } else {
+        // Fallback: GT script not ready yet, just poll existing combo
+        pollAndTranslate();
+      }
+    }, 500);
 
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+    return () => {
+      clearTimeout(timer);
+      if (pollInterval) clearInterval(pollInterval);
+    };
   }, [location.pathname, language]);
   const path = location.pathname;
   const { user } = useAuth();
