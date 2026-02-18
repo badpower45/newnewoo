@@ -186,9 +186,13 @@ const FacebookReelsManager: React.FC = () => {
             return `https://www.youtube.com/embed/${ytId}?rel=0&autoplay=1&modestbranding=1`;
         }
 
-        // For ALL Facebook URLs: return the original URL.
-        // The grid uses the FB JS SDK (fb-video widget) which handles reels, share/v/, page videos.
-        if (/facebook\.com|fb\.watch/i.test(url)) return url;
+        // All Facebook URLs (reel/, share/v/, page videos) → plugins/video.php iframe embed
+        if (/facebook\.com|fb\.watch/i.test(url) && !/plugins\/video\.php/.test(url)) {
+            return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&autoplay=1`;
+        }
+        if (/facebook\.com\/plugins\/video\.php/.test(url)) {
+            return ensureHttps(url);
+        }
 
         // Vimeo
         const vimeoMatch = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
@@ -204,13 +208,13 @@ const FacebookReelsManager: React.FC = () => {
     const handleFacebookUrlChange = (url: string) => {
         setForm(prev => ({ ...prev, facebook_url: url }));
 
-        // For ALL Facebook URLs: store the original URL.
-        // The grid uses FB JS SDK which plays reels, share/v/, page videos inside the website player.
-        if (/facebook\.com|fb\.watch/i.test(url)) {
+        // All Facebook URLs → auto-generate plugins/video.php embed URL
+        if (/facebook\.com|fb\.watch/i.test(url) && !/plugins\/video\.php/.test(url)) {
+            const embedUrl = `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&width=500&autoplay=true`;
             setForm(prev => ({
                 ...prev,
                 facebook_url: url,
-                video_url: url // original URL → FB SDK player in grid
+                video_url: embedUrl
             }));
         }
     };
@@ -254,8 +258,7 @@ const FacebookReelsManager: React.FC = () => {
                     <li>رابط شير فيسبوك الجديد: <span className="font-mono text-xs bg-blue-100 px-1 rounded">facebook.com/share/v/XXXX</span> ← يشتغل داخل الموقع ✅</li>
                     <li>رابط ريل: <span className="font-mono text-xs bg-blue-100 px-1 rounded">facebook.com/reel/ID</span> ← يشتغل داخل الموقع ✅</li>
                     <li>رابط فيديو صفحة: <span className="font-mono text-xs bg-blue-100 px-1 rounded">facebook.com/PAGE/videos/ID</span> ← يشتغل داخل الموقع ✅</li>
-                    <li>رابط YouTube أو Vimeo: يشتغل داخل الموقع مباشرة ✅</li>
-                    <li>ملف MP4 مباشر: يشتغل داخل الموقع مباشرة ✅</li>
+                    <li>رابط YouTube أو Vimeo: يشتغل داخل الموقع مباشرة ✅</li>                    <li>ملف MP4 مباشر: يشتغل داخل الموقع مباشرة ✅</li>
                     <li>الصورة المصغرة: ارفعها على Cloudinary والصق الرابط (روابط فيسبوك المباشرة للصور بتنتهي وتعطي 403).</li>
                 </ul>
             </div>

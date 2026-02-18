@@ -45,61 +45,16 @@ const normalizeVideoUrl = (url?: string): string => {
     const vimeoId = url.match(/vimeo\.com\/(?:video\/)?(\d+)/)?.[1];
     if (vimeoId) return `https://player.vimeo.com/video/${vimeoId}?autoplay=1&muted=1`;
 
-    // For ALL Facebook URLs: return the original URL.
-    // The player uses FBVideoEmbed (FB JS SDK) which handles reels, share/v/, page videos.
-    if (/facebook\.com|fb\.watch/i.test(url)) return url;
+    // All Facebook URLs (reel/, share/v/, page videos) → plugins/video.php iframe embed
+    if (/facebook\.com|fb\.watch/i.test(url) && !/plugins\/video\.php/.test(url)) {
+        return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(url)}&show_text=false&autoplay=1&muted=1`;
+    }
+    if (/facebook\.com\/plugins\/video\.php/.test(url)) {
+        return url.startsWith('http') ? url : `https:${url}`;
+    }
 
     return url;
 };
-
-// Facebook JS SDK embed – works for reels, share/v/, page videos
-const FBVideoEmbed = memo(({ href, fallbackFbUrl }: { href: string; fallbackFbUrl?: string }) => {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const [sdkReady, setSdkReady] = useState(!!(window as any).FB);
-
-    useEffect(() => {
-        // Poll until FB SDK is ready, then parse the widget
-        let attempts = 0;
-        const tryParse = () => {
-            if ((window as any).FB && containerRef.current) {
-                (window as any).FB.XFBML.parse(containerRef.current);
-                setSdkReady(true);
-            } else if (attempts < 20) {
-                attempts++;
-                setTimeout(tryParse, 300);
-            }
-        };
-        tryParse();
-    }, [href]);
-
-    return (
-        <div ref={containerRef} className="w-full h-full flex items-center justify-center bg-black overflow-hidden">
-            {!sdkReady && (
-                <div className="absolute inset-0 flex items-center justify-center z-10">
-                    <div className="w-10 h-10 border-[3px] border-white/30 border-t-white rounded-full animate-spin" />
-                </div>
-            )}
-            <div
-                className="fb-video"
-                data-href={href}
-                data-width="auto"
-                data-allowfullscreen="true"
-                data-autoplay="true"
-                style={{ width: '100%', maxWidth: '100%' }}
-            />
-            {/* Fallback open-on-Facebook button always visible below player */}
-            <a
-                href={fallbackFbUrl || href}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="absolute bottom-20 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 bg-blue-600/80 backdrop-blur text-white text-xs rounded-full font-semibold hover:bg-blue-700 transition-colors z-20"
-            >
-                <Facebook className="w-3.5 h-3.5" />
-                فتح على فيسبوك
-            </a>
-        </div>
-    );
-});
 
 // Lazy iframe – loads only when modal is open for that reel
 const LazyIframe = memo(({ src, title }: { src: string; title: string }) => {
@@ -406,14 +361,8 @@ const FacebookReelsGrid: React.FC<FacebookReelsGridProps> = ({
 
                             {/* Video Content */}
                             {playableUrl ? (
-                                source === 'facebook' ? (
-                                    // Facebook: use FB JS SDK player (handles reels, share/v/, page videos)
-                                    <FBVideoEmbed
-                                        key={`fb-${activeVideo}`}
-                                        href={playableUrl}
-                                        fallbackFbUrl={current?.facebook_url}
-                                    />
-                                ) : isEmbed ? (
+                                isEmbed ? (
+                                    // YouTube / Facebook plugins/video.php / Vimeo → iframe
                                     <LazyIframe
                                         key={`reel-${activeVideo}`}
                                         src={playableUrl}
