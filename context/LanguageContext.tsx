@@ -45,26 +45,32 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
 
     const setLanguage = (lang: Language) => {
         if (lang === language) return;
+
+        // For Arabic: stop Google Translate BEFORE React re-renders
+        // so it doesn't immediately re-translate the fresh Arabic content
+        if (lang === 'ar') {
+            try {
+                (window as any).restoreGoogleTranslate?.();
+            } catch (e) {
+                console.warn('Google Translate restore failed:', e);
+            }
+        }
+
         setLanguageState(lang);
         applyLanguage(lang);
-        
-        // Trigger Google Translate for full page translation
-        try {
-            if (lang === 'en') {
-                // Translate page to English using Google Translate
+
+        // For English: trigger Google Translate after React re-renders
+        if (lang === 'en') {
+            try {
                 const triggered = (window as any).triggerGoogleTranslate?.('en');
                 if (!triggered) {
-                    // Retry after a short delay (script might still be loading)
                     setTimeout(() => {
                         (window as any).triggerGoogleTranslate?.('en');
                     }, 1500);
                 }
-            } else {
-                // Restore original Arabic
-                (window as any).restoreGoogleTranslate?.();
+            } catch (e) {
+                console.warn('Google Translate not available:', e);
             }
-        } catch (e) {
-            console.warn('Google Translate not available:', e);
         }
     };
 
