@@ -65,9 +65,12 @@ const withCombo = (cb: (combo: HTMLSelectElement) => void, maxMs = 15000) => {
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
     const [language, setLanguageState] = useState<Language>(() => {
         try {
-            const saved = localStorage.getItem('app_language');
+            // Check new key first, fall back to old key (old code used 'language')
+            const saved = localStorage.getItem('app_language') ?? localStorage.getItem('language');
             if (saved === 'en') return 'en';
-            if (document.cookie.includes('googtrans=/ar/en')) return 'en';
+            // Handle both raw and URL-encoded cookie formats
+            const cookies = document.cookie;
+            if (cookies.includes('googtrans=/ar/en') || cookies.includes('googtrans=%2Far%2Fen')) return 'en';
         } catch (_) {}
         return 'ar';
     });
@@ -88,8 +91,16 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
                 setTimeout(suppressBanner, 1200);
             });
         } else {
-            // Make sure cookies are cleared on mount if Arabic
+            // Clear cookies AND actively reset combo if GT already translated the page
             clearGoogTransCookies();
+            withCombo((combo) => {
+                if (combo.value && combo.value !== '') {
+                    combo.value = '';
+                    combo.dispatchEvent(new Event('change', { bubbles: true }));
+                    combo.dispatchEvent(new Event('input', { bubbles: true }));
+                    setTimeout(suppressBanner, 400);
+                }
+            }, 10000);
         }
     }, []); // run once on mount
 
@@ -102,7 +113,10 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
         document.body.classList.remove('lang-ar', 'lang-en');
         document.body.classList.add(`lang-${lang}`);
 
-        try { localStorage.setItem('app_language', lang); } catch (_) {}
+        try {
+            localStorage.setItem('app_language', lang);
+            localStorage.removeItem('language'); // migrate old key
+        } catch (_) {}
 
         if (lang === 'en') {
             // ── Activate Google Translate ──────────────────────────────────
