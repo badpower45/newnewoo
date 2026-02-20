@@ -64,6 +64,7 @@ const AdminLayout = () => {
             title: '🏪 الفروع والمخزون',
             items: [
                 { path: '/admin/branches', icon: <Store size={20} />, label: 'إدارة الفروع', roles: ['admin', 'manager'] },
+                { path: '/admin/branch-locations', icon: <Navigation size={20} />, label: 'مواقع الفروع 📍', roles: ['admin', 'manager'] },
                 { path: '/admin/delivery-fees', icon: <MapPin size={20} />, label: 'رسوم التوصيل', roles: ['admin', 'manager'] },
             ]
         },

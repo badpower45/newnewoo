@@ -78,6 +78,7 @@ const OrdersManager = lazyWithRetry(() => import('./pages/admin/OrdersManager'))
 const EmployeesManager = lazyWithRetry(() => import('./pages/admin/EmployeesManager'));
 const LiveChatDashboard = lazyWithRetry(() => import('./pages/admin/LiveChatDashboard'));
 const BranchesManager = lazyWithRetry(() => import('./pages/admin/BranchesManager'));
+const BranchLocationsManager = lazyWithRetry(() => import('./pages/admin/BranchLocationsManager'));
 const InventoryDashboard = lazyWithRetry(() => import('./pages/admin/InventoryDashboard'));
 const AdminInventoryDashboard = lazyWithRetry(() => import('./pages/admin/InventoryDashboard'));
 const OrderDistributorPage = lazyWithRetry(() => import('./pages/admin/OrderDistributorPage'));
@@ -315,6 +316,7 @@ function AppContent() {
               <Route path="upload" element={<ProductUploadPage />} />
               <Route path="orders" element={<OrdersManager />} />
               <Route path="branches" element={<BranchesManager />} />
+              <Route path="branch-locations" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><BranchLocationsManager /></ProtectedRoute>} />
               <Route path="delivery-fees" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><DeliveryFeesManager /></ProtectedRoute>} />
               <Route path="inventory" element={<InventoryDashboard />} />
               <Route path="inventory-analytics" element={<ProtectedRoute allowedRoles={['admin', 'manager']}><AdminInventoryDashboard /></ProtectedRoute>} />
