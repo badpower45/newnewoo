@@ -16,7 +16,6 @@ const BranchSelector: React.FC<BranchSelectorProps> = ({ isOpen, onClose }) => {
   const [locError, setLocError] = useState('');
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
   const [branchDistances, setBranchDistances] = useState<Map<number, number>>(new Map());
-  const toastBaseClasses = 'fixed top-20 left-1/2 transform -translate-x-1/2 bg-green-500 text-white rounded-xl shadow-2xl z-[9999] animate-bounce flex items-start gap-3 px-4 py-3 text-sm sm:text-base w-[calc(100%-2rem)] max-w-md sm:w-auto';
 
   useEffect(() => {
     if (isOpen && branches.length === 0) {
@@ -26,22 +25,6 @@ const BranchSelector: React.FC<BranchSelectorProps> = ({ isOpen, onClose }) => {
 
   const handleSelectBranch = (branch: any) => {
     selectBranch(branch);
-    
-    // Show success message
-    const toast = document.createElement('div');
-    toast.className = toastBaseClasses;
-    toast.innerHTML = `
-      <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20">
-        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-      </svg>
-      <div class="text-right leading-snug">
-        <p class="font-bold text-sm sm:text-base">تم تحديد الفرع ✓</p>
-        <p class="text-[11px] sm:text-xs opacity-90 break-words">سيتم عرض المنتجات من ${branch.name}</p>
-      </div>
-    `;
-    document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3000);
-    
     onClose();
   };
 
@@ -92,23 +75,6 @@ const BranchSelector: React.FC<BranchSelectorProps> = ({ isOpen, onClose }) => {
           const nearest = await autoSelectByLocation(userPos.lat, userPos.lng);
           
           if (nearest) {
-            const distance = distances.get(nearest.id);
-            
-            // Show success toast with distance
-            const toast = document.createElement('div');
-            toast.className = toastBaseClasses;
-            toast.innerHTML = `
-              <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-              </svg>
-              <div class="text-right leading-snug">
-                <p class="font-bold text-sm sm:text-base">تم اختيار أقرب فرع ✓</p>
-                <p class="text-[11px] sm:text-xs opacity-90 break-words">${nearest.name}${distance ? ` - ${distance.toFixed(1)} كم` : ''}</p>
-              </div>
-            `;
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 4000);
-          
             onClose();
           } else {
             setLocError('لم يتم العثور على فرع مناسب لموقعك');
