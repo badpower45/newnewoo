@@ -188,10 +188,17 @@ const BranchLocationsManager: React.FC = () => {
       const lng = branch.longitude ?? branch.location_lng;
       if (!lat || !lng) return;
 
-      const isEditing = editingId === branch.id;
-      const icon = makeNumberedIcon(L, idx + 1, !!lat, isEditing);
+      // Hide the marker for the branch being edited (temp blue marker replaces it)
+      if (editingId !== null && editingId === branch.id) return;
 
-      const marker = L.marker([Number(lat), Number(lng)], { icon, draggable: false })
+      const icon = makeNumberedIcon(L, idx + 1, true, false);
+
+      // Make all markers non-interactive during editing so they don't absorb map clicks
+      const marker = L.marker([Number(lat), Number(lng)], {
+        icon,
+        draggable: false,
+        interactive: editingId === null,
+      })
         .addTo(map)
         .bindPopup(`
           <div dir="rtl" style="text-align:right;min-width:140px">
@@ -224,19 +231,25 @@ const BranchLocationsManager: React.FC = () => {
 
     if (mapContainerRef.current) mapContainerRef.current.style.cursor = 'crosshair';
 
-    const handleClick = (e: any) => {
-      const { lat, lng } = e.latlng;
-      setTempCoords({ lat, lng });
-
-      // Remove old temp marker
+    const placeTempMarker = (lat: number, lng: number) => {
       if (tempMarkerRef.current) { tempMarkerRef.current.remove(); }
-
       const m = L.marker([lat, lng], { icon: makeTempIcon(L), draggable: true }).addTo(map);
       m.on('dragend', (ev: any) => {
         const p = ev.target.getLatLng();
         setTempCoords({ lat: p.lat, lng: p.lng });
       });
+      // Clicking on the temp marker itself should also move it (re-fire as map click)
+      m.on('click', (ev: any) => {
+        L.DomEvent.stopPropagation(ev);
+        handleClick(ev);
+      });
       tempMarkerRef.current = m;
+    };
+
+    const handleClick = (e: any) => {
+      const { lat, lng } = e.latlng;
+      setTempCoords({ lat, lng });
+      placeTempMarker(lat, lng);
     };
 
     clickHandlerRef.current = handleClick;
@@ -253,8 +266,8 @@ const BranchLocationsManager: React.FC = () => {
 
   const startEditing = (branch: Branch) => {
     if (tempMarkerRef.current) { tempMarkerRef.current.remove(); tempMarkerRef.current = null; }
-    setEditingId(branch.id);
     setTempCoords(null);
+    setEditingId(branch.id);
 
     const lat = branch.latitude ?? branch.location_lat;
     const lng = branch.longitude ?? branch.location_lng;
@@ -262,6 +275,19 @@ const BranchLocationsManager: React.FC = () => {
       mapRef.current.setView([Number(lat), Number(lng)], 16);
     } else if (mapRef.current) {
       mapRef.current.setView([30.0444, 31.2357], 10);
+    }
+
+    // If branch already has coords → pre-place draggable temp marker immediately
+    if (lat && lng && leafletReady && mapRef.current) {
+      const L   = window.L;
+      const map = mapRef.current;
+      const m = L.marker([Number(lat), Number(lng)], { icon: makeTempIcon(L), draggable: true }).addTo(map);
+      m.on('dragend', (ev: any) => {
+        const p = ev.target.getLatLng();
+        setTempCoords({ lat: p.lat, lng: p.lng });
+      });
+      tempMarkerRef.current = m;
+      setTempCoords({ lat: Number(lat), lng: Number(lng) });
     }
   };
 
