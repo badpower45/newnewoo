@@ -346,71 +346,68 @@ const LoyaltyPage = () => {
             </div>
             </div>
 
-            {/* Create Barcode Modal */}
+            {/* Create Barcode Modal — centered square popup */}
             {showCreateModal && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center md:items-center">
-                    <div className="bg-white rounded-t-3xl md:rounded-2xl w-full max-w-lg p-6 animate-slide-up">
-                        <h2 className="text-xl font-bold mb-4 text-center">إنشاء كوبون باركود</h2>
-
-                        {/* Points Input */}
-                        <div className="mb-6">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                عدد النقاط للاستبدال (مضاعفات 1000)
-                            </label>
-                            <input
-                                type="number"
-                                value={pointsToRedeem}
-                                onChange={(e) => setPointsToRedeem(e.target.value)}
-                                min="1000"
-                                max={points}
-                                step="1000"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-xl text-lg font-bold text-center focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                            />
-                            <div className="flex items-center justify-between mt-2 text-sm">
-                                <span className="text-gray-500">الحد الأدنى: 1000 نقطة</span>
-                                <span className="text-orange-600 font-bold">
-                                    = {Math.floor(parseInt(pointsToRedeem || '0') / 1000) * 35} جنيه خصم
-                                </span>
-                            </div>
-                            <div className="mt-1 text-xs text-gray-500 text-center">
-                                رصيدك الحالي: {points} نقطة (يمكنك الحصول على {Math.floor(points / 1000)} كوبون)
-                            </div>
-                        </div>
-
-                        {/* Info Box */}
-                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-                            <p className="text-sm text-blue-900">
-                                <strong>ملاحظة:</strong> كل 1000 نقطة = كوبون بقيمة 35 جنيه. سيتم خصم {pointsToRedeem} نقطة من رصيدك فوراً. 
-                                الباركود يستخدم مرة واحدة فقط ويمكن لأي شخص استخدامه. صلاحيته 30 يوم.
+                <div
+                    className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-6"
+                    onClick={(e) => { if (e.target === e.currentTarget && !creatingBarcode) setShowCreateModal(false); }}
+                >
+                    <div className="bg-white rounded-2xl shadow-2xl w-[85vw] max-w-[360px] aspect-square flex flex-col overflow-hidden">
+                        {/* Header */}
+                        <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-5 py-4 flex-shrink-0">
+                            <h2 className="text-base font-bold text-white text-center">إنشاء كوبون باركود</h2>
+                            <p className="text-xs text-white/80 text-center mt-0.5">
+                                رصيدك: <span className="font-bold text-white">{points.toLocaleString()}</span> نقطة
                             </p>
                         </div>
-
-                        {/* Buttons */}
-                        <div className="flex gap-3">
-                            <button
-                                onClick={handleCreateBarcode}
-                                disabled={creatingBarcode}
-                                className="flex-1 py-4 bg-orange-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-orange-600 transition disabled:opacity-50"
-                            >
-                                {creatingBarcode ? (
-                                    <>
-                                        <RefreshCw className="animate-spin" size={20} />
-                                        جاري الإنشاء...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Gift size={20} />
-                                        إنشاء الكوبون
-                                    </>
-                                )}
-                            </button>
-                            <button
-                                onClick={() => setShowCreateModal(false)}
-                                disabled={creatingBarcode}
-                                className="px-6 py-4 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition disabled:opacity-50"
-                            >
-                                إلغاء
-                            </button>
+                        {/* Body */}
+                        <div className="flex-1 flex flex-col justify-between p-5 min-h-0">
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-500 mb-1.5 text-center">
+                                    عدد النقاط للاستبدال (مضاعفات 1000)
+                                </label>
+                                <input
+                                    type="number"
+                                    value={pointsToRedeem}
+                                    onChange={(e) => setPointsToRedeem(e.target.value)}
+                                    min="1000"
+                                    max={points}
+                                    step="1000"
+                                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-2xl font-black text-center focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-900"
+                                />
+                                <div className="flex items-center justify-between mt-2 text-xs">
+                                    <span className="text-gray-400">الحد الأدنى: 1000 نقطة</span>
+                                    <span className="text-orange-600 font-black text-sm">
+                                        = {Math.floor(parseInt(pointsToRedeem || '0') / 1000) * 35} جنيه
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="bg-orange-50 border border-orange-200 rounded-xl px-4 py-2.5 text-center">
+                                <p className="text-xs text-orange-800 leading-relaxed">
+                                    🎟️ الباركود يُستخدم <strong>مرة واحدة</strong> فقط — صلاحيته <strong>30 يوم</strong>
+                                </p>
+                                <p className="text-xs text-orange-600 mt-0.5">يمكنك الحصول على {Math.floor(points / 1000)} كوبون</p>
+                            </div>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setShowCreateModal(false)}
+                                    disabled={creatingBarcode}
+                                    className="flex-shrink-0 px-4 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200 transition disabled:opacity-50 text-sm"
+                                >
+                                    إلغاء
+                                </button>
+                                <button
+                                    onClick={handleCreateBarcode}
+                                    disabled={creatingBarcode}
+                                    className="flex-1 py-3 bg-orange-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-orange-600 transition disabled:opacity-50 text-sm"
+                                >
+                                    {creatingBarcode ? (
+                                        <><RefreshCw className="animate-spin flex-shrink-0" size={17} /><span>جاري الإنشاء...</span></>
+                                    ) : (
+                                        <><Gift size={17} className="flex-shrink-0" /><span>إنشاء الكوبون</span></>
+                                    )}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
