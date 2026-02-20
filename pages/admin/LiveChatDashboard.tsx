@@ -255,7 +255,7 @@ const LiveChatDashboard = () => {
     const selectedConversation = conversations.find(conv => conv.id === selectedConv);
 
     return (
-        <div className="flex flex-col md:flex-row h-[calc(100vh-64px)] md:h-[calc(100vh-120px)] bg-white rounded-xl shadow-lg overflow-hidden">
+        <div className="-m-3 sm:-m-4 md:-m-6 lg:-m-8 flex flex-col md:flex-row bg-white lg:rounded-xl shadow-lg overflow-hidden h-[calc(100dvh-4rem)] lg:h-screen">
             {/* Conversations List - full width on mobile, 1/3 on desktop */}
             <div className={`${
                 mobileShowChat ? 'hidden md:flex' : 'flex'

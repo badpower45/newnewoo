@@ -57,9 +57,9 @@ const DiscountCodesPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pb-20">
+        <div className="min-h-screen bg-gradient-to-b from-orange-50 to-white pb-20">
             {/* Header */}
-            <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white p-6">
+            <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6">
                 <div className="flex items-center justify-between mb-4">
                     <button
                         onClick={() => navigate(-1)}
@@ -104,53 +104,51 @@ const DiscountCodesPage = () => {
                             return (
                                 <div
                                     key={coupon.code}
-                                    className="bg-white rounded-2xl border border-gray-200 overflow-hidden shadow-sm"
+                                    className="bg-white rounded-2xl border border-orange-100 overflow-hidden shadow-sm"
                                 >
                                     {/* Card Header */}
-                                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-4 border-b border-dashed border-green-300">
-                                        <div className="flex items-center justify-between mb-3">
+                                    <div className="bg-gradient-to-r from-orange-50 to-amber-50 p-4 border-b border-dashed border-orange-300">
+                                        <div className="flex items-center justify-between mb-2">
                                             {/* Discount value */}
                                             <div className="flex items-center gap-2">
-                                                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+                                                <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
                                                     {coupon.discount_type === 'percentage' ? (
-                                                        <Percent className="text-green-600" size={20} />
+                                                        <Percent className="text-orange-600" size={20} />
                                                     ) : (
-                                                        <Tag className="text-green-600" size={20} />
+                                                        <Tag className="text-orange-600" size={20} />
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <p className="text-2xl font-black text-green-700 leading-tight">
+                                                    <p className="text-2xl font-black text-orange-600 leading-tight">
                                                         {coupon.discount_type === 'percentage'
                                                             ? `${coupon.discount_value}%`
                                                             : `${coupon.discount_value} جنيه`}
                                                     </p>
-                                                    <p className="text-xs text-green-600 font-medium">
+                                                    <p className="text-xs text-orange-500 font-medium">
                                                         {coupon.discount_type === 'percentage' ? 'خصم نسبي' : 'خصم ثابت'}
                                                     </p>
                                                 </div>
                                             </div>
 
-                                            {/* Badges — remaining + expiry */}
+                                            {/* Badges */}
                                             <div className="flex flex-col items-end gap-1">
                                                 {remaining !== null && (
                                                     <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${
-                                                        isLowStock
-                                                            ? 'bg-red-100 text-red-700'
-                                                            : 'bg-green-100 text-green-700'
+                                                        isLowStock ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
                                                     }`}>
                                                         {isLowStock ? <Flame size={11} /> : <Users size={11} />}
                                                         متبقي {remaining}
                                                     </div>
                                                 )}
                                                 {remaining === null && (
-                                                    <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">
+                                                    <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700">
                                                         <Flame size={11} />
                                                         عرض محدود!
                                                     </div>
                                                 )}
                                                 {daysRemaining !== null && (
                                                     <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${
-                                                        isExpiringSoon ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                                                        isExpiringSoon ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
                                                     }`}>
                                                         <Clock size={11} />
                                                         {daysRemaining <= 0 ? 'ينتهي اليوم' : `${daysRemaining} يوم`}
@@ -160,43 +158,47 @@ const DiscountCodesPage = () => {
                                         </div>
 
                                         {coupon.description && (
-                                            <p className="text-gray-700 text-sm mb-3 leading-relaxed">{coupon.description}</p>
+                                            <p className="text-gray-600 text-sm mt-1 leading-relaxed">{coupon.description}</p>
                                         )}
                                     </div>
 
-                                    {/* Code + Copy */}
-                                    <div className="p-4 space-y-3">
-                                        <div className="flex items-center gap-2">
-                                            <div className="flex-1 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl px-4 py-3 text-center">
-                                                <p className="text-xs text-gray-500 mb-1">الكود</p>
-                                                <p className="text-lg font-black text-gray-900 font-mono tracking-widest">
-                                                    {coupon.code}
-                                                </p>
-                                            </div>
-                                            <button
-                                                onClick={() => handleCopy(coupon.code)}
-                                                className={`px-4 py-3 rounded-xl font-bold flex items-center gap-2 transition min-w-[90px] justify-center ${
-                                                    isCopied
-                                                        ? 'bg-green-100 text-green-700 border border-green-300'
-                                                        : 'bg-green-600 text-white hover:bg-green-700'
-                                                }`}
-                                            >
-                                                {isCopied ? (
-                                                    <>
-                                                        <CheckCircle size={18} />
-                                                        <span className="text-sm">تم!</span>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <Copy size={18} />
-                                                        <span className="text-sm">نسخ</span>
-                                                    </>
-                                                )}
-                                            </button>
+                                    {/* Code block — full width, clearly visible */}
+                                    <div className="px-4 pt-4 pb-1">
+                                        <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl px-4 py-3 text-center">
+                                            <p className="text-[11px] text-gray-400 mb-1">كود الخصم</p>
+                                            <p className="text-xl font-black text-gray-900 font-mono tracking-[0.15em] break-all">
+                                                {coupon.code}
+                                            </p>
                                         </div>
+                                    </div>
 
-                                        {/* Conditions row */}
-                                        <div className="flex flex-wrap gap-2">
+                                    {/* Copy button — full width, separate */}
+                                    <div className="px-4 pb-4 pt-2">
+                                        <button
+                                            onClick={() => handleCopy(coupon.code)}
+                                            className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition ${
+                                                isCopied
+                                                    ? 'bg-green-100 text-green-700 border border-green-300'
+                                                    : 'bg-orange-500 text-white hover:bg-orange-600'
+                                            }`}
+                                        >
+                                            {isCopied ? (
+                                                <>
+                                                    <CheckCircle size={18} />
+                                                    <span>تم نسخ الكود! ✓</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Copy size={18} />
+                                                    <span>نسخ الكود</span>
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+
+                                    {/* Conditions */}
+                                    {(coupon.min_order_value > 0 || coupon.max_discount || coupon.valid_until) && (
+                                        <div className="px-4 pb-4 flex flex-wrap gap-2 border-t border-gray-100 pt-3">
                                             {coupon.min_order_value > 0 && (
                                                 <span className="bg-gray-100 text-gray-600 text-xs px-3 py-1 rounded-full">
                                                     الحد الأدنى: {coupon.min_order_value} جنيه
@@ -215,7 +217,7 @@ const DiscountCodesPage = () => {
                                                 </span>
                                             )}
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
                         );
                     })}

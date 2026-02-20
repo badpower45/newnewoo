@@ -340,74 +340,80 @@ const LoyaltyBarcodePage = () => {
                 )}
             </div>
 
-            {/* Create Modal */}
+            {/* Create Modal — centered square popup */}
             {showCreateModal && (
                 <div
-                    className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4"
+                    className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-6"
                     onClick={(e) => { if (e.target === e.currentTarget && !creatingBarcode) setShowCreateModal(false); }}
                 >
-                    <div className="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl animate-scale-in">
-                        <h2 className="text-xl font-bold mb-4 text-center">إنشاء كوبون باركود</h2>
+                    <div className="bg-white rounded-2xl shadow-2xl w-[85vw] max-w-[360px] aspect-square flex flex-col overflow-hidden">
 
-                        {/* Points Input */}
-                        <div className="mb-6">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                عدد النقاط للاستبدال
-                            </label>
-                            <input
-                                type="number"
-                                value={pointsToRedeem}
-                                onChange={(e) => setPointsToRedeem(e.target.value)}
-                                min="1000"
-                                max={userPoints}
-                                step="1000"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-xl text-lg font-bold text-center focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-                            />
-                            <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between mt-2 text-sm gap-1">
-                                <span className="text-gray-500">الحد الأدنى: <span className="notranslate">1000</span> نقطة</span>
-                                <span className="text-orange-600 font-bold">
-                                    القيمة: <span className="notranslate">{(parseInt(pointsToRedeem) / 1000) * 35 || 0}</span> جنيه
-                                </span>
+                        {/* Header */}
+                        <div className="bg-gradient-to-r from-orange-500 to-orange-600 px-5 py-4 flex-shrink-0">
+                            <h2 className="text-base font-bold text-white text-center">إنشاء كوبون باركود</h2>
+                            <p className="text-xs text-white/80 text-center mt-0.5">
+                                رصيدك: <span className="font-bold text-white">{userPoints.toLocaleString()}</span> نقطة
+                            </p>
+                        </div>
+
+                        {/* Body */}
+                        <div className="flex-1 flex flex-col justify-between p-5">
+                            {/* Points Input */}
+                            <div>
+                                <label className="block text-xs font-semibold text-gray-500 mb-1.5 text-center">
+                                    عدد النقاط للاستبدال (مضاعفات 1000)
+                                </label>
+                                <input
+                                    type="number"
+                                    value={pointsToRedeem}
+                                    onChange={(e) => setPointsToRedeem(e.target.value)}
+                                    min="1000"
+                                    max={userPoints}
+                                    step="1000"
+                                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl text-2xl font-black text-center focus:ring-2 focus:ring-orange-500 focus:border-orange-500 text-gray-900"
+                                />
+                                <div className="flex items-center justify-between mt-2 text-xs">
+                                    <span className="text-gray-400">الحد الأدنى: <span className="notranslate">1000</span> نقطة</span>
+                                    <span className="text-orange-600 font-black text-sm">
+                                        = <span className="notranslate">{(parseInt(pointsToRedeem) / 1000) * 35 || 0}</span> جنيه
+                                    </span>
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Info Box */}
-                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
-                            <p className="text-sm text-blue-900 mb-2 leading-relaxed">
-                                <strong>ملاحظة:</strong> الباركود يستخدم مرة واحدة فقط، ويمكن لأي شخص استخدامه. 
-                                صلاحية الباركود <span className="notranslate">30</span> يوم من تاريخ الإنشاء.
-                            </p>
-                            <p className="text-xs text-blue-700 leading-relaxed">
-                                💡 كل <span className="notranslate">1000</span> نقطة = <span className="notranslate">35</span> جنيه | يجب أن يكون العدد من مضاعفات <span className="notranslate">1000</span>
-                            </p>
-                        </div>
+                            {/* Note */}
+                            <div className="bg-orange-50 border border-orange-200 rounded-xl px-4 py-2.5 text-center">
+                                <p className="text-xs text-orange-800 leading-relaxed">
+                                    🎟️ الباركود يُستخدم <strong>مرة واحدة</strong> فقط — صلاحيته <strong>30 يوم</strong>
+                                </p>
+                            </div>
 
-                        {/* Buttons */}
-                        <div className="flex flex-col sm:flex-row gap-3">
-                            <button
-                                onClick={handleCreateBarcode}
-                                disabled={creatingBarcode}
-                                className="w-full sm:flex-1 py-4 bg-orange-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-orange-600 transition disabled:opacity-50 text-base min-h-[52px]"
-                            >
-                                {creatingBarcode ? (
-                                    <>
-                                        <RefreshCw className="animate-spin flex-shrink-0" size={20} />
-                                        <span className="whitespace-nowrap">جاري الإنشاء...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Gift size={20} className="flex-shrink-0" />
-                                        <span className="whitespace-nowrap">إنشاء الباركود</span>
-                                    </>
-                                )}
-                            </button>
-                            <button
-                                onClick={() => setShowCreateModal(false)}
-                                disabled={creatingBarcode}
-                                className="w-full sm:w-auto sm:px-8 py-4 bg-gray-100 text-gray-700 rounded-xl font-bold hover:bg-gray-200 transition disabled:opacity-50 text-base min-h-[52px]"
-                            >
-                                إلغاء
-                            </button>
+                            {/* Buttons */}
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setShowCreateModal(false)}
+                                    disabled={creatingBarcode}
+                                    className="flex-shrink-0 px-4 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold hover:bg-gray-200 transition disabled:opacity-50 text-sm"
+                                >
+                                    إلغاء
+                                </button>
+                                <button
+                                    onClick={handleCreateBarcode}
+                                    disabled={creatingBarcode}
+                                    className="flex-1 py-3 bg-orange-500 text-white rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-orange-600 transition disabled:opacity-50 text-sm"
+                                >
+                                    {creatingBarcode ? (
+                                        <>
+                                            <RefreshCw className="animate-spin flex-shrink-0" size={17} />
+                                            <span>جاري الإنشاء...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Gift size={17} className="flex-shrink-0" />
+                                            <span>إنشاء الباركود</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
