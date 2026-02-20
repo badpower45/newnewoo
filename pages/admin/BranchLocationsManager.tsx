@@ -306,9 +306,20 @@ const BranchLocationsManager: React.FC = () => {
         latitude:  tempCoords.lat,
         longitude: tempCoords.lng,
       });
+
+      // Update local state immediately — don't wait for cache-busted API response
+      setBranches(prev => prev.map(b =>
+        b.id === editingId
+          ? { ...b, latitude: tempCoords.lat, longitude: tempCoords.lng,
+                    location_lat: tempCoords.lat, location_lng: tempCoords.lng }
+          : b
+      ));
+
       showToast('✅ تم حفظ الموقع بنجاح', 'success');
-      await loadBranches();
       cancelEditing();
+
+      // Then reload in background to sync with DB
+      loadBranches();
     } catch {
       showToast('❌ فشل حفظ الموقع', 'error');
     } finally {
