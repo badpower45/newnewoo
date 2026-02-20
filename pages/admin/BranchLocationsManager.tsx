@@ -183,13 +183,13 @@ const BranchLocationsManager: React.FC = () => {
       const isEditing = editingId === branch.id;
       const icon = makeNumberedIcon(L, idx + 1, !!lat, isEditing);
 
-      const marker = L.marker([lat, lng], { icon, draggable: false })
+      const marker = L.marker([Number(lat), Number(lng)], { icon, draggable: false })
         .addTo(map)
         .bindPopup(`
           <div dir="rtl" style="text-align:right;min-width:140px">
             <strong>${branch.name}</strong><br/>
             <small style="color:#6B7280">${branch.address || ''}</small><br/>
-            <small style="color:#10B981;font-family:monospace">${(lat as number).toFixed(5)}, ${(lng as number).toFixed(5)}</small>
+            <small style="color:#10B981;font-family:monospace">${Number(lat).toFixed(5)}, ${Number(lng).toFixed(5)}</small>
           </div>`);
 
       markersRef.current.set(branch.id, marker);
@@ -251,7 +251,7 @@ const BranchLocationsManager: React.FC = () => {
     const lat = branch.latitude ?? branch.location_lat;
     const lng = branch.longitude ?? branch.location_lng;
     if (lat && lng && mapRef.current) {
-      mapRef.current.setView([lat, lng], 16);
+      mapRef.current.setView([Number(lat), Number(lng)], 16);
     } else if (mapRef.current) {
       mapRef.current.setView([30.0444, 31.2357], 10);
     }
@@ -297,7 +297,7 @@ const BranchLocationsManager: React.FC = () => {
     const lat = branch.latitude ?? branch.location_lat;
     const lng = branch.longitude ?? branch.location_lng;
     if (lat && lng && mapRef.current) {
-      mapRef.current.setView([lat, lng], 16);
+      mapRef.current.setView([Number(lat), Number(lng)], 16);
       markersRef.current.get(branch.id)?.openPopup();
     }
   };
@@ -308,7 +308,7 @@ const BranchLocationsManager: React.FC = () => {
     branches.forEach(b => {
       const lat = b.latitude ?? b.location_lat;
       const lng = b.longitude ?? b.location_lng;
-      if (lat && lng) pts.push([lat as number, lng as number]);
+      if (lat && lng) pts.push([Number(lat), Number(lng)]);
     });
     if (pts.length > 0) mapRef.current.fitBounds(pts, { padding: [50, 50] });
   };
@@ -431,7 +431,7 @@ const BranchLocationsManager: React.FC = () => {
                       )}
                       {hasLoc ? (
                         <p className="text-xs text-green-600 font-mono mt-1 bg-green-50 rounded px-1.5 py-0.5 inline-block">
-                          {(lat as number).toFixed(5)}, {(lng as number).toFixed(5)}
+                          {Number(lat).toFixed(5)}, {Number(lng).toFixed(5)}
                         </p>
                       ) : (
                         <p className="text-xs text-orange-500 mt-1">⚠️ لا يوجد موقع محدد</p>
