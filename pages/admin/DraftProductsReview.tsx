@@ -553,6 +553,17 @@ const DraftProductsReview: React.FC = () => {
                                 <div className="md:col-span-2">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">رابط الصورة</label>
                                     <input type="text" value={editForm.image || ''} onChange={(e) => setEditForm({...editForm, image: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" placeholder="https://..." />
+                                    {editForm.image && (
+                                        <div className="mt-2 flex items-start gap-3">
+                                            <img
+                                                src={editForm.image}
+                                                alt="معاينة الصورة"
+                                                className="w-24 h-24 object-cover rounded-lg border-2 border-gray-200 shadow-sm"
+                                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                            />
+                                            <p className="text-xs text-gray-500 mt-1">معاينة الصورة من الرابط</p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                             <div className="flex gap-2 mt-6 justify-end">

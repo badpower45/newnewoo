@@ -1423,6 +1423,18 @@ export const api = {
 
     // Coupons APIs
     coupons: {
+        // جلب الكوبونات المتاحة (عامة)
+        getAvailable: async () => {
+            const res = await fetch(`${API_URL}/coupons/available`, {
+                headers: getPublicHeaders()
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({ error: 'فشل تحميل أكواد الخصم' }));
+                throw new Error(err.error || `HTTP ${res.status}`);
+            }
+            return res.json();
+        },
+
         // التحقق من صحة الكوبون وتطبيقه
         validate: async (code: string, subtotal: number) => {
             const res = await fetch(`${API_URL}/coupons/validate`, {

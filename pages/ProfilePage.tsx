@@ -223,6 +223,28 @@ const ProfilePage = () => {
                     <div className="flex-1 flex flex-col items-center md:items-start">
                         <h1 className="text-2xl font-bold">{user?.name || 'مستخدم'}</h1>
                         <p className="text-white/80 text-sm">{user?.email || 'لا يوجد بريد إلكتروني'}</p>
+                        {user?.role && user.role !== 'customer' && (
+                            <span className={`mt-2 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1 ${
+                                user.role === 'admin' ? 'bg-purple-200 text-purple-900' :
+                                user.role === 'manager' ? 'bg-blue-200 text-blue-900' :
+                                user.role === 'distributor' ? 'bg-orange-200 text-orange-900' :
+                                user.role === 'delivery' ? 'bg-cyan-200 text-cyan-900' :
+                                user.role === 'employee' ? 'bg-green-200 text-green-900' :
+                                'bg-gray-200 text-gray-900'
+                            }`}>
+                                {user.role === 'admin' ? '👑 أدمن' :
+                                 user.role === 'manager' ? '🏢 مدير' :
+                                 user.role === 'distributor' ? '📦 موزّع' :
+                                 user.role === 'delivery' ? '🚚 مندوب توصيل' :
+                                 user.role === 'employee' ? '💼 موظف' :
+                                 user.role}
+                            </span>
+                        )}
+                        {user?.role === 'customer' && (
+                            <span className="mt-2 px-3 py-1 rounded-full text-xs font-bold bg-white/20 text-white inline-flex items-center gap-1">
+                                🛒 عميل
+                            </span>
+                        )}
                     </div>
                 </div>
             </div>

@@ -3,11 +3,38 @@ import { useNavigate } from 'react-router-dom';
 import { 
     ArrowRight, Gift, Barcode, QrCode, Clock, 
     CheckCircle, XCircle, AlertTriangle, Copy,
-    RefreshCw, Ticket, Award, Zap
+    RefreshCw, Ticket, Award, Zap, X
 } from 'lucide-react';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import Footer from '../components/Footer';
+
+// Toast notification component
+interface ToastMessage {
+    id: number;
+    message: string;
+    type: 'success' | 'error' | 'info';
+}
+
+const Toast = ({ message, type, onClose }: { message: string; type: string; onClose: () => void }) => {
+    useEffect(() => {
+        const timer = setTimeout(onClose, 4000);
+        return () => clearTimeout(timer);
+    }, [onClose]);
+
+    const bgColor = type === 'success' ? 'bg-green-600' : type === 'error' ? 'bg-red-600' : 'bg-blue-600';
+    const Icon = type === 'success' ? CheckCircle : type === 'error' ? XCircle : AlertTriangle;
+
+    return (
+        <div className={`${bgColor} text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-3 animate-slide-in-right max-w-sm w-full`}>
+            <Icon size={20} className="flex-shrink-0" />
+            <p className="text-sm font-medium flex-1 leading-relaxed">{message}</p>
+            <button onClick={onClose} className="hover:opacity-80 flex-shrink-0">
+                <X size={18} />
+            </button>
+        </div>
+    );
+};
 
 const LoyaltyBarcodePage = () => {
     const navigate = useNavigate();
@@ -18,6 +45,16 @@ const LoyaltyBarcodePage = () => {
     const [pointsToRedeem, setPointsToRedeem] = useState('1000');
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [userPoints, setUserPoints] = useState(0);
+    const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+    const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+        const id = Date.now();
+        setToasts(prev => [...prev, { id, message, type }]);
+    };
+
+    const removeToast = (id: number) => {
+        setToasts(prev => prev.filter(t => t.id !== id));
+    };
 
     useEffect(() => {
         loadBarcodes();
@@ -48,17 +85,17 @@ const LoyaltyBarcodePage = () => {
         const points = parseInt(pointsToRedeem);
         
         if (points < 1000) {
-            alert('الحد الأدنى للاستبدال 1000 نقطة');
+            showToast('الحد الأدنى للاستبدال 1000 نقطة', 'error');
             return;
         }
 
         if (points % 1000 !== 0) {
-            alert('يجب أن يكون عدد النقاط من مضاعفات 1000 (مثال: 1000، 2000، 3000)');
+            showToast('يجب أن يكون عدد النقاط من مضاعفات 1000 (مثال: 1000، 2000، 3000)', 'error');
             return;
         }
 
         if (points > userPoints) {
-            alert(`رصيدك الحالي ${userPoints} نقطة فقط`);
+            showToast(`رصيدك الحالي ${userPoints} نقطة فقط`, 'error');
             return;
         }
 
@@ -67,7 +104,7 @@ const LoyaltyBarcodePage = () => {
             const result = await api.loyaltyBarcode.createRedemption(points);
             
             const monetaryValue = (points / 1000) * 35;
-            alert(`✅ ${result.message}\n💰 القيمة: ${monetaryValue} جنيه\n📊 رصيدك المتبقي: ${result.remaining_points} نقطة`);
+            showToast(`✅ ${result.message} | القيمة: ${monetaryValue} جنيه | رصيدك المتبقي: ${result.remaining_points} نقطة`, 'success');
             
             setShowCreateModal(false);
             setPointsToRedeem('1000');
@@ -76,14 +113,14 @@ const LoyaltyBarcodePage = () => {
             await loadUserPoints();
             
         } catch (error: any) {
-            alert('❌ ' + error.message);
+            showToast(error.message, 'error');
         }
         setCreatingBarcode(false);
     };
 
     const handleCopyBarcode = (barcode: string) => {
         navigator.clipboard.writeText(barcode);
-        alert('✅ تم نسخ الباركود');
+        showToast('✅ تم نسخ الباركود', 'success');
     };
 
     const handleCancelBarcode = async (barcodeId: number) => {
@@ -93,11 +130,11 @@ const LoyaltyBarcodePage = () => {
 
         try {
             const result = await api.loyaltyBarcode.cancel(barcodeId.toString());
-            alert(`✅ ${result.message}`);
+            showToast(`✅ ${result.message}`, 'success');
             await loadBarcodes();
             await loadUserPoints();
         } catch (error: any) {
-            alert('❌ ' + error.message);
+            showToast(error.message, 'error');
         }
     };
 
@@ -138,6 +175,19 @@ const LoyaltyBarcodePage = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white pb-20">
+            {/* Toast Notifications */}
+            <div className="fixed top-4 right-4 z-[200] flex flex-col gap-2" style={{ pointerEvents: 'none' }}>
+                {toasts.map(toast => (
+                    <div key={toast.id} style={{ pointerEvents: 'auto' }}>
+                        <Toast
+                            message={toast.message}
+                            type={toast.type}
+                            onClose={() => removeToast(toast.id)}
+                        />
+                    </div>
+                ))}
+            </div>
+
             {/* Header */}
             <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6">
                 <div className="flex items-center justify-between mb-4">
@@ -292,9 +342,12 @@ const LoyaltyBarcodePage = () => {
 
             {/* Create Modal */}
             {showCreateModal && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center">
-                    <div className="bg-white rounded-t-3xl w-full max-w-lg p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom,16px))] animate-slide-up">
-                        <h2 className="text-xl font-bold mb-4 text-center">إنشاء باركود جديد</h2>
+                <div
+                    className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center px-4"
+                    onClick={(e) => { if (e.target === e.currentTarget && !creatingBarcode) setShowCreateModal(false); }}
+                >
+                    <div className="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl animate-scale-in">
+                        <h2 className="text-xl font-bold mb-4 text-center">إنشاء كوبون باركود</h2>
 
                         {/* Points Input */}
                         <div className="mb-6">

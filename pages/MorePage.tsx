@@ -1,5 +1,5 @@
 import React from 'react';
-import { LogOut, ChevronRight, Package, Heart, Gift, Globe, MessageSquare, MapPinned, HelpCircle, Shield, LogIn } from 'lucide-react';
+import { LogOut, ChevronRight, Package, Heart, Gift, Globe, MessageSquare, MapPinned, HelpCircle, Shield, LogIn, Tag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -57,6 +57,13 @@ const MorePage = () => {
             iconColor: 'text-amber-600',
             route: '/loyalty',
             requireAuth: true
+        },
+        {
+            icon: Tag,
+            label: language === 'ar' ? 'كل أكواد الخصم' : 'All Discount Codes',
+            iconBg: 'bg-green-100',
+            iconColor: 'text-green-600',
+            route: '/discount-codes'
         },
         {
             icon: MapPinned,

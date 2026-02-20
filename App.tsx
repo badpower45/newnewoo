@@ -104,6 +104,7 @@ const BrandsPage = lazyWithRetry(() => import('./pages/BrandsPage'));
 const MyOrdersPage = lazyWithRetry(() => import('./pages/MyOrdersPage'));
 const LoyaltyPage = lazyWithRetry(() => import('./pages/LoyaltyPage'));
 const LoyaltyBarcodePage = lazyWithRetry(() => import('./pages/LoyaltyBarcodePage'));
+const DiscountCodesPage = lazyWithRetry(() => import('./pages/DiscountCodesPage'));
 const AddressesPage = lazyWithRetry(() => import('./pages/AddressesPage'));
 const BranchesPage = lazyWithRetry(() => import('./pages/BranchesPage'));
 const BranchMapPage = lazyWithRetry(() => import('./pages/BranchMapPage'));
@@ -287,6 +288,7 @@ function AppContent() {
             <Route path="/my-orders" element={<ProtectedRoute><MyOrdersPage /></ProtectedRoute>} />
             <Route path="/loyalty" element={<ProtectedRoute><LoyaltyPage /></ProtectedRoute>} />
             <Route path="/loyalty-barcode" element={<ProtectedRoute><LoyaltyBarcodePage /></ProtectedRoute>} />
+            <Route path="/discount-codes" element={<DiscountCodesPage />} />
             <Route path="/addresses" element={<ProtectedRoute><AddressesPage /></ProtectedRoute>} />
             <Route path="/branches" element={<BranchesPage />} />
             <Route path="/branch-map" element={<BranchMapPage />} />

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Upload, Download, FileSpreadsheet, CheckCircle, XCircle, AlertCircle, Loader, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
@@ -48,7 +48,29 @@ const ProductImporter: React.FC = () => {
     const [editingId, setEditingId] = useState<number | null>(null);
     const [editedProduct, setEditedProduct] = useState<Partial<DraftProduct>>({});
     const [savingId, setSavingId] = useState<number | null>(null);
+    const [recentBatches, setRecentBatches] = useState<any[]>([]);
     const navigate = useNavigate();
+
+    // تحميل آخر الدفعات المرفوعة عند فتح الصفحة
+    useEffect(() => {
+        loadRecentBatches();
+    }, []);
+
+    const loadRecentBatches = async () => {
+        try {
+            const response = await fetch(`${API_URL}/products/drafts`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            const data = await response.json();
+            if (response.ok && data.success && Array.isArray(data.data) && data.data.length > 0) {
+                setRecentBatches(data.data);
+            }
+        } catch (err) {
+            // Silently fail - recent batches is a convenience feature
+        }
+    };
 
     const setupDraftTable = async () => {
         setSettingUp(true);
@@ -866,6 +888,77 @@ const ProductImporter: React.FC = () => {
                             )}
                         </button>
                     </div>
+                </div>
+            )}
+
+            {/* Recently Uploaded Batches */}
+            {recentBatches.length > 0 && !result && draftProducts.length === 0 && (
+                <div className="bg-white rounded-xl shadow-md p-6 mt-6">
+                    <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <FileSpreadsheet className="w-6 h-6 text-blue-600" />
+                        آخر الحاجات اللي اترفعت
+                    </h3>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">#</th>
+                                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">الصورة</th>
+                                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">اسم المنتج</th>
+                                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">الباركود</th>
+                                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">التصنيف</th>
+                                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">السعر</th>
+                                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">الكمية</th>
+                                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase">الحالة</th>
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {recentBatches.slice(0, 50).map((product: any, index: number) => (
+                                    <tr key={product.id || index} className="hover:bg-gray-50">
+                                        <td className="px-4 py-3 text-sm text-gray-900">{index + 1}</td>
+                                        <td className="px-4 py-3">
+                                            {product.image ? (
+                                                <img
+                                                    src={product.image}
+                                                    alt={product.name}
+                                                    className="w-10 h-10 object-cover rounded border border-gray-200"
+                                                    onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.png'; }}
+                                                />
+                                            ) : (
+                                                <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center text-gray-400 text-xs">لا صورة</div>
+                                            )}
+                                        </td>
+                                        <td className="px-4 py-3 text-sm font-medium text-gray-900">{product.name}</td>
+                                        <td className="px-4 py-3 text-sm text-gray-600 font-mono">{product.barcode || '-'}</td>
+                                        <td className="px-4 py-3 text-sm text-gray-600">{product.category || '-'}</td>
+                                        <td className="px-4 py-3 text-sm text-green-600 font-bold">{product.price} ج.م</td>
+                                        <td className="px-4 py-3">
+                                            <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                                                {product.stock_quantity || 0}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                                                product.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                                            }`}>
+                                                {product.status === 'published' ? 'منشور' : 'مسودة'}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    {recentBatches.length > 50 && (
+                        <div className="mt-4 text-center">
+                            <button
+                                onClick={() => navigate('/admin/drafts')}
+                                className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                            >
+                                عرض جميع المسودات ({recentBatches.length})
+                            </button>
+                        </div>
+                    )}
                 </div>
             )}
 
