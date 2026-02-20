@@ -150,11 +150,19 @@ const BranchLocationsManager: React.FC = () => {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
       maxZoom: 19,
+      crossOrigin: true,
     }).addTo(map);
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    map.whenReady(() => setMapLoading(false));
+    map.whenReady(() => {
+      setMapLoading(false);
+      setTimeout(() => map.invalidateSize(), 100);
+    });
+
+    // Extra invalidateSize calls to handle layout shifts
+    setTimeout(() => map.invalidateSize(), 300);
+    setTimeout(() => map.invalidateSize(), 800);
 
     mapRef.current = map;
 
@@ -518,7 +526,7 @@ const BranchLocationsManager: React.FC = () => {
         </div>
 
         {/* ── Map Panel ── */}
-        <div className="flex-1 relative rounded-2xl overflow-hidden shadow-lg border border-gray-200">
+        <div className="flex-1 relative rounded-2xl shadow-lg border border-gray-200" style={{ overflow: 'hidden', minHeight: 0 }}>
 
           {/* Loading overlay */}
           {(!leafletReady || mapLoading) && (
@@ -529,7 +537,7 @@ const BranchLocationsManager: React.FC = () => {
           )}
 
           {/* Map container */}
-          <div ref={mapContainerRef} className="w-full h-full" />
+          <div ref={mapContainerRef} style={{ width: '100%', height: '100%', minHeight: '500px' }} />
 
           {/* Floating map controls */}
           <div className="absolute top-3 left-3 z-[1000] flex flex-col gap-2">
