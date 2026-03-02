@@ -54,7 +54,14 @@ const CouponsManager = () => {
         try {
             const res = await api.coupons.getAll();
             if (res.data) {
-                setCoupons(res.data);
+                // Deduplicate by id to prevent duplicates from showing
+                const seen = new Set<number>();
+                const unique = res.data.filter((c: Coupon) => {
+                    if (seen.has(c.id)) return false;
+                    seen.add(c.id);
+                    return true;
+                });
+                setCoupons(unique);
             }
         } catch (err) {
             console.error('Failed to load coupons:', err);
@@ -230,11 +237,10 @@ const CouponsManager = () => {
                                             : 'دائم'}
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${
-                                            coupon.is_active
+                                        <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${coupon.is_active
                                                 ? 'bg-green-100 text-green-700'
                                                 : 'bg-red-100 text-red-700'
-                                        }`}>
+                                            }`}>
                                             {coupon.is_active ? 'نشط' : 'معطل'}
                                         </span>
                                     </td>

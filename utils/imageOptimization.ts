@@ -66,7 +66,7 @@ function optimizeSupabaseImage(
         // Check if already has params
         const hasParams = url.includes('?');
         const separator = hasParams ? '&' : '?';
-        
+
         // Add transformation params with AGGRESSIVE settings 🔥
         return `${url}${separator}width=${size.width}&height=${size.height}&quality=${size.quality}&format=${size.format}&resize=cover&smart=true`;
     } catch (error) {
@@ -127,9 +127,9 @@ export function optimizeImage(
     url: string | undefined | null,
     size: typeof IMAGE_SIZES[keyof typeof IMAGE_SIZES]
 ): string {
-    // إذا URL فاضي، ارجع placeholder
-    if (!url) {
-        return `https://placehold.co/${size.width}x${size.height}/e5e7eb/6b7280?text=Image`;
+    // إذا URL فاضي، نرجع سلسلة فارغة عشان نستخدم ال fallback بتاعنا
+    if (!url || typeof url !== 'string' || url.trim() === '') {
+        return '';
     }
 
     // Data/Blob URLs should not be modified (would break base64/blob)
@@ -161,14 +161,16 @@ export function optimizeImage(
  * تحسين صورة منتج للـ Card (أهم optimization!)
  */
 export function optimizeProductCardImage(url: string | undefined | null): string {
-    return optimizeImage(url, IMAGE_SIZES.CARD_THUMBNAIL);
+    const optimized = optimizeImage(url, IMAGE_SIZES.CARD_THUMBNAIL);
+    return optimized || '/images/default-product.jpeg';
 }
 
 /**
  * تحسين صورة منتج للـ Details Page
  */
 export function optimizeProductDetailImage(url: string | undefined | null): string {
-    return optimizeImage(url, IMAGE_SIZES.PRODUCT_DETAIL);
+    const optimized = optimizeImage(url, IMAGE_SIZES.PRODUCT_DETAIL);
+    return optimized || '/images/default-product.jpeg';
 }
 
 /**

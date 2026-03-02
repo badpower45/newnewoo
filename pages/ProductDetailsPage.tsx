@@ -110,7 +110,7 @@ const ProductDetailsPage = () => {
                         price: 0,
                         rating: 0,
                         reviews: 0,
-                        image: 'https://placehold.co/600x600?text=Product',
+                        image: '/images/default-product.jpeg',
                         weight: 'N/A'
                     };
                 }
@@ -160,7 +160,7 @@ const ProductDetailsPage = () => {
                     price: 0,
                     rating: 0,
                     reviews: 0,
-                    image: 'https://placehold.co/600x600?text=Product',
+                    image: '/images/default-product.jpeg',
                     weight: 'N/A'
                 });
             } finally {
@@ -367,7 +367,7 @@ const ProductDetailsPage = () => {
                                 alt={product.name}
                                 className="w-80 h-80 sm:w-96 sm:h-96 object-contain drop-shadow-2xl bg-white"
                                 onError={(e) => {
-                                    (e.target as HTMLImageElement).src = 'https://placehold.co/400x400?text=Product';
+                                    (e.target as HTMLImageElement).src = '/images/default-product.jpeg';
                                 }}
                             />
                             {isFrameEnabled && (
