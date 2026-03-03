@@ -14,8 +14,9 @@ interface Coupon {
     valid_until: string | null;
     usage_limit: number | null;
     used_count: number;
-    user_used_count?: number;
-    per_user_limit?: number | null;
+    user_used_count?: number | string;
+    per_user_limit?: number | string | null;
+    is_user_used?: boolean;
 }
 
 // ─── Scratch Card Popup ──────────────────────────────────────────────────────
@@ -224,9 +225,17 @@ const DiscountCodesPage = () => {
     };
 
     const isUserUsed = (coupon: Coupon) => {
+        if (coupon.is_user_used === true) return true;
         if (coupon.user_used_count === undefined || coupon.user_used_count === null) return false;
-        const limit = coupon.per_user_limit ?? 1;
-        return coupon.user_used_count >= limit;
+
+        const userUsedCount = Number(coupon.user_used_count);
+        if (!Number.isFinite(userUsedCount) || userUsedCount <= 0) return false;
+
+        const limitRaw = coupon.per_user_limit;
+        const limit = limitRaw === null || limitRaw === undefined ? 1 : Number(limitRaw);
+        if (!Number.isFinite(limit) || limit <= 0) return userUsedCount > 0;
+
+        return userUsedCount >= limit;
     };
 
     const handleCopy = (code: string) => {
@@ -387,6 +396,9 @@ const DiscountCodesPage = () => {
                                                     <CheckCircle size={18} />
                                                     <span>تم استخدام هذا الكوبون ✓</span>
                                                 </div>
+                                                <p className="text-[11px] text-center text-gray-500">
+                                                    تم استخدامه من حسابك ولا يمكن استخدامه مرة أخرى
+                                                </p>
                                             </>
                                         ) : isRevealed ? (
                                             <>
@@ -457,5 +469,4 @@ const DiscountCodesPage = () => {
 };
 
 export default DiscountCodesPage;
-
 

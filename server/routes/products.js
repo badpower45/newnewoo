@@ -1213,19 +1213,25 @@ router.patch('/:id/frame', verifyToken, isAdmin, async (req, res) => {
 router.post('/apply-frame-to-all', verifyToken, isAdmin, async (req, res) => {
     try {
         const { frame_overlay_url, frame_enabled } = req.body;
-        
-        if (!frame_overlay_url) {
-            return res.status(400).json({ error: 'frame_overlay_url is required' });
+        const normalizedFrameUrl =
+            typeof frame_overlay_url === 'string' ? frame_overlay_url.trim() : '';
+        const shouldEnableFrame = frame_enabled !== false;
+
+        if (shouldEnableFrame && !normalizedFrameUrl) {
+            return res.status(400).json({ error: 'frame_overlay_url is required when enabling frame' });
         }
 
-        console.log('🖼️ Applying frame to all products:', { frame_overlay_url, frame_enabled });
+        console.log('🖼️ Applying frame to all products:', {
+            frame_overlay_url: shouldEnableFrame ? normalizedFrameUrl : null,
+            frame_enabled: shouldEnableFrame
+        });
 
         const { rows } = await query(
             `UPDATE products 
              SET frame_overlay_url = $1, frame_enabled = $2
              WHERE 1=1
              RETURNING id`,
-            [frame_overlay_url, frame_enabled !== false]
+            [shouldEnableFrame ? normalizedFrameUrl : null, shouldEnableFrame]
         );
 
         console.log(`✅ Updated ${rows.length} products with frame`);

@@ -1,8 +1,74 @@
 import express from 'express';
 import { query } from '../database.js';
 import { verifyToken } from '../middleware/auth.js';
+import jwt from 'jsonwebtoken';
 
 const router = express.Router();
+
+// Optional auth middleware - doesn't reject, just attaches userId if token exists
+const optionalAuth = (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.split(' ')[1];
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+            req.userId = decoded.userId || decoded.id;
+        } catch (e) {
+            // Token invalid, proceed without userId
+        }
+    }
+    next();
+};
+
+// جلب الكوبونات المتاحة للمستخدمين (عامة - بدون صلاحيات أدمن)
+// If user is authenticated, also includes their usage count per coupon
+router.get('/available', optionalAuth, async (req, res) => {
+    try {
+        let rows;
+        if (req.userId) {
+            // Include user-specific usage count and keep already-used coupons visible for the same user
+            const result = await query(
+                `SELECT c.id, c.code, c.description, c.discount_type, c.discount_value, c.min_order_value, c.max_discount, c.valid_until,
+                        c.usage_limit, c.used_count, c.per_user_limit,
+                        COALESCE(cu.user_used_count, 0)::int AS user_used_count,
+                        (COALESCE(cu.user_used_count, 0) >= COALESCE(c.per_user_limit, 1)) AS is_user_used
+                 FROM coupons c
+                 LEFT JOIN LATERAL (
+                    SELECT COUNT(*)::int AS user_used_count
+                    FROM coupon_usage
+                    WHERE coupon_id = c.id AND user_id = $1
+                 ) cu ON TRUE
+                 WHERE c.is_active = TRUE
+                   AND (c.valid_from IS NULL OR c.valid_from <= NOW())
+                   AND (c.valid_until IS NULL OR c.valid_until >= NOW())
+                   AND (
+                        c.usage_limit IS NULL
+                        OR c.used_count < c.usage_limit
+                        OR COALESCE(cu.user_used_count, 0) > 0
+                   )
+                 ORDER BY c.created_at DESC`,
+                [req.userId]
+            );
+            rows = result.rows;
+        } else {
+            const result = await query(
+                `SELECT code, description, discount_type, discount_value, min_order_value, max_discount, valid_until,
+                        usage_limit, used_count, per_user_limit
+                 FROM coupons
+                 WHERE is_active = TRUE
+                   AND (valid_from IS NULL OR valid_from <= NOW())
+                   AND (valid_until IS NULL OR valid_until >= NOW())
+                   AND (usage_limit IS NULL OR used_count < usage_limit)
+                 ORDER BY created_at DESC`
+            );
+            rows = result.rows;
+        }
+        res.json({ success: true, data: rows });
+    } catch (error) {
+        console.error('Error fetching available coupons:', error);
+        res.status(500).json({ error: 'فشل تحميل أكواد الخصم' });
+    }
+});
 
 // التحقق من صحة الكوبون وتطبيقه
 router.post('/validate', [verifyToken], async (req, res) => {
@@ -66,7 +132,12 @@ router.post('/validate', [verifyToken], async (req, res) => {
         }
 
         // فحص استخدام المستخدم للكوبون
-        if (coupon.per_user_limit !== null) {
+        // Default is one use per user when per_user_limit is null/undefined
+        const perUserLimit =
+            coupon.per_user_limit === null || coupon.per_user_limit === undefined
+                ? 1
+                : Number(coupon.per_user_limit);
+        if (Number.isFinite(perUserLimit) && perUserLimit > 0) {
             const { rows: usageRows } = await query(
                 `SELECT COUNT(*) as usage_count FROM coupon_usage
                  WHERE coupon_id = $1 AND user_id = $2`,
@@ -75,7 +146,7 @@ router.post('/validate', [verifyToken], async (req, res) => {
 
             const userUsageCount = parseInt(usageRows[0].usage_count);
 
-            if (userUsageCount >= coupon.per_user_limit) {
+            if (userUsageCount >= perUserLimit) {
                 return res.status(400).json({
                     error: 'لقد استخدمت هذا الكوبون من قبل',
                     valid: false

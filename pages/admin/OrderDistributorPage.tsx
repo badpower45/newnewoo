@@ -28,6 +28,41 @@ const ASSIGNMENT_STATUS: { [key: string]: { label: string; color: string; icon: 
     expired: { label: 'انتهى الوقت', color: 'bg-gray-100 text-gray-600', icon: Clock },
 };
 
+const parseShippingInfo = (value: any) => {
+    if (!value) return {};
+    if (typeof value === 'string') {
+        try {
+            return JSON.parse(value);
+        } catch {
+            return {};
+        }
+    }
+    return value;
+};
+
+const normalizeOrderForPreparation = (order: any) => {
+    const shippingInfo = parseShippingInfo(order?.shipping_info || order?.shippingInfo);
+    const unavailableContactMethod =
+        order?.unavailable_contact_method ||
+        order?.unavailableContactMethod ||
+        shippingInfo?.unavailableContactMethod ||
+        shippingInfo?.unavailable_contact_method ||
+        '';
+    const unavailableItems =
+        order?.unavailable_items ||
+        order?.unavailableItems ||
+        shippingInfo?.unavailableItems ||
+        shippingInfo?.unavailable_items ||
+        [];
+
+    return {
+        ...order,
+        shipping_info: shippingInfo,
+        unavailable_contact_method: unavailableContactMethod,
+        unavailable_items: Array.isArray(unavailableItems) ? unavailableItems : []
+    };
+};
+
 const OrderDistributorPage = () => {
     const { selectedBranch } = useBranch();
     const [orders, setOrders] = useState<any[]>([]);
@@ -55,17 +90,28 @@ const OrderDistributorPage = () => {
         any: 'أي وسيلة متاحة'
     };
     const substitutionPreferenceLabels: Record<string, string> = {
+        none: '📞 اتصل بي أولاً',
         call_me: '📞 اتصل بي أولاً',
+        contact: '📞 اتصل بي أولاً',
+        similar: '🔄 استبدل بمنتج مشابه',
         similar_product: '🔄 استبدل بمنتج مشابه',
+        replace: '🔄 استبدل بمنتج مشابه',
+        replace_with_similar: '🔄 استبدل بمنتج مشابه',
+        cancel: '❌ الغِ هذا المنتج',
         cancel_item: '❌ الغِ هذا المنتج',
-        contact: '📲 اتصل بي',
-        none: '📞 اتصل بي أولاً'
+        refund: '❌ الغِ هذا المنتج',
+        refund_item: '❌ الغِ هذا المنتج'
     };
     const getUnavailableContactMethod = (order: any) =>
-        order?.unavailable_contact_method || order?.unavailableContactMethod || '';
+        parseShippingInfo(order?.shipping_info || order?.shippingInfo)?.unavailableContactMethod ||
+        parseShippingInfo(order?.shipping_info || order?.shippingInfo)?.unavailable_contact_method ||
+        order?.unavailable_contact_method ||
+        order?.unavailableContactMethod ||
+        '';
     const getSubstitutionLabel = (value?: string) => {
         if (!value) return '';
-        return substitutionPreferenceLabels[value] || value;
+        const normalizedValue = String(value).trim().toLowerCase();
+        return substitutionPreferenceLabels[normalizedValue] || value;
     };
 
     useEffect(() => {
@@ -125,6 +171,7 @@ const OrderDistributorPage = () => {
                 console.log('📦 Admin Orders API response:', res);
                 const data = res?.data ?? res;
                 ordersData = Array.isArray(data) ? data : [];
+                ordersData = ordersData.map(normalizeOrderForPreparation);
                 console.log('📦 Loaded', ordersData.length, 'orders for status:', statusMap[activeTab]);
             } catch (err) {
                 console.error('❌ Admin Orders API failed:', err);
@@ -225,8 +272,9 @@ const OrderDistributorPage = () => {
     };
 
     const handleSelectOrder = async (order: any) => {
-        setSelectedOrder(order);
-        const orderItems = getOrderItems(order);
+        const normalizedOrder = normalizeOrderForPreparation(order);
+        setSelectedOrder(normalizedOrder);
+        const orderItems = getOrderItems(normalizedOrder);
         await loadPreparationItems(order.id, orderItems);
         if (order.branch_id) {
             await loadAvailableDelivery(order.branch_id);
@@ -375,8 +423,8 @@ const OrderDistributorPage = () => {
 
     // Parse shipping info
     const getShippingInfo = (order: any) => {
-        if (!order.shipping_info) return null;
-        return typeof order.shipping_info === 'string' ? JSON.parse(order.shipping_info) : order.shipping_info;
+        const shippingInfo = parseShippingInfo(order.shipping_info || order.shippingInfo);
+        return Object.keys(shippingInfo).length > 0 ? shippingInfo : null;
     };
 
     // Parse items
@@ -838,12 +886,7 @@ const OrderDistributorPage = () => {
                                                             <div className="mt-2 pt-2 border-t border-red-100">
                                                                 <p className="text-xs font-bold text-red-900 mb-1">⚠️ العميل اختار:</p>
                                                                 <p className="text-xs text-red-800 bg-red-50 px-2 py-1 rounded">
-                                                                    {item.substitutionPreference === 'call_me' && '📞 اتصل بي أولاً'}
-                                                                    {item.substitutionPreference === 'similar_product' && '🔄 استبدل بمنتج مشابه'}
-                                                                    {item.substitutionPreference === 'cancel_item' && '❌ الغِ هذا المنتج'}
-                                                                    {item.substitutionPreference === 'contact' && '📲 اتصل بي'}
-                                                                    {item.substitutionPreference === 'none' && '📞 اتصل بي أولاً'}
-                                                                    {!['call_me', 'similar_product', 'cancel_item', 'contact', 'none'].includes(item.substitutionPreference) && item.substitutionPreference}
+                                                                    {getSubstitutionLabel(item.substitutionPreference || item.substitution_preference)}
                                                                 </p>
                                                             </div>
                                                         )}

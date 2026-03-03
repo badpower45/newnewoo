@@ -286,11 +286,28 @@ router.get('/admin/all', async (req, res) => {
         sql += " ORDER BY o.date DESC";
         
         const { rows } = await query(sql, params);
-        const orders = rows.map(o => ({
-            ...o,
-            items: typeof o.items === 'string' ? JSON.parse(o.items) : o.items,
-            shipping_info: typeof o.shipping_info === 'string' ? JSON.parse(o.shipping_info) : o.shipping_info
-        }));
+        const orders = rows.map(o => {
+            const shippingInfo =
+                typeof o.shipping_info === 'string' ? JSON.parse(o.shipping_info) : o.shipping_info;
+            const unavailableContactMethod =
+                o.unavailable_contact_method ||
+                shippingInfo?.unavailableContactMethod ||
+                shippingInfo?.unavailable_contact_method ||
+                null;
+            const unavailableItems =
+                o.unavailable_items ||
+                shippingInfo?.unavailableItems ||
+                shippingInfo?.unavailable_items ||
+                [];
+
+            return {
+                ...o,
+                items: typeof o.items === 'string' ? JSON.parse(o.items) : o.items,
+                shipping_info: shippingInfo,
+                unavailable_contact_method: unavailableContactMethod,
+                unavailable_items: Array.isArray(unavailableItems) ? unavailableItems : []
+            };
+        });
         
         console.log(`📦 Admin fetched ${orders.length} orders (status: ${status || 'all'})`);
         res.json({ message: 'success', data: orders });

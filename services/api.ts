@@ -1426,8 +1426,10 @@ export const api = {
         // جلب الكوبونات المتاحة (عامة + يشمل حالة استخدام المستخدم لو مسجل دخول)
         getAvailable: async () => {
             // Use auth headers if available to get per-user usage info
-            const token = localStorage.getItem('token');
-            const headers = token
+            const token =
+                localStorage.getItem('backend_token') ||
+                localStorage.getItem('token');
+            const headers = (token && token !== 'null' && token !== 'undefined')
                 ? { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
                 : getPublicHeaders();
             const res = await fetch(`${API_URL}/coupons/available`, { headers });
