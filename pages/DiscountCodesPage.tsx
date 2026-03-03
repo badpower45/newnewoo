@@ -14,6 +14,8 @@ interface Coupon {
     valid_until: string | null;
     usage_limit: number | null;
     used_count: number;
+    user_used_count?: number;
+    per_user_limit?: number | null;
 }
 
 // ─── Scratch Card Popup ──────────────────────────────────────────────────────
@@ -170,11 +172,10 @@ const ScratchModal = ({
                     ) : (
                         <button
                             onClick={handleCopy}
-                            className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition ${
-                                copied
+                            className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition ${copied
                                     ? 'bg-green-100 text-green-700 border border-green-300'
                                     : 'bg-orange-500 text-white hover:bg-orange-600'
-                            }`}
+                                }`}
                         >
                             {copied ? (
                                 <><CheckCircle size={18} /><span>تم النسخ! ✓</span></>
@@ -206,11 +207,26 @@ const DiscountCodesPage = () => {
         setLoading(true);
         try {
             const res = await api.coupons.getAvailable();
-            setCoupons(res.data || []);
+            const data: Coupon[] = res.data || [];
+            // Sort: unused coupons first, used ones at the end
+            data.sort((a, b) => {
+                const aUsed = isUserUsed(a);
+                const bUsed = isUserUsed(b);
+                if (aUsed && !bUsed) return 1;
+                if (!aUsed && bUsed) return -1;
+                return 0;
+            });
+            setCoupons(data);
         } catch (error) {
             console.error('Error loading coupons:', error);
         }
         setLoading(false);
+    };
+
+    const isUserUsed = (coupon: Coupon) => {
+        if (coupon.user_used_count === undefined || coupon.user_used_count === null) return false;
+        const limit = coupon.per_user_limit ?? 1;
+        return coupon.user_used_count >= limit;
     };
 
     const handleCopy = (code: string) => {
@@ -286,42 +302,58 @@ const DiscountCodesPage = () => {
                             const isLowStock = remaining !== null && remaining <= 5;
                             const isExpiringSoon = daysRemaining !== null && daysRemaining <= 3;
                             const isRevealed = revealedCodes.has(coupon.code);
+                            const used = isUserUsed(coupon);
 
                             return (
                                 <div
                                     key={coupon.code}
-                                    className="bg-white rounded-2xl border border-orange-100 overflow-hidden shadow-sm"
+                                    className={`rounded-2xl border overflow-hidden shadow-sm transition-all ${used
+                                            ? 'bg-gray-50 border-gray-200 opacity-75'
+                                            : 'bg-white border-orange-100'
+                                        }`}
                                 >
                                     {/* Card Header */}
-                                    <div className="bg-gradient-to-r from-orange-50 to-amber-50 p-4 border-b border-dashed border-orange-300">
+                                    <div className={`p-4 border-b border-dashed ${used
+                                            ? 'bg-gradient-to-r from-gray-100 to-gray-50 border-gray-300'
+                                            : 'bg-gradient-to-r from-orange-50 to-amber-50 border-orange-300'
+                                        }`}>
                                         <div className="flex items-center justify-between mb-2">
                                             <div className="flex items-center gap-2">
-                                                <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${used ? 'bg-gray-200' : 'bg-orange-100'
+                                                    }`}>
                                                     {coupon.discount_type === 'percentage' ? (
-                                                        <Percent className="text-orange-600" size={20} />
+                                                        <Percent className={used ? 'text-gray-400' : 'text-orange-600'} size={20} />
                                                     ) : (
-                                                        <Tag className="text-orange-600" size={20} />
+                                                        <Tag className={used ? 'text-gray-400' : 'text-orange-600'} size={20} />
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <p className="text-2xl font-black text-orange-600 leading-tight">
+                                                    <p className={`text-2xl font-black leading-tight ${used ? 'text-gray-400' : 'text-orange-600'
+                                                        }`}>
                                                         {coupon.discount_type === 'percentage'
                                                             ? `${coupon.discount_value}%`
                                                             : `${coupon.discount_value} جنيه`}
                                                     </p>
-                                                    <p className="text-xs text-orange-500 font-medium">
+                                                    <p className={`text-xs font-medium ${used ? 'text-gray-400' : 'text-orange-500'
+                                                        }`}>
                                                         {coupon.discount_type === 'percentage' ? 'خصم نسبي' : 'خصم ثابت'}
                                                     </p>
                                                 </div>
                                             </div>
                                             <div className="flex flex-col items-end gap-1">
-                                                {remaining !== null && (
+                                                {used && (
+                                                    <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">
+                                                        <CheckCircle size={11} />
+                                                        تم استخدامه
+                                                    </div>
+                                                )}
+                                                {!used && remaining !== null && (
                                                     <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold ${isLowStock ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'}`}>
                                                         {isLowStock ? <Flame size={11} /> : <Users size={11} />}
                                                         متبقي {remaining}
                                                     </div>
                                                 )}
-                                                {remaining === null && (
+                                                {!used && remaining === null && (
                                                     <div className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700">
                                                         <Flame size={11} />عرض محدود!
                                                     </div>
@@ -335,13 +367,28 @@ const DiscountCodesPage = () => {
                                             </div>
                                         </div>
                                         {coupon.description && (
-                                            <p className="text-gray-600 text-sm mt-1 leading-relaxed">{coupon.description}</p>
+                                            <p className={`text-sm mt-1 leading-relaxed ${used ? 'text-gray-400' : 'text-gray-600'
+                                                }`}>{coupon.description}</p>
                                         )}
                                     </div>
 
                                     {/* Code area */}
                                     <div className="px-4 pt-4 pb-4 space-y-3">
-                                        {isRevealed ? (
+                                        {used ? (
+                                            /* Used coupon - show code and used message */
+                                            <>
+                                                <div className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-xl px-4 py-3 text-center">
+                                                    <p className="text-[11px] text-gray-400 mb-1">كود الخصم</p>
+                                                    <p className="text-xl font-black text-gray-400 font-mono tracking-[0.15em] break-all line-through">
+                                                        {coupon.code}
+                                                    </p>
+                                                </div>
+                                                <div className="w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 bg-gray-100 text-gray-500 cursor-not-allowed">
+                                                    <CheckCircle size={18} />
+                                                    <span>تم استخدام هذا الكوبون ✓</span>
+                                                </div>
+                                            </>
+                                        ) : isRevealed ? (
                                             <>
                                                 {/* Revealed: show code box + copy button */}
                                                 <div className="bg-orange-50 border-2 border-dashed border-orange-300 rounded-xl px-4 py-3 text-center">
@@ -352,11 +399,10 @@ const DiscountCodesPage = () => {
                                                 </div>
                                                 <button
                                                     onClick={() => handleCopy(coupon.code)}
-                                                    className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition ${
-                                                        isCopied
+                                                    className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition ${isCopied
                                                             ? 'bg-green-100 text-green-700 border border-green-300'
                                                             : 'bg-orange-500 text-white hover:bg-orange-600'
-                                                    }`}
+                                                        }`}
                                                 >
                                                     {isCopied ? (
                                                         <><CheckCircle size={18} /><span>تم النسخ! ✓</span></>

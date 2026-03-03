@@ -1423,11 +1423,14 @@ export const api = {
 
     // Coupons APIs
     coupons: {
-        // جلب الكوبونات المتاحة (عامة)
+        // جلب الكوبونات المتاحة (عامة + يشمل حالة استخدام المستخدم لو مسجل دخول)
         getAvailable: async () => {
-            const res = await fetch(`${API_URL}/coupons/available`, {
-                headers: getPublicHeaders()
-            });
+            // Use auth headers if available to get per-user usage info
+            const token = localStorage.getItem('token');
+            const headers = token
+                ? { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+                : getPublicHeaders();
+            const res = await fetch(`${API_URL}/coupons/available`, { headers });
             if (!res.ok) {
                 const err = await res.json().catch(() => ({ error: 'فشل تحميل أكواد الخصم' }));
                 throw new Error(err.error || `HTTP ${res.status}`);
