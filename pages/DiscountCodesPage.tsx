@@ -148,7 +148,7 @@ const ScratchModal = ({
                         <div className="absolute inset-0 bg-orange-50 border-2 border-dashed border-orange-200 flex flex-col items-center justify-center">
                             <p className="text-[10px] text-orange-400 font-medium mb-1">كود الخصم</p>
                             <p className="text-xl font-black text-gray-900 font-mono tracking-[0.15em] px-3 text-center break-all">
-                                {code}
+                                {revealed ? code : '••••••••'}
                             </p>
                         </div>
                         {/* Canvas scratch overlay */}
@@ -388,8 +388,8 @@ const DiscountCodesPage = () => {
                                             <>
                                                 <div className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-xl px-4 py-3 text-center">
                                                     <p className="text-[11px] text-gray-400 mb-1">كود الخصم</p>
-                                                    <p className="text-xl font-black text-gray-400 font-mono tracking-[0.15em] break-all line-through">
-                                                        {coupon.code}
+                                                    <p className="text-xl font-black text-gray-400 font-mono tracking-[0.15em] break-all">
+                                                        ••••••••
                                                     </p>
                                                 </div>
                                                 <div className="w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 bg-gray-100 text-gray-500 cursor-not-allowed">
@@ -469,4 +469,3 @@ const DiscountCodesPage = () => {
 };
 
 export default DiscountCodesPage;
-

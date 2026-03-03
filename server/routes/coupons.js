@@ -38,12 +38,13 @@ router.get('/available', optionalAuth, async (req, res) => {
                     FROM coupon_usage
                     WHERE coupon_id = c.id AND user_id = $1
                  ) cu ON TRUE
-                 WHERE c.is_active = TRUE
-                   AND (c.valid_from IS NULL OR c.valid_from <= NOW())
-                   AND (c.valid_until IS NULL OR c.valid_until >= NOW())
-                   AND (
-                        c.usage_limit IS NULL
-                        OR c.used_count < c.usage_limit
+                 WHERE (
+                        (
+                            c.is_active = TRUE
+                            AND (c.valid_from IS NULL OR c.valid_from <= NOW())
+                            AND (c.valid_until IS NULL OR c.valid_until >= NOW())
+                            AND (c.usage_limit IS NULL OR c.used_count < c.usage_limit)
+                        )
                         OR COALESCE(cu.user_used_count, 0) > 0
                    )
                  ORDER BY c.created_at DESC`,
