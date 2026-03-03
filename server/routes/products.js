@@ -9,6 +9,14 @@ import fs from 'fs';
 import path from 'path';
 
 const router = express.Router();
+const invalidateProductCaches = () => {
+    if (typeof responseCache.clearByPrefix === 'function') {
+        responseCache.clearByPrefix('products:list:');
+        responseCache.clearByPrefix('products:special-offers:');
+        return;
+    }
+    responseCache.clear();
+};
 
 // ✅ Security: Use secure file upload middleware
 const secureExcelUpload = createExcelUploader();
@@ -1202,6 +1210,7 @@ router.patch('/:id/frame', verifyToken, isAdmin, async (req, res) => {
             return res.status(404).json({ error: 'Product not found' });
         }
 
+        invalidateProductCaches();
         res.json({ success: true, data: rows[0] });
     } catch (error) {
         console.error('Error updating product frame:', error);
@@ -1236,9 +1245,12 @@ router.post('/apply-frame-to-all', verifyToken, isAdmin, async (req, res) => {
 
         console.log(`✅ Updated ${rows.length} products with frame`);
 
+        invalidateProductCaches();
         res.json({ 
             success: true, 
-            message: `Applied frame to ${rows.length} products`,
+            message: shouldEnableFrame
+                ? `Applied frame to ${rows.length} products`
+                : `Removed frame from ${rows.length} products`,
             updatedCount: rows.length 
         });
     } catch (error) {

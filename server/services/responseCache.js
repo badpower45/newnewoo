@@ -65,6 +65,12 @@ const del = (key) => {
   cacheStore.delete(key);
 };
 
+const clearByPrefix = (prefix) => {
+  for (const key of cacheStore.keys()) {
+    if (String(key).startsWith(prefix)) cacheStore.delete(key);
+  }
+};
+
 const clear = () => {
   cacheStore.clear();
   inflight.clear();
@@ -75,5 +81,6 @@ export const responseCache = {
   set,
   getOrSet,
   del,
+  clearByPrefix,
   clear
 };
