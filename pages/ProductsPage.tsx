@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import BarcodeScanner from '../components/BarcodeScanner';
 import ProductModal from '../components/ProductModal';
 import CategoryBanner from '../components/CategoryBanner';
@@ -199,7 +199,7 @@ export default function ProductsPage() {
     const { addToCart } = useCart();
     const branchId = selectedBranch?.id || 1;
     const isSearchActive = searchResults !== null;
-    
+
     // Safe products query with error handling
     const productsQuery = useProducts({
         branchId,
@@ -208,11 +208,11 @@ export default function ProductsPage() {
         limit: ITEMS_PER_PAGE,
         enabled: !isSearchActive && !!branchId
     });
-    
+
     const baseProducts = Array.isArray(productsQuery.data?.data) ? productsQuery.data.data : [];
     const allProducts = Array.isArray(searchResults) ? searchResults : baseProducts;
     const hasError = productsQuery.error;
-    
+
     // Log any errors
     useEffect(() => {
         if (hasError) {
@@ -232,14 +232,14 @@ export default function ProductsPage() {
         const loadCategories = async () => {
             try {
                 console.log('📦 Loading categories for branch:', branchId);
-                
+
                 // Always fetch from API with branchId for accurate product counts
                 const response = await api.categories.getAll(branchId);
                 const apiCategories = response?.data || response || [];
 
                 if (Array.isArray(apiCategories) && apiCategories.length > 0) {
                     console.log('✅ Loaded categories from API:', apiCategories.length);
-                    
+
                     // Transform database categories to match ProductsPage format
                     const categoriesFromDB = apiCategories
                         .filter((cat: any) => cat.is_active !== false && !cat.parent_id) // Only active parent categories
@@ -335,7 +335,7 @@ export default function ProductsPage() {
     useEffect(() => {
         const fetchCategoryBanner = async () => {
             // 🔥 Don't show banner if no category selected OR category is "All"/"الكل"
-            if (!selectedCategory || selectedCategory === '' || 
+            if (!selectedCategory || selectedCategory === '' ||
                 selectedCategory === 'All' || selectedCategory === 'الكل' ||
                 selectedCategory.toLowerCase() === 'all' || selectedCategory.toLowerCase() === 'الكل') {
                 setCategoryBanner(null);
@@ -370,7 +370,7 @@ export default function ProductsPage() {
     // Normalize selected category on mount/change — match URL value to an actual category id
     useEffect(() => {
         if (!selectedCategory || categories.length === 0) return;
-        
+
         // Already matches an existing category id exactly — no action needed
         if (categories.some(cat => cat.id === selectedCategory)) return;
 
@@ -383,7 +383,7 @@ export default function ProductsPage() {
                 normalizeCategoryValue(mapCategoryLabel(cat.name || '')) === normalizedSelected
             );
         });
-        
+
         if (matched && matched.id !== selectedCategory) {
             console.log('🔄 Normalizing category:', selectedCategory, '→', matched.id);
             setSelectedCategory(matched.id);
@@ -399,9 +399,13 @@ export default function ProductsPage() {
         setTimeout(() => setBarcodeToast(null), 3500);
     };
 
-    const handleBarcodeScanned = useCallback(async (barcode: string) => {
+    const handleBarcodeScanned = useCallback(async (rawBarcode: string) => {
         // Close scanner immediately
         setShowScanner(false);
+
+        // Clean barcode: trim whitespace, remove leading zeros only if all-numeric
+        const barcode = rawBarcode.trim().replace(/^0+(?=\d{6,})/, '') || rawBarcode.trim();
+        console.log('🔍 Barcode scanned:', rawBarcode, '→ cleaned:', barcode);
 
         // Show loading overlay
         const loadingDiv = document.createElement('div');
@@ -423,56 +427,95 @@ export default function ProductsPage() {
             showBarcodeToast('error', 'انتهت مهلة البحث - تحقق من الاتصال وحاول مرة أخرى');
         }, 10000);
 
+        const removeOverlay = () => {
+            clearTimeout(timeoutId);
+            const overlay = document.getElementById('barcode-loading-overlay');
+            if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+        };
+
         try {
             const branchId = selectedBranch?.id || 1;
             const response = await api.products.getByBarcode(barcode, branchId);
-            clearTimeout(timeoutId);
 
-            // Remove loading overlay safely
-            const overlay = document.getElementById('barcode-loading-overlay');
-            if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
-
-            if (response.data && response.message === 'success') {
+            // Accept both response formats: { message: 'success', data } and { success: true, data }
+            if (response.data && (response.message === 'success' || response.success)) {
+                removeOverlay();
                 setScannedProduct(response.data);
                 setShowProductModal(true);
-            } else {
-                showBarcodeToast('notfound', `المنتج غير موجود · ${barcode}`);
+                return;
             }
+
+            // Fallback: try searching with the original barcode if cleaned one didn't match
+            if (rawBarcode.trim() !== barcode) {
+                const fallbackResponse = await api.products.getByBarcode(rawBarcode.trim(), branchId);
+                if (fallbackResponse.data && (fallbackResponse.message === 'success' || fallbackResponse.success)) {
+                    removeOverlay();
+                    setScannedProduct(fallbackResponse.data);
+                    setShowProductModal(true);
+                    return;
+                }
+            }
+
+            // Fallback: try search API with barcode as query
+            try {
+                const searchResponse = await api.products.search(barcode);
+                const searchResults = searchResponse?.data || [];
+                if (searchResults.length > 0) {
+                    removeOverlay();
+                    setScannedProduct(searchResults[0]);
+                    setShowProductModal(true);
+                    return;
+                }
+            } catch (searchErr) {
+                console.warn('Search fallback failed:', searchErr);
+            }
+
+            removeOverlay();
+            showBarcodeToast('notfound', `المنتج غير موجود · ${barcode}`);
         } catch (error) {
-            clearTimeout(timeoutId);
-            const overlay = document.getElementById('barcode-loading-overlay');
-            if (overlay && overlay.parentNode) overlay.parentNode.removeChild(overlay);
+            removeOverlay();
             console.error('Error fetching product:', error);
             showBarcodeToast('error', 'حدث خطأ في البحث عن المنتج');
         }
     }, [selectedBranch]);
 
-    const handleSearch = useCallback(async (query: string) => {
+    // Debounce timer ref
+    const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const handleSearch = useCallback((query: string) => {
         setSearchQuery(query);
         setCurrentPage(1);
 
+        // Clear previous debounce
+        if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+
         const trimmed = query.trim();
-        const looksLikeBarcode = /^\d{6,}$/.test(trimmed);
+        // Detect barcodes: 6+ digits, optionally with hyphens/spaces
+        const looksLikeBarcode = /^[\d\s-]{6,}$/.test(trimmed) && /\d{6,}/.test(trimmed.replace(/[\s-]/g, ''));
 
         if (looksLikeBarcode) {
+            const cleanedBarcode = trimmed.replace(/[\s-]/g, '');
             setSearchResults(null);
-            await handleBarcodeScanned(trimmed);
+            handleBarcodeScanned(cleanedBarcode);
             return;
         }
 
         if (trimmed) {
-            setLoading(true);
-            setSearchResults([]);
-            try {
-                const data = await api.products.search(trimmed);
-                if (data.data) {
-                    setSearchResults(data.data);
+            // Debounce search by 300ms
+            searchTimerRef.current = setTimeout(async () => {
+                setLoading(true);
+                setSearchResults([]);
+                try {
+                    const data = await api.products.search(trimmed);
+                    if (data.data) {
+                        setSearchResults(data.data);
+                    }
+                } catch (err) {
+                    console.error('Search error:', err);
+                } finally {
+                    setLoading(false);
                 }
-            } catch (err) {
-                console.error('Search error:', err);
-            } finally {
-                setLoading(false);
-            }
+            }, 300);
         } else {
             setSearchResults(null);
         }
@@ -538,11 +581,11 @@ export default function ProductsPage() {
                 const productBrand = (p.brand || '').toLowerCase();
                 const productName = (p.name || '').toLowerCase();
                 const brandName = selectedBrand.toLowerCase();
-                
+
                 // Match by brand_id first (UUID), then fallback to brand name
-                return String(productBrandId) === String(selectedBrand) || 
-                       productBrand.includes(brandName) || 
-                       productName.includes(brandName);
+                return String(productBrandId) === String(selectedBrand) ||
+                    productBrand.includes(brandName) ||
+                    productName.includes(brandName);
             });
         }
 
@@ -586,10 +629,10 @@ export default function ProductsPage() {
     // Pagination - Server-side (backend handles the pagination)
     // We show all products fetched from backend (already paginated)
     const paginatedProducts = filteredAndSortedProducts;
-    
+
     // Total pages comes from API now (no estimation needed)
     // If API doesn't return pagination, fallback to 1 page
-    
+
     const siteUrl = getSiteUrl();
     const canonicalUrl = `${siteUrl}${location.pathname}${location.search}`;
     const filtersLabel = [
@@ -698,8 +741,8 @@ export default function ProductsPage() {
                     onClick={handleQuickAdd}
                     disabled={!available}
                     className={`self-center w-11 h-11 rounded-full flex items-center justify-center text-2xl font-light transition-all ${available
-                            ? 'bg-brand-orange text-white hover:bg-orange-600 active:scale-90 shadow-sm hover:shadow-md'
-                            : 'bg-gray-200 text-gray-300 cursor-not-allowed'
+                        ? 'bg-brand-orange text-white hover:bg-orange-600 active:scale-90 shadow-sm hover:shadow-md'
+                        : 'bg-gray-200 text-gray-300 cursor-not-allowed'
                         }`}
                     title={available ? 'إضافة سريعة للسلة' : 'غير متوفر'}
                 >
@@ -726,7 +769,7 @@ export default function ProductsPage() {
                         <CategoryBanner categoryName={selectedCategory} />
                     </div>
                 )} */}
-                
+
                 <div className="sticky top-0 z-40 bg-white border-b">
                     <div className="max-w-7xl mx-auto px-4 py-3">
                         {/* Search and Filter Row - على نفس الخط */}
@@ -814,8 +857,8 @@ export default function ProductsPage() {
                                         setCurrentPage(1);
                                     }}
                                     className={`flex items-center gap-2 px-3 py-2 rounded-full whitespace-nowrap border text-sm transition-all ${isSelected
-                                            ? 'bg-brand-orange text-white border-brand-orange shadow-md scale-105'
-                                            : 'border-gray-200 text-gray-700 hover:border-brand-orange/50 hover:bg-orange-50'
+                                        ? 'bg-brand-orange text-white border-brand-orange shadow-md scale-105'
+                                        : 'border-gray-200 text-gray-700 hover:border-brand-orange/50 hover:bg-orange-50'
                                         }`}
                                 >
                                     <span className="font-medium">{cat.name}</span>
@@ -899,8 +942,8 @@ export default function ProductsPage() {
                                                     key={brand.id}
                                                     onClick={() => setSelectedBrand(brand.id)}
                                                     className={`w-full text-right px-4 py-2 rounded-xl border text-sm ${selectedBrand === brand.id
-                                                            ? 'border-orange-500 text-orange-700 bg-orange-50'
-                                                            : 'border-gray-200 text-gray-700'
+                                                        ? 'border-orange-500 text-orange-700 bg-orange-50'
+                                                        : 'border-gray-200 text-gray-700'
                                                         }`}
                                                 >
                                                     {brand.name}
@@ -957,8 +1000,8 @@ export default function ProductsPage() {
                                     <button
                                         onClick={() => setShowOnlyOffers(!showOnlyOffers)}
                                         className={`flex items-center gap-3 px-4 py-3 rounded-xl border-2 transition-all w-full ${showOnlyOffers
-                                                ? 'border-orange-500 bg-orange-50 text-orange-700'
-                                                : 'border-gray-200 hover:border-orange-300'
+                                            ? 'border-orange-500 bg-orange-50 text-orange-700'
+                                            : 'border-gray-200 hover:border-orange-300'
                                             }`}
                                     >
                                         <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center ${showOnlyOffers ? 'bg-orange-500 border-orange-500' : 'border-gray-300'
@@ -982,8 +1025,8 @@ export default function ProductsPage() {
                                                     key={brand.id}
                                                     onClick={() => setSelectedBrand(brand.id)}
                                                     className={`flex items-center gap-3 px-4 py-2.5 rounded-xl border-2 transition-all w-full text-right ${selectedBrand === brand.id
-                                                            ? 'border-orange-500 bg-orange-50 text-orange-700'
-                                                            : 'border-gray-200 hover:border-orange-300'
+                                                        ? 'border-orange-500 bg-orange-50 text-orange-700'
+                                                        : 'border-gray-200 hover:border-orange-300'
                                                         }`}
                                                 >
                                                     <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${selectedBrand === brand.id ? 'bg-orange-500 border-orange-500' : 'border-gray-300'
@@ -1039,7 +1082,7 @@ export default function ProductsPage() {
                                     <div className="text-center text-gray-600 text-sm">
                                         عرض {((currentPage - 1) * ITEMS_PER_PAGE) + 1}-{Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} من {totalCount} منتج
                                     </div>
-                                    
+
                                     <div className="flex justify-center items-center gap-2">
                                         <button
                                             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
@@ -1067,8 +1110,8 @@ export default function ProductsPage() {
                                                         key={pageNum}
                                                         onClick={() => setCurrentPage(pageNum)}
                                                         className={`w-10 h-10 rounded-xl font-medium transition ${currentPage === pageNum
-                                                                ? 'bg-brand-orange text-white shadow-lg'
-                                                                : 'bg-white border border-gray-200 hover:border-brand-orange'
+                                                            ? 'bg-brand-orange text-white shadow-lg'
+                                                            : 'bg-white border border-gray-200 hover:border-brand-orange'
                                                             }`}
                                                     >
                                                         {pageNum}
@@ -1085,7 +1128,7 @@ export default function ProductsPage() {
                                             التالي
                                         </button>
                                     </div>
-                                    
+
                                     {/* Page Info */}
                                     <div className="text-center text-gray-500 text-xs">
                                         صفحة {currentPage} من {totalPages}
@@ -1197,10 +1240,10 @@ export default function ProductsPage() {
                                     {/* Stock */}
                                     <div className="flex items-center gap-2">
                                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${scannedProduct.stock > 10
-                                                ? 'bg-green-100 text-green-700'
-                                                : scannedProduct.stock > 0
-                                                    ? 'bg-yellow-100 text-yellow-700'
-                                                    : 'bg-red-100 text-red-700'
+                                            ? 'bg-green-100 text-green-700'
+                                            : scannedProduct.stock > 0
+                                                ? 'bg-yellow-100 text-yellow-700'
+                                                : 'bg-red-100 text-red-700'
                                             }`}>
                                             {scannedProduct.stock > 10
                                                 ? '✓ متوفر'

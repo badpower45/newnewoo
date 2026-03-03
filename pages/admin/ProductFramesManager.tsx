@@ -68,19 +68,19 @@ const ProductFramesManager: React.FC = () => {
 
         try {
             setLoading(true);
-            
+
             // Convert to base64
             const reader = new FileReader();
             reader.readAsDataURL(selectedFile);
-            
+
             const base64Promise = new Promise<string>((resolve, reject) => {
                 reader.onload = () => resolve(reader.result as string);
                 reader.onerror = reject;
             });
-            
+
             const frameBase64 = await base64Promise;
             console.log('📤 Uploading global frame...');
-            
+
             // Send to backend
             const response = await fetch(`${api.API_URL}/products/upload-frame`, {
                 method: 'POST',
@@ -95,13 +95,13 @@ const ProductFramesManager: React.FC = () => {
                     frame_base64: frameBase64
                 })
             });
-            
+
             const result = await response.json();
-            
+
             if (!response.ok) {
                 throw new Error(result.error || result.details || 'فشل رفع الإطار');
             }
-            
+
             console.log('✅ Frame uploaded:', result);
             alert(`✅ تم رفع الإطار بنجاح: ${frameNameAr}\n\nاستخدم زر "تطبيق على جميع المنتجات" لتطبيق الإطار`);
             setUploadModalOpen(false);
@@ -146,7 +146,7 @@ const ProductFramesManager: React.FC = () => {
             });
 
             const result = await response.json();
-            
+
             if (response.ok && result.success) {
                 alert(`✅ تم تطبيق الإطار بنجاح على ${result.updatedCount} منتج!`);
             } else {
@@ -198,6 +198,47 @@ const ProductFramesManager: React.FC = () => {
                             <li className="hidden sm:list-item">✅ <strong>الاستخدام:</strong> يظهر فوق صورة المنتج مباشرة</li>
                         </ul>
                     </div>
+
+                    {/* Remove frame from all products */}
+                    {frames.length > 0 && (
+                        <div className="mt-4 flex justify-end">
+                            <button
+                                onClick={async () => {
+                                    if (!confirm('هل أنت متأكد من إزالة الإطار من جميع المنتجات؟\n\nسيتم إزالة الإطار من كل المنتجات الموجودة في النظام.')) return;
+                                    try {
+                                        setLoading(true);
+                                        const response = await fetch(`${api.API_URL}/products/apply-frame-to-all`, {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                                            },
+                                            body: JSON.stringify({
+                                                frame_overlay_url: '',
+                                                frame_enabled: false
+                                            })
+                                        });
+                                        const result = await response.json();
+                                        if (response.ok && result.success) {
+                                            alert(`✅ تم إزالة الإطار من ${result.updatedCount} منتج!`);
+                                        } else {
+                                            throw new Error(result.error || 'فشل إزالة الإطار');
+                                        }
+                                    } catch (error: any) {
+                                        console.error('Error removing frames:', error);
+                                        alert(`❌ فشل إزالة الإطار: ${error.message}`);
+                                    } finally {
+                                        setLoading(false);
+                                    }
+                                }}
+                                disabled={loading}
+                                className="px-4 py-2 bg-red-50 border border-red-200 text-red-600 rounded-lg font-bold text-xs sm:text-sm hover:bg-red-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            >
+                                <X className="w-4 h-4" />
+                                <span>إزالة الإطار من جميع المنتجات</span>
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Frames Grid */}

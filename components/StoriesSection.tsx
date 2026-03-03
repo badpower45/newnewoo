@@ -117,7 +117,7 @@ const StoriesSection: React.FC = () => {
             try {
                 const response = await api.stories.getAll();
                 const stories: Story[] = Array.isArray(response) ? response : response?.data || [];
-                
+
                 const groupsMap = new Map<string | number, StoryGroup>();
                 stories.forEach((story) => {
                     const circleName = story.circle_name?.trim();
@@ -163,7 +163,7 @@ const StoriesSection: React.FC = () => {
     const trackView = useCallback((story: Story) => {
         if (!viewTrackedRef.current.has(story.id)) {
             viewTrackedRef.current.add(story.id);
-            api.stories.recordView?.(story.id)?.catch?.(() => {});
+            api.stories.recordView?.(story.id)?.catch?.(() => { });
         }
     }, []);
 
@@ -218,7 +218,7 @@ const StoriesSection: React.FC = () => {
 
     const handleNextStory = useCallback(() => {
         if (activeGroupIndex === null) return;
-        
+
         const currentGroup = storyGroups[activeGroupIndex];
         if (activeStoryIndex < currentGroup.stories.length - 1) {
             setActiveStoryIndex(prev => prev + 1);
@@ -234,7 +234,7 @@ const StoriesSection: React.FC = () => {
 
     const handlePrevStory = useCallback(() => {
         if (activeGroupIndex === null) return;
-        
+
         if (activeStoryIndex > 0) {
             setActiveStoryIndex(prev => prev - 1);
             setProgress(0);
@@ -263,6 +263,14 @@ const StoriesSection: React.FC = () => {
         setVideoLoading(false);
         document.body.style.overflow = '';
     };
+
+    // Cleanup: ensure body overflow is restored on unmount
+    useEffect(() => {
+        return () => {
+            document.body.style.overflow = '';
+            if (progressInterval.current) clearInterval(progressInterval.current);
+        };
+    }, []);
 
     // Touch handlers for swipe (horizontal only)
     const handleTouchStart = (e: React.TouchEvent) => {
@@ -303,7 +311,7 @@ const StoriesSection: React.FC = () => {
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (activeGroupIndex === null) return;
-            
+
             switch (e.key) {
                 case 'ArrowRight':
                 case 'ArrowDown':
@@ -348,26 +356,25 @@ const StoriesSection: React.FC = () => {
     return (
         <>
             {/* Stories Circles */}
-            <div className="flex gap-3 overflow-x-scroll pb-2 -mx-4 px-4 scrollbar-hide" style={{ 
+            <div className="flex gap-3 overflow-x-scroll pb-2 -mx-4 px-4 scrollbar-hide" style={{
                 WebkitOverflowScrolling: 'touch',
                 scrollbarWidth: 'none',
                 msOverflowStyle: 'none'
             }}>
                 {storyGroups.map((group, index) => (
-                    <div 
+                    <div
                         key={group.id}
                         className="flex flex-col items-center gap-1.5 flex-shrink-0 cursor-pointer active:scale-95 transition-transform"
                         onClick={() => openStoryViewer(index)}
                     >
                         <div className="relative">
-                            <div className={`w-[68px] h-[68px] rounded-full p-[3px] ${
-                                group.hasUnviewed 
-                                    ? 'bg-gradient-to-tr from-[#F97316] via-[#EC4899] to-[#8B5CF6]' 
+                            <div className={`w-[68px] h-[68px] rounded-full p-[3px] ${group.hasUnviewed
+                                    ? 'bg-gradient-to-tr from-[#F97316] via-[#EC4899] to-[#8B5CF6]'
                                     : 'bg-gray-300'
-                            }`}>
+                                }`}>
                                 <div className="w-full h-full rounded-full bg-white p-[2px]">
-                                    <img 
-                                        src={group.avatar} 
+                                    <img
+                                        src={group.avatar}
                                         alt={group.name}
                                         className="w-full h-full rounded-full object-cover"
                                         loading="lazy"
@@ -395,27 +402,27 @@ const StoriesSection: React.FC = () => {
                 const media = getStoryMedia(currentStory);
 
                 return (
-                    <div 
+                    <div
                         className="fixed inset-0 z-[9999] bg-black flex items-center justify-center"
                         onTouchStart={handleTouchStart}
                         onTouchEnd={handleTouchEnd}
                     >
-                        <div 
+                        <div
                             className="relative w-full h-full max-w-md mx-auto flex flex-col"
                             onClick={handleStoryClick}
                         >
                             {/* Progress Bars */}
                             <div className="absolute top-0 left-0 right-0 z-30 flex gap-1 p-2 pt-3">
                                 {currentGroup.stories.map((_, idx) => (
-                                    <div 
-                                        key={idx} 
+                                    <div
+                                        key={idx}
                                         className="flex-1 h-[3px] rounded-full bg-white/30 overflow-hidden"
                                     >
-                                        <div 
+                                        <div
                                             className="h-full bg-white rounded-full transition-all duration-75"
-                                            style={{ 
-                                                width: idx < activeStoryIndex ? '100%' : 
-                                                       idx === activeStoryIndex ? `${progress}%` : '0%'
+                                            style={{
+                                                width: idx < activeStoryIndex ? '100%' :
+                                                    idx === activeStoryIndex ? `${progress}%` : '0%'
                                             }}
                                         />
                                     </div>
@@ -425,8 +432,8 @@ const StoriesSection: React.FC = () => {
                             {/* Header */}
                             <div className="absolute top-0 left-0 right-0 z-30 p-3 pt-8 flex items-center justify-between bg-gradient-to-b from-black/60 to-transparent">
                                 <div className="flex items-center gap-3">
-                                    <img 
-                                        src={currentGroup.avatar} 
+                                    <img
+                                        src={currentGroup.avatar}
                                         alt={currentGroup.name}
                                         className="w-10 h-10 rounded-full border-2 border-white object-cover"
                                         onError={(e) => {
@@ -436,29 +443,29 @@ const StoriesSection: React.FC = () => {
                                     <div>
                                         <h4 className="text-white font-semibold text-sm">{currentGroup.name}</h4>
                                         <p className="text-white/70 text-xs">
-                                            {new Date(currentStory.created_at).toLocaleDateString('ar-EG', { 
-                                                hour: '2-digit', 
-                                                minute: '2-digit' 
+                                            {new Date(currentStory.created_at).toLocaleDateString('ar-EG', {
+                                                hour: '2-digit',
+                                                minute: '2-digit'
                                             })}
                                         </p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-1.5">
-                                    <button 
+                                    <button
                                         onClick={(e) => { e.stopPropagation(); setIsPaused(prev => !prev); }}
                                         className="p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors"
                                     >
                                         {isPaused ? <Play className="w-5 h-5" /> : <Pause className="w-5 h-5" />}
                                     </button>
                                     {media.type === 'video' && (
-                                        <button 
+                                        <button
                                             onClick={(e) => { e.stopPropagation(); setIsMuted(prev => !prev); }}
                                             className="p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors"
                                         >
                                             {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                                         </button>
                                     )}
-                                    <button 
+                                    <button
                                         onClick={(e) => { e.stopPropagation(); closeStoryViewer(); }}
                                         className="p-2 rounded-full bg-black/30 text-white hover:bg-black/50 transition-colors"
                                     >
@@ -477,7 +484,7 @@ const StoriesSection: React.FC = () => {
                                 )}
 
                                 {media.type === 'image' && (
-                                    <img 
+                                    <img
                                         src={media.url}
                                         alt={currentStory.title}
                                         className="max-w-full max-h-full object-contain"
@@ -538,7 +545,7 @@ const StoriesSection: React.FC = () => {
                                     {currentStory.title}
                                 </h3>
                                 {currentStory.link_url && media.type !== 'embed' && (
-                                    <a 
+                                    <a
                                         href={currentStory.link_url}
                                         target="_blank"
                                         rel="noopener noreferrer"
@@ -558,13 +565,13 @@ const StoriesSection: React.FC = () => {
                             </div>
 
                             {/* Navigation Arrows (Desktop) */}
-                            <button 
+                            <button
                                 onClick={(e) => { e.stopPropagation(); handlePrevStory(); }}
                                 className="hidden md:flex absolute left-2 top-1/2 -translate-y-1/2 z-30 w-10 h-10 bg-black/30 rounded-full items-center justify-center text-white hover:bg-black/50 transition-colors"
                             >
                                 <ChevronRight className="w-6 h-6" />
                             </button>
-                            <button 
+                            <button
                                 onClick={(e) => { e.stopPropagation(); handleNextStory(); }}
                                 className="hidden md:flex absolute right-2 top-1/2 -translate-y-1/2 z-30 w-10 h-10 bg-black/30 rounded-full items-center justify-center text-white hover:bg-black/50 transition-colors"
                             >

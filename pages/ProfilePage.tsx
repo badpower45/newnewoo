@@ -44,7 +44,7 @@ const ProfilePage = () => {
                 email: formData.email,
                 phone: formData.phone
             });
-            
+
             if (response.success) {
                 updateUser({ ...user, ...formData });
                 setEditMode(false);
@@ -182,297 +182,306 @@ const ProfilePage = () => {
                     <h1 className="text-3xl font-bold text-gray-900">Profile</h1>
                 </div>
 
-            {/* User Info Card */}
-            <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl p-6 mx-4 md:mx-0 mt-4">
-                <div className="flex flex-col md:flex-row md:items-center gap-4 text-center md:text-left">
-                    <div className="relative">
-                        {user?.avatar ? (
-                            <img 
-                                src={user.avatar} 
-                                alt={user.name}
-                                className="w-20 h-20 rounded-full object-cover border-4 border-white/30"
-                            />
-                        ) : (
-                            <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white text-3xl font-bold border-4 border-white/30">
-                                {user?.name ? user.name.charAt(0).toUpperCase() : <User size={32} />}
-                            </div>
-                        )}
-                        {editMode && (
-                            <>
-                                <input
-                                    ref={fileInputRef}
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={handleImageUpload}
-                                    className="hidden"
+                {/* User Info Card */}
+                <div className="bg-gradient-to-br from-orange-500 via-orange-600 to-amber-600 text-white rounded-3xl p-7 mx-4 md:mx-0 mt-4 shadow-xl relative overflow-hidden">
+                    {/* Decorative background circles */}
+                    <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
+                    <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
+
+                    <div className="relative flex flex-col md:flex-row md:items-center gap-5 text-center md:text-left">
+                        <div className="relative mx-auto md:mx-0">
+                            {user?.avatar ? (
+                                <img
+                                    src={user.avatar}
+                                    alt={user.name}
+                                    className="w-24 h-24 rounded-full object-cover ring-4 ring-white/40 shadow-lg"
                                 />
-                                <button 
-                                    onClick={() => fileInputRef.current?.click()}
-                                    disabled={uploadingImage}
-                                    className="absolute bottom-0 right-0 w-8 h-8 bg-white text-orange-600 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform disabled:opacity-50"
-                                >
-                                    {uploadingImage ? (
-                                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-600"></div>
-                                    ) : (
-                                        <Camera size={16} />
-                                    )}
-                                </button>
-                            </>
-                        )}
-                    </div>
-                    <div className="flex-1 flex flex-col items-center md:items-start">
-                        <h1 className="text-2xl font-bold">{user?.name || 'مستخدم'}</h1>
-                        <p className="text-white/80 text-sm">{user?.email || 'لا يوجد بريد إلكتروني'}</p>
-                        {user?.role && user.role !== 'customer' && (
-                            <span className={`mt-2 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1 ${
-                                user.role === 'admin' ? 'bg-purple-200 text-purple-900' :
-                                user.role === 'manager' ? 'bg-blue-200 text-blue-900' :
-                                user.role === 'distributor' ? 'bg-orange-200 text-orange-900' :
-                                user.role === 'delivery' ? 'bg-cyan-200 text-cyan-900' :
-                                user.role === 'employee' ? 'bg-green-200 text-green-900' :
-                                'bg-gray-200 text-gray-900'
-                            }`}>
-                                {user.role === 'admin' ? '👑 أدمن' :
-                                 user.role === 'manager' ? '🏢 مدير' :
-                                 user.role === 'distributor' ? '📦 موزّع' :
-                                 user.role === 'delivery' ? '🚚 مندوب توصيل' :
-                                 user.role === 'employee' ? '💼 موظف' :
-                                 user.role}
-                            </span>
-                        )}
-                        {user?.role === 'customer' && (
-                            <span className="mt-2 px-3 py-1 rounded-full text-xs font-bold bg-white/20 text-white inline-flex items-center gap-1">
-                                🛒 عميل
-                            </span>
-                        )}
+                            ) : (
+                                <div className="w-24 h-24 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white text-4xl font-bold ring-4 ring-white/40 shadow-lg">
+                                    {user?.name ? user.name.charAt(0).toUpperCase() : <User size={36} />}
+                                </div>
+                            )}
+                            {editMode && (
+                                <>
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        accept="image/*"
+                                        onChange={handleImageUpload}
+                                        className="hidden"
+                                    />
+                                    <button
+                                        onClick={() => fileInputRef.current?.click()}
+                                        disabled={uploadingImage}
+                                        className="absolute bottom-0 right-0 w-9 h-9 bg-white text-orange-600 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-transform disabled:opacity-50 ring-2 ring-orange-500"
+                                    >
+                                        {uploadingImage ? (
+                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-600"></div>
+                                        ) : (
+                                            <Camera size={18} />
+                                        )}
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                        <div className="flex-1 flex flex-col items-center md:items-start gap-1">
+                            <h1 className="text-2xl font-bold tracking-tight">{user?.name || 'مستخدم'}</h1>
+                            <p className="text-white/80 text-sm">{user?.email || 'لا يوجد بريد إلكتروني'}</p>
+                            {user?.phone && (
+                                <p className="text-white/70 text-xs flex items-center gap-1">
+                                    <Phone size={12} />
+                                    {user.phone}
+                                </p>
+                            )}
+                            {user?.role && user.role !== 'customer' && (
+                                <span className={`mt-2 px-3 py-1.5 rounded-full text-xs font-bold inline-flex items-center gap-1 shadow-sm ${user.role === 'admin' ? 'bg-purple-200 text-purple-900' :
+                                        user.role === 'manager' ? 'bg-blue-200 text-blue-900' :
+                                            user.role === 'distributor' ? 'bg-orange-200 text-orange-900' :
+                                                user.role === 'delivery' ? 'bg-cyan-200 text-cyan-900' :
+                                                    user.role === 'employee' ? 'bg-green-200 text-green-900' :
+                                                        'bg-gray-200 text-gray-900'
+                                    }`}>
+                                    {user.role === 'admin' ? '👑 أدمن' :
+                                        user.role === 'manager' ? '🏢 مدير' :
+                                            user.role === 'distributor' ? '📦 موزّع' :
+                                                user.role === 'delivery' ? '🚚 مندوب توصيل' :
+                                                    user.role === 'employee' ? '💼 موظف' :
+                                                        user.role}
+                                </span>
+                            )}
+                            {user?.role === 'customer' && (
+                                <span className="mt-2 px-3 py-1.5 rounded-full text-xs font-bold bg-white/20 backdrop-blur-sm text-white inline-flex items-center gap-1">
+                                    🛒 عميل
+                                </span>
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div className="max-w-2xl mx-auto p-4 space-y-4">
-                {/* Edit Profile Card */}
-                <div className="bg-white rounded-2xl shadow-sm p-6">
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-lg font-bold text-gray-900">المعلومات الشخصية</h2>
-                        {!editMode ? (
-                            <button
-                                onClick={() => setEditMode(true)}
-                                className="flex items-center gap-2 px-4 py-2 bg-orange-50 text-orange-600 rounded-xl hover:bg-orange-100 transition-colors"
-                            >
-                                <Edit2 size={16} />
-                                <span className="text-sm font-medium">تعديل</span>
-                            </button>
-                        ) : (
-                            <div className="flex gap-2">
+                <div className="max-w-2xl mx-auto p-4 space-y-4">
+                    {/* Edit Profile Card */}
+                    <div className="bg-white rounded-2xl shadow-sm p-6">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-lg font-bold text-gray-900">المعلومات الشخصية</h2>
+                            {!editMode ? (
                                 <button
-                                    onClick={handleCancel}
-                                    disabled={saving}
-                                    className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors"
+                                    onClick={() => setEditMode(true)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-orange-50 text-orange-600 rounded-xl hover:bg-orange-100 transition-colors"
                                 >
-                                    <X size={16} />
-                                    <span className="text-sm font-medium">إلغاء</span>
+                                    <Edit2 size={16} />
+                                    <span className="text-sm font-medium">تعديل</span>
                                 </button>
-                                <button
-                                    onClick={handleSave}
-                                    disabled={saving}
-                                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors disabled:opacity-50"
-                                >
-                                    <Save size={16} />
-                                    <span className="text-sm font-medium">{saving ? 'جاري الحفظ...' : 'حفظ'}</span>
-                                </button>
+                            ) : (
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={handleCancel}
+                                        disabled={saving}
+                                        className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors"
+                                    >
+                                        <X size={16} />
+                                        <span className="text-sm font-medium">إلغاء</span>
+                                    </button>
+                                    <button
+                                        onClick={handleSave}
+                                        disabled={saving}
+                                        className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-xl hover:bg-green-700 transition-colors disabled:opacity-50"
+                                    >
+                                        <Save size={16} />
+                                        <span className="text-sm font-medium">{saving ? 'جاري الحفظ...' : 'حفظ'}</span>
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="space-y-4">
+                            {/* Name Field */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">الاسم</label>
+                                {editMode ? (
+                                    <input
+                                        type="text"
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                        placeholder="أدخل اسمك"
+                                    />
+                                ) : (
+                                    <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-xl">
+                                        <User size={18} className="text-gray-400" />
+                                        <span className="text-gray-900">{user?.name || 'غير محدد'}</span>
+                                    </div>
+                                )}
                             </div>
-                        )}
+
+                            {/* Email Field */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">البريد الإلكتروني</label>
+                                {editMode ? (
+                                    <input
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                        placeholder="example@email.com"
+                                    />
+                                ) : (
+                                    <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-xl">
+                                        <Mail size={18} className="text-gray-400" />
+                                        <span className="text-gray-900">{user?.email || 'غير محدد'}</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Phone Field */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">رقم الهاتف</label>
+                                {editMode ? (
+                                    <input
+                                        type="tel"
+                                        value={formData.phone}
+                                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500"
+                                        placeholder="01xxxxxxxxx"
+                                    />
+                                ) : (
+                                    <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-xl">
+                                        <Phone size={18} className="text-gray-400" />
+                                        <span className="text-gray-900">{user?.phone || 'غير محدد'}</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="space-y-4">
-                        {/* Name Field */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">الاسم</label>
-                            {editMode ? (
-                                <input
-                                    type="text"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                    placeholder="أدخل اسمك"
-                                />
-                            ) : (
-                                <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-xl">
-                                    <User size={18} className="text-gray-400" />
-                                    <span className="text-gray-900">{user?.name || 'غير محدد'}</span>
+                    {/* Role-based Quick Access */}
+                    {(user?.role === 'admin' || user?.role === 'manager') && (
+                        <button
+                            onClick={() => navigate('/admin')}
+                            className="w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-2xl p-5 shadow-md hover:shadow-lg transition-shadow"
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
+                                    <LayoutDashboard size={28} />
                                 </div>
-                            )}
-                        </div>
+                                <div className="text-right flex-1">
+                                    <h3 className="font-bold text-lg">لوحة الإدارة</h3>
+                                    <p className="text-white/80 text-sm">إدارة المنتجات والطلبات والفروع</p>
+                                </div>
+                                <ChevronLeft size={24} className="rotate-180" />
+                            </div>
+                        </button>
+                    )}
 
-                        {/* Email Field */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">البريد الإلكتروني</label>
-                            {editMode ? (
-                                <input
-                                    type="email"
-                                    value={formData.email}
-                                    onChange={(e) => setFormData({...formData, email: e.target.value})}
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                    placeholder="example@email.com"
-                                />
-                            ) : (
-                                <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-xl">
-                                    <Mail size={18} className="text-gray-400" />
-                                    <span className="text-gray-900">{user?.email || 'غير محدد'}</span>
+                    {user?.role === 'distributor' && (
+                        <button
+                            onClick={() => navigate('/admin/distribution')}
+                            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl p-5 shadow-md hover:shadow-lg transition-shadow"
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
+                                    <ClipboardList size={28} />
                                 </div>
-                            )}
-                        </div>
+                                <div className="text-right flex-1">
+                                    <h3 className="font-bold text-lg">لوحة التوزيع</h3>
+                                    <p className="text-white/80 text-sm">توزيع الطلبات على عمال التوصيل</p>
+                                </div>
+                                <ChevronLeft size={24} className="rotate-180" />
+                            </div>
+                        </button>
+                    )}
 
-                        {/* Phone Field */}
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">رقم الهاتف</label>
-                            {editMode ? (
-                                <input
-                                    type="tel"
-                                    value={formData.phone}
-                                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500"
-                                    placeholder="01xxxxxxxxx"
-                                />
-                            ) : (
-                                <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 rounded-xl">
-                                    <Phone size={18} className="text-gray-400" />
-                                    <span className="text-gray-900">{user?.phone || 'غير محدد'}</span>
+                    {user?.role === 'delivery' && (
+                        <button
+                            onClick={() => navigate('/delivery')}
+                            className="w-full bg-gradient-to-r from-cyan-500 to-cyan-600 text-white rounded-2xl p-5 shadow-md hover:shadow-lg transition-shadow"
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
+                                    <Truck size={28} />
                                 </div>
-                            )}
-                        </div>
+                                <div className="text-right flex-1">
+                                    <h3 className="font-bold text-lg">صفحة التوصيل</h3>
+                                    <p className="text-white/80 text-sm">إدارة طلبات التوصيل الخاصة بك</p>
+                                </div>
+                                <ChevronLeft size={24} className="rotate-180" />
+                            </div>
+                        </button>
+                    )}
+
+                    {user?.role === 'employee' && (
+                        <button
+                            onClick={() => navigate('/customer-service')}
+                            className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white rounded-2xl p-5 shadow-md hover:shadow-lg transition-shadow"
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
+                                    <Headphones size={28} />
+                                </div>
+                                <div className="text-right flex-1">
+                                    <h3 className="font-bold text-lg">خدمة العملاء</h3>
+                                    <p className="text-white/80 text-sm">الرد على استفسارات العملاء</p>
+                                </div>
+                                <ChevronLeft size={24} className="rotate-180" />
+                            </div>
+                        </button>
+                    )}
+
+                    {/* Quick Actions for all users */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <button
+                            onClick={() => navigate('/my-orders')}
+                            className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow text-center"
+                        >
+                            <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mx-auto mb-2">
+                                <Package size={24} />
+                            </div>
+                            <h3 className="font-bold text-gray-900 text-sm">طلباتي</h3>
+                            <p className="text-xs text-gray-500 mt-1">تتبع طلباتك</p>
+                        </button>
+
+                        <button
+                            onClick={() => navigate('/loyalty')}
+                            className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow text-center"
+                        >
+                            <div className="w-12 h-12 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center mx-auto mb-2">
+                                <Gift size={24} />
+                            </div>
+                            <h3 className="font-bold text-gray-900 text-sm">نقاط الولاء</h3>
+                            <p className="text-xs text-gray-500 mt-1">اجمع النقاط</p>
+                        </button>
+
+                        <button
+                            onClick={() => navigate('/addresses')}
+                            className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow text-center"
+                        >
+                            <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mx-auto mb-2">
+                                <MapPin size={24} />
+                            </div>
+                            <h3 className="font-bold text-gray-900 text-sm">عناويني</h3>
+                            <p className="text-xs text-gray-500 mt-1">إدارة العناوين</p>
+                        </button>
+
+                        <button
+                            onClick={() => navigate('/branches')}
+                            className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow text-center"
+                        >
+                            <div className="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center mx-auto mb-2">
+                                <MapPin size={24} />
+                            </div>
+                            <h3 className="font-bold text-gray-900 text-sm">فروعنا</h3>
+                            <p className="text-xs text-gray-500 mt-1">مواقع الفروع</p>
+                        </button>
                     </div>
-                </div>
 
-                {/* Role-based Quick Access */}
-                {(user?.role === 'admin' || user?.role === 'manager') && (
+                    {/* Logout Button */}
                     <button
-                        onClick={() => navigate('/admin')}
-                        className="w-full bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-2xl p-5 shadow-md hover:shadow-lg transition-shadow"
+                        onClick={handleLogout}
+                        className="w-full bg-white rounded-2xl p-4 shadow-sm flex items-center justify-center gap-3 text-red-600 hover:bg-red-50 transition-colors"
                     >
-                        <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
-                                <LayoutDashboard size={28} />
-                            </div>
-                            <div className="text-right flex-1">
-                                <h3 className="font-bold text-lg">لوحة الإدارة</h3>
-                                <p className="text-white/80 text-sm">إدارة المنتجات والطلبات والفروع</p>
-                            </div>
-                            <ChevronLeft size={24} className="rotate-180" />
-                        </div>
-                    </button>
-                )}
-
-                {user?.role === 'distributor' && (
-                    <button
-                        onClick={() => navigate('/admin/distribution')}
-                        className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-2xl p-5 shadow-md hover:shadow-lg transition-shadow"
-                    >
-                        <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
-                                <ClipboardList size={28} />
-                            </div>
-                            <div className="text-right flex-1">
-                                <h3 className="font-bold text-lg">لوحة التوزيع</h3>
-                                <p className="text-white/80 text-sm">توزيع الطلبات على عمال التوصيل</p>
-                            </div>
-                            <ChevronLeft size={24} className="rotate-180" />
-                        </div>
-                    </button>
-                )}
-
-                {user?.role === 'delivery' && (
-                    <button
-                        onClick={() => navigate('/delivery')}
-                        className="w-full bg-gradient-to-r from-cyan-500 to-cyan-600 text-white rounded-2xl p-5 shadow-md hover:shadow-lg transition-shadow"
-                    >
-                        <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
-                                <Truck size={28} />
-                            </div>
-                            <div className="text-right flex-1">
-                                <h3 className="font-bold text-lg">صفحة التوصيل</h3>
-                                <p className="text-white/80 text-sm">إدارة طلبات التوصيل الخاصة بك</p>
-                            </div>
-                            <ChevronLeft size={24} className="rotate-180" />
-                        </div>
-                    </button>
-                )}
-
-                {user?.role === 'employee' && (
-                    <button
-                        onClick={() => navigate('/customer-service')}
-                        className="w-full bg-gradient-to-r from-green-500 to-green-600 text-white rounded-2xl p-5 shadow-md hover:shadow-lg transition-shadow"
-                    >
-                        <div className="flex items-center gap-4">
-                            <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
-                                <Headphones size={28} />
-                            </div>
-                            <div className="text-right flex-1">
-                                <h3 className="font-bold text-lg">خدمة العملاء</h3>
-                                <p className="text-white/80 text-sm">الرد على استفسارات العملاء</p>
-                            </div>
-                            <ChevronLeft size={24} className="rotate-180" />
-                        </div>
-                    </button>
-                )}
-
-                {/* Quick Actions for all users */}
-                <div className="grid grid-cols-2 gap-3">
-                    <button
-                        onClick={() => navigate('/my-orders')}
-                        className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow text-center"
-                    >
-                        <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mx-auto mb-2">
-                            <Package size={24} />
-                        </div>
-                        <h3 className="font-bold text-gray-900 text-sm">طلباتي</h3>
-                        <p className="text-xs text-gray-500 mt-1">تتبع طلباتك</p>
-                    </button>
-
-                    <button
-                        onClick={() => navigate('/loyalty')}
-                        className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow text-center"
-                    >
-                        <div className="w-12 h-12 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center mx-auto mb-2">
-                            <Gift size={24} />
-                        </div>
-                        <h3 className="font-bold text-gray-900 text-sm">نقاط الولاء</h3>
-                        <p className="text-xs text-gray-500 mt-1">اجمع النقاط</p>
-                    </button>
-
-                    <button
-                        onClick={() => navigate('/addresses')}
-                        className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow text-center"
-                    >
-                        <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mx-auto mb-2">
-                            <MapPin size={24} />
-                        </div>
-                        <h3 className="font-bold text-gray-900 text-sm">عناويني</h3>
-                        <p className="text-xs text-gray-500 mt-1">إدارة العناوين</p>
-                    </button>
-
-                    <button
-                        onClick={() => navigate('/branches')}
-                        className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow text-center"
-                    >
-                        <div className="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center mx-auto mb-2">
-                            <MapPin size={24} />
-                        </div>
-                        <h3 className="font-bold text-gray-900 text-sm">فروعنا</h3>
-                        <p className="text-xs text-gray-500 mt-1">مواقع الفروع</p>
+                        <LogOut size={20} />
+                        <span className="font-bold">تسجيل الخروج</span>
                     </button>
                 </div>
-
-                {/* Logout Button */}
-                <button
-                    onClick={handleLogout}
-                    className="w-full bg-white rounded-2xl p-4 shadow-sm flex items-center justify-center gap-3 text-red-600 hover:bg-red-50 transition-colors"
-                >
-                    <LogOut size={20} />
-                    <span className="font-bold">تسجيل الخروج</span>
-                </button>
-            </div>
             </div>
             <Footer />
         </div>
