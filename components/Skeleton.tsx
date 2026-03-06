@@ -5,38 +5,35 @@ export const Skeleton: React.FC<{ className?: string }> = ({ className = '' }) =
   <div className={`animate-pulse bg-gray-200 rounded ${className}`} />
 );
 
-// Product Card Skeleton - matches actual product card with image, title, price, and button
+// Product Card Skeleton - matches actual product card with portrait rectangle layout
 export const ProductCardSkeleton: React.FC = () => (
   <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden animate-pulse">
-    {/* Image skeleton with overlay elements */}
-    <div className="relative">
-      <Skeleton className="w-full h-48 bg-gradient-to-br from-gray-200 to-gray-300" />
+    {/* Image skeleton - portrait 3:4 ratio */}
+    <div className="relative aspect-[3/4] bg-gradient-to-br from-gray-200 to-gray-300">
       {/* Favorite heart */}
-      <div className="absolute top-3 right-3">
-        <Skeleton className="w-8 h-8 rounded-full" />
+      <div className="absolute top-2 right-2">
+        <Skeleton className="w-7 h-7 rounded-full" />
       </div>
       {/* Discount badge */}
-      <div className="absolute top-3 left-3">
-        <Skeleton className="w-12 h-6 rounded-full" />
+      <div className="absolute top-2 left-2">
+        <Skeleton className="w-10 h-5 rounded-full" />
       </div>
     </div>
-    <div className="p-4 space-y-3">
+    <div className="px-2.5 pt-2 pb-2.5 space-y-2">
       {/* Brand name */}
       <Skeleton className="h-3 w-1/3" />
       {/* Product title */}
       <Skeleton className="h-4 w-4/5" />
       <Skeleton className="h-4 w-3/4" />
-      {/* Rating */}
-      <div className="flex items-center gap-1">
-        <Skeleton className="h-4 w-16" />
-      </div>
+      {/* Weight */}
+      <Skeleton className="h-3 w-1/2" />
       {/* Price and button */}
-      <div className="flex justify-between items-center pt-2">
+      <div className="flex justify-between items-center pt-1">
         <div className="space-y-1">
-          <Skeleton className="h-5 w-20" />
-          <Skeleton className="h-3 w-16" />
+          <Skeleton className="h-4 w-16" />
+          <Skeleton className="h-3 w-10" />
         </div>
-        <Skeleton className="h-10 w-10 rounded-xl" />
+        <Skeleton className="h-8 w-8 rounded-full" />
       </div>
     </div>
   </div>

@@ -340,9 +340,9 @@ const ProductDetailsPage = () => {
                 </div>
 
                 {/* Hero Image */}
-                <div className="bg-white px-5 pt-16 pb-10">
+                <div className="bg-white px-5 pt-16 pb-8">
                     <div className="relative flex flex-col items-center gap-4">
-                        <div className="relative flex items-center justify-center">
+                        <div className="relative w-full max-w-xs sm:max-w-sm">
                             {/* Discount Badge */}
                             {discountPercentage > 0 && (
                                 <div className="absolute -top-3 -left-3 z-20">
@@ -362,22 +362,25 @@ const ProductDetailsPage = () => {
                                 </div>
                             )}
 
-                            <img
-                                src={optimizeProductDetailImage(product.image)}
-                                alt={product.name}
-                                className="w-80 h-80 sm:w-96 sm:h-96 object-contain drop-shadow-2xl bg-white"
-                                onError={(e) => {
-                                    (e.target as HTMLImageElement).src = '/images/default-product.jpeg';
-                                }}
-                            />
-                            {isFrameEnabled && (
+                            {/* Image - natural size, full visible */}
+                            <div className="relative w-full flex items-center justify-center">
                                 <img
-                                    src={optimizeFrameImage(frameOverlayUrl)}
-                                    alt=""
-                                    aria-hidden="true"
-                                    className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+                                    src={optimizeProductDetailImage(product.image)}
+                                    alt={product.name}
+                                    className="w-full max-h-[420px] object-contain drop-shadow-xl"
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src = '/images/default-product.jpeg';
+                                    }}
                                 />
-                            )}
+                                {isFrameEnabled && (
+                                    <img
+                                        src={optimizeFrameImage(frameOverlayUrl)}
+                                        alt=""
+                                        aria-hidden="true"
+                                        className="absolute inset-0 w-full h-full object-contain pointer-events-none"
+                                    />
+                                )}
+                            </div>
                         </div>
 
                         <div className="flex items-center gap-2 text-xs text-gray-600 bg-white/80 px-3 py-1.5 rounded-full shadow-sm border border-gray-100">

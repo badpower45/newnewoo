@@ -5,73 +5,6 @@ import { ORDER_STATUS_LABELS } from '../../src/config';
 import { TableSkeleton } from '../../components/Skeleton';
 import '../../styles/admin-responsive.css';
 
-const parseShippingInfo = (value: any) => {
-    if (!value) return {};
-    if (typeof value === 'string') {
-        try {
-            return JSON.parse(value);
-        } catch {
-            return {};
-        }
-    }
-    return value;
-};
-
-const normalizeOrderForAdmin = (order: any) => {
-    const shippingInfo = parseShippingInfo(order?.shipping_info || order?.shippingInfo);
-    const unavailableContactMethod =
-        order?.unavailable_contact_method ||
-        order?.unavailableContactMethod ||
-        shippingInfo?.unavailableContactMethod ||
-        shippingInfo?.unavailable_contact_method ||
-        '';
-    const unavailableItems =
-        order?.unavailable_items ||
-        order?.unavailableItems ||
-        shippingInfo?.unavailableItems ||
-        shippingInfo?.unavailable_items ||
-        [];
-
-    return {
-        ...order,
-        shipping_info: shippingInfo,
-        unavailable_contact_method: unavailableContactMethod,
-        unavailable_items: Array.isArray(unavailableItems) ? unavailableItems : []
-    };
-};
-
-const getSubstitutionMeta = (value?: string) => {
-    const rawValue = String(value || '').trim().toLowerCase();
-    const labels: Record<string, string> = {
-        none: 'اتصل بي أولاً',
-        call_me: 'اتصل بي أولاً',
-        contact: 'اتصل بي أولاً',
-        similar: 'استبدل بمنتج مشابه',
-        similar_product: 'استبدل بمنتج مشابه',
-        replace: 'استبدل بمنتج مشابه',
-        replace_with_similar: 'استبدل بمنتج مشابه',
-        cancel: 'إلغاء هذا المنتج',
-        cancel_item: 'إلغاء هذا المنتج',
-        refund: 'إلغاء هذا المنتج',
-        refund_item: 'إلغاء هذا المنتج'
-    };
-
-    if (['similar', 'similar_product', 'replace', 'replace_with_similar'].includes(rawValue)) {
-        return { label: labels[rawValue], className: 'bg-green-100 text-green-700' };
-    }
-    if (['cancel', 'cancel_item', 'refund', 'refund_item'].includes(rawValue)) {
-        return { label: labels[rawValue], className: 'bg-red-100 text-red-700' };
-    }
-    if (['none', 'call_me', 'contact'].includes(rawValue)) {
-        return { label: labels[rawValue], className: 'bg-blue-100 text-blue-700' };
-    }
-
-    return {
-        label: value || 'لم يحدد العميل',
-        className: 'bg-gray-100 text-gray-700'
-    };
-};
-
 const OrdersManager = () => {
     const [orders, setOrders] = useState<any[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -87,11 +20,7 @@ const OrdersManager = () => {
         any: 'أي وسيلة متاحة'
     };
     const getUnavailableContactMethod = (order: any) =>
-        parseShippingInfo(order?.shipping_info || order?.shippingInfo)?.unavailableContactMethod ||
-        parseShippingInfo(order?.shipping_info || order?.shippingInfo)?.unavailable_contact_method ||
-        order?.unavailable_contact_method ||
-        order?.unavailableContactMethod ||
-        '';
+        order?.unavailable_contact_method || order?.unavailableContactMethod || '';
 
     useEffect(() => {
         loadOrders();
@@ -104,9 +33,9 @@ const OrdersManager = () => {
             const data = await api.orders.getAllAdmin();
             console.log('Orders loaded:', data);
             if (data.data) {
-                setOrders(data.data.map(normalizeOrderForAdmin));
+                setOrders(data.data);
             } else if (Array.isArray(data)) {
-                setOrders(data.map(normalizeOrderForAdmin));
+                setOrders(data);
             }
         } catch (error) {
             console.error('Failed to load orders:', error);
@@ -403,71 +332,50 @@ const OrdersManager = () => {
                             <div>
                                 <h3 className="font-bold text-gray-900 mb-3">Order Items</h3>
                                 <div className="border rounded-xl overflow-hidden">
-                                    <div className="sm:hidden divide-y">
-                                        {(selectedOrder.items || []).map((item: any, idx: number) => {
-                                            const substitutionMeta = getSubstitutionMeta(
-                                                item.substitutionPreference || item.substitution_preference
-                                            );
-                                            return (
-                                                <div key={idx} className="p-3 bg-white">
-                                                    <p className="font-semibold text-sm text-gray-900 mb-2">
-                                                        {item.product_name || item.productName || item.name || `Product #${item.product_id || item.productId || item.id}`}
-                                                    </p>
-                                                    <div className="grid grid-cols-2 gap-2 text-xs text-gray-700 mb-2">
-                                                        <p>الكمية: <span className="font-semibold">{item.quantity}</span></p>
-                                                        <p>السعر: <span className="font-semibold">{(item.price || 0).toFixed(2)} EGP</span></p>
-                                                        <p className="col-span-2">الإجمالي: <span className="font-semibold">{((item.price || 0) * item.quantity).toFixed(2)} EGP</span></p>
-                                                    </div>
-                                                    <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${substitutionMeta.className}`}>
-                                                        {substitutionMeta.label}
-                                                    </span>
-                                                </div>
-                                            );
-                                        })}
-                                        <div className="p-3 bg-gray-50 font-bold text-sm text-right">
-                                            الإجمالي: {(Number(selectedOrder.total) || 0).toFixed(2)} EGP
-                                        </div>
-                                    </div>
-
-                                    <div className="hidden sm:block overflow-x-auto">
-                                        <table className="w-full text-sm min-w-[720px]">
-                                            <thead className="bg-gray-50">
-                                                <tr>
-                                                    <th className="px-4 py-3 text-left">Product</th>
-                                                    <th className="px-4 py-3 text-right">Qty</th>
-                                                    <th className="px-4 py-3 text-right">Price</th>
-                                                    <th className="px-4 py-3 text-right">Total</th>
-                                                    <th className="px-4 py-3 text-right">If Unavailable</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y">
-                                                {(selectedOrder.items || []).map((item: any, idx: number) => {
-                                                    const substitutionMeta = getSubstitutionMeta(
-                                                        item.substitutionPreference || item.substitution_preference
-                                                    );
-                                                    return (
-                                                        <tr key={idx}>
-                                                            <td className="px-4 py-3">{item.product_name || item.productName || item.name || `Product #${item.product_id || item.productId || item.id}`}</td>
-                                                            <td className="px-4 py-3 text-right">{item.quantity}</td>
-                                                            <td className="px-4 py-3 text-right">{(item.price || 0).toFixed(2)} EGP</td>
-                                                            <td className="px-4 py-3 text-right font-medium">{((item.price || 0) * item.quantity).toFixed(2)} EGP</td>
-                                                            <td className="px-4 py-3 text-right text-xs">
-                                                                <span className={`px-2 py-1 rounded-full ${substitutionMeta.className}`}>
-                                                                    {substitutionMeta.label}
-                                                                </span>
-                                                            </td>
-                                                        </tr>
-                                                    );
-                                                })}
-                                            </tbody>
-                                            <tfoot className="bg-gray-50 font-bold">
-                                                <tr>
-                                                    <td colSpan={4} className="px-4 py-3 text-right">Total</td>
-                                                    <td className="px-4 py-3 text-right text-lg">{(Number(selectedOrder.total) || 0).toFixed(2)} EGP</td>
-                                                </tr>
-                                            </tfoot>
-                                        </table>
-                                    </div>
+                                    <table className="w-full text-sm">
+                                        <thead className="bg-gray-50">
+                                            <tr>
+                                                <th className="px-4 py-3 text-left">Product</th>
+                                                <th className="px-4 py-3 text-right">Qty</th>
+                                                <th className="px-4 py-3 text-right">Price</th>
+                                                <th className="px-4 py-3 text-right">Total</th>
+                                                <th className="px-4 py-3 text-right">If Unavailable</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y">
+                                            {(selectedOrder.items || []).map((item: any, idx: number) => {
+                                                const subPref = item.substitutionPreference || item.substitution_preference || 'call_me';
+                                                const subLabels: Record<string, string> = {
+                                                    call_me: '📞 اتصل بي',
+                                                    similar_product: '🔄 استبدل',
+                                                    cancel_item: '❌ الغِ'
+                                                };
+                                                return (
+                                                    <tr key={idx}>
+                                                        <td className="px-4 py-3">{item.product_name || item.productName || item.name || `Product #${item.product_id || item.productId || item.id}`}</td>
+                                                        <td className="px-4 py-3 text-right">{item.quantity}</td>
+                                                        <td className="px-4 py-3 text-right">{(item.price || 0).toFixed(2)} EGP</td>
+                                                        <td className="px-4 py-3 text-right font-medium">{((item.price || 0) * item.quantity).toFixed(2)} EGP</td>
+                                                        <td className="px-4 py-3 text-right text-xs">
+                                                            <span className={`px-2 py-1 rounded-full ${
+                                                                subPref === 'call_me' ? 'bg-blue-100 text-blue-700' :
+                                                                subPref === 'similar_product' ? 'bg-green-100 text-green-700' :
+                                                                'bg-red-100 text-red-700'
+                                                            }`}>
+                                                                {subLabels[subPref] || subPref}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                        <tfoot className="bg-gray-50 font-bold">
+                                            <tr>
+                                                <td colSpan={4} className="px-4 py-3 text-right">Total</td>
+                                                <td className="px-4 py-3 text-right text-lg">{(Number(selectedOrder.total) || 0).toFixed(2)} EGP</td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
                                 </div>
                             </div>
                         </div>
