@@ -265,7 +265,7 @@ const LoginPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 py-8" dir="rtl">
+        <div className="h-screen overflow-hidden bg-gray-50 flex flex-col items-center justify-center px-4" dir="rtl">
             <div className="w-full max-w-sm bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
 
                 {/* Logo */}
