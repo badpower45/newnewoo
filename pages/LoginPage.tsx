@@ -265,9 +265,8 @@ const LoginPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-orange-500 flex flex-col items-center justify-center px-4 py-8" dir="rtl">
-            {/* White Card */}
-            <div className="w-full max-w-sm bg-white rounded-3xl shadow-2xl p-8">
+        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4 py-8" dir="rtl">
+            <div className="w-full max-w-sm bg-white rounded-3xl shadow-sm border border-gray-100 p-8">
 
                 {/* Logo */}
                 <div className="text-center mb-6">
