@@ -107,7 +107,7 @@ const CartPage = () => {
         <div className="bg-gray-50 min-h-screen pb-48 md:pb-8 overflow-x-hidden" style={{ touchAction: 'pan-y', overscrollBehaviorX: 'none' }}>
             {/* Header */}
             <div className="bg-white p-4 sticky top-0 z-40 shadow-sm flex items-center relative md:hidden">
-                <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-primary absolute left-4">
+                <button onClick={() => navigate('/')} className="p-2 -ml-2 text-primary absolute left-4">
                     <ChevronLeft size={28} />
                 </button>
                 <h1 className="text-xl font-bold text-gray-900 w-full text-center">عربتي</h1>

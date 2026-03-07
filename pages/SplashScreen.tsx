@@ -1,73 +1,80 @@
-import React, { useEffect, useState, lazy, Suspense } from 'react';
-
-const Lottie = lazy(() => import('lottie-react'));
+import React, { useEffect, useState } from 'react';
 
 interface SplashScreenProps {
     duration?: number;
     onComplete?: () => void;
 }
 
-const SplashScreen: React.FC<SplashScreenProps> = ({ duration = 4000, onComplete }) => {
+const SplashScreen: React.FC<SplashScreenProps> = ({ duration = 3000, onComplete }) => {
     const [fadeOut, setFadeOut] = useState(false);
-    const [animationData, setAnimationData] = useState<any>(null);
 
-    // Load the Lottie animation JSON
-    useEffect(() => {
-        fetch('/welcome-animation.json')
-            .then(res => res.json())
-            .then(data => setAnimationData(data))
-            .catch(err => console.error('Failed to load animation:', err));
-    }, []);
-
-    // Auto-hide splash after animation
     useEffect(() => {
         const timer = setTimeout(() => {
             setFadeOut(true);
             setTimeout(() => onComplete?.(), 400);
         }, duration);
-
         return () => clearTimeout(timer);
     }, [duration, onComplete]);
 
     return (
         <div
-            className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-400 ${
+            className={`fixed inset-0 z-50 flex items-center justify-center bg-orange-500 transition-opacity duration-400 ${
                 fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
             }`}
         >
-            {/* خلفية بيضاء نظيفة */}
-            <div className="absolute inset-0 bg-white" />
+            {/* Spinning ring + logo */}
+            <div className="relative flex items-center justify-center">
+                {/* Outer spinning ring */}
+                <svg
+                    className="absolute"
+                    style={{ width: 220, height: 220, animation: 'splash-spin 2s linear infinite' }}
+                    viewBox="0 0 220 220"
+                    fill="none"
+                >
+                    <circle
+                        cx="110"
+                        cy="110"
+                        r="100"
+                        stroke="white"
+                        strokeWidth="4"
+                        strokeLinecap="round"
+                        strokeDasharray="180 450"
+                        opacity="0.95"
+                    />
+                </svg>
 
-            <div className="relative w-full max-w-md px-6 flex flex-col items-center justify-center">
-                {/* Lottie Animation */}
-                <div className="relative w-72 h-72 max-w-full flex items-center justify-center">
-                    {animationData && (
-                        <Suspense fallback={<div className="w-32 h-32 rounded-full bg-orange-100 animate-pulse" />}>
-                            <Lottie
-                                animationData={animationData}
-                                loop={true}
-                                autoplay={true}
-                                style={{ width: '100%', height: '100%' }}
-                            />
-                        </Suspense>
-                    )}
-                </div>
+                {/* Static outer thin ring */}
+                <svg
+                    className="absolute"
+                    style={{ width: 220, height: 220 }}
+                    viewBox="0 0 220 220"
+                    fill="none"
+                >
+                    <circle
+                        cx="110"
+                        cy="110"
+                        r="100"
+                        stroke="white"
+                        strokeWidth="1"
+                        opacity="0.3"
+                    />
+                </svg>
 
-                {/* Loading bar - بلون البراند البرتقالي */}
-                <div className="mt-6 h-1.5 w-48 rounded-full bg-orange-100 overflow-hidden">
-                    <div
-                        className="h-full rounded-full bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600 splash-loading"
-                        style={{ animationDuration: `${duration}ms` }}
+                {/* Logo image in center */}
+                <div className="w-36 h-36 rounded-full bg-orange-500 flex items-center justify-center p-3">
+                    <img
+                        src="/images/allosh-logo-splash.png"
+                        alt="علوش"
+                        className="w-full h-full object-contain"
                     />
                 </div>
             </div>
 
             <style>{`
-                @keyframes splash-loading {
-                    from { width: 0%; }
-                    to { width: 100%; }
+                @keyframes splash-spin {
+                    from { transform: rotate(0deg); }
+                    to { transform: rotate(360deg); }
                 }
-                .splash-loading { animation: splash-loading linear forwards; }
             `}</style>
         </div>
     );

@@ -133,10 +133,11 @@ const RegisterPage = () => {
 
                 {/* Logo */}
                 <div className="text-center mb-6">
-                    <div className="flex flex-col items-center leading-tight">
-                        <span className="text-5xl font-black text-gray-900 tracking-tight">علوش</span>
-                        <span className="text-xs font-bold text-orange-500 tracking-[0.25em] uppercase mt-1">سوبر ماركت</span>
-                    </div>
+                    <img
+                        src="/images/allosh-logo.png"
+                        alt="علوش"
+                        className="h-20 w-auto mx-auto object-contain"
+                    />
                 </div>
 
                 <h2 className="text-xl font-bold text-gray-900 text-center mb-6">إنشاء حسابك</h2>

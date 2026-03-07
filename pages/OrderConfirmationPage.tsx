@@ -133,11 +133,6 @@ const OrderConfirmationPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Additional Info */}
-        <div className="mt-6 text-center text-sm text-gray-500">
-          <p>🚚 سيتم التواصل معك قريباً لتأكيد موعد التوصيل</p>
-          <p className="mt-2">للاستفسار: <span className="font-bold text-brand-brown">19999</span></p>
-        </div>
       </div>
     </div>
   );

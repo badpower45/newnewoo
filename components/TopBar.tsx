@@ -114,16 +114,12 @@ const TopBar = () => {
                     {/* Logo & Location Row (Mobile) */}
                     <div className="flex items-center justify-between w-full md:w-auto">
                         {/* Logo */}
-                        <Link to="/" className="flex items-center gap-2 group">
-                            <div className="relative flex flex-col px-2.5 py-1.5 rounded-xl border-2 border-transparent group-hover:border-orange-200 group-hover:bg-gradient-to-br group-hover:from-orange-50 group-hover:to-amber-50 transition-all duration-300">
-                                <span className="text-2xl font-black tracking-tight bg-gradient-to-r from-brand-brown via-amber-900 to-brand-brown bg-clip-text text-transparent leading-none drop-shadow-sm">
-                                    علوش
-                                </span>
-                                <span className="text-[10px] font-extrabold text-transparent bg-gradient-to-r from-brand-orange via-orange-500 to-amber-500 bg-clip-text tracking-[0.15em] mt-0.5">
-                                    اسم متنساهوش
-                                </span>
-                                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-orange-400/0 via-amber-400/0 to-orange-500/0 group-hover:from-orange-400/5 group-hover:via-amber-400/10 group-hover:to-orange-500/5 transition-all duration-300"></div>
-                            </div>
+                        <Link to="/" className="flex items-center group">
+                            <img
+                                src="/images/allosh-logo.png"
+                                alt="علوش"
+                                className="h-12 w-auto object-contain group-hover:opacity-90 transition-opacity"
+                            />
                         </Link>
 
                         {/* Mobile Actions - Branch & User Icons */}

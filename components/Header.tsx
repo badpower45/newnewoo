@@ -71,15 +71,11 @@ export default function Header() {
         <div className="flex items-center justify-between gap-8">
           {/* Logo - Aloush Style */}
           <Link to="/" className="flex items-center flex-shrink-0 group cursor-pointer">
-            <div className="relative flex flex-col p-3 rounded-2xl border-2 border-transparent group-hover:border-orange-200 group-hover:bg-gradient-to-br group-hover:from-orange-50 group-hover:to-amber-50 transition-all duration-300 group-hover:shadow-lg group-hover:shadow-orange-100">
-              <span className="text-3xl font-black tracking-tight bg-gradient-to-r from-brand-brown via-amber-900 to-brand-brown bg-clip-text text-transparent leading-none drop-shadow-sm">
-                علوش
-              </span>
-              <span className="text-[11px] font-extrabold text-transparent bg-gradient-to-r from-brand-orange via-orange-500 to-amber-500 bg-clip-text tracking-[0.2em] mt-0.5">
-                اسم متنساهوش
-              </span>
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-orange-400/0 via-amber-400/0 to-orange-500/0 group-hover:from-orange-400/5 group-hover:via-amber-400/10 group-hover:to-orange-500/5 transition-all duration-300"></div>
-            </div>
+            <img
+              src="/images/allosh-logo.png"
+              alt="علوش"
+              className="h-14 w-auto object-contain group-hover:opacity-90 transition-opacity"
+            />
           </Link>
 
           {/* Desktop Navigation & Mega Menu Trigger */}

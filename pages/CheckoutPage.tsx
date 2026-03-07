@@ -567,7 +567,7 @@ export default function CheckoutPage() {
             </div>
 
             {/* Scrollable Content */}
-            <div className="flex-1 pb-28 max-w-lg mx-auto w-full">
+            <div className="flex-1 pb-40 max-w-lg mx-auto w-full">
 
                 {/* Map Section */}
                 <div className="w-full h-44 bg-gray-100 relative overflow-hidden">
@@ -598,62 +598,61 @@ export default function CheckoutPage() {
 
                 <div className="px-4 py-4 space-y-4">
 
-                    {/* Address Card */}
+                    {/* Address Card - Dropdown */}
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-                        <div className="flex items-start gap-3">
-                            <div className="mt-0.5 flex-shrink-0">
-                                <div className="w-7 h-7 rounded-full bg-orange-100 flex items-center justify-center">
-                                    <MapPin size={14} className="text-orange-500" />
-                                </div>
+                        <div className="flex items-center gap-2 mb-3">
+                            <div className="w-7 h-7 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                                <MapPin size={14} className="text-orange-500" />
                             </div>
-                            <div className="flex-1 min-w-0">
-                                <p className="font-bold text-gray-900 text-sm truncate">
-                                    {formData.building ? `${formData.building}${formData.governorate ? ` (${formData.governorate})` : ''}` : 'أضف عنوان التوصيل'}
-                                </p>
-                                {formData.street && (
-                                    <p className="text-gray-500 text-xs mt-0.5">
-                                        {formData.street}{formData.floor ? `, د${formData.floor}` : ''}{formData.apartment ? `, ش${formData.apartment}` : ''}
-                                    </p>
-                                )}
-                                {formData.address && <p className="text-gray-400 text-xs mt-0.5 truncate">{formData.address}</p>}
-                                {formData.phone && <p className="text-gray-500 text-xs mt-1">📱 {formData.phone}</p>}
-                            </div>
-                            <button
-                                onClick={() => setShowAddressForm(!showAddressForm)}
-                                className="text-orange-500 text-sm font-semibold hover:text-orange-600 transition flex-shrink-0"
-                            >
-                                {showAddressForm ? 'إخفاء' : 'تغيير'}
-                            </button>
+                            <span className="text-sm font-bold text-gray-900">عنوان التوصيل</span>
+                            {user && (
+                                <button type="button" onClick={() => navigate('/addresses')} className="mr-auto text-xs text-orange-500 hover:underline">
+                                    + إضافة عنوان
+                                </button>
+                            )}
                         </div>
+
+                        {user ? (
+                            <SavedAddressSelector userId={user.id} onSelect={(address: any) => {
+                                const fullAddressLine = [address.city, address.governorate].filter(Boolean).join(', ');
+                                setFormData(prev => ({
+                                    ...prev,
+                                    phone: address.phone || prev.phone,
+                                    building: address.address_line1 || prev.building,
+                                    street: address.address_line2 || prev.street,
+                                    address: fullAddressLine || address.address_line1 || prev.address,
+                                    governorate: address.governorate || prev.governorate,
+                                    notes: address.address_line2 ? `${address.address_line2}${address.postal_code ? ` - ${address.postal_code}` : ''}` : prev.notes
+                                }));
+                            }} />
+                        ) : (
+                            <p className="text-xs text-gray-500 text-center py-2">سجّل دخولك لاستخدام العناوين المحفوظة</p>
+                        )}
+
+                        {/* Show selected address summary */}
+                        {formData.building && (
+                            <div className="mt-3 pt-3 border-t border-gray-100">
+                                <p className="text-xs text-gray-600 font-medium">
+                                    📍 {formData.building}{formData.governorate ? ` - ${formData.governorate}` : ''}
+                                </p>
+                                {formData.street && <p className="text-xs text-gray-400 mt-0.5">{formData.street}</p>}
+                                {formData.phone && <p className="text-xs text-gray-500 mt-0.5">📱 {formData.phone}</p>}
+                            </div>
+                        )}
+
+                        {/* Manual form toggle for guests or adding new */}
+                        <button
+                            onClick={() => setShowAddressForm(!showAddressForm)}
+                            className="mt-3 w-full text-center text-xs text-gray-400 hover:text-orange-500 transition"
+                        >
+                            {showAddressForm ? '▲ إخفاء النموذج' : '✏️ إدخال عنوان يدوياً'}
+                        </button>
                     </div>
 
-                    {/* Address Form (collapsible) */}
+                    {/* Manual Address Form (collapsible) */}
                     {showAddressForm && (
                         <div className="bg-white rounded-2xl border border-orange-200 shadow-sm p-4 space-y-4">
                             <h3 className="text-sm font-bold text-gray-800 mb-2">تفاصيل التوصيل</h3>
-
-                            {/* Saved Addresses */}
-                            {user && (
-                                <div className="p-3 bg-orange-50 rounded-xl border border-orange-100">
-                                    <div className="flex items-center justify-between mb-2">
-                                        <span className="text-xs font-bold text-gray-700">العناوين المحفوظة</span>
-                                        <button type="button" onClick={() => navigate('/addresses')} className="text-xs text-orange-500 hover:underline">إدارة</button>
-                                    </div>
-                                    <SavedAddressSelector userId={user.id} onSelect={(address: any) => {
-                                        const fullAddressLine = [address.city, address.governorate].filter(Boolean).join(', ');
-                                        setFormData(prev => ({
-                                            ...prev,
-                                            phone: address.phone || prev.phone,
-                                            building: address.address_line1 || prev.building,
-                                            street: address.address_line2 || prev.street,
-                                            address: fullAddressLine || address.address_line1 || prev.address,
-                                            governorate: address.governorate || prev.governorate,
-                                            notes: address.address_line2 ? `${address.address_line2}${address.postal_code ? ` - ${address.postal_code}` : ''}` : prev.notes
-                                        }));
-                                        setShowAddressForm(false);
-                                    }} />
-                                </div>
-                            )}
 
                             <form onSubmit={handleSubmit} className="space-y-3">
                                 <div className="grid grid-cols-2 gap-3">
@@ -738,6 +737,22 @@ export default function CheckoutPage() {
                         </div>
                     )}
 
+                    {/* Items List */}
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+                        <h4 className="text-sm font-bold text-gray-800 mb-3">المنتجات ({items.length})</h4>
+                        <div className="space-y-3">
+                            {items.map((item) => (
+                                <div key={item.id} className="flex items-center gap-3 pb-3 border-b last:border-0 last:pb-0">
+                                    <img src={optimizeProductCardImage(item.image)} alt={item.name} loading="lazy" className="w-14 h-14 object-cover rounded-xl flex-shrink-0" />
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-semibold text-gray-900 truncate">{item.name}</p>
+                                        <p className="text-xs text-gray-500 mt-0.5">x{item.quantity} • {((item.price || 0) * item.quantity).toFixed(2)} ج.م</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
                     {/* Delivery message */}
                     {deliveryMessage && (
                         <div className={`p-3 rounded-xl text-xs font-medium text-center ${freeDelivery ? 'bg-green-50 text-green-700' : !canDeliver ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-700'}`}>
@@ -749,15 +764,6 @@ export default function CheckoutPage() {
                     <div>
                         <h3 className="text-base font-bold text-gray-900 mb-3 px-1">Pay with</h3>
                         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-100">
-                            {/* Add new card */}
-                            <label className="flex items-center gap-3 px-4 py-4 cursor-pointer hover:bg-gray-50 transition">
-                                <input type="radio" name="payment" value="visa" checked={paymentMethod === 'visa'} onChange={(e) => setPaymentMethod(e.target.value)}
-                                    className="w-5 h-5 accent-orange-500 flex-shrink-0" />
-                                <div className="w-8 h-8 rounded-full border-2 border-gray-300 flex items-center justify-center flex-shrink-0">
-                                    <span className="text-gray-400 text-xl font-light leading-none">+</span>
-                                </div>
-                                <span className="text-sm font-medium text-gray-700">Add new card</span>
-                            </label>
                             {/* Cash */}
                             <label className="flex items-center gap-3 px-4 py-4 cursor-pointer hover:bg-gray-50 transition">
                                 <input type="radio" name="payment" value="cod" checked={paymentMethod === 'cod'} onChange={(e) => setPaymentMethod(e.target.value)}
@@ -825,34 +831,6 @@ export default function CheckoutPage() {
                         {barcodeError && <p className="text-xs text-red-600">{barcodeError}</p>}
                     </div>
 
-                    {/* Substitution Preferences */}
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-                        <h4 className="text-sm font-bold text-gray-800 mb-3">تفضيلات الاستبدال</h4>
-                        {needsUnavailableContact && (
-                            <div className="mb-3">
-                                <label className="block text-xs font-semibold text-gray-600 mb-1">طريقة التواصل عند عدم توفر المنتج</label>
-                                <select value={unavailableContactMethod} onChange={(e) => setUnavailableContactMethod(e.target.value)}
-                                    className="w-full px-3 py-2 rounded-xl border border-gray-200 focus:border-orange-400 outline-none text-sm bg-white">
-                                    <option value="phone">اتصال هاتفي</option>
-                                    <option value="whatsapp">واتساب</option>
-                                    <option value="sms">رسالة SMS</option>
-                                    <option value="any">أي وسيلة متاحة</option>
-                                </select>
-                            </div>
-                        )}
-                        <div className="space-y-3">
-                            {items.map((item) => (
-                                <div key={item.id} className="flex items-center gap-3 pb-3 border-b last:border-0 last:pb-0">
-                                    <img src={optimizeProductCardImage(item.image)} alt={item.name} loading="lazy" className="w-12 h-12 object-cover rounded-xl flex-shrink-0" />
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-xs font-medium text-gray-900 truncate">{item.name}</p>
-                                        <SubstitutionSelector value={item.substitutionPreference || 'none'} onChange={(value) => handleSubstitutionChange(item.id, value)} />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
                     {/* Payment Summary */}
                     <div>
                         <h3 className="text-base font-bold text-gray-900 mb-3 px-1">Payment summary</h3>
@@ -905,7 +883,7 @@ export default function CheckoutPage() {
             </div>
 
             {/* Fixed Bottom - Place Order */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 py-4 z-40">
+            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 py-4 z-[110]">
                 <div className="max-w-lg mx-auto">
                     <button
                         onClick={handleSubmit}
