@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext';
 import { useBranch } from '../context/BranchContext';
-import { ArrowLeft, MapPin, Loader, CheckCircle, Tag, X, Map, Gift } from 'lucide-react';
+import { ArrowLeft, MapPin, Loader, CheckCircle, Tag, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import SubstitutionSelector from '../components/SubstitutionSelector';
 import SavedAddressSelector from '../components/SavedAddressSelector';
-import Footer from '../components/Footer';
 import { api } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { API_URL, PAYMENT_METHOD_LABELS } from '../src/config';
@@ -46,6 +45,9 @@ export default function CheckoutPage() {
 
     // 🔒 Prevent duplicate order submission
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Toggle address form
+    const [showAddressForm, setShowAddressForm] = useState(false);
 
     // State for Loyalty Barcode
     const [barcodeInput, setBarcodeInput] = useState('');
@@ -539,590 +541,389 @@ export default function CheckoutPage() {
 
     if (items.length === 0) {
         return (
-            <div className="container mx-auto px-4 py-20 text-center">
-                <p className="text-slate-500 mb-4">No items in cart to checkout.</p>
-                <Link to="/products" className="text-primary font-bold hover:underline">Browse Products</Link>
+            <div className="min-h-screen flex flex-col items-center justify-center px-4 text-center" dir="rtl">
+                <MapPin size={48} className="text-gray-300 mb-4" />
+                <p className="text-gray-500 mb-6 text-lg">لا توجد منتجات في السلة</p>
+                <Link to="/products" className="bg-orange-500 text-white font-bold px-8 py-3 rounded-full hover:bg-orange-600 transition">
+                    تصفح المنتجات
+                </Link>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gray-50 flex flex-col" dir="rtl">
             <ToastContainer />
 
-            {/* Fixed App Bar */}
-            <div className="sticky top-0 z-40 bg-white shadow-md border-b border-gray-200">
-                <div className="container mx-auto px-4 md:px-6 py-4">
-                    <div className="flex items-center justify-between">
-                        <Link to="/cart" className="flex items-center gap-2 text-slate-700 hover:text-brand-orange transition-colors">
-                            <ArrowLeft size={20} className="" />
-                            <span className="font-medium hidden md:inline">العودة للسلة</span>
-                        </Link>
-
-                        <h1 className="text-xl md:text-2xl font-bold text-gray-900">إتمام الطلب</h1>
-
-                        {selectedBranch && (
-                            <div className="flex items-center gap-2 text-sm">
-                                <MapPin size={16} className="text-brand-orange" />
-                                <span className="hidden md:inline font-medium text-gray-700">{selectedBranch.name}</span>
-                            </div>
-                        )}
-                    </div>
+            {/* Header */}
+            <div className="sticky top-0 z-40 bg-white shadow-sm border-b border-gray-100">
+                <div className="flex items-center px-4 py-4 max-w-lg mx-auto w-full">
+                    <Link to="/cart" className="p-2 rounded-full hover:bg-gray-100 transition">
+                        <ArrowLeft size={20} className="text-gray-700" />
+                    </Link>
+                    <h1 className="text-lg font-bold text-gray-900 flex-1 text-center">Checkout</h1>
+                    <div className="w-9" />
                 </div>
             </div>
 
-            <div className="container mx-auto px-4 md:px-6 py-8">
-                <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Form */}
-                    <div className="flex-1 space-y-6">
-                        {/* Delivery Details */}
-                        <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
-                            <h3 className="text-xl font-bold text-slate-800 mb-2">{isPickup ? 'تفاصيل الاستلام من الفرع' : 'تفاصيل التوصيل'}</h3>
-                            {isPickup && (
-                                <p className="text-sm text-green-700 mb-4">لا نحتاج عنوان؛ فقط الاسم ورقم الهاتف، وسيتم تجهيز الطلب في الفرع المحدد.</p>
-                            )}
+            {/* Scrollable Content */}
+            <div className="flex-1 pb-28 max-w-lg mx-auto w-full">
 
-                            {/* Saved Addresses - Show only if NOT pickup */}
-                            {!isPickup && user && (
-                                <div className="mb-6 p-4 bg-purple-50 rounded-xl border border-purple-200">
-                                    <div className="flex items-center justify-between mb-3">
-                                        <h4 className="font-bold text-gray-900">العناوين المحفوظة</h4>
-                                        <button
-                                            type="button"
-                                            onClick={() => navigate('/addresses')}
-                                            className="text-sm text-purple-600 hover:underline font-medium"
-                                        >
-                                            إدارة العناوين
-                                        </button>
+                {/* Map Section */}
+                <div className="w-full h-44 bg-gray-100 relative overflow-hidden">
+                    {locationCoords ? (
+                        <iframe
+                            className="w-full h-full border-0"
+                            src={`https://www.google.com/maps?q=${locationCoords.lat},${locationCoords.lng}&z=15&output=embed`}
+                            loading="lazy"
+                            title="Delivery Location"
+                        />
+                    ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100">
+                            <MapPin size={36} className="text-orange-400 mb-2" />
+                            <p className="text-sm text-gray-500 font-medium">موقع التوصيل</p>
+                            <button
+                                onClick={handleGetLocation}
+                                disabled={isLoadingLocation}
+                                className="mt-2 text-xs text-orange-500 hover:underline font-semibold disabled:opacity-60"
+                            >
+                                {isLoadingLocation ? (
+                                    <span className="flex items-center gap-1"><Loader size={12} className="animate-spin" /> جاري التحديد...</span>
+                                ) : '📍 تحديد موقعي الحالي'}
+                            </button>
+                            {locationError && <p className="text-xs text-red-500 mt-1">{locationError}</p>}
+                        </div>
+                    )}
+                </div>
+
+                <div className="px-4 py-4 space-y-4">
+
+                    {/* Address Card */}
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+                        <div className="flex items-start gap-3">
+                            <div className="mt-0.5 flex-shrink-0">
+                                <div className="w-7 h-7 rounded-full bg-orange-100 flex items-center justify-center">
+                                    <MapPin size={14} className="text-orange-500" />
+                                </div>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="font-bold text-gray-900 text-sm truncate">
+                                    {formData.building ? `${formData.building}${formData.governorate ? ` (${formData.governorate})` : ''}` : 'أضف عنوان التوصيل'}
+                                </p>
+                                {formData.street && (
+                                    <p className="text-gray-500 text-xs mt-0.5">
+                                        {formData.street}{formData.floor ? `, د${formData.floor}` : ''}{formData.apartment ? `, ش${formData.apartment}` : ''}
+                                    </p>
+                                )}
+                                {formData.address && <p className="text-gray-400 text-xs mt-0.5 truncate">{formData.address}</p>}
+                                {formData.phone && <p className="text-gray-500 text-xs mt-1">📱 {formData.phone}</p>}
+                            </div>
+                            <button
+                                onClick={() => setShowAddressForm(!showAddressForm)}
+                                className="text-orange-500 text-sm font-semibold hover:text-orange-600 transition flex-shrink-0"
+                            >
+                                {showAddressForm ? 'إخفاء' : 'تغيير'}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Address Form (collapsible) */}
+                    {showAddressForm && (
+                        <div className="bg-white rounded-2xl border border-orange-200 shadow-sm p-4 space-y-4">
+                            <h3 className="text-sm font-bold text-gray-800 mb-2">تفاصيل التوصيل</h3>
+
+                            {/* Saved Addresses */}
+                            {user && (
+                                <div className="p-3 bg-orange-50 rounded-xl border border-orange-100">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-xs font-bold text-gray-700">العناوين المحفوظة</span>
+                                        <button type="button" onClick={() => navigate('/addresses')} className="text-xs text-orange-500 hover:underline">إدارة</button>
                                     </div>
-                                    <SavedAddressSelector
-                                        userId={user.id}
-                                        onSelect={(address: any) => {
-                                            const fullAddressLine = [
-                                                address.city,
-                                                address.governorate
-                                            ].filter(Boolean).join(', ');
-
-                                            setFormData(prev => ({
-                                                ...prev,
-                                                phone: address.phone || prev.phone,
-                                                building: address.address_line1 || prev.building,
-                                                street: address.address_line2 || prev.street,
-                                                address: fullAddressLine || address.address_line1 || prev.address,
-                                                governorate: address.governorate || prev.governorate,
-                                                notes: address.address_line2 ? `${address.address_line2}${address.postal_code ? ` - ${address.postal_code}` : ''}` : prev.notes
-                                            }));
-                                        }}
-                                    />
+                                    <SavedAddressSelector userId={user.id} onSelect={(address: any) => {
+                                        const fullAddressLine = [address.city, address.governorate].filter(Boolean).join(', ');
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            phone: address.phone || prev.phone,
+                                            building: address.address_line1 || prev.building,
+                                            street: address.address_line2 || prev.street,
+                                            address: fullAddressLine || address.address_line1 || prev.address,
+                                            governorate: address.governorate || prev.governorate,
+                                            notes: address.address_line2 ? `${address.address_line2}${address.postal_code ? ` - ${address.postal_code}` : ''}` : prev.notes
+                                        }));
+                                        setShowAddressForm(false);
+                                    }} />
                                 </div>
                             )}
 
-                            <form onSubmit={handleSubmit} className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-bold text-slate-700">الاسم الأول</label>
-                                        <input
-                                            required
-                                            type="text"
-                                            name="firstName"
-                                            value={formData.firstName}
-                                            onChange={handleInputChange}
-                                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
-                                            placeholder="أحمد"
-                                        />
+                            <form onSubmit={handleSubmit} className="space-y-3">
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-600 mb-1">الاسم الأول</label>
+                                        <input required type="text" name="firstName" value={formData.firstName} onChange={handleInputChange}
+                                            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none text-sm" placeholder="أحمد" />
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-bold text-slate-700">الاسم الأخير</label>
-                                        <input
-                                            required
-                                            type="text"
-                                            name="lastName"
-                                            value={formData.lastName}
-                                            onChange={handleInputChange}
-                                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
-                                            placeholder="محمد"
-                                        />
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-600 mb-1">الاسم الأخير</label>
+                                        <input required type="text" name="lastName" value={formData.lastName} onChange={handleInputChange}
+                                            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none text-sm" placeholder="محمد" />
                                     </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-slate-700">رقم الهاتف</label>
-                                    <input
-                                        required
-                                        type="tel"
-                                        name="phone"
-                                        value={formData.phone}
-                                        onChange={handleInputChange}
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
-                                        placeholder="01xxxxxxxxx"
-                                    />
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1">رقم الهاتف</label>
+                                    <input required type="tel" name="phone" value={formData.phone} onChange={handleInputChange}
+                                        className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none text-sm" placeholder="01xxxxxxxxx" />
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-slate-700">المحافظة <span className="text-red-500">*</span></label>
-                                    <select
-                                        required
-                                        name="governorate"
-                                        value={formData.governorate}
-                                        onChange={handleInputChange}
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all bg-white"
-                                    >
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1">المحافظة <span className="text-red-500">*</span></label>
+                                    <select required name="governorate" value={formData.governorate} onChange={handleInputChange}
+                                        className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none text-sm bg-white">
                                         <option value="">اختر المحافظة</option>
-                                        {governorateOptions.map((gov) => (
-                                            <option key={gov} value={gov}>{gov}</option>
-                                        ))}
+                                        {governorateOptions.map((gov) => <option key={gov} value={gov}>{gov}</option>)}
                                     </select>
-                                    {formData.governorate && (
-                                        <p className="text-xs text-gray-500">
-                                            {formData.governorate === 'بورسعيد' && '🚚 رسوم التوصيل: 25 جنيه'}
-                                            {formData.governorate === 'بور فؤاد' && '🚚 رسوم التوصيل: 30 جنيه'}
-                                            {!['بورسعيد', 'بور فؤاد'].includes(formData.governorate) && '🚚 رسوم التوصيل: 20 جنيه'}
-                                            {totalPrice >= 600 && ' (مجاني للطلبات فوق 600 جنيه)'}
-                                        </p>
-                                    )}
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-bold text-slate-700">اسم العمارة / المبنى <span className="text-red-500">*</span></label>
-                                        <input
-                                            required
-                                            type="text"
-                                            name="building"
-                                            value={formData.building}
-                                            onChange={handleInputChange}
-                                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
-                                            placeholder="مثال: برج النخيل"
-                                        />
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-600 mb-1">العمارة / المبنى <span className="text-red-500">*</span></label>
+                                        <input required type="text" name="building" value={formData.building} onChange={handleInputChange}
+                                            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none text-sm" placeholder="برج النخيل" />
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-bold text-slate-700">اسم الشارع <span className="text-red-500">*</span></label>
-                                        <input
-                                            required
-                                            type="text"
-                                            name="street"
-                                            value={formData.street}
-                                            onChange={handleInputChange}
-                                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
-                                            placeholder="شارع التحرير"
-                                        />
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-600 mb-1">الشارع <span className="text-red-500">*</span></label>
+                                        <input required type="text" name="street" value={formData.street} onChange={handleInputChange}
+                                            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none text-sm" placeholder="شارع التحرير" />
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-bold text-slate-700">الدور <span className="text-gray-400 font-normal">(اختياري)</span></label>
-                                        <input
-                                            type="text"
-                                            name="floor"
-                                            value={formData.floor}
-                                            onChange={handleInputChange}
-                                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
-                                            placeholder="3"
-                                        />
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-600 mb-1">الدور</label>
+                                        <input type="text" name="floor" value={formData.floor} onChange={handleInputChange}
+                                            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none text-sm" placeholder="3" />
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm font-bold text-slate-700">الشقة <span className="text-gray-400 font-normal">(اختياري)</span></label>
-                                        <input
-                                            type="text"
-                                            name="apartment"
-                                            value={formData.apartment}
-                                            onChange={handleInputChange}
-                                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
-                                            placeholder="شقة 5"
-                                        />
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-600 mb-1">الشقة</label>
+                                        <input type="text" name="apartment" value={formData.apartment} onChange={handleInputChange}
+                                            className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none text-sm" placeholder="شقة 5" />
                                     </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-slate-700 flex justify-between items-center">
-                                        <span>تفاصيل العنوان الإضافية <span className="text-red-500">*</span></span>
-                                        {/* Location Button */}
-                                        <button
-                                            type="button"
-                                            onClick={handleGetLocation}
-                                            className="text-xs bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full flex items-center hover:bg-blue-100 transition-colors"
-                                            disabled={isLoadingLocation || isPickup}
-                                        >
-                                            {isLoadingLocation ? <Loader size={12} className="animate-spin ml-1" /> : <MapPin size={12} className="ml-1" />}
-                                            {locationCoords ? 'تم تحديد الموقع ✓' : 'تحديد موقعي الحالي'}
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1 flex justify-between">
+                                        <span>تفاصيل إضافية <span className="text-red-500">*</span></span>
+                                        <button type="button" onClick={handleGetLocation} disabled={isLoadingLocation}
+                                            className="text-xs text-orange-500 hover:underline font-normal disabled:opacity-60">
+                                            {isLoadingLocation ? '...' : locationCoords ? '✓ تم التحديد' : '📍 موقعي'}
                                         </button>
                                     </label>
-
-                                    {locationError && <p className="text-xs text-red-500">{locationError}</p>}
-
-                                    <textarea
-                                        required
-                                        rows={2}
-                                        name="address"
-                                        value={formData.address}
-                                        onChange={handleInputChange}
-                                        className={`w-full px-4 py-3 rounded-xl border ${isPickup ? 'border-dashed border-slate-200 bg-slate-50 text-slate-500' : 'border-slate-200'} focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all`}
-                                        placeholder={isPickup ? 'العنوان غير مطلوب للاستلام من الفرع' : 'علامة مميزة أو تفاصيل إضافية للعنوان...'}
-                                        disabled={isPickup}
-                                    ></textarea>
-
-                                    {locationCoords && (
-                                        <p className="text-xs text-green-600 flex items-center">
-                                            <CheckCircle size={12} className="ml-1" /> تم حفظ الإحداثيات: {locationCoords.lat.toFixed(5)}, {locationCoords.lng.toFixed(5)}
-                                        </p>
-                                    )}
+                                    <textarea required rows={2} name="address" value={formData.address} onChange={handleInputChange}
+                                        className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none text-sm resize-none"
+                                        placeholder="علامة مميزة أو تفاصيل إضافية..." />
                                 </div>
 
-                                {/* Google Maps Link Field */}
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-slate-700 flex items-center gap-2">
-                                        <Map size={16} className="text-blue-600" />
-                                        <span>رابط جوجل مابس (اختياري)</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        name="googleMapsLink"
-                                        value={formData.googleMapsLink}
-                                        onChange={handleInputChange}
-                                        className={`w-full px-4 py-3 rounded-xl border ${isPickup ? 'border-dashed border-slate-200 bg-slate-50 text-slate-500' : 'border-slate-200'} focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none transition-all`}
-                                        placeholder={isPickup ? 'غير مطلوب للاستلام من الفرع' : 'https://www.google.com/maps?q=30.0444,31.2357'}
-                                        disabled={isPickup}
-                                    />
-                                    {!isPickup && (
-                                        <p className="text-xs text-slate-500">
-                                            💡 الصق رابط موقعك من جوجل مابس ليسهل على المندوب الوصول إليك
-                                        </p>
-                                    )}
-                                    {locationCoords && formData.googleMapsLink && (
-                                        <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-xs">
-                                            <p className="text-green-700 font-medium mb-1">✓ تم استخراج الإحداثيات بنجاح</p>
-                                            <p className="text-green-600">
-                                                📍 {formatCoordinates(locationCoords)}
-                                            </p>
-                                        </div>
-                                    )}
+                                <div>
+                                    <label className="block text-xs font-semibold text-gray-600 mb-1">ملاحظات التوصيل</label>
+                                    <textarea rows={2} name="notes" value={formData.notes} onChange={handleInputChange}
+                                        className="w-full px-3 py-2.5 rounded-xl border border-gray-200 focus:border-orange-400 focus:ring-2 focus:ring-orange-100 outline-none text-sm resize-none"
+                                        placeholder="مثال: اتصل قبل الوصول..." />
                                 </div>
 
-                                {/* ملاحظات التوصيل */}
-                                <div className="space-y-2">
-                                    <label className="text-sm font-bold text-slate-700">ملاحظات للتوصيل (اختياري)</label>
-                                    <textarea
-                                        rows={2}
-                                        name="notes"
-                                        value={formData.notes}
-                                        onChange={handleInputChange}
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all"
-                                        placeholder={isPickup ? 'مثال: موعد تقريبي لوصولك للفرع' : 'مثال: من فضلك اتصل قبل الوصول...'}
-                                    ></textarea>
-                                </div>
+                                <button type="button" onClick={() => setShowAddressForm(false)}
+                                    className="w-full bg-orange-500 text-white font-bold py-3 rounded-full hover:bg-orange-600 transition text-sm">
+                                    حفظ العنوان
+                                </button>
                             </form>
                         </div>
+                    )}
 
-                        {/* Payment Method */}
-                        <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
-                            <h3 className="text-xl font-bold text-slate-800 mb-4">طريقة الدفع</h3>
-                            <div className="space-y-3">
-                                {/* Cash on Delivery */}
-                                <label className={`flex items-center p-4 border-2 rounded-xl transition ${!isPickup ? 'cursor-pointer hover:border-green-600' : 'opacity-50 cursor-not-allowed'}`}>
-                                    <input
-                                        type="radio"
-                                        name="payment"
-                                        value="cod"
-                                        checked={paymentMethod === 'cod'}
-                                        onChange={(e) => setPaymentMethod(e.target.value)}
-                                        disabled={isPickup}
-                                        className="w-5 h-5 text-green-600"
-                                    />
-                                    <div className="mr-3">
-                                        <div className="font-medium">{PAYMENT_METHOD_LABELS.cod}</div>
-                                        <div className="text-sm text-slate-500">ادفع نقداً عند استلام الطلب</div>
-                                    </div>
-                                </label>
-
-                                {/* Visa on Delivery */}
-                                <label className={`flex items-center p-4 border-2 rounded-xl transition ${!isPickup ? 'cursor-pointer hover:border-green-600' : 'opacity-50 cursor-not-allowed'}`}>
-                                    <input
-                                        type="radio"
-                                        name="payment"
-                                        value="visa"
-                                        checked={paymentMethod === 'visa'}
-                                        onChange={(e) => setPaymentMethod(e.target.value)}
-                                        disabled={isPickup}
-                                        className="w-5 h-5 text-green-600"
-                                    />
-                                    <div className="mr-3">
-                                        <div className="font-medium">{PAYMENT_METHOD_LABELS.visa}</div>
-                                        <div className="text-sm text-slate-500">سيحضر مندوب التوصيل بماكينة الفيزا</div>
-                                    </div>
-                                </label>
-
-                                {/* Branch Pickup */}
-                                <label className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition ${isPickup ? 'border-green-600 bg-green-50' : 'hover:border-green-600'}`}>
-                                    <input
-                                        type="radio"
-                                        name="payment"
-                                        value="branch_pickup"
-                                        checked={paymentMethod === 'branch_pickup'}
-                                        onChange={(e) => setPaymentMethod(e.target.value)}
-                                        className="w-5 h-5 text-green-600"
-                                    />
-                                    <div className="mr-3">
-                                        <div className="font-medium">{PAYMENT_METHOD_LABELS.branch_pickup}</div>
-                                        <div className="text-sm text-slate-500">احضر للفرع وادفع عند الاستلام</div>
-                                    </div>
-                                </label>
-
-                                {/* Online Card Payment - Paymob (hidden) */}
-
-                                {/* Fawry - Coming Soon */}
-                                <label className="flex items-center p-4 border-2 rounded-xl cursor-pointer hover:border-green-600 transition opacity-50">
-                                    <input
-                                        type="radio"
-                                        name="payment"
-                                        value="fawry"
-                                        disabled
-                                        className="w-5 h-5 text-green-600"
-                                    />
-                                    <span className="mr-3 font-medium">{PAYMENT_METHOD_LABELS.fawry} (قريباً)</span>
-                                </label>
-                            </div>
+                    {/* Delivery message */}
+                    {deliveryMessage && (
+                        <div className={`p-3 rounded-xl text-xs font-medium text-center ${freeDelivery ? 'bg-green-50 text-green-700' : !canDeliver ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-700'}`}>
+                            {deliveryMessage}
                         </div>
+                    )}
 
-                        {/* Substitution Preferences */}
-                        <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-slate-100">
-                            <h3 className="text-xl font-bold text-slate-800 mb-4">تفضيلات الاستبدال</h3>
-                            <div className="space-y-4">
-                                {needsUnavailableContact && (
-                                    <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
-                                        <label className="block text-sm font-bold text-slate-700 mb-2">
-                                            طريقة التواصل في حالة عدم توفر المنتج
-                                        </label>
-                                        <select
-                                            value={unavailableContactMethod}
-                                            onChange={(e) => setUnavailableContactMethod(e.target.value)}
-                                            className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                                        >
-                                            <option value="phone">اتصال هاتفي</option>
-                                            <option value="whatsapp">واتساب</option>
-                                            <option value="sms">رسالة SMS</option>
-                                            <option value="any">أي وسيلة متاحة</option>
-                                        </select>
-                                        <p className="text-xs text-slate-500 mt-2">نستخدمها لو المنتج مش متوفر ونحتاج نرجع لك بسرعة.</p>
-                                    </div>
-                                )}
-                                {items.map((item) => (
-                                    <div key={item.id} className="flex items-center gap-4 pb-4 border-b last:border-0">
-                                        <img src={optimizeProductCardImage(item.image)} alt={item.name} loading="lazy" className="w-16 h-16 object-cover rounded-lg" />
-                                        <div className="flex-1">
-                                            <h4 className="font-medium text-gray-900">{item.name}</h4>
-                                            <SubstitutionSelector
-                                                value={item.substitutionPreference || 'none'}
-                                                onChange={(value) => handleSubstitutionChange(item.id, value)}
-                                            />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                    {/* Pay with */}
+                    <div>
+                        <h3 className="text-base font-bold text-gray-900 mb-3 px-1">Pay with</h3>
+                        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden divide-y divide-gray-100">
+                            {/* Add new card */}
+                            <label className="flex items-center gap-3 px-4 py-4 cursor-pointer hover:bg-gray-50 transition">
+                                <input type="radio" name="payment" value="visa" checked={paymentMethod === 'visa'} onChange={(e) => setPaymentMethod(e.target.value)}
+                                    className="w-5 h-5 accent-orange-500 flex-shrink-0" />
+                                <div className="w-8 h-8 rounded-full border-2 border-gray-300 flex items-center justify-center flex-shrink-0">
+                                    <span className="text-gray-400 text-xl font-light leading-none">+</span>
+                                </div>
+                                <span className="text-sm font-medium text-gray-700">Add new card</span>
+                            </label>
+                            {/* Cash */}
+                            <label className="flex items-center gap-3 px-4 py-4 cursor-pointer hover:bg-gray-50 transition">
+                                <input type="radio" name="payment" value="cod" checked={paymentMethod === 'cod'} onChange={(e) => setPaymentMethod(e.target.value)}
+                                    className="w-5 h-5 accent-orange-500 flex-shrink-0" />
+                                <span className="text-lg flex-shrink-0">💵</span>
+                                <span className="text-sm font-medium text-gray-700">cash</span>
+                            </label>
+                            {/* Branch Pickup */}
+                            <label className="flex items-center gap-3 px-4 py-4 cursor-pointer hover:bg-gray-50 transition">
+                                <input type="radio" name="payment" value="branch_pickup" checked={paymentMethod === 'branch_pickup'} onChange={(e) => setPaymentMethod(e.target.value)}
+                                    className="w-5 h-5 accent-orange-500 flex-shrink-0" />
+                                <span className="text-lg flex-shrink-0">🏪</span>
+                                <span className="text-sm font-medium text-gray-700">استلام من الفرع</span>
+                            </label>
                         </div>
+                    </div>
 
-                        {deliveryMessage && (
-                            <div className={`p-4 rounded-xl mb-4 ${freeDelivery ? 'bg-green-50 text-green-700' :
-                                    !canDeliver ? 'bg-red-50 text-red-700' :
-                                        'bg-blue-50 text-blue-700'
-                                }`}>
-                                <p className="text-sm font-medium text-center">{deliveryMessage}</p>
+                    {/* Coupons & Barcode (compact) */}
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
+                        <h4 className="text-sm font-bold text-gray-800">خصومات وكوبونات</h4>
+                        {/* Coupon */}
+                        {!appliedCoupon ? (
+                            <div className="flex gap-2">
+                                <input type="text" value={couponCode} onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                                    onKeyPress={(e) => e.key === 'Enter' && handleApplyCoupon()}
+                                    placeholder="كود الكوبون" className="flex-1 px-3 py-2 rounded-full border border-gray-200 focus:border-orange-400 outline-none text-sm" />
+                                <button onClick={handleApplyCoupon} disabled={isValidatingCoupon || !couponCode.trim()}
+                                    className="px-4 py-2 bg-orange-500 text-white rounded-full hover:bg-orange-600 disabled:bg-gray-300 transition text-xs font-bold">
+                                    {isValidatingCoupon ? <Loader size={14} className="animate-spin" /> : 'تطبيق'}
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl p-3">
+                                <div className="flex items-center gap-2">
+                                    <Tag size={14} className="text-green-600" />
+                                    <span className="text-sm font-bold text-green-900">{appliedCoupon.code}</span>
+                                    <span className="text-xs text-green-600">-{couponDiscount.toFixed(2)} ج.م</span>
+                                </div>
+                                <button onClick={handleRemoveCoupon} className="text-red-400 hover:text-red-600"><X size={16} /></button>
                             </div>
                         )}
+                        {couponError && <p className="text-xs text-red-600">{couponError}</p>}
 
-                        <button
-                            onClick={handleSubmit}
-                            disabled={(!isPickup && !canDeliver) || !meetsMinimumOrder || isSubmitting}
-                            className={`w-full font-bold py-4 rounded-xl transition-colors shadow-lg ${(!isPickup && !canDeliver) || !meetsMinimumOrder || isSubmitting
-                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                    : 'bg-green-600 text-white hover:bg-green-700'
-                                }`}
-                        >
-                            {isSubmitting ? (
-                                <span className="flex items-center justify-center gap-2">
-                                    <Loader size={18} className="animate-spin" />
-                                    جاري إنشاء الطلب...
-                                </span>
-                            ) : (!isPickup && !canDeliver) ? 'لا يمكن إتمام الطلب'
-                                : !meetsMinimumOrder
-                                    ? 'الحد الأدنى 200 جنيه'
-                                    : `تأكيد الطلب (${finalTotal.toFixed(2)} جنيه)`}
-                        </button>
+                        {/* Barcode */}
+                        {!appliedBarcode ? (
+                            <div className="flex gap-2">
+                                <input type="text" value={barcodeInput} onChange={(e) => setBarcodeInput(e.target.value.toUpperCase())}
+                                    onKeyPress={(e) => e.key === 'Enter' && handleApplyBarcode()}
+                                    placeholder="باركود الولاء" className="flex-1 px-3 py-2 rounded-full border border-gray-200 focus:border-orange-400 outline-none text-sm font-mono" />
+                                <button onClick={handleApplyBarcode} disabled={isValidatingBarcode || !barcodeInput.trim()}
+                                    className="px-4 py-2 bg-orange-500 text-white rounded-full hover:bg-orange-600 disabled:bg-gray-300 transition text-xs font-bold">
+                                    {isValidatingBarcode ? <Loader size={14} className="animate-spin" /> : 'تطبيق'}
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="flex items-center justify-between bg-orange-50 border border-orange-200 rounded-xl p-3">
+                                <div className="flex items-center gap-2">
+                                    <CheckCircle size={14} className="text-orange-500" />
+                                    <span className="text-sm font-bold text-orange-900 font-mono">{appliedBarcode.barcode}</span>
+                                    <span className="text-xs text-orange-600">-{(Number(barcodeDiscount) || 0).toFixed(2)} ج.م</span>
+                                </div>
+                                <button onClick={handleRemoveBarcode} className="text-red-400 hover:text-red-600"><X size={16} /></button>
+                            </div>
+                        )}
+                        {barcodeError && <p className="text-xs text-red-600">{barcodeError}</p>}
                     </div>
 
-                    {/* Order Summary (Mini) */}
-                    <div className="w-full lg:w-80 flex-shrink-0">
-                        <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200">
-                            <h3 className="text-lg font-bold text-slate-800 mb-4">Order Summary</h3>
-                            <div className="space-y-3 mb-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
-                                {items.map(item => (
-                                    <div key={item.id} className="flex justify-between text-sm">
-                                        <span className="text-slate-600">{item.name || (item as any).title} <span className="text-xs text-slate-400">x{item.quantity}</span></span>
-                                        <span className="font-bold text-slate-800">{((item.price || 0) * item.quantity).toFixed(2)} EGP</span>
-                                    </div>
-                                ))}
+                    {/* Substitution Preferences */}
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+                        <h4 className="text-sm font-bold text-gray-800 mb-3">تفضيلات الاستبدال</h4>
+                        {needsUnavailableContact && (
+                            <div className="mb-3">
+                                <label className="block text-xs font-semibold text-gray-600 mb-1">طريقة التواصل عند عدم توفر المنتج</label>
+                                <select value={unavailableContactMethod} onChange={(e) => setUnavailableContactMethod(e.target.value)}
+                                    className="w-full px-3 py-2 rounded-xl border border-gray-200 focus:border-orange-400 outline-none text-sm bg-white">
+                                    <option value="phone">اتصال هاتفي</option>
+                                    <option value="whatsapp">واتساب</option>
+                                    <option value="sms">رسالة SMS</option>
+                                    <option value="any">أي وسيلة متاحة</option>
+                                </select>
                             </div>
-
-                            <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-xl">
-                                <div className="flex items-center justify-between">
-                                    <div className="text-sm text-purple-800 font-semibold">ستربح {loyaltyPointsEarned} نقطة من هذا الطلب</div>
-                                    <Gift size={18} className="text-purple-600" />
-                                </div>
-                                {(!user || user.isGuest) && (
-                                    <p className="text-xs text-purple-700 mt-2">سجّل دخولك ليتم حفظ نقاطك تلقائياً واستخدامها كخصومات لاحقاً.</p>
-                                )}
-                            </div>
-
-                            {/* مربع الكوبون */}
-                            <div className="mb-4 border-t border-slate-200 pt-4">
-                                <label className="text-sm font-bold text-slate-700 mb-2 block">كوبون الخصم</label>
-                                {!appliedCoupon ? (
-                                    <div className="space-y-2">
-                                        <div className="flex gap-2">
-                                            <input
-                                                type="text"
-                                                value={couponCode}
-                                                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                                                onKeyPress={(e) => e.key === 'Enter' && handleApplyCoupon()}
-                                                placeholder="أدخل كود الكوبون"
-                                                className="flex-1 px-3 py-2 rounded-lg border border-slate-200 focus:border-green-600 focus:ring-2 focus:ring-green-100 outline-none transition-all text-sm"
-                                            />
-                                            <button
-                                                onClick={handleApplyCoupon}
-                                                disabled={isValidatingCoupon || !couponCode.trim()}
-                                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-1 text-sm font-medium"
-                                            >
-                                                {isValidatingCoupon ? (
-                                                    <Loader size={16} className="animate-spin" />
-                                                ) : (
-                                                    <Tag size={16} />
-                                                )}
-                                                تطبيق
-                                            </button>
-                                        </div>
-                                        {couponError && (
-                                            <p className="text-xs text-red-600">{couponError}</p>
-                                        )}
+                        )}
+                        <div className="space-y-3">
+                            {items.map((item) => (
+                                <div key={item.id} className="flex items-center gap-3 pb-3 border-b last:border-0 last:pb-0">
+                                    <img src={optimizeProductCardImage(item.image)} alt={item.name} loading="lazy" className="w-12 h-12 object-cover rounded-xl flex-shrink-0" />
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-xs font-medium text-gray-900 truncate">{item.name}</p>
+                                        <SubstitutionSelector value={item.substitutionPreference || 'none'} onChange={(value) => handleSubstitutionChange(item.id, value)} />
                                     </div>
-                                ) : (
-                                    <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <Tag size={16} className="text-green-600" />
-                                                <div>
-                                                    <p className="text-sm font-bold text-green-900">{appliedCoupon.code}</p>
-                                                    {appliedCoupon.description && (
-                                                        <p className="text-xs text-green-700">{appliedCoupon.description}</p>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <button
-                                                onClick={handleRemoveCoupon}
-                                                className="text-red-500 hover:text-red-700 p-1"
-                                                title="إزالة الكوبون"
-                                            >
-                                                <X size={16} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* مربع الباركود */}
-                            <div className="mb-4 border-t border-slate-200 pt-4">
-                                <div className="flex items-center justify-between mb-2">
-                                    <label className="text-sm font-bold text-slate-700">باركود الولاء</label>
                                 </div>
-                                {!appliedBarcode ? (
-                                    <div className="space-y-2">
-                                        <div className="flex gap-2">
-                                            <input
-                                                type="text"
-                                                value={barcodeInput}
-                                                onChange={(e) => setBarcodeInput(e.target.value.toUpperCase())}
-                                                onKeyPress={(e) => e.key === 'Enter' && handleApplyBarcode()}
-                                                placeholder="أدخل رمز الباركود"
-                                                className="flex-1 px-3 py-2 rounded-lg border border-slate-200 focus:border-orange-600 focus:ring-2 focus:ring-orange-100 outline-none transition-all text-sm font-mono"
-                                            />
-                                            <button
-                                                onClick={handleApplyBarcode}
-                                                disabled={isValidatingBarcode || !barcodeInput.trim()}
-                                                className="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-1 text-sm font-medium"
-                                            >
-                                                {isValidatingBarcode ? (
-                                                    <Loader size={16} className="animate-spin" />
-                                                ) : (
-                                                    <CheckCircle size={16} />
-                                                )}
-                                                تطبيق
-                                            </button>
-                                        </div>
-                                        {barcodeError && (
-                                            <p className="text-xs text-red-600">{barcodeError}</p>
-                                        )}
-                                    </div>
-                                ) : (
-                                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <CheckCircle size={16} className="text-orange-600" />
-                                                <div>
-                                                    <p className="text-sm font-bold text-orange-900 font-mono">{appliedBarcode.barcode}</p>
-                                                    <p className="text-xs text-orange-700">{appliedBarcode.monetary_value || 0} جنيه</p>
-                                                </div>
-                                            </div>
-                                            <button
-                                                onClick={handleRemoveBarcode}
-                                                className="text-red-500 hover:text-red-700 p-1"
-                                                title="إزالة الباركود"
-                                            >
-                                                <X size={16} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="border-t border-slate-200 pt-4 space-y-2">
-                                <div className="flex justify-between items-center text-sm text-gray-600">
-                                    <span>Subtotal</span>
-                                    <span>{totalPrice.toFixed(2)} EGP</span>
-                                </div>
-                                <div className="flex justify-between items-center text-sm text-gray-600">
-                                    <span>Service Tax</span>
-                                    <span>{serviceFee.toFixed(2)} EGP</span>
-                                </div>
-                                <div className="flex justify-between items-center text-sm text-gray-600">
-                                    <span>{isPickup ? 'Pickup' : 'Delivery'}</span>
-                                    <span className={freeDelivery ? 'text-green-600 font-bold' : ''}>
-                                        {freeDelivery ? 'FREE!' : `${deliveryFee.toFixed(2)} EGP`}
-                                    </span>
-                                </div>
-                                {couponDiscount > 0 && (
-                                    <div className="flex justify-between items-center text-sm text-green-600 font-medium">
-                                        <span>Coupon Discount</span>
-                                        <span>-{couponDiscount.toFixed(2)} EGP</span>
-                                    </div>
-                                )}
-                                {barcodeDiscount > 0 && (
-                                    <div className="flex justify-between items-center text-sm text-orange-600 font-medium">
-                                        <span>Barcode Discount</span>
-                                        <span>-{(Number(barcodeDiscount) || 0).toFixed(2)} EGP</span>
-                                    </div>
-                                )}
-                                <div className="flex justify-between items-center pt-2 border-t border-gray-200">
-                                    <span className="font-bold text-slate-800">Total</span>
-                                    <span className="font-bold text-xl text-primary">{(finalTotal).toFixed(2)} EGP</span>
-                                </div>
-                                {!meetsMinimumOrder && (
-                                    <p className="text-xs text-red-600 pt-1">الحد الأدنى للطلب 200 جنيه - أضف منتجات أكثر لإكمال الطلب</p>
-                                )}
-                            </div>
+                            ))}
                         </div>
                     </div>
+
+                    {/* Payment Summary */}
+                    <div>
+                        <h3 className="text-base font-bold text-gray-900 mb-3 px-1">Payment summary</h3>
+                        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3">
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm text-gray-500">Order amount</span>
+                                <span className="text-sm text-gray-900 font-medium">{totalPrice.toFixed(2)} ج.م</span>
+                            </div>
+                            {serviceFee > 0 && (
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-gray-500">Service Tax</span>
+                                    <span className="text-sm text-gray-900 font-medium">{serviceFee.toFixed(2)} ج.م</span>
+                                </div>
+                            )}
+                            <div className="flex justify-between items-center">
+                                <span className="text-sm text-gray-500">Delivery Fee</span>
+                                <span className={`text-sm font-medium ${freeDelivery ? 'text-green-600' : 'text-gray-900'}`}>
+                                    {freeDelivery ? 'FREE' : `${deliveryFee.toFixed(2)} ج.م`}
+                                </span>
+                            </div>
+                            {couponDiscount > 0 && (
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-green-600">Coupon Discount</span>
+                                    <span className="text-sm text-green-600 font-medium">-{couponDiscount.toFixed(2)} ج.م</span>
+                                </div>
+                            )}
+                            {barcodeDiscount > 0 && (
+                                <div className="flex justify-between items-center">
+                                    <span className="text-sm text-orange-600">Barcode Discount</span>
+                                    <span className="text-sm text-orange-600 font-medium">-{(Number(barcodeDiscount) || 0).toFixed(2)} ج.م</span>
+                                </div>
+                            )}
+                            {loyaltyPointsEarned > 0 && (
+                                <div className="flex justify-between items-center text-purple-600">
+                                    <span className="text-xs">نقاط الولاء المكتسبة 🎁</span>
+                                    <span className="text-xs font-medium">{loyaltyPointsEarned} نقطة</span>
+                                </div>
+                            )}
+                            <div className="border-t border-dashed border-gray-200 pt-3 flex justify-between items-center">
+                                <span className="text-sm text-gray-700 font-semibold">Total Payment</span>
+                                <span className="text-xl font-black text-gray-900">{finalTotal.toFixed(2)}</span>
+                            </div>
+                            {!meetsMinimumOrder && (
+                                <p className="text-xs text-red-600 text-center">الحد الأدنى للطلب {MINIMUM_ORDER_AMOUNT} ج.م</p>
+                            )}
+                        </div>
+                    </div>
+
                 </div>
             </div>
-            <Footer />
+
+            {/* Fixed Bottom - Place Order */}
+            <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 py-4 z-40">
+                <div className="max-w-lg mx-auto">
+                    <button
+                        onClick={handleSubmit}
+                        disabled={(!isPickup && !canDeliver) || !meetsMinimumOrder || isSubmitting}
+                        className="w-full bg-orange-500 text-white font-bold py-4 rounded-full hover:bg-orange-600 active:bg-orange-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed text-base shadow-lg shadow-orange-200"
+                    >
+                        {isSubmitting ? (
+                            <span className="flex items-center justify-center gap-2">
+                                <Loader size={18} className="animate-spin" />
+                                جاري إنشاء الطلب...
+                            </span>
+                        ) : (!isPickup && !canDeliver) ? 'لا يمكن إتمام الطلب'
+                            : !meetsMinimumOrder ? `الحد الأدنى ${MINIMUM_ORDER_AMOUNT} ج.م`
+                            : 'Place order'}
+                    </button>
+                </div>
+            </div>
         </div>
     );
 }
+
