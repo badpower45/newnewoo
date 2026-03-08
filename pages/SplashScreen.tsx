@@ -18,7 +18,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ duration = 3000, onComplete
 
     return (
         <div
-            className={`fixed inset-0 z-50 flex items-center justify-center bg-orange-500 transition-opacity duration-400 ${
+            className={`fixed inset-0 z-50 flex items-center justify-center bg-white transition-opacity duration-400 ${
                 fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
             }`}
         >
@@ -35,7 +35,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ duration = 3000, onComplete
                         cx="110"
                         cy="110"
                         r="100"
-                        stroke="white"
+                        stroke="#f97316"
                         strokeWidth="4"
                         strokeLinecap="round"
                         strokeDasharray="180 450"
@@ -54,14 +54,14 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ duration = 3000, onComplete
                         cx="110"
                         cy="110"
                         r="100"
-                        stroke="white"
+                        stroke="#f97316"
                         strokeWidth="1"
                         opacity="0.3"
                     />
                 </svg>
 
                 {/* Logo image in center */}
-                <div className="w-36 h-36 rounded-full bg-orange-500 flex items-center justify-center p-3">
+                <div className="w-36 h-36 rounded-full bg-white flex items-center justify-center p-3">
                     <img
                         src="/images/allosh-logo-splash.png"
                         alt="علوش"

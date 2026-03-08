@@ -133,7 +133,7 @@ const RegisterPage = () => {
                 {/* Logo */}
                 <div className="text-center mb-6">
                     <img
-                        src="/images/allosh-logo.png"
+                        src="/images/allosh-logo-auth.png"
                         alt="علوش"
                         className="h-20 w-auto mx-auto object-contain"
                     />
