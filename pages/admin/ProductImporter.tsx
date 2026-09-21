@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Upload, Download, FileSpreadsheet, CheckCircle, XCircle, AlertCircle, Loader, Eye, Trash2, RefreshCw, ArrowRight, Sparkles } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Upload, Download, FileSpreadsheet, CheckCircle, XCircle, AlertCircle, Loader, Eye, Trash2, RefreshCw, ArrowRight, Sparkles, Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
 import { API_URL } from '../../src/config';
@@ -70,7 +70,29 @@ const ProductImporter: React.FC = () => {
     const [editedProduct, setEditedProduct] = useState<Partial<DraftProduct>>({});
     const [savingId, setSavingId] = useState<number | null>(null);
     const [recentBatches, setRecentBatches] = useState<any[]>([]);
+    const [previewPage, setPreviewPage] = useState(1);
+    const [previewPageSize, setPreviewPageSize] = useState(25);
+    const [previewSearch, setPreviewSearch] = useState('');
     const navigate = useNavigate();
+
+    // فلترة وبحث سريع في المسودات
+    const filteredDrafts = useMemo(() => {
+        if (!previewSearch.trim()) return draftProducts;
+        const q = previewSearch.trim().toLowerCase();
+        return draftProducts.filter(p => 
+            (p.name && p.name.toLowerCase().includes(q)) ||
+            (p.barcode && String(p.barcode).toLowerCase().includes(q)) ||
+            (p.brand_name && p.brand_name.toLowerCase().includes(q)) ||
+            (p.category && p.category.toLowerCase().includes(q))
+        );
+    }, [draftProducts, previewSearch]);
+
+    const totalPages = previewPageSize === 0 ? 1 : Math.ceil(filteredDrafts.length / previewPageSize) || 1;
+    const paginatedDrafts = useMemo(() => {
+        if (previewPageSize === 0) return filteredDrafts;
+        const start = (previewPage - 1) * previewPageSize;
+        return filteredDrafts.slice(start, start + previewPageSize);
+    }, [filteredDrafts, previewPage, previewPageSize]);
 
     // تحميل آخر الدفعات المرفوعة عند فتح الصفحة
     useEffect(() => {
@@ -809,10 +831,16 @@ const ProductImporter: React.FC = () => {
             {/* Draft Products Preview */}
             {draftProducts.length > 0 && (
                 <div className="bg-white rounded-xl shadow-md p-6 mt-6">
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-xl font-bold text-gray-900">
-                            معاينة المنتجات المستوردة ({draftProducts.length})
-                        </h3>
+                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+                        <div>
+                            <h3 className="text-xl font-bold text-gray-900">
+                                معاينة المنتجات المستوردة ({draftProducts.length})
+                            </h3>
+                            <p className="text-sm text-gray-500 mt-1">
+                                معروض الآن {paginatedDrafts.length} من أصل {filteredDrafts.length} منتج
+                                {previewSearch && <span className="text-blue-600 font-medium mr-1">(مفلتر حسب: "{previewSearch}")</span>}
+                            </p>
+                        </div>
                         <button
                             onClick={publishAllProducts}
                             disabled={publishing}
@@ -830,6 +858,40 @@ const ProductImporter: React.FC = () => {
                                 </>
                             )}
                         </button>
+                    </div>
+
+                    {/* Filter & Page Size Bar */}
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-gray-50 p-4 rounded-xl mb-4 border border-gray-200">
+                        <div className="relative w-full sm:w-80">
+                            <Search className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                            <input
+                                type="text"
+                                placeholder="بحث بالاسم، الباركود، أو البراند..."
+                                value={previewSearch}
+                                onChange={(e) => {
+                                    setPreviewSearch(e.target.value);
+                                    setPreviewPage(1);
+                                }}
+                                className="w-full pl-3 pr-9 py-2 text-sm bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-sm"
+                            />
+                        </div>
+
+                        <div className="flex items-center gap-3 w-full sm:w-auto justify-between sm:justify-end text-sm">
+                            <span className="text-gray-600 font-medium whitespace-nowrap">عرض في الصفحة:</span>
+                            <select
+                                value={previewPageSize}
+                                onChange={(e) => {
+                                    setPreviewPageSize(Number(e.target.value));
+                                    setPreviewPage(1);
+                                }}
+                                className="bg-white border border-gray-300 rounded-lg px-3 py-1.5 font-medium text-gray-700 focus:ring-2 focus:ring-blue-500 shadow-sm"
+                            >
+                                <option value={25}>25 منتج</option>
+                                <option value={50}>50 منتج</option>
+                                <option value={100}>100 منتج</option>
+                                <option value={0}>عرض الكل ({draftProducts.length})</option>
+                            </select>
+                        </div>
                     </div>
 
                     {loadingDrafts ? (
@@ -855,9 +917,10 @@ const ProductImporter: React.FC = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
-                                    {draftProducts.map((product, index) => {
+                                    {paginatedDrafts.map((product, pIndex) => {
                                         const isEditing = editingId === product.id;
                                         const displayProduct = isEditing ? editedProduct : product;
+                                        const index = previewPageSize === 0 ? pIndex : ((previewPage - 1) * previewPageSize + pIndex);
                                         
                                         return (
                                             <tr key={product.id} className={`hover:bg-gray-50 ${isEditing ? 'bg-blue-50' : ''}`}>
@@ -875,7 +938,8 @@ const ProductImporter: React.FC = () => {
                                                         <img 
                                                             src={product.image || '/placeholder.png'} 
                                                             alt={product.name}
-                                                            className="w-12 h-12 object-cover rounded"
+                                                            loading="lazy"
+                                                            className="w-12 h-12 object-cover rounded shadow-sm"
                                                             onError={(e) => {
                                                                 (e.target as HTMLImageElement).src = '/placeholder.png';
                                                             }}
@@ -1018,6 +1082,57 @@ const ProductImporter: React.FC = () => {
                                     })}
                                 </tbody>
                             </table>
+                        </div>
+                    )}
+
+                    {/* Pagination Controls */}
+                    {previewPageSize > 0 && totalPages > 1 && (
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 pt-4 border-t border-gray-200">
+                            <div className="text-sm text-gray-600 font-medium">
+                                عرض من <span className="font-bold text-gray-900">{(previewPage - 1) * previewPageSize + 1}</span> إلى{' '}
+                                <span className="font-bold text-gray-900">
+                                    {Math.min(previewPage * previewPageSize, filteredDrafts.length)}
+                                </span>{' '}
+                                من إجمالي <span className="font-bold text-gray-900">{filteredDrafts.length}</span> منتج
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setPreviewPage(prev => Math.max(1, prev - 1))}
+                                    disabled={previewPage === 1}
+                                    className="p-2 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-transparent transition"
+                                    title="الصفحة السابقة"
+                                >
+                                    <ChevronRight className="w-5 h-5 text-gray-700" />
+                                </button>
+
+                                <div className="flex items-center gap-1 text-sm font-medium text-gray-700">
+                                    <span>صفحة</span>
+                                    <input
+                                        type="number"
+                                        min={1}
+                                        max={totalPages}
+                                        value={previewPage}
+                                        onChange={(e) => {
+                                            const p = parseInt(e.target.value, 10);
+                                            if (!isNaN(p) && p >= 1 && p <= totalPages) {
+                                                setPreviewPage(p);
+                                            }
+                                        }}
+                                        className="w-14 text-center py-1 border border-gray-300 rounded-lg font-bold text-blue-600"
+                                    />
+                                    <span>من {totalPages}</span>
+                                </div>
+
+                                <button
+                                    onClick={() => setPreviewPage(prev => Math.min(totalPages, prev + 1))}
+                                    disabled={previewPage === totalPages}
+                                    className="p-2 border border-gray-300 rounded-lg hover:bg-gray-100 disabled:opacity-40 disabled:hover:bg-transparent transition"
+                                    title="الصفحة التالية"
+                                >
+                                    <ChevronLeft className="w-5 h-5 text-gray-700" />
+                                </button>
+                            </div>
                         </div>
                     )}
 
