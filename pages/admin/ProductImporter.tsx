@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Download, FileSpreadsheet, CheckCircle, XCircle, AlertCircle, Loader, Eye } from 'lucide-react';
+import { Upload, Download, FileSpreadsheet, CheckCircle, XCircle, AlertCircle, Loader, Eye, Trash2, RefreshCw, ArrowRight, Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../../services/api';
 import { API_URL } from '../../src/config';
@@ -8,6 +8,8 @@ interface ImportResult {
     success: boolean;
     message: string;
     imported: number;
+    updated?: number;
+    successCount?: number;
     failed: number;
     total: number;
     batchId?: string;
@@ -15,6 +17,7 @@ interface ImportResult {
     autoPublished?: boolean;
     details: {
         imported: any[];
+        updated?: any[];
         validationErrors: any[];
         importErrors: any[];
     };
@@ -38,12 +41,30 @@ interface DraftProduct {
 const ProductImporter: React.FC = () => {
     const [file, setFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);
+    const [uploadStep, setUploadStep] = useState<number>(0);
     const [result, setResult] = useState<ImportResult | null>(null);
     const [dragActive, setDragActive] = useState(false);
     const [settingUp, setSettingUp] = useState(false);
+    const [wiping, setWiping] = useState(false);
     const [draftProducts, setDraftProducts] = useState<DraftProduct[]>([]);
     const [loadingDrafts, setLoadingDrafts] = useState(false);
     const [publishing, setPublishing] = useState(false);
+    const [publishModalOpen, setPublishModalOpen] = useState(false);
+    const [publishProgress, setPublishProgress] = useState<{
+        total: number;
+        current: number;
+        percent: number;
+        isPublishing: boolean;
+        done: boolean;
+        message: string;
+    }>({
+        total: 0,
+        current: 0,
+        percent: 0,
+        isPublishing: false,
+        done: false,
+        message: ''
+    });
     const [autoPublish, setAutoPublish] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
     const [editedProduct, setEditedProduct] = useState<Partial<DraftProduct>>({});
@@ -94,6 +115,40 @@ const ProductImporter: React.FC = () => {
             alert('❌ حدث خطأ أثناء الإعداد');
         } finally {
             setSettingUp(false);
+        }
+    };
+
+    const handleWipeProducts = async () => {
+        if (!confirm('⚠️ تحذير شديد الأهمية:\nهل أنت متأكد من رغبتك في مسح كافة المنتجات والمسودات من الموقع وقاعدة البيانات؟\n(سيتم الحفاظ على التصنيفات والبراندات وحسابات المستخدمين)')) {
+            return;
+        }
+        const confirmation = prompt('لتأكيد الحذف النهائي، اكتب كلمة "مسح" في المربع أدناه:');
+        if (confirmation !== 'مسح') {
+            alert('تم إلغاء عملية المسح.');
+            return;
+        }
+        setWiping(true);
+        try {
+            const response = await fetch(`${API_URL}/products/admin-wipe-all-products`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            const data = await response.json();
+            if (response.ok && data.success) {
+                alert('✅ ' + data.message);
+                setDraftProducts([]);
+                setResult(null);
+                loadRecentBatches();
+            } else {
+                alert('❌ فشل المسح: ' + (data.error || data.message));
+            }
+        } catch (err) {
+            console.error('Wipe error:', err);
+            alert('❌ حدث خطأ أثناء تنفيذ المسح');
+        } finally {
+            setWiping(false);
         }
     };
 
@@ -167,9 +222,13 @@ const ProductImporter: React.FC = () => {
         if (!file) return;
 
         setUploading(true);
+        setUploadStep(1); // المرحلة 1: قراءة وتحليل الملف
         setResult(null);
         setDraftProducts([]);
         
+        const stepTimer1 = setTimeout(() => setUploadStep(2), 600); // المرحلة 2: مطابقة التصنيفات والباركود
+        const stepTimer2 = setTimeout(() => setUploadStep(3), 1400); // المرحلة 3: حفظ المسودات للمعاينة
+
         try {
             const formData = new FormData();
             formData.append('file', file);
@@ -182,6 +241,10 @@ const ProductImporter: React.FC = () => {
                 },
                 body: formData
             });
+
+            clearTimeout(stepTimer1);
+            clearTimeout(stepTimer2);
+            setUploadStep(3);
 
             const data = await response.json();
 
@@ -211,6 +274,7 @@ const ProductImporter: React.FC = () => {
             alert('حدث خطأ أثناء رفع الملف');
         } finally {
             setUploading(false);
+            setUploadStep(0);
         }
     };
 
@@ -291,18 +355,29 @@ const ProductImporter: React.FC = () => {
     const publishAllProducts = async () => {
         if (!result?.batchId) return;
 
-        if (!confirm(`هل أنت متأكد من نشر ${draftProducts.length} منتج إلى القائمة الرئيسية؟`)) {
+        if (!confirm(`هل أنت متأكد من نشر ${draftProducts.length} منتج إلى القائمة الرئيسية للمتجر؟`)) {
             return;
         }
 
+        const totalToPublish = draftProducts.length;
+        setPublishProgress({
+            total: totalToPublish,
+            current: 0,
+            percent: 0,
+            isPublishing: true,
+            done: false,
+            message: 'جاري بدء النشر إلى المتجر...'
+        });
+        setPublishModalOpen(true);
         setPublishing(true);
+
         try {
             let totalPublished = 0;
-            let remaining = draftProducts.length;
+            let remaining = totalToPublish;
             let attempts = 0;
-            const batchLimit = 700; // Publish all at once
+            const batchLimit = 100; // Publish 100 products per chunk for smooth progress
 
-            while (remaining > 0 && attempts < 20) {
+            while (remaining > 0 && attempts < 50) {
                 const response = await fetch(
                     `${API_URL}/products/drafts/${result.batchId}/publish-all?limit=${batchLimit}`,
                     {
@@ -318,30 +393,37 @@ const ProductImporter: React.FC = () => {
 
                 if (!response.ok || !data.success) {
                     alert(`❌ فشل النشر: ${data.message || 'حدث خطأ'}`);
-                    return;
+                    break;
                 }
 
-                totalPublished += data.publishedCount || 0;
+                const chunkPublished = data.publishedCount || 0;
+                totalPublished += chunkPublished;
                 remaining = typeof data.remaining === 'number' ? data.remaining : 0;
                 attempts += 1;
 
-                if (remaining > 0 && (data.publishedCount || 0) === 0) {
+                const percent = Math.min(100, Math.round((totalPublished / totalToPublish) * 100));
+                setPublishProgress(prev => ({
+                    ...prev,
+                    current: totalPublished,
+                    percent: percent,
+                    message: `تم نشر ${totalPublished} من ${totalToPublish} منتج (${percent}%)...`
+                }));
+
+                if (remaining === 0 || chunkPublished === 0) {
                     break;
                 }
             }
 
+            setPublishProgress(prev => ({
+                ...prev,
+                current: totalPublished,
+                percent: 100,
+                done: true,
+                message: `تم نشر ${totalPublished} منتج بنجاح إلى المتجر!`
+            }));
+
             if (remaining > 0) {
                 await loadDraftProducts(result.batchId);
-                alert(`✅ تم نشر ${totalPublished} منتج. تبقّى ${remaining} منتج يحتاج مراجعة (غالبًا سعر ناقص أو بيانات غير مكتملة).`);
-                return;
-            }
-
-            alert(`✅ تم نشر ${totalPublished} منتج بنجاح!`);
-            setResult(null);
-            setDraftProducts([]);
-            setFile(null);
-            if (confirm('هل تريد الانتقال إلى صفحة المنتجات؟')) {
-                navigate('/admin/products');
             }
         } catch (err) {
             console.error('Publishing error:', err);
@@ -409,17 +491,26 @@ const ProductImporter: React.FC = () => {
                         <h1 className="text-3xl font-bold text-gray-900 mb-2">استيراد المنتجات من Excel</h1>
                         <p className="text-gray-600">قم برفع ملف Excel يحتوي على بيانات المنتجات لإضافتها دفعة واحدة</p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
+                        <button
+                            onClick={handleWipeProducts}
+                            disabled={wiping}
+                            className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-lg transition-colors font-medium flex items-center gap-2 disabled:opacity-50"
+                            title="مسح جميع المنتجات والمسودات من الموقع للبدء من جديد"
+                        >
+                            {wiping ? <Loader className="w-4 h-4 animate-spin text-red-600" /> : <Trash2 className="w-4 h-4 text-red-600" />}
+                            {wiping ? 'جاري المسح...' : 'مسح المنتجات القديمة'}
+                        </button>
                         <button
                             onClick={exportProducts}
-                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2"
+                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium flex items-center gap-2 shadow-sm"
                         >
                             <Download className="w-4 h-4" />
                             تصدير المنتجات
                         </button>
                         <button
                             onClick={() => navigate('/admin/drafts')}
-                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2"
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium flex items-center gap-2 shadow-sm"
                         >
                             <Eye className="w-4 h-4" />
                             عرض المسودات
@@ -427,7 +518,7 @@ const ProductImporter: React.FC = () => {
                         <button
                             onClick={setupDraftTable}
                             disabled={settingUp}
-                            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium disabled:opacity-50"
+                            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium disabled:opacity-50 shadow-sm"
                         >
                             {settingUp ? 'جاري الإعداد...' : '⚙️ إعداد قاعدة البيانات'}
                         </button>
@@ -536,21 +627,50 @@ const ProductImporter: React.FC = () => {
                             </label>
                         </div>
                         
+                        {uploading && (
+                            <div className="bg-orange-50 border border-orange-200 rounded-xl p-5 text-right space-y-3 animate-pulse">
+                                <div className="flex items-center justify-between text-sm font-semibold text-orange-900">
+                                    <span className="flex items-center gap-2">
+                                        <Loader className="w-4 h-4 animate-spin text-orange-600" />
+                                        جاري فحص وتحليل ملف المنتجات...
+                                    </span>
+                                    <span>المرحلة {uploadStep || 1} من 3</span>
+                                </div>
+                                <div className="w-full bg-orange-200 rounded-full h-2.5 overflow-hidden">
+                                    <div 
+                                        className="bg-orange-600 h-full rounded-full transition-all duration-500"
+                                        style={{ width: uploadStep === 1 ? '33%' : uploadStep === 2 ? '66%' : '95%' }}
+                                    />
+                                </div>
+                                <div className="text-xs text-orange-800 space-y-1 font-medium">
+                                    <p className={uploadStep >= 1 ? 'font-bold text-orange-900' : 'opacity-60'}>
+                                        {uploadStep >= 1 ? '✓' : '•'} المرحلة 1: قراءة وفحص صفوف الإكسيل بدقة
+                                    </p>
+                                    <p className={uploadStep >= 2 ? 'font-bold text-orange-900' : 'opacity-60'}>
+                                        {uploadStep >= 2 ? '✓' : '•'} المرحلة 2: تنظيف الباركود ومطابقة التصنيفات والماركات
+                                    </p>
+                                    <p className={uploadStep >= 3 ? 'font-bold text-orange-900' : 'opacity-60'}>
+                                        {uploadStep >= 3 ? '✓' : '•'} المرحلة 3: تجهيز وحفظ المسودات للمعاينة
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="flex justify-center">
                             <button
                                 onClick={handleUpload}
                                 disabled={uploading}
-                                className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3"
+                                className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-3 shadow-md"
                             >
                                 {uploading ? (
                                     <>
                                         <Loader className="w-5 h-5 animate-spin" />
-                                        جاري الرفع...
+                                        جاري التحليل والحفظ...
                                     </>
                                 ) : (
                                     <>
                                         <Upload className="w-5 h-5" />
-                                        {autoPublish ? 'رفع ونشر المنتجات' : 'رفع وإضافة للمسودات'}
+                                        {autoPublish ? 'رفع ونشر المنتجات مباشرة' : 'رفع وتحليل المنتجات للمعاينة'}
                                     </>
                                 )}
                             </button>
@@ -562,36 +682,68 @@ const ProductImporter: React.FC = () => {
             {/* Results */}
             {result && (
                 <div className="bg-white rounded-xl shadow-md p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">نتائج الاستيراد</h3>
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-semibold text-gray-900">نتائج الاستيراد</h3>
+                        <span className="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full font-medium">
+                            رقم الدفعة: {result.batchId?.slice(0, 8)}...
+                        </span>
+                    </div>
                     
-                    {/* Summary */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                    {/* 4 Summary Cards */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                        {/* 1. إجمالي ملف الإكسيل */}
+                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
                             <div className="flex items-center gap-3">
-                                <CheckCircle className="w-8 h-8 text-green-600" />
+                                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <AlertCircle className="w-6 h-6 text-blue-600" />
+                                </div>
                                 <div>
-                                    <p className="text-2xl font-bold text-green-700">{result.imported}</p>
-                                    <p className="text-sm text-green-600">تم الاستيراد</p>
+                                    <p className="text-2xl font-bold text-blue-800">{result.total}</p>
+                                    <p className="text-xs text-blue-600 font-medium">إجمالي صفوف الملف</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 2. تمت المعالجة بنجاح */}
+                        <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+                            <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <CheckCircle className="w-6 h-6 text-green-600" />
+                                </div>
+                                <div>
+                                    <p className="text-2xl font-bold text-green-800">
+                                        {result.successCount || (result.imported + (result.updated || 0))}
+                                    </p>
+                                    <p className="text-xs text-green-600 font-medium">تمت المعالجة بنجاح</p>
+                                    <span className="text-[11px] text-green-700 font-semibold block mt-0.5">
+                                        ({result.imported} جديد • {result.updated || 0} محدّث)
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 3. المسودات الجاهزة للنشر */}
+                        <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
+                            <div className="flex items-center gap-3">
+                                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <FileSpreadsheet className="w-6 h-6 text-purple-600" />
+                                </div>
+                                <div>
+                                    <p className="text-2xl font-bold text-purple-800">{draftProducts.length}</p>
+                                    <p className="text-xs text-purple-600 font-medium">مسودات جاهزة للنشر</p>
                                 </div>
                             </div>
                         </div>
                         
-                        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                        {/* 4. فشل أو استبعاد */}
+                        <div className="bg-red-50 border border-red-200 rounded-xl p-4">
                             <div className="flex items-center gap-3">
-                                <XCircle className="w-8 h-8 text-red-600" />
-                                <div>
-                                    <p className="text-2xl font-bold text-red-700">{result.failed}</p>
-                                    <p className="text-sm text-red-600">فشل</p>
+                                <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                                    <XCircle className="w-6 h-6 text-red-600" />
                                 </div>
-                            </div>
-                        </div>
-                        
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                            <div className="flex items-center gap-3">
-                                <AlertCircle className="w-8 h-8 text-blue-600" />
                                 <div>
-                                    <p className="text-2xl font-bold text-blue-700">{result.total}</p>
-                                    <p className="text-sm text-blue-600">إجمالي</p>
+                                    <p className="text-2xl font-bold text-red-800">{result.failed}</p>
+                                    <p className="text-xs text-red-600 font-medium">أخطاء استبعاد</p>
                                 </div>
                             </div>
                         </div>
@@ -992,6 +1144,77 @@ const ProductImporter: React.FC = () => {
                     </p>
                 </div>
             </div>
+
+            {/* Live Publishing Progress Modal */}
+            {publishModalOpen && (
+                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-8 text-center border border-gray-100 animate-in fade-in zoom-in duration-200">
+                        {/* Header Icon */}
+                        {!publishProgress.done ? (
+                            <div className="w-20 h-20 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-5 border-4 border-blue-100 shadow-inner">
+                                <Loader className="w-10 h-10 animate-spin" />
+                            </div>
+                        ) : (
+                            <div className="w-20 h-20 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-5 border-4 border-green-100 shadow-sm animate-bounce">
+                                <CheckCircle className="w-12 h-12" />
+                            </div>
+                        )}
+
+                        <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                            {!publishProgress.done ? 'جاري نشر المنتجات إلى المتجر...' : '🎉 تم النشر بنجاح!'}
+                        </h3>
+                        <p className="text-sm text-gray-600 mb-6 font-medium">
+                            {!publishProgress.done
+                                ? 'يتم الآن نقل وتفعيل المنتجات في قاعدة البيانات بدفعات سريعة'
+                                : `تم نشر جميع المنتجات بنجاح (${publishProgress.current} منتج) وأصبحت معروضة الآن في المتجر!`}
+                        </p>
+
+                        {/* Progress Bar */}
+                        <div className="w-full bg-gray-100 rounded-full h-4 mb-3 overflow-hidden shadow-inner p-0.5">
+                            <div 
+                                className="bg-gradient-to-r from-blue-600 via-indigo-500 to-green-500 h-full rounded-full transition-all duration-300 ease-out"
+                                style={{ width: `${publishProgress.percent}%` }}
+                            />
+                        </div>
+
+                        {/* Stats Row */}
+                        <div className="flex justify-between items-center text-xs text-gray-600 font-semibold mb-6 px-1">
+                            <span>
+                                تم معالجة: <strong className="text-gray-900 font-bold">{publishProgress.current}</strong> من <strong className="text-gray-900 font-bold">{publishProgress.total}</strong>
+                            </span>
+                            <span className="text-blue-600 font-bold text-sm">{publishProgress.percent}%</span>
+                        </div>
+
+                        {/* Actions when done */}
+                        {publishProgress.done ? (
+                            <div className="flex gap-3 justify-center pt-2">
+                                <button
+                                    onClick={() => navigate('/admin/products')}
+                                    className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-200 flex items-center gap-2 transition"
+                                >
+                                    <span>الذهاب إلى قائمة المنتجات</span>
+                                    <ArrowRight className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setPublishModalOpen(false);
+                                        setResult(null);
+                                        setDraftProducts([]);
+                                        loadRecentBatches();
+                                    }}
+                                    className="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium transition"
+                                >
+                                    استيراد ملف جديد
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="text-xs text-gray-400 font-medium animate-pulse">
+                                يرجى عدم إغلاق الصفحة حتى اكتمال عملية النشر...
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
